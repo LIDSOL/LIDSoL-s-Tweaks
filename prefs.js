@@ -116,6 +116,10 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
             this._addWorkspaceIndicatorSettings(page);
         }
 
+        if (cat.id === 'shell') {
+            this._addQuickTextSettings(page);
+        }
+
         return page;
     }
 
@@ -276,5 +280,107 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     _addWorkspaceIndicatorSettings(page) {
         const prefs = new WorkspaceIndicatorPrefs(this._settings);
         prefs.populatePage(page);
+    }
+
+    _addQuickTextSettings(page) {
+        const group = new Adw.PreferencesGroup({
+            title: 'Quick Text',
+            description: 'Captura rápida de notas mediante atajo de teclado',
+        });
+
+        const enableSwitch = new Gtk.Switch({
+            valign: Gtk.Align.CENTER,
+            active: this._settings.get_boolean('qt-enabled'),
+        });
+        this._settings.bind('qt-enabled', enableSwitch, 'active', Gio.SettingsBindFlags.DEFAULT);
+        const enableRow = new Adw.ActionRow({
+            title: 'Habilitar Quick Text',
+            subtitle: 'Permite capturar notas rápidas con Ctrl+Super+I',
+        });
+        enableRow.add_suffix(enableSwitch);
+        enableRow.activatable_widget = enableSwitch;
+        group.add(enableRow);
+
+        const multilineSwitch = new Gtk.Switch({
+            valign: Gtk.Align.CENTER,
+            active: this._settings.get_boolean('qt-multiline'),
+        });
+        this._settings.bind('qt-multiline', multilineSwitch, 'active', Gio.SettingsBindFlags.DEFAULT);
+        const multilineRow = new Adw.ActionRow({
+            title: 'Entrada de una sola línea',
+            subtitle: 'Si está activo, Enter guarda la nota directamente',
+        });
+        multilineRow.add_suffix(multilineSwitch);
+        multilineRow.activatable_widget = multilineSwitch;
+        group.add(multilineRow);
+
+        const hideactedSwitch = new Gtk.Switch({
+            valign: Gtk.Align.CENTER,
+            active: this._settings.get_boolean('qt-hideacted'),
+        });
+        this._settings.bind('qt-hideacted', hideactedSwitch, 'active', Gio.SettingsBindFlags.DEFAULT);
+        const hideactedRow = new Adw.ActionRow({
+            title: 'Ocultar notas procesadas',
+            subtitle: 'Oculta notas marcadas como procesadas en la ventana de acciones',
+        });
+        hideactedRow.add_suffix(hideactedSwitch);
+        hideactedRow.activatable_widget = hideactedSwitch;
+        group.add(hideactedRow);
+
+        const hotkeyEntry = new Gtk.Entry({
+            text: this._settings.get_strv('qt-hotkey')[0] || '',
+            valign: Gtk.Align.CENTER,
+        });
+        hotkeyEntry.connect('changed', () => {
+            this._settings.set_strv('qt-hotkey', [hotkeyEntry.get_text()]);
+        });
+        const hotkeyRow = new Adw.ActionRow({
+            title: 'Atajo de teclado',
+            subtitle: 'Combinación para abrir el diálogo de notas',
+            activatable_widget: hotkeyEntry,
+        });
+        hotkeyRow.add_suffix(hotkeyEntry);
+        group.add(hotkeyRow);
+
+        const filepathEntry = new Gtk.Entry({
+            text: this._settings.get_string('qt-filepath'),
+            valign: Gtk.Align.CENTER,
+        });
+        this._settings.bind('qt-filepath', filepathEntry, 'text', Gio.SettingsBindFlags.DEFAULT);
+        const filepathRow = new Adw.ActionRow({
+            title: 'Archivo de notas',
+            subtitle: 'Ruta absoluta al archivo de texto donde se guardarán las notas',
+            activatable_widget: filepathEntry,
+        });
+        filepathRow.add_suffix(filepathEntry);
+        group.add(filepathRow);
+
+        const prependEntry = new Gtk.Entry({
+            text: this._settings.get_string('qt-prepend'),
+            valign: Gtk.Align.CENTER,
+        });
+        this._settings.bind('qt-prepend', prependEntry, 'text', Gio.SettingsBindFlags.DEFAULT);
+        const prependRow = new Adw.ActionRow({
+            title: 'Prefijo',
+            subtitle: 'Texto antes de cada nota (vacío = fecha actual)',
+            activatable_widget: prependEntry,
+        });
+        prependRow.add_suffix(prependEntry);
+        group.add(prependRow);
+
+        const appendEntry = new Gtk.Entry({
+            text: this._settings.get_string('qt-append'),
+            valign: Gtk.Align.CENTER,
+        });
+        this._settings.bind('qt-append', appendEntry, 'text', Gio.SettingsBindFlags.DEFAULT);
+        const appendRow = new Adw.ActionRow({
+            title: 'Separador',
+            subtitle: 'Texto que separa las notas en el archivo',
+            activatable_widget: appendEntry,
+        });
+        appendRow.add_suffix(appendEntry);
+        group.add(appendRow);
+
+        page.add(group);
     }
 }

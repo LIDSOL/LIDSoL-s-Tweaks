@@ -2,6 +2,7 @@
 
 import { PanelCornersModule } from '../modules/panelCorners/module.js';
 import { WorkspaceIndicatorModule } from '../modules/workspaceIndicator/module.js';
+import { QuickTextModule } from '../modules/quickText/module.js';
 
 const REGISTERED_MODULES = [
     {
@@ -15,6 +16,12 @@ const REGISTERED_MODULES = [
         name: 'Workspace Indicator',
         enabledKey: 'workspace-indicator-enabled',
         moduleClass: WorkspaceIndicatorModule
+    },
+    {
+        id: 'quickText',
+        name: 'Quick Text',
+        enabledKey: 'qt-enabled',
+        moduleClass: QuickTextModule
     }
 ];
 

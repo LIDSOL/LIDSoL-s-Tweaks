@@ -353,5 +353,55 @@
       <default>''</default>
     </key>
 
+    <!-- Quick Text -->
+    <key type="b" name="qt-enabled">
+      <default>true</default>
+      <summary>Habilitar Quick Text</summary>
+      <description>Permite capturar notas rápidas mediante atajo de teclado</description>
+    </key>
+
+    <key type="as" name="qt-hotkey">
+      <default><![CDATA[['<Ctrl><Super>i']]]></default>
+      <summary>Atajo para abrir el diálogo</summary>
+    </key>
+
+    <key type="s" name="qt-filepath">
+      <default>"/home/owl/notes.txt"</default>
+      <summary>Ruta del archivo de notas</summary>
+      <description>Ruta absoluta al archivo de texto donde se guardarán las notas</description>
+    </key>
+
+    <key type="s" name="qt-pendlocation">
+      <choices>
+        <choice value="BEG"/>
+        <choice value="END"/>
+      </choices>
+      <default>'BEG'</default>
+      <summary>Posición de la nota</summary>
+      <description>Agregar la nota al principio (BEG) o al final (END) del archivo</description>
+    </key>
+
+    <key type="s" name="qt-append">
+      <default>"-----"</default>
+      <summary>Separador entre notas</summary>
+    </key>
+
+    <key type="s" name="qt-prepend">
+      <default>""</default>
+      <summary>Prefijo de cada nota (vacío = fecha actual)</summary>
+    </key>
+
+    <key type="b" name="qt-multiline">
+      <default>false</default>
+      <summary>Entrada de una sola línea</summary>
+      <description>Si está activo, la entrada es de una línea (Enter guarda la nota)</description>
+    </key>
+
+    <key type="b" name="qt-hideacted">
+      <default>true</default>
+      <summary>Ocultar notas procesadas</summary>
+      <description>Oculta las notas marcadas como procesadas en la ventana de acciones</description>
+    </key>
+
   </schema>
 </schemalist>

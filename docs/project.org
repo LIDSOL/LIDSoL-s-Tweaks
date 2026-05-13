@@ -131,8 +131,11 @@ Aún es neceario escribir la propuesta
   - [ ] Fondo del díalogo
 **** TODO Quick Settings Tweaks
 *****  Aún es necesario escribir la propuesta
-**** TODO Quick Text [0/2] :shell:
-- Descripción:
+**** IN-PROGRESS Quick Text [1/3] :shell:
+- [X] Darle soporte a GNOME 50 e integrar la extensión de LIDSoL's widgets 
+- [ ] Mejorar la configuración de atajos de teclado
+- [ ] Cambiar el orden de los botones Ok, Actions, Cancel
+***** Descripción
   - Un atajo de teclado (Ctrl+Super+i, aunque es personalizable) abre una ventana de diálogo desde la cual podemos escribir texto que se insertará en algún alchivo de texto plano de nuestra preferencia; podemos configurar un prefijo o sufijo al texto insertado. Es útil para tomar notas rápidas, fragmentos de texto y anotar ideas; puede usarse como complemento a cualquier app de notas basada en texto plano. El nombre y la ruta de acceso al archivo de destino deben establecerse antes de utilizar la extensión y el archivo debe existir.
       [[./img/quicktext.png]]
   - Se usa como base el código de la extensión *Quick Text* de *Brainstormtrooper*:
@@ -160,8 +163,8 @@ Aún es neceario escribir la propuesta
     - Se usará como base el código de la extensión [[https://github.com/d-go/quick-settings-avatar][Quick Settings Avatar de d-go]]. 
     - Esta extensión es compatible con GNOME 50, por lo que su integración debería ser sencilla.
   - [ ] ? 
-**** IN-PROGRESS Workspace Indicator [0/5] :topbar:widgets:
-- [ ] Integrar la extensión a LIDSoL's Widgets
+**** IN-PROGRESS Workspace Indicator [1/5] :topbar:widgets:
+- [X] Integrar la extensión a LIDSoL's Widgets
 - [ ] Añadir animaciones de transición entre espacios de trabajo
   - [ ] Animación simiar a la de la píldora nativa
   - [ ] Animación más "agresiva"

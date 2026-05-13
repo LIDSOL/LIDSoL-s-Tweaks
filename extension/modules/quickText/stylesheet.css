@@ -1,0 +1,43 @@
+/* Quick Text Actions Window styles */
+
+.form_area_box {
+    padding: 6px;
+}
+
+.list_box {
+    background: transparent;
+}
+
+.formelementgroup {
+    padding: 4px;
+}
+
+.formrow {
+    margin: 2px 0;
+}
+
+.formelement {
+    margin: 0 4px;
+}
+
+.formlabel {
+    font-weight: 600;
+}
+
+.forminput {
+    min-width: 80px;
+}
+
+.card {
+    border-radius: 8px;
+    margin: 4px 0;
+}
+
+.toolbar {
+    margin: 2px;
+    spacing: 2px;
+}
+
+.spacer {
+    min-height: 8px;
+}

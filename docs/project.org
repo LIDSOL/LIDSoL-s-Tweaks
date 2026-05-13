@@ -34,7 +34,7 @@ La propuesta no consiste en replicar la extensión original, sino en:
 - Documentar formalmente la arquitectura interna y contratos entre módulos.
 ** PROJECT (objetivos específicos) [0%] [0/4]
 *** TODO Ventana de configuración
-*** TODO Core
+*** NEXT Core
 *** TODO Utils
 *** TODO Módulos [0/13]
 **** TODO Backgroud Clock [0/2] :widgets:
@@ -102,7 +102,7 @@ La propuesta no consiste en replicar la extensión original, sino en:
   - [ ] Estilo (ícono o contador)
   - [ ] Máximo de íconos
   - [ ] Visibilidad del contador
-**** TODO Panel Corners [0/1] :topbar:
+**** IN-PROGRESS Panel Corners [0/1] :topbar:
 - Descripción:
   [[./img/panel-corners.png]]
   - Añade esquinas redondeadas en la tob bar.
@@ -154,7 +154,7 @@ La propuesta no consiste en replicar la extensión original, sino en:
     - Se usará como base el código de la extensión [[https://github.com/d-go/quick-settings-avatar][Quick Settings Avatar de d-go]]. 
     - Esta extensión es compatible con GNOME 50, por lo que su integración debería ser sencilla.
   - [ ] ? 
-**** TODO Workspace Indicator [0/0] :topbar:widgets:
+**** NEXT Workspace Indicator [0/0] :topbar:widgets:
 - Descripción
   [[./img/aylurs-workspace.png]]
   - Indicador configurable de espacios de trabajo. Los objetivos generales son:

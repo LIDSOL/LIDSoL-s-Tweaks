@@ -1,13 +1,16 @@
-import {ModuleLoader} from './extension/core/moduleLoader.js';
+'use strict';
 
-export default function init() {
-    const loader = new ModuleLoader();
-    return {
-        enable() {
-            loader.enable();
-        },
-        disable() {
-            loader.disable();
-        },
-    };
+import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
+import { ModuleLoader } from './extension/core/moduleLoader.js';
+
+export default class LidsolWidgetsExtension extends Extension {
+    enable() {
+        this._loader = new ModuleLoader(this);
+        this._loader.enable();
+    }
+
+    disable() {
+        this._loader.disable();
+        this._loader = null;
+    }
 }

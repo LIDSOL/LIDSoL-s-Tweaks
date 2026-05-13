@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema path="/org/gnome/shell/extensions/lidsol-widgets/"
+          id="org.gnome.shell.extensions.lidsol-widgets">
+
+    <!-- Panel Corners -->
+    <key type="b" name="panel-corners-enabled">
+      <default>true</default>
+      <summary>Habilitar esquinas redondeadas del panel</summary>
+      <description>Activa las esquinas redondeadas en la parte inferior del panel</description>
+    </key>
+
+    <key type="b" name="panel-corners">
+      <default>true</default>
+      <summary>Panel Corners</summary>
+      <description>Mostrar esquinas redondeadas en el panel</description>
+    </key>
+
+    <key type="i" name="panel-corner-radius">
+      <default>12</default>
+      <summary>Radio de las esquinas</summary>
+      <description>Radio de las esquinas redondeadas</description>
+    </key>
+
+    <key type="i" name="panel-corner-border-width">
+      <default>0</default>
+      <summary>Ancho del borde</summary>
+      <description>Ancho adicional para las esquinas</description>
+    </key>
+
+    <key type="s" name="panel-corner-background-color">
+      <default>"#000000ff"</default>
+      <summary>Color de fondo</summary>
+      <description>Color de fondo de las esquinas del panel (formato CSS)</description>
+    </key>
+
+    <key type="d" name="panel-corner-opacity">
+      <default>1</default>
+      <summary>Opacidad</summary>
+      <description>Opacidad de las esquinas</description>
+    </key>
+
+    <key type="b" name="screen-corners">
+      <default>true</default>
+      <summary>Screen Corners</summary>
+      <description>Mostrar esquinas redondeadas en las esquinas de la pantalla</description>
+    </key>
+
+    <key type="i" name="screen-corner-radius">
+      <default>12</default>
+      <summary>Radio de las esquinas</summary>
+      <description>Radio de las esquinas redondeadas de la pantalla</description>
+    </key>
+
+    <key type="s" name="screen-corner-background-color">
+      <default>"#000000ff"</default>
+      <summary>Color de fondo</summary>
+      <description>Color de fondo de las esquinas de la pantalla (formato CSS)</description>
+    </key>
+
+    <key type="d" name="screen-corner-opacity">
+      <default>1</default>
+      <summary>Opacidad</summary>
+      <description>Opacidad de las esquinas de la pantalla</description>
+    </key>
+
+    <key type="b" name="force-extension-values">
+      <default>true</default>
+      <summary>Forzar valores de la extensión</summary>
+      <description>Forzar el uso de los valores de la extensión, ignorando el tema</description>
+    </key>
+
+    <key type="b" name="debug">
+      <default>false</default>
+      <summary>Modo debug</summary>
+      <description>Activar modo debug (logs más verbosos)</description>
+    </key>
+
+  </schema>
+</schemalist>

@@ -7,6 +7,7 @@ import GObject from 'gi://GObject';
 import Gio from 'gi://Gio';
 
 import {ExtensionPreferences} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
+import { WorkspaceIndicatorPrefs } from './extension/modules/workspaceIndicator/prefsSettings.js';
 
 const CATEGORIES = [
     {
@@ -110,8 +111,10 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
         });
         page.add(descGroup);
 
-        if (cat.id === 'topbar')
+        if (cat.id === 'topbar') {
             this._addPanelCornersSettings(page);
+            this._addWorkspaceIndicatorSettings(page);
+        }
 
         return page;
     }
@@ -268,5 +271,10 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
         advancedGroup.add(debugRow);
 
         page.add(advancedGroup);
+    }
+
+    _addWorkspaceIndicatorSettings(page) {
+        const prefs = new WorkspaceIndicatorPrefs(this._settings);
+        prefs.populatePage(page);
     }
 }

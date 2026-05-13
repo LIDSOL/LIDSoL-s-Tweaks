@@ -32,11 +32,15 @@ La propuesta no consiste en replicar la extensión original, sino en:
 - Garantizar compatibilidad total con GNOME 50.
 - Validar consumo de CPU y memoria mediante profiling.
 - Documentar formalmente la arquitectura interna y contratos entre módulos.
-** PROJECT (objetivos específicos) [0%] [0/4]
-*** TODO Ventana de configuración
-*** NEXT Core
-*** TODO Utils
-*** TODO Módulos [0/13]
+** PROJECT (objetivos específicos+docs) [0%] [0/4]
+*** IN-PROGRESS Ventana de configuración
+- [ ] Mejorar la organización de los elementos
+- [ ] Mejorar la responsividad
+  - [ ] View Switcher en "ventana grande" y "View Switcher Bar" en ventana pequeña.
+  - [ ] Evitar que el contenido se "pegue" a los switch
+*** IN-PROGRESS Core
+*** IN-PROGRESS Utils
+*** IN-PROGRESS Módulos [0/14]
 **** TODO Backgroud Clock [0/2] :widgets:
 - Descripción
   [[./img/aylurs-clock.png]]
@@ -67,6 +71,8 @@ La propuesta no consiste en replicar la extensión original, sino en:
       [[./img/date-format.png]]
     - Aylur's widgets tiene un componente que permite personalizar esto, también se estudiará la extensión [[https://extensions.gnome.org/extension/4655/date-menu-formatter/][Date Menu Formatter de Marcin Jakubowski]].
   - Compatibilidad: Date Menu Format es compatible hasta GNOME 50.
+**** TODO Dashboard
+Aún es neceario escribir la propuesta
 **** TODO Gnofi [0/0] :shell:
   - Descripción
     - Un launcher extensible, selector, buscador y paleta de comandos para GNOME. Añade un ícono al topbar que despliega el lanzador.
@@ -102,7 +108,7 @@ La propuesta no consiste en replicar la extensión original, sino en:
   - [ ] Estilo (ícono o contador)
   - [ ] Máximo de íconos
   - [ ] Visibilidad del contador
-**** IN-PROGRESS Panel Corners [0/1] :topbar:
+**** IN-PROGRESS Panel Corners [0/2] :topbar:
 - Descripción:
   [[./img/panel-corners.png]]
   - Añade esquinas redondeadas en la tob bar.
@@ -110,7 +116,7 @@ La propuesta no consiste en replicar la extensión original, sino en:
     - [[https://extensions.gnome.org/extension/4805/panel-corners/][Panel Corners (extensions.gnome)]]
     - [[https://github.com/aunetx/panel-corners][Panel Corners (github)]]
   - Esta extensión es _compatible con GNOME 50_, por lo que será fácil de integrar.
-- [ ] ?
+- [ ] Integrar la extensión a LIDSoL's Widgets.
 **** TODO Power Menu [0/1] :shell:
 - Descripción
   - Botón personalizable con diálogo de apagado. Este es de los módulos más simples, por lo que puede ser ideal para implementar al inicio.
@@ -124,7 +130,7 @@ La propuesta no consiste en replicar la extensión original, sino en:
   - [ ] Padding y espaciado
   - [ ] Fondo del díalogo
 **** TODO Quick Settings Tweaks
-*****  
+*****  Aún es necesario escribir la propuesta
 **** TODO Quick Text [0/2] :shell:
 - Descripción:
   - Un atajo de teclado (Ctrl+Super+i, aunque es personalizable) abre una ventana de diálogo desde la cual podemos escribir texto que se insertará en algún alchivo de texto plano de nuestra preferencia; podemos configurar un prefijo o sufijo al texto insertado. Es útil para tomar notas rápidas, fragmentos de texto y anotar ideas; puede usarse como complemento a cualquier app de notas basada en texto plano. El nombre y la ruta de acceso al archivo de destino deben establecerse antes de utilizar la extensión y el archivo debe existir.
@@ -147,22 +153,28 @@ La propuesta no consiste en replicar la extensión original, sino en:
     - [[https://extensions.gnome.org/extension/4356/top-bar-organizer/][Top Bar Organized (extensions.gnome)]]
     - [[https://gitlab.gnome.org/june/top-bar-organizer][Top Bar Organized (gitlab)]]
   - Esta extensión es _compatible hasta GNOME 50_, así que será fácil de integrar. 
-**** TODO User Avatar In QuickSettings [0/1] :quicksettings:
+**** NEXT User Avatar In QuickSettings [0/1] :quicksettings:
   - Descripción
     - Añade el avatar del usuario al Quick Settings, junto a la configuración relacionada con el sistema.
       [[./img/avatar.png]]
     - Se usará como base el código de la extensión [[https://github.com/d-go/quick-settings-avatar][Quick Settings Avatar de d-go]]. 
     - Esta extensión es compatible con GNOME 50, por lo que su integración debería ser sencilla.
   - [ ] ? 
-**** NEXT Workspace Indicator [0/0] :topbar:widgets:
-- Descripción
-  [[./img/aylurs-workspace.png]]
-  - Indicador configurable de espacios de trabajo. Los objetivos generales son:
-    - Ofrecer una alternativa más configurable que la píldora nativa.
-    - Añadir animaciones a spacebar.
-  - Aylur's Widgets tiene un módulo que incorpora un indicador de espacios de trabajo, sin embardo este estaba pensado para GNOME 44. Actualmente este módulo no aporta algo al entorno de escritorio, al ya haber un indicador de espacios de trabajo. Sin embargo se puede usar como base [[https://extensions.gnome.org/extension/5090/space-bar/][SpaceBar de luchrioh]], pero añadiendo animaciones.
-    [[./img/spacebar.png]]
-  - Space Bar es compatible con GNOME 50, por lo que su integración debería ser sencilla.
+**** IN-PROGRESS Workspace Indicator [0/5] :topbar:widgets:
+- [ ] Integrar la extensión a LIDSoL's Widgets
+- [ ] Añadir animaciones de transición entre espacios de trabajo
+  - [ ] Animación simiar a la de la píldora nativa
+  - [ ] Animación más "agresiva"
+- [ ] Añadir una opción para usar el color de acento de GNOME como color de fondo del espacio activo.
+- [ ] Modificar los valores de configuración nativos de Space Bar por otros /más atractivos/
+- [ ] Testing
+***** Descripción
+[[./img/aylurs-workspace.png]]
+- Indicador de espacios de trabajo: ofrece una alternativa más configurable que la píldora nativa. Aylur's Widgets incluye un módulo indicador de espacios de trabajo, pero está diseñado para GNOME 44, en versiones posteriores queda obsoleto ante el indicador nativo con mejor aspecto. Pero, se puede tomar como base la extensión [[https://extensions.gnome.org/extension/5090/space-bar/][SpaceBar de luchrioh]], simplificarla, añadirle animaciones de transición entre espacios de trabajo e integrarla a LIDSoL's Widgets.
+  [[./img/spacebar.png]]
+- Space Bae es compatible con GNOME 50, por lo que su integración debería ser sencilla. 
+***** Documentación
+
 * 2. Arquitectura propuesta
 ** Principios de diseño
 - "Núcleo", centralizar la gestión de señales y la comunicación con la API.

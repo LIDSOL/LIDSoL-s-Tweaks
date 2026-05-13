@@ -1,6 +1,7 @@
 'use strict';
 
 import { PanelCornersModule } from '../modules/panelCorners/module.js';
+import { WorkspaceIndicatorModule } from '../modules/workspaceIndicator/module.js';
 
 const REGISTERED_MODULES = [
     {
@@ -8,6 +9,12 @@ const REGISTERED_MODULES = [
         name: 'Panel Corners',
         enabledKey: 'panel-corners-enabled',
         moduleClass: PanelCornersModule
+    },
+    {
+        id: 'workspaceIndicator',
+        name: 'Workspace Indicator',
+        enabledKey: 'workspace-indicator-enabled',
+        moduleClass: WorkspaceIndicatorModule
     }
 ];
 
@@ -58,7 +65,7 @@ export class ModuleLoader {
         console.log(`[LIDSoL Widgets] Enabling module: ${modInfo.name}`);
         try {
             const moduleInstance = new modInfo.moduleClass();
-            moduleInstance.enable(this._gsettings);
+            moduleInstance.enable(this._gsettings, this._extension);
             this._modules.set(modInfo.id, moduleInstance);
         } catch (e) {
             console.error(`[LIDSoL Widgets] Failed to enable ${modInfo.name}:`, e);

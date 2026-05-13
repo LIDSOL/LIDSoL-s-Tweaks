@@ -76,5 +76,282 @@
       <description>Activar modo debug (logs más verbosos)</description>
     </key>
 
+    <!-- Workspace Indicator (Space Bar) -->
+    <key type="b" name="workspace-indicator-enabled">
+      <default>true</default>
+      <summary>Habilitar indicador de espacios de trabajo</summary>
+      <description>Reemplaza el indicador nativo de espacios de trabajo por uno configurable</description>
+    </key>
+
+    <!-- State -->
+    <key type="i" name="ws-version">
+      <default>0</default>
+    </key>
+    <key type="s" name="ws-workspace-names-map">
+      <default>'{}'</default>
+    </key>
+
+    <!-- Behavior -->
+    <key type="s" name="ws-indicator-style">
+      <choices>
+        <choice value="current-workspace" />
+        <choice value="workspaces-bar" />
+      </choices>
+      <default>"workspaces-bar"</default>
+    </key>
+    <key type="b" name="ws-enable-custom-label">
+      <default>false</default>
+    </key>
+    <key type="b" name="ws-enable-custom-label-in-menu">
+      <default>false</default>
+    </key>
+    <key type="s" name="ws-custom-label-named">
+      <default>'{{name}}'</default>
+    </key>
+    <key type="s" name="ws-custom-label-unnamed">
+      <default>'Workspace {{number}}'</default>
+    </key>
+    <key type="s" name="ws-position">
+      <choices>
+        <choice value="left" />
+        <choice value="center" />
+        <choice value="right" />
+      </choices>
+      <default>"left"</default>
+    </key>
+    <key type="b" name="ws-system-workspace-indicator">
+      <default>false</default>
+    </key>
+    <key type="i" name="ws-position-index">
+      <range min="0" max="100" />
+      <default>1</default>
+    </key>
+    <key type="b" name="ws-always-show-numbers">
+      <default>false</default>
+    </key>
+    <key type="b" name="ws-show-empty-workspaces">
+      <default>true</default>
+    </key>
+    <key type="b" name="ws-toggle-overview">
+      <default>true</default>
+    </key>
+    <key type="s" name="ws-scroll-wheel">
+      <choices>
+        <choice value="panel" />
+        <choice value="workspaces-bar" />
+        <choice value="disabled" />
+      </choices>
+      <default>"panel"</default>
+    </key>
+    <key type="b" name="ws-scroll-wheel-debounce">
+      <default>true</default>
+    </key>
+    <key type="i" name="ws-scroll-wheel-debounce-time">
+      <default>200</default>
+    </key>
+    <key type="s" name="ws-scroll-wheel-vertical">
+      <choices>
+        <choice value="normal" />
+        <choice value="inverted" />
+        <choice value="disabled" />
+      </choices>
+      <default>"normal"</default>
+    </key>
+    <key type="s" name="ws-scroll-wheel-horizontal">
+      <choices>
+        <choice value="normal" />
+        <choice value="inverted" />
+        <choice value="disabled" />
+      </choices>
+      <default>"disabled"</default>
+    </key>
+    <key type="b" name="ws-scroll-wheel-wrap-around">
+      <default>false</default>
+    </key>
+    <key type="b" name="ws-smart-workspace-names">
+      <default>false</default>
+    </key>
+    <key type="b" name="ws-reevaluate-smart-workspace-names">
+      <default>true</default>
+    </key>
+
+    <!-- Shortcuts -->
+    <key type="b" name="ws-enable-activate-workspace-shortcuts">
+      <default>false</default>
+    </key>
+    <key type="b" name="ws-back-and-forth">
+      <default>false</default>
+    </key>
+    <key type="b" name="ws-enable-move-to-workspace-shortcuts">
+      <default>false</default>
+    </key>
+
+    <key type="as" name="ws-move-workspace-left">
+      <default><![CDATA[['<Control><Alt><Super>Left']]]></default>
+    </key>
+    <key type="as" name="ws-move-workspace-right">
+      <default><![CDATA[['<Control><Alt><Super>Right']]]></default>
+    </key>
+    <key type="as" name="ws-activate-previous-key">
+      <default><![CDATA[[]]]></default>
+    </key>
+    <key type="as" name="ws-activate-empty-key">
+      <default><![CDATA[[]]]></default>
+    </key>
+    <key type="as" name="ws-open-menu">
+      <default><![CDATA[['<Super>W']]]></default>
+    </key>
+
+    <key type="as" name="ws-activate-1-key">
+      <default><![CDATA[['<Super>1']]]></default>
+    </key>
+    <key type="as" name="ws-activate-2-key">
+      <default><![CDATA[['<Super>2']]]></default>
+    </key>
+    <key type="as" name="ws-activate-3-key">
+      <default><![CDATA[['<Super>3']]]></default>
+    </key>
+    <key type="as" name="ws-activate-4-key">
+      <default><![CDATA[['<Super>4']]]></default>
+    </key>
+    <key type="as" name="ws-activate-5-key">
+      <default><![CDATA[['<Super>5']]]></default>
+    </key>
+    <key type="as" name="ws-activate-6-key">
+      <default><![CDATA[['<Super>6']]]></default>
+    </key>
+    <key type="as" name="ws-activate-7-key">
+      <default><![CDATA[['<Super>7']]]></default>
+    </key>
+    <key type="as" name="ws-activate-8-key">
+      <default><![CDATA[['<Super>8']]]></default>
+    </key>
+    <key type="as" name="ws-activate-9-key">
+      <default><![CDATA[['<Super>9']]]></default>
+    </key>
+    <key type="as" name="ws-activate-10-key">
+      <default><![CDATA[['<Super>0']]]></default>
+    </key>
+
+    <!-- Appearance -->
+    <key type="i" name="ws-workspaces-bar-padding">
+      <default>12</default>
+    </key>
+    <key type="i" name="ws-workspace-margin">
+      <default>4</default>
+    </key>
+
+    <key type="s" name="ws-active-workspace-background-color">
+      <default>'rgba(255,255,255,0.3)'</default>
+    </key>
+    <key type="s" name="ws-active-workspace-text-color">
+      <default>'rgba(255,255,255,1)'</default>
+    </key>
+    <key type="s" name="ws-active-workspace-border-color">
+      <default>'rgba(0,0,0,0)'</default>
+    </key>
+    <key type="i" name="ws-active-workspace-font-size">
+      <default>-1</default>
+    </key>
+    <key type="s" name="ws-active-workspace-font-weight">
+      <choices>
+        <choice value="100" /><choice value="200" /><choice value="300" />
+        <choice value="400" /><choice value="500" /><choice value="600" />
+        <choice value="700" /><choice value="800" /><choice value="900" />
+      </choices>
+      <default>"700"</default>
+    </key>
+    <key type="i" name="ws-active-workspace-border-radius">
+      <default>4</default>
+    </key>
+    <key type="i" name="ws-active-workspace-border-width">
+      <default>0</default>
+    </key>
+    <key type="i" name="ws-active-workspace-padding-h">
+      <default>8</default>
+    </key>
+    <key type="i" name="ws-active-workspace-padding-v">
+      <default>3</default>
+    </key>
+
+    <key type="s" name="ws-inactive-workspace-background-color">
+      <default>'rgba(0,0,0,0)'</default>
+    </key>
+    <key type="s" name="ws-inactive-workspace-text-color">
+      <default>'rgba(255,255,255,1)'</default>
+    </key>
+    <key type="s" name="ws-inactive-workspace-border-color">
+      <default>'rgba(0,0,0,0)'</default>
+    </key>
+    <key type="i" name="ws-inactive-workspace-font-size">
+      <default>-1</default>
+    </key>
+    <key type="s" name="ws-inactive-workspace-font-weight">
+      <choices>
+        <choice value="100" /><choice value="200" /><choice value="300" />
+        <choice value="400" /><choice value="500" /><choice value="600" />
+        <choice value="700" /><choice value="800" /><choice value="900" />
+      </choices>
+      <default>"700"</default>
+    </key>
+    <key type="i" name="ws-inactive-workspace-border-radius">
+      <default>4</default>
+    </key>
+    <key type="i" name="ws-inactive-workspace-border-width">
+      <default>0</default>
+    </key>
+    <key type="i" name="ws-inactive-workspace-padding-h">
+      <default>8</default>
+    </key>
+    <key type="i" name="ws-inactive-workspace-padding-v">
+      <default>3</default>
+    </key>
+
+    <key type="s" name="ws-empty-workspace-background-color">
+      <default>'rgba(0,0,0,0)'</default>
+    </key>
+    <key type="s" name="ws-empty-workspace-text-color">
+      <default>'rgba(255,255,255,0.5)'</default>
+    </key>
+    <key type="s" name="ws-empty-workspace-border-color">
+      <default>'rgba(0,0,0,0)'</default>
+    </key>
+    <key type="i" name="ws-empty-workspace-font-size">
+      <default>-1</default>
+    </key>
+    <key type="s" name="ws-empty-workspace-font-weight">
+      <choices>
+        <choice value="100" /><choice value="200" /><choice value="300" />
+        <choice value="400" /><choice value="500" /><choice value="600" />
+        <choice value="700" /><choice value="800" /><choice value="900" />
+      </choices>
+      <default>"700"</default>
+    </key>
+    <key type="i" name="ws-empty-workspace-border-radius">
+      <default>4</default>
+    </key>
+    <key type="i" name="ws-empty-workspace-border-width">
+      <default>0</default>
+    </key>
+    <key type="i" name="ws-empty-workspace-padding-h">
+      <default>8</default>
+    </key>
+    <key type="i" name="ws-empty-workspace-padding-v">
+      <default>3</default>
+    </key>
+
+    <key type="s" name="ws-application-styles">
+      <default>''</default>
+    </key>
+    <key type="b" name="ws-custom-styles-enabled">
+      <default>false</default>
+    </key>
+    <key type="b" name="ws-custom-styles-failed">
+      <default>false</default>
+    </key>
+    <key type="s" name="ws-custom-styles">
+      <default>''</default>
+    </key>
+
   </schema>
 </schemalist>

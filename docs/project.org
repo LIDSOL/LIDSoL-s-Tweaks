@@ -1,13 +1,43 @@
 #+TITLE: LIDSoL'S Widgets Proyect
 #+AUTHOR: RamenRoot
 #+DATE: 12-05-2025
-* Introducción
+* 0. Introducción
 Este proyecto aborda la modernización y unificación de múltiples extensiones de GNOME.
-* PROJECT Proyecto [0%] [0/3]
-** TODO Ventana de configuración
-** TODO Core
-** TODO Módulos [0/13]
-*** TODO Backgroud Clock [0/2] :widgets:
+
+El problema central radica en la fragilidad del ecosistema de extensiones, el cual depende de APIs internas sujetas a cambios, esto genera obsolescencia: las actualizaciones del escritorio /pueden romper/ las extensiones.
+
+Para este proyecto se propone estudiar el código de la extensión Aylur's Widgets (sin mantenimiento desde hace más de un par de años y por lo tanto incompatible con las versiones más recientes del escritorio) y de otro puñado de extensiones, con el propósito de modernizarlas y/o unificarlas en una única extensión compatible con GNOME Shell 50.
+
+El resultado final esperado es una extensión con arquitectura modular, que gestione de forma centralizada las señales, con bajo, coplamiento, "lazy loading", optimizada y control explícito del ciclo de vida de cada componente. Su arquitectura debe facilitar su mantenimiento y se validará mediante métricas objetivas de rendimiento y estabilidad.
+
+* 1. Objetivos
+** Objetivos generales
+Diseñar, implementar y mantener una extensión modular para GNOME que reinterprete y modernice los componentes de [[https://extensions.gnome.org/extension/5338/aylurs-widgets/][Aylur's Widgets]] , mediante una arquitectura mantenible, adaptada a los cambios de API de GNOME Shell y GJS.
+[[./img/aylurs.png]]
+La propuesta no consiste en replicar la extensión original, sino en:
+- Evaluar la vigencia funcional de cada componente en GNOME 50.
+- Determinar cuáles han sido reemplazados por mejoras nativas del entorno de escritorio.
+- Rediseñar los módulos bajo principios de modularidad estricta.
+- Optimizar el rendimiento y evitar degradación en animaciones del Shell.
+- Consolidar un backend reutilizable y extensible.
+- Publicar la extensión
+** Objetivos técnicos
+- Separar estrictamente la lógica de negocio y la capa de presentación (UI).
+- Implementar un sistema centralizado de señales.
+- Diseñar e implementar un framework modular interno.
+- Implementar Lazy Loading de módulos
+- Minimizar conflictos con extensiones populares.
+- Diseñar un backen MPRIS unificado y reutilizable.
+- Reducir listeners globales innecesarios y evitar memory leaks.
+- Garantizar compatibilidad total con GNOME 50.
+- Validar consumo de CPU y memoria mediante profiling.
+- Documentar formalmente la arquitectura interna y contratos entre módulos.
+** PROJECT (objetivos específicos) [0%] [0/4]
+*** TODO Ventana de configuración
+*** TODO Core
+*** TODO Utils
+*** TODO Módulos [0/13]
+**** TODO Backgroud Clock [0/2] :widgets:
 - Descripción
   [[./img/aylurs-clock.png]]
   - Widget de reloj superpuesto en el escritorio, similar al comportamiento de [[https://github.com/brndnmtthws/conky][conky]].
@@ -20,7 +50,7 @@ Este proyecto aborda la modernización y unificación de múltiples extensiones 
 - [ ] Mejorar el rendimiento (degradación de rendimiento al ingresar al Overview)
   - [ ] Optimizar renderizado evitando bloqueos en animaciones.
   - [ ] Minimizar impacto en la composición gráfica.
-*** TODO Battery Bar [0/1] :topbar:widgets:
+**** TODO Battery Bar [0/1] :topbar:widgets:
   - Descripción:
     [[./img/aylurs-battery.png]]
     - Indicador alternativo de batería en el Top Bar. Módulo de baja complejidad técnica y alto impacto visual. Ideal como implementación temprana. Permite configurar:
@@ -31,19 +61,19 @@ Este proyecto aborda la modernización y unificación de múltiples extensiones 
     - Se toma como base uno de los módulos de Aylur's Widgets.
     - Compatibilidad hasta GNOME 44, por lo que _será necesario darle mantenimiento_ para hacerlo compatible con GNOME 50.
 - [ ] ?
-*** TODO Date Menu Formatter [/] :topbar:
+**** TODO Date Menu Formatter [/] :topbar:
   - Descripción:
     - Permite la personalización del formato de la fecha y hora en el panel.
       [[./img/date-format.png]]
     - Aylur's widgets tiene un componente que permite personalizar esto, también se estudiará la extensión [[https://extensions.gnome.org/extension/4655/date-menu-formatter/][Date Menu Formatter de Marcin Jakubowski]].
   - Compatibilidad: Date Menu Format es compatible hasta GNOME 50.
-*** TODO Gnofi [0/0] :shell:
+**** TODO Gnofi [0/0] :shell:
   - Descripción
     - Un launcher extensible, selector, buscador y paleta de comandos para GNOME. Añade un ícono al topbar que despliega el lanzador.
       [[./img/gnofi.png]]
     - Se usará como base el código de [[https://github.com/Aylur/gnome-extensions][Gnofi de Aylur]].
     - Es compatible hasta GNOME 49. No debería ser difícil darle el mantenimiendo para darle compatibilidad para GNOME 50.
-*** TODO Media Player [0/13] :topbar:widgets:
+**** TODO Media Player [0/13] :topbar:widgets:
   - Descripción
     [[./img/aylurs-player.png]]
     - Controles multimedia integrados en el top bar (y en el dash?).
@@ -60,7 +90,7 @@ Este proyecto aborda la modernización y unificación de múltiples extensiones 
   - [ ] Evitar duplicidad entre el reproductor del Top Bar, del panel de notificaciones y del QuickSettings.
   - [ ] Separar estrictamente el estado y la representación visual.
   - [ ] Gestionar caché
-*** TODO Notificacion Indicator [0/1] :topbar:
+**** TODO Notificacion Indicator [0/1] :topbar:
 - Descripción:
   - Indicador de notificaciones con contador numérico. GNOME Incluye un indicador visual de notificaciones, pero no contador cuantitativo. 
     [[./img/aylurs-notify.png]]
@@ -72,7 +102,7 @@ Este proyecto aborda la modernización y unificación de múltiples extensiones 
   - [ ] Estilo (ícono o contador)
   - [ ] Máximo de íconos
   - [ ] Visibilidad del contador
-*** TODO Panel Corners [0/1] :topbar:
+**** TODO Panel Corners [0/1] :topbar:
 - Descripción:
   [[./img/panel-corners.png]]
   - Añade esquinas redondeadas en la tob bar.
@@ -81,7 +111,7 @@ Este proyecto aborda la modernización y unificación de múltiples extensiones 
     - [[https://github.com/aunetx/panel-corners][Panel Corners (github)]]
   - Esta extensión es _compatible con GNOME 50_, por lo que será fácil de integrar.
 - [ ] ?
-*** TODO Power Menu [0/1] :shell:
+**** TODO Power Menu [0/1] :shell:
 - Descripción
   - Botón personalizable con diálogo de apagado. Este es de los módulos más simples, por lo que puede ser ideal para implementar al inicio.
     [[./img/aylurs-power.png]]
@@ -93,9 +123,9 @@ Este proyecto aborda la modernización y unificación de múltiples extensiones 
   - [ ] Tamaño y redondez
   - [ ] Padding y espaciado
   - [ ] Fondo del díalogo
-*** TODO Quick Settings Tweaks
-****  
-*** TODO Quick Text [0/2] :shell:
+**** TODO Quick Settings Tweaks
+*****  
+**** TODO Quick Text [0/2] :shell:
 - Descripción:
   - Un atajo de teclado (Ctrl+Super+i, aunque es personalizable) abre una ventana de diálogo desde la cual podemos escribir texto que se insertará en algún alchivo de texto plano de nuestra preferencia; podemos configurar un prefijo o sufijo al texto insertado. Es útil para tomar notas rápidas, fragmentos de texto y anotar ideas; puede usarse como complemento a cualquier app de notas basada en texto plano. El nombre y la ruta de acceso al archivo de destino deben establecerse antes de utilizar la extensión y el archivo debe existir.
       [[./img/quicktext.png]]
@@ -110,20 +140,21 @@ Este proyecto aborda la modernización y unificación de múltiples extensiones 
   - [[https://github.com/boerdereinar/copyous][copyous]]
 - [ ] Historial de portapaleles
 - [ ] Vista desplegable estilo panel
-*** TODO Top Bar Organized [0/0] :topbar:
+**** TODO Top Bar Organized [0/0] :topbar:
 - Descripción:
   - Permite cambiar la ubicación de los elementos del topbar.
   - Se usa como base el código de la extensión *Top Bar Organizad* de *June*
     - [[https://extensions.gnome.org/extension/4356/top-bar-organizer/][Top Bar Organized (extensions.gnome)]]
     - [[https://gitlab.gnome.org/june/top-bar-organizer][Top Bar Organized (gitlab)]]
   - Esta extensión es _compatible hasta GNOME 50_, así que será fácil de integrar. 
-*** TODO User Avatar In QuickSettings :quicksettings:
+**** TODO User Avatar In QuickSettings [0/1] :quicksettings:
   - Descripción
-    - 
-  - Descripción
-  - Base
-  - Compatibilidad
-*** TODO Workspace Indicator [0/0] :topbar:widgets:
+    - Añade el avatar del usuario al Quick Settings, junto a la configuración relacionada con el sistema.
+      [[./img/avatar.png]]
+    - Se usará como base el código de la extensión [[https://github.com/d-go/quick-settings-avatar][Quick Settings Avatar de d-go]]. 
+    - Esta extensión es compatible con GNOME 50, por lo que su integración debería ser sencilla.
+  - [ ] ? 
+**** TODO Workspace Indicator [0/0] :topbar:widgets:
 - Descripción
   [[./img/aylurs-workspace.png]]
   - Indicador configurable de espacios de trabajo. Los objetivos generales son:
@@ -132,7 +163,14 @@ Este proyecto aborda la modernización y unificación de múltiples extensiones 
   - Aylur's Widgets tiene un módulo que incorpora un indicador de espacios de trabajo, sin embardo este estaba pensado para GNOME 44. Actualmente este módulo no aporta algo al entorno de escritorio, al ya haber un indicador de espacios de trabajo. Sin embargo se puede usar como base [[https://extensions.gnome.org/extension/5090/space-bar/][SpaceBar de luchrioh]], pero añadiendo animaciones.
     [[./img/spacebar.png]]
   - Space Bar es compatible con GNOME 50, por lo que su integración debería ser sencilla.
-* Arquitectura
+* 2. Arquitectura propuesta
+** Principios de diseño
+- "Núcleo", centralizar la gestión de señales y la comunicación con la API.
+- Modularidad. Separación de responsabilidades.
+- Alta cohesión
+- Gestión explícita el ciclo de vida.
+- Evitar dependencia directa de APIs internar con poca documentación.
+** Estructura de directorios
 #+BEGIN_SRC bash
 Gnome-Widgets/
 ├── extension.js                 # Punto de entrada principal
@@ -189,15 +227,19 @@ Gnome-Widgets/
     ├── core/
     └── modules/
 #+END_SRC
+** Core Framework
+*** Module Loader
+- Carga y descarga dinámica de módulos
+- Activación condicional según configuración
+- Gesitón de dependencias internas
+*** Signal Manager
+- Registro centralizado
+- Desconexión automática en disable().
+- Prevención de memory leaks.
+*** Settings Manager
+- Wrapper sobre GSettings.
+- Observadores desacoplados.
+- Actualización reactiva controlada.
+*** Logger
 * ---
-* 0. Introducción
-* 1. Objetivos
 * 3. RoadMap
-* ---
-* 0. La propuesta de proyecto
-** Inserta título aquí
-Las extensiones de GNOME dependen de APIs internas sujetas a cambios, esto genera obsolescencia: las actualizaciones del escritorio /pueden romper/ las extensiones.
-
-En este proyecto se estudiará el código de extensiones obsoletas y sin mantenimiento, con el objetivo de modernizarlas y unificarlas en una única extension compatible con GNOME SHELL 50.
-
-El resultado esperado es una extensión que sea estrictamente modular, con bajo acoplamiento, que gestione de forma centralizada las señales, "lazy loading" y optimizada. Su arquitectura debe facilitar el mantenimiento y se validará mediante métricas de rendimiento, estabilidad y con control explícito del ciclo de vida de cada componente.

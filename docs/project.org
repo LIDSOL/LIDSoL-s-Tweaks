@@ -41,8 +41,14 @@ La propuesta no consiste en replicar la extensión original, sino en:
 *** IN-PROGRESS Core
 *** IN-PROGRESS Utils
 *** IN-PROGRESS Módulos [0/14]
-**** TODO Backgroud Clock [0/2] :widgets:
-- Descripción
+**** IN-PROGRESS Backgroud Clock [1/6] :widgets:
+- [X] Hacer compatible el módulo de aylur's con GNOME 50 e integrarlo a LIDSoL's Widgets
+- [ ] Testear
+- [ ] En el contorno del reloj/calendario y en el contenedor del contenedor se ve un márgen negro, muy pequeño, como si fuese una sombra.
+- [ ] Añadir una animación suave al ingresar al overview, para que no desaparezca de forma abrupta.
+- [ ] Posibilidad de usar el contenedor con color transparente.
+- [ ] La posición 0 no funciona adecuadamente.
+***** Descripción
   [[./img/aylurs-clock.png]]
   - Widget de reloj superpuesto en el escritorio, similar al comportamiento de [[https://github.com/brndnmtthws/conky][conky]].
     - Se permite la configuración del posicionamiento mediante layouts o coordenadas.

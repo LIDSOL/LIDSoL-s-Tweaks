@@ -403,5 +403,202 @@
       <description>Oculta las notas marcadas como procesadas en la ventana de acciones</description>
     </key>
 
+    <!-- Background Clock -->
+    <key type="b" name="background-clock-enabled">
+      <default>false</default>
+      <summary>Habilitar reloj de fondo</summary>
+      <description>Muestra un reloj superpuesto en el escritorio</description>
+    </key>
+
+    <key type="i" name="background-clock-position">
+      <range min="0" max="8"/>
+      <default>8</default>
+      <summary>Posición en pantalla</summary>
+      <description>Posición en cuadrícula 3x3 (0=sup-izq, 1=sup-centro, 2=sup-der, 3=medio-izq, 4=centro, 5=medio-der, 6=inf-izq, 7=inf-centro, 8=inf-der)</description>
+    </key>
+
+    <key type="i" name="background-clock-x-offset">
+      <default>0</default>
+      <summary>Desplazamiento horizontal</summary>
+      <description>Desplazamiento horizontal en píxeles</description>
+    </key>
+
+    <key type="i" name="background-clock-y-offset">
+      <default>30</default>
+      <summary>Desplazamiento vertical</summary>
+      <description>Desplazamiento vertical en píxeles</description>
+    </key>
+
+    <key type="b" name="background-clock-enable-clock">
+      <default>true</default>
+      <summary>Mostrar hora</summary>
+    </key>
+
+    <key type="s" name="background-clock-clock-format">
+      <default>"%I:%M %p"</default>
+      <summary>Formato de hora</summary>
+      <description>Formato strftime para la hora (ej: %H:%M para 24h, %I:%M %p para 12h)</description>
+    </key>
+
+    <key type="i" name="background-clock-clock-size">
+      <range min="8" max="200"/>
+      <default>64</default>
+      <summary>Tamaño de la hora</summary>
+      <description>Tamaño de fuente para la hora en puntos</description>
+    </key>
+
+    <key type="b" name="background-clock-clock-custom-font">
+      <default>false</default>
+      <summary>Fuente personalizada para la hora</summary>
+    </key>
+
+    <key type="s" name="background-clock-clock-font">
+      <default>"Monospace"</default>
+      <summary>Fuente de la hora</summary>
+    </key>
+
+    <key type="s" name="background-clock-clock-color">
+      <default>"#ffffff"</default>
+      <summary>Color de la hora</summary>
+    </key>
+
+    <key type="i" name="background-clock-clock-shadow-x">
+      <default>0</default>
+      <summary>Sombra de hora: X</summary>
+    </key>
+
+    <key type="i" name="background-clock-clock-shadow-y">
+      <default>0</default>
+      <summary>Sombra de hora: Y</summary>
+    </key>
+
+    <key type="i" name="background-clock-clock-shadow-blur">
+      <default>0</default>
+      <summary>Sombra de hora: desenfoque</summary>
+    </key>
+
+    <key type="i" name="background-clock-clock-shadow-width">
+      <default>0</default>
+      <summary>Sombra de hora: ancho</summary>
+    </key>
+
+    <key type="s" name="background-clock-clock-shadow-color">
+      <default>"#000000"</default>
+      <summary>Sombra de hora: color</summary>
+    </key>
+
+    <key type="b" name="background-clock-enable-date">
+      <default>true</default>
+      <summary>Mostrar fecha</summary>
+    </key>
+
+    <key type="s" name="background-clock-date-format">
+      <default>"%A, %d de %B"</default>
+      <summary>Formato de fecha</summary>
+      <description>Formato strftime para la fecha</description>
+    </key>
+
+    <key type="i" name="background-clock-date-size">
+      <range min="8" max="200"/>
+      <default>24</default>
+      <summary>Tamaño de la fecha</summary>
+    </key>
+
+    <key type="b" name="background-clock-date-custom-font">
+      <default>false</default>
+      <summary>Fuente personalizada para la fecha</summary>
+    </key>
+
+    <key type="s" name="background-clock-date-font">
+      <default>"Monospace"</default>
+      <summary>Fuente de la fecha</summary>
+    </key>
+
+    <key type="s" name="background-clock-date-color">
+      <default>"#eeeeee"</default>
+      <summary>Color de la fecha</summary>
+    </key>
+
+    <key type="i" name="background-clock-date-shadow-x">
+      <default>0</default>
+      <summary>Sombra de fecha: X</summary>
+    </key>
+
+    <key type="i" name="background-clock-date-shadow-y">
+      <default>0</default>
+      <summary>Sombra de fecha: Y</summary>
+    </key>
+
+    <key type="i" name="background-clock-date-shadow-blur">
+      <default>0</default>
+      <summary>Sombra de fecha: desenfoque</summary>
+    </key>
+
+    <key type="i" name="background-clock-date-shadow-width">
+      <default>0</default>
+      <summary>Sombra de fecha: ancho</summary>
+    </key>
+
+    <key type="s" name="background-clock-date-shadow-color">
+      <default>"#000000"</default>
+      <summary>Sombra de fecha: color</summary>
+    </key>
+
+    <key type="s" name="background-clock-bg-color">
+      <default>"rgba(0,0,0,0)"</default>
+      <summary>Color de fondo</summary>
+      <description>Color de fondo del contenedor del reloj</description>
+    </key>
+
+    <key type="i" name="background-clock-bg-padding">
+      <default>12</default>
+      <summary>Padding interno</summary>
+    </key>
+
+    <key type="i" name="background-clock-bg-border-size">
+      <default>0</default>
+      <summary>Ancho del borde</summary>
+    </key>
+
+    <key type="s" name="background-clock-bg-border-color">
+      <default>"#ffffff"</default>
+      <summary>Color del borde</summary>
+    </key>
+
+    <key type="i" name="background-clock-bg-border-radius">
+      <default>0</default>
+      <summary>Radio del borde</summary>
+    </key>
+
+    <key type="b" name="background-clock-bg-shadow-inset">
+      <default>false</default>
+      <summary>Sombra interior</summary>
+    </key>
+
+    <key type="i" name="background-clock-bg-shadow-x">
+      <default>0</default>
+      <summary>Sombra de fondo: X</summary>
+    </key>
+
+    <key type="i" name="background-clock-bg-shadow-y">
+      <default>0</default>
+      <summary>Sombra de fondo: Y</summary>
+    </key>
+
+    <key type="i" name="background-clock-bg-shadow-blur">
+      <default>0</default>
+      <summary>Sombra de fondo: desenfoque</summary>
+    </key>
+
+    <key type="i" name="background-clock-bg-shadow-width">
+      <default>0</default>
+      <summary>Sombra de fondo: ancho</summary>
+    </key>
+
+    <key type="s" name="background-clock-bg-shadow-color">
+      <default>"#000000"</default>
+      <summary>Sombra de fondo: color</summary>
+    </key>
+
   </schema>
 </schemalist>

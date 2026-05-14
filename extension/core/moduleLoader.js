@@ -3,6 +3,7 @@
 import { PanelCornersModule } from '../modules/panelCorners/module.js';
 import { WorkspaceIndicatorModule } from '../modules/workspaceIndicator/module.js';
 import { QuickTextModule } from '../modules/quickText/module.js';
+import { BackgroundClockModule } from '../modules/backgroundClock/module.js';
 
 const REGISTERED_MODULES = [
     {
@@ -22,6 +23,12 @@ const REGISTERED_MODULES = [
         name: 'Quick Text',
         enabledKey: 'qt-enabled',
         moduleClass: QuickTextModule
+    },
+    {
+        id: 'backgroundClock',
+        name: 'Background Clock',
+        enabledKey: 'background-clock-enabled',
+        moduleClass: BackgroundClockModule
     }
 ];
 

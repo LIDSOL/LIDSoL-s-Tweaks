@@ -111,6 +111,10 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
         });
         page.add(descGroup);
 
+        if (cat.id === 'widgets') {
+            this._addBackgroundClockSettings(page);
+        }
+
         if (cat.id === 'topbar') {
             this._addPanelCornersSettings(page);
             this._addWorkspaceIndicatorSettings(page);
@@ -280,6 +284,249 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     _addWorkspaceIndicatorSettings(page) {
         const prefs = new WorkspaceIndicatorPrefs(this._settings);
         prefs.populatePage(page);
+    }
+
+    _addBackgroundClockSettings(page) {
+        const enableGroup = new Adw.PreferencesGroup({
+            title: 'Background Clock',
+            description: 'Reloj superpuesto en el escritorio con estilo personalizable',
+        });
+
+        const enableSwitch = new Gtk.Switch({
+            valign: Gtk.Align.CENTER,
+            active: this._settings.get_boolean('background-clock-enabled'),
+        });
+        this._settings.bind('background-clock-enabled', enableSwitch, 'active', Gio.SettingsBindFlags.DEFAULT);
+        const enableRow = new Adw.ActionRow({
+            title: 'Habilitar Background Clock',
+            subtitle: 'Muestra un reloj en el fondo del escritorio',
+        });
+        enableRow.add_suffix(enableSwitch);
+        enableRow.activatable_widget = enableSwitch;
+        enableGroup.add(enableRow);
+
+        const posSpin = _createSpinButton({lower: 0, upper: 8, step: 1});
+        this._settings.bind('background-clock-position', posSpin.adjustment, 'value', Gio.SettingsBindFlags.DEFAULT);
+        const posRow = new Adw.ActionRow({
+            title: 'Posición',
+            subtitle: '0=sup-izq … 8=inf-der (cuadrícula 3x3)',
+            activatable_widget: posSpin,
+        });
+        posRow.add_suffix(posSpin);
+        enableGroup.add(posRow);
+
+        const xOffSpin = _createSpinButton({lower: -500, upper: 500, step: 1});
+        this._settings.bind('background-clock-x-offset', xOffSpin.adjustment, 'value', Gio.SettingsBindFlags.DEFAULT);
+        const xOffRow = new Adw.ActionRow({
+            title: 'Desplazamiento horizontal',
+            activatable_widget: xOffSpin,
+        });
+        xOffRow.add_suffix(xOffSpin);
+        enableGroup.add(xOffRow);
+
+        const yOffSpin = _createSpinButton({lower: -500, upper: 500, step: 1});
+        this._settings.bind('background-clock-y-offset', yOffSpin.adjustment, 'value', Gio.SettingsBindFlags.DEFAULT);
+        const yOffRow = new Adw.ActionRow({
+            title: 'Desplazamiento vertical',
+            activatable_widget: yOffSpin,
+        });
+        yOffRow.add_suffix(yOffSpin);
+        enableGroup.add(yOffRow);
+
+        page.add(enableGroup);
+
+        const clockGroup = new Adw.PreferencesGroup({
+            title: 'Hora',
+            description: 'Configuración del reloj',
+        });
+
+        const clockEnable = new Gtk.Switch({valign: Gtk.Align.CENTER});
+        clockGroup.header_suffix = clockEnable;
+        this._settings.bind('background-clock-enable-clock', clockEnable, 'state', Gio.SettingsBindFlags.DEFAULT);
+
+        const fmtEntry = new Gtk.Entry({
+            text: this._settings.get_string('background-clock-clock-format'),
+            valign: Gtk.Align.CENTER,
+        });
+        this._settings.bind('background-clock-clock-format', fmtEntry, 'text', Gio.SettingsBindFlags.DEFAULT);
+        const fmtRow = new Adw.ActionRow({
+            title: 'Formato',
+            subtitle: 'strftime: %H:%M (24h) o %I:%M %p (12h)',
+            activatable_widget: fmtEntry,
+        });
+        fmtRow.add_suffix(fmtEntry);
+        clockGroup.add(fmtRow);
+
+        const sizeSpin = _createSpinButton({lower: 8, upper: 200, step: 2});
+        this._settings.bind('background-clock-clock-size', sizeSpin.adjustment, 'value', Gio.SettingsBindFlags.DEFAULT);
+        const sizeRow = new Adw.ActionRow({
+            title: 'Tamaño',
+            subtitle: 'Tamaño de fuente en puntos',
+            activatable_widget: sizeSpin,
+        });
+        sizeRow.add_suffix(sizeSpin);
+        clockGroup.add(sizeRow);
+
+        const colorBtn = new Gtk.ColorButton({
+            valign: Gtk.Align.CENTER,
+            show_editor: true,
+            use_alpha: false,
+        });
+        _parseColorFromSetting(this._settings, 'background-clock-clock-color', colorBtn);
+        this._settings.connect('changed::background-clock-clock-color', () => {
+            _parseColorFromSetting(this._settings, 'background-clock-clock-color', colorBtn);
+        });
+        colorBtn.connect('color-set', () => {
+            this._settings.set_string('background-clock-clock-color', colorBtn.rgba.to_string());
+        });
+        const colorRow = new Adw.ActionRow({
+            title: 'Color',
+            activatable_widget: colorBtn,
+        });
+        colorRow.add_suffix(colorBtn);
+        clockGroup.add(colorRow);
+
+        const fontSwitch = new Gtk.Switch({valign: Gtk.Align.CENTER});
+        this._settings.bind('background-clock-clock-custom-font', fontSwitch, 'state', Gio.SettingsBindFlags.DEFAULT);
+        const fontRow = new Adw.ActionRow({
+            title: 'Fuente personalizada',
+            activatable_widget: fontSwitch,
+        });
+        fontRow.add_suffix(fontSwitch);
+        clockGroup.add(fontRow);
+
+        const fontEntry = new Gtk.Entry({
+            text: this._settings.get_string('background-clock-clock-font'),
+            valign: Gtk.Align.CENTER,
+        });
+        this._settings.bind('background-clock-clock-font', fontEntry, 'text', Gio.SettingsBindFlags.DEFAULT);
+        const fontNameRow = new Adw.ActionRow({
+            title: 'Fuente',
+            subtitle: 'Nombre de la fuente (ej: Monospace)',
+            activatable_widget: fontEntry,
+        });
+        fontNameRow.add_suffix(fontEntry);
+        clockGroup.add(fontNameRow);
+
+        page.add(clockGroup);
+
+        const dateGroup = new Adw.PreferencesGroup({
+            title: 'Fecha',
+            description: 'Configuración de la fecha',
+        });
+
+        const dateEnable = new Gtk.Switch({valign: Gtk.Align.CENTER});
+        dateGroup.header_suffix = dateEnable;
+        this._settings.bind('background-clock-enable-date', dateEnable, 'state', Gio.SettingsBindFlags.DEFAULT);
+
+        const dFmtEntry = new Gtk.Entry({
+            text: this._settings.get_string('background-clock-date-format'),
+            valign: Gtk.Align.CENTER,
+        });
+        this._settings.bind('background-clock-date-format', dFmtEntry, 'text', Gio.SettingsBindFlags.DEFAULT);
+        const dFmtRow = new Adw.ActionRow({
+            title: 'Formato',
+            subtitle: 'strftime: %A, %d de %B',
+            activatable_widget: dFmtEntry,
+        });
+        dFmtRow.add_suffix(dFmtEntry);
+        dateGroup.add(dFmtRow);
+
+        const dSizeSpin = _createSpinButton({lower: 8, upper: 200, step: 2});
+        this._settings.bind('background-clock-date-size', dSizeSpin.adjustment, 'value', Gio.SettingsBindFlags.DEFAULT);
+        const dSizeRow = new Adw.ActionRow({
+            title: 'Tamaño',
+            activatable_widget: dSizeSpin,
+        });
+        dSizeRow.add_suffix(dSizeSpin);
+        dateGroup.add(dSizeRow);
+
+        const dColorBtn = new Gtk.ColorButton({
+            valign: Gtk.Align.CENTER,
+            show_editor: true,
+            use_alpha: false,
+        });
+        _parseColorFromSetting(this._settings, 'background-clock-date-color', dColorBtn);
+        this._settings.connect('changed::background-clock-date-color', () => {
+            _parseColorFromSetting(this._settings, 'background-clock-date-color', dColorBtn);
+        });
+        dColorBtn.connect('color-set', () => {
+            this._settings.set_string('background-clock-date-color', dColorBtn.rgba.to_string());
+        });
+        const dColorRow = new Adw.ActionRow({
+            title: 'Color',
+            activatable_widget: dColorBtn,
+        });
+        dColorRow.add_suffix(dColorBtn);
+        dateGroup.add(dColorRow);
+
+        const dFontSwitch = new Gtk.Switch({valign: Gtk.Align.CENTER});
+        this._settings.bind('background-clock-date-custom-font', dFontSwitch, 'state', Gio.SettingsBindFlags.DEFAULT);
+        const dFontRow = new Adw.ActionRow({
+            title: 'Fuente personalizada',
+            activatable_widget: dFontSwitch,
+        });
+        dFontRow.add_suffix(dFontSwitch);
+        dateGroup.add(dFontRow);
+
+        const dFontEntry = new Gtk.Entry({
+            text: this._settings.get_string('background-clock-date-font'),
+            valign: Gtk.Align.CENTER,
+        });
+        this._settings.bind('background-clock-date-font', dFontEntry, 'text', Gio.SettingsBindFlags.DEFAULT);
+        const dFontNameRow = new Adw.ActionRow({
+            title: 'Fuente',
+            activatable_widget: dFontEntry,
+        });
+        dFontNameRow.add_suffix(dFontEntry);
+        dateGroup.add(dFontNameRow);
+
+        page.add(dateGroup);
+
+        const bgGroup = new Adw.PreferencesGroup({
+            title: 'Contenedor',
+            description: 'Estilo del fondo del reloj',
+        });
+
+        const bgColorBtn = new Gtk.ColorButton({
+            valign: Gtk.Align.CENTER,
+            show_editor: true,
+            use_alpha: true,
+        });
+        _parseColorFromSetting(this._settings, 'background-clock-bg-color', bgColorBtn);
+        this._settings.connect('changed::background-clock-bg-color', () => {
+            _parseColorFromSetting(this._settings, 'background-clock-bg-color', bgColorBtn);
+        });
+        bgColorBtn.connect('color-set', () => {
+            this._settings.set_string('background-clock-bg-color', bgColorBtn.rgba.to_string());
+        });
+        const bgColorRow = new Adw.ActionRow({
+            title: 'Color de fondo',
+            subtitle: 'Usa alpha para fondo semitransparente',
+            activatable_widget: bgColorBtn,
+        });
+        bgColorRow.add_suffix(bgColorBtn);
+        bgGroup.add(bgColorRow);
+
+        const padSpin = _createSpinButton({lower: 0, upper: 100, step: 2});
+        this._settings.bind('background-clock-bg-padding', padSpin.adjustment, 'value', Gio.SettingsBindFlags.DEFAULT);
+        const padRow = new Adw.ActionRow({
+            title: 'Padding',
+            activatable_widget: padSpin,
+        });
+        padRow.add_suffix(padSpin);
+        bgGroup.add(padRow);
+
+        const bRadiusSpin = _createSpinButton({lower: 0, upper: 50, step: 1});
+        this._settings.bind('background-clock-bg-border-radius', bRadiusSpin.adjustment, 'value', Gio.SettingsBindFlags.DEFAULT);
+        const bRadiusRow = new Adw.ActionRow({
+            title: 'Radio del borde',
+            activatable_widget: bRadiusSpin,
+        });
+        bRadiusRow.add_suffix(bRadiusSpin);
+        bgGroup.add(bRadiusRow);
+
+        page.add(bgGroup);
     }
 
     _addQuickTextSettings(page) {

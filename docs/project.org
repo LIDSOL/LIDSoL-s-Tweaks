@@ -162,8 +162,9 @@ Aún es neceario escribir la propuesta
     - [[https://extensions.gnome.org/extension/4356/top-bar-organizer/][Top Bar Organized (extensions.gnome)]]
     - [[https://gitlab.gnome.org/june/top-bar-organizer][Top Bar Organized (gitlab)]]
   - Esta extensión es _compatible hasta GNOME 50_, así que será fácil de integrar. 
-**** NEXT User Avatar In QuickSettings [0/1] :quicksettings:
-  - Descripción
+**** IN-PROGRESS User Avatar In QuickSettings [1/1] :quicksettings:
+- [X] Integrar a LIDSoL's Widgets
+***** Descripción
     - Añade el avatar del usuario al Quick Settings, junto a la configuración relacionada con el sistema.
       [[./img/avatar.png]]
     - Se usará como base el código de la extensión [[https://github.com/d-go/quick-settings-avatar][Quick Settings Avatar de d-go]]. 

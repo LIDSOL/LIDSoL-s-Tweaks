@@ -124,6 +124,10 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
             this._addQuickTextSettings(page);
         }
 
+        if (cat.id === 'quicksettings') {
+            this._addUserAvatarSettings(page);
+        }
+
         return page;
     }
 
@@ -627,6 +631,100 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
         });
         appendRow.add_suffix(appendEntry);
         group.add(appendRow);
+
+        page.add(group);
+    }
+
+    _addUserAvatarSettings(page) {
+        const group = new Adw.PreferencesGroup({
+            title: 'Avatar de Usuario',
+            description: 'Muestra el avatar del usuario en el menú de ajustes rápidos, junto a los botones del sistema',
+        });
+
+        const enableSwitch = new Gtk.Switch({
+            valign: Gtk.Align.CENTER,
+            active: this._settings.get_boolean('user-avatar-enabled'),
+        });
+        this._settings.bind('user-avatar-enabled', enableSwitch, 'active', Gio.SettingsBindFlags.DEFAULT);
+        const enableRow = new Adw.ActionRow({
+            title: 'Habilitar Avatar de Usuario',
+            subtitle: 'Muestra tu foto de perfil en el menú de ajustes rápidos',
+        });
+        enableRow.add_suffix(enableSwitch);
+        enableRow.activatable_widget = enableSwitch;
+        group.add(enableRow);
+
+        const positionModel = new Gtk.StringList({ strings: ['Derecha', 'Izquierda'] });
+        const positionRow = new Adw.ComboRow({
+            title: 'Posición',
+            subtitle: 'Posición del avatar respecto a los botones del sistema',
+            model: positionModel,
+            selected: this._settings.get_int('ua-position'),
+        });
+        positionRow.connect('notify::selected', () => {
+            this._settings.set_int('ua-position', positionRow.selected);
+        });
+        group.add(positionRow);
+
+        const sizeSpin = _createSpinButton({lower: 15, upper: 75, step: 2});
+        this._settings.bind('ua-size', sizeSpin.adjustment, 'value', Gio.SettingsBindFlags.DEFAULT);
+        const sizeRow = new Adw.ActionRow({
+            title: 'Tamaño',
+            subtitle: '43 por defecto (coincide con los iconos de ajustes)',
+            activatable_widget: sizeSpin,
+        });
+        sizeRow.add_suffix(sizeSpin);
+        group.add(sizeRow);
+
+        const realNameSwitch = new Gtk.Switch({
+            valign: Gtk.Align.CENTER,
+            active: this._settings.get_boolean('ua-realname'),
+        });
+        this._settings.bind('ua-realname', realNameSwitch, 'active', Gio.SettingsBindFlags.DEFAULT);
+        const realNameRow = new Adw.ActionRow({
+            title: 'Mostrar nombre real',
+            subtitle: 'Según la longitud, puede aumentar el ancho del panel',
+            activatable_widget: realNameSwitch,
+        });
+        realNameRow.add_suffix(realNameSwitch);
+        group.add(realNameRow);
+
+        const userNameSwitch = new Gtk.Switch({
+            valign: Gtk.Align.CENTER,
+            active: this._settings.get_boolean('ua-username'),
+        });
+        this._settings.bind('ua-username', userNameSwitch, 'active', Gio.SettingsBindFlags.DEFAULT);
+        const userNameRow = new Adw.ActionRow({
+            title: 'Mostrar nombre de usuario',
+            activatable_widget: userNameSwitch,
+        });
+        userNameRow.add_suffix(userNameSwitch);
+        group.add(userNameRow);
+
+        const hostNameSwitch = new Gtk.Switch({
+            valign: Gtk.Align.CENTER,
+            active: this._settings.get_boolean('ua-hostname'),
+        });
+        this._settings.bind('ua-hostname', hostNameSwitch, 'active', Gio.SettingsBindFlags.DEFAULT);
+        const hostNameRow = new Adw.ActionRow({
+            title: 'Mostrar nombre del equipo',
+            activatable_widget: hostNameSwitch,
+        });
+        hostNameRow.add_suffix(hostNameSwitch);
+        group.add(hostNameRow);
+
+        const noBgSwitch = new Gtk.Switch({
+            valign: Gtk.Align.CENTER,
+            active: this._settings.get_boolean('ua-nobackground'),
+        });
+        this._settings.bind('ua-nobackground', noBgSwitch, 'active', Gio.SettingsBindFlags.DEFAULT);
+        const noBgRow = new Adw.ActionRow({
+            title: 'Quitar fondo del botón',
+            subtitle: 'Elimina el fondo predeterminado de los botones de ajustes',
+            activatable_widget: noBgSwitch,
+        });
+        noBgRow.add_suffix(noBgSwitch);
+        group.add(noBgRow);
 
         page.add(group);
     }

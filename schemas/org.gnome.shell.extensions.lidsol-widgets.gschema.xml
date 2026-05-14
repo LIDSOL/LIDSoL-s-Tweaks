@@ -600,5 +600,54 @@
       <summary>Sombra de fondo: color</summary>
     </key>
 
+    <!-- User Avatar (Quick Settings Avatar) -->
+    <key type="b" name="user-avatar-enabled">
+      <default>true</default>
+      <summary>Habilitar avatar de usuario</summary>
+      <description>Muestra el avatar del usuario en el menú de ajustes rápidos</description>
+    </key>
+
+    <key type="i" name="ua-mode">
+      <default>1</default>
+      <summary>Modo del avatar</summary>
+    </key>
+
+    <key type="i" name="ua-position">
+      <default>0</default>
+      <summary>Posición del avatar</summary>
+      <description>0: derecha, 1: izquierda</description>
+    </key>
+
+    <key type="i" name="ua-size">
+      <range min="15" max="75"/>
+      <default>43</default>
+      <summary>Tamaño del avatar</summary>
+      <description>Tamaño del ícono del avatar en píxeles</description>
+    </key>
+
+    <key type="b" name="ua-realname">
+      <default>false</default>
+      <summary>Mostrar nombre real</summary>
+      <description>Muestra el nombre real del usuario junto al avatar</description>
+    </key>
+
+    <key type="b" name="ua-username">
+      <default>false</default>
+      <summary>Mostrar nombre de usuario</summary>
+      <description>Muestra el nombre de usuario UNIX junto al avatar</description>
+    </key>
+
+    <key type="b" name="ua-hostname">
+      <default>false</default>
+      <summary>Mostrar nombre del equipo</summary>
+      <description>Muestra el nombre del equipo junto al avatar</description>
+    </key>
+
+    <key type="b" name="ua-nobackground">
+      <default>true</default>
+      <summary>Quitar fondo del botón</summary>
+      <description>Elimina el fondo predeterminado del botón de ajustes</description>
+    </key>
+
   </schema>
 </schemalist>

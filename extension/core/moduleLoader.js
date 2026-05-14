@@ -4,6 +4,7 @@ import { PanelCornersModule } from '../modules/panelCorners/module.js';
 import { WorkspaceIndicatorModule } from '../modules/workspaceIndicator/module.js';
 import { QuickTextModule } from '../modules/quickText/module.js';
 import { BackgroundClockModule } from '../modules/backgroundClock/module.js';
+import { UserAvatarModule } from '../modules/userAvatar/module.js';
 
 const REGISTERED_MODULES = [
     {
@@ -29,6 +30,12 @@ const REGISTERED_MODULES = [
         name: 'Background Clock',
         enabledKey: 'background-clock-enabled',
         moduleClass: BackgroundClockModule
+    },
+    {
+        id: 'userAvatar',
+        name: 'User Avatar',
+        enabledKey: 'user-avatar-enabled',
+        moduleClass: UserAvatarModule
     }
 ];
 

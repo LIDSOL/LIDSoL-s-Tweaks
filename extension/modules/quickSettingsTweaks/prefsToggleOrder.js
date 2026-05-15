@@ -210,17 +210,16 @@ export function openToggleOrderDialog(parentWindow, settings) {
 
                     addMoveButtons(row, list, item, saveList, rebuild);
 
-                    const hideToggle = new Gtk.ToggleButton({
-                        label: item.hide ? 'Ocultar' : 'Mostrar',
-                        active: item.hide,
+                    const hideSwitch = new Gtk.Switch({
+                        active: !item.hide,
                         valign: Gtk.Align.CENTER,
                     });
-                    hideToggle.connect('toggled', () => {
-                        item.hide = hideToggle.active;
+                    hideSwitch.connect('notify::active', () => {
+                        item.hide = !hideSwitch.active;
                         saveList(list);
                         rebuild();
                     });
-                    row.add_suffix(hideToggle);
+                    row.add_suffix(hideSwitch);
 
                     if (!item.isSystem) {
                         const editBtn = Gtk.Button.new_from_icon_name('document-edit-symbolic');

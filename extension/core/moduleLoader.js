@@ -5,6 +5,7 @@ import { WorkspaceIndicatorModule } from '../modules/workspaceIndicator/module.j
 import { QuickTextModule } from '../modules/quickText/module.js';
 import { BackgroundClockModule } from '../modules/backgroundClock/module.js';
 import { UserAvatarModule } from '../modules/userAvatar/module.js';
+import { QuickSettingsTweaksModule } from '../modules/quickSettingsTweaks/module.js';
 
 const REGISTERED_MODULES = [
     {
@@ -36,6 +37,12 @@ const REGISTERED_MODULES = [
         name: 'User Avatar',
         enabledKey: 'user-avatar-enabled',
         moduleClass: UserAvatarModule
+    },
+    {
+        id: 'quickSettingsTweaks',
+        name: 'Quick Settings Tweaks',
+        enabledKey: 'qst-enabled',
+        moduleClass: QuickSettingsTweaksModule
     }
 ];
 
@@ -49,9 +56,12 @@ export class ModuleLoader {
 
     enable() {
         console.log('[LIDSoL Widgets] ModuleLoader enabled');
+        console.log(`[LIDSoL Widgets] ${REGISTERED_MODULES.length} modules registered`);
 
         for (const modInfo of REGISTERED_MODULES) {
-            if (this._shouldEnableModule(modInfo))
+            const should = this._shouldEnableModule(modInfo);
+            console.log(`[LIDSoL Widgets] Module '${modInfo.id}': shouldEnable=${should}`);
+            if (should)
                 this._enableModule(modInfo);
 
             this._watchEnabledKey(modInfo);
@@ -59,8 +69,17 @@ export class ModuleLoader {
     }
 
     _shouldEnableModule(modInfo) {
-        if (modInfo.enabledKey)
-            return this._gsettings.get_boolean(modInfo.enabledKey);
+        if (modInfo.enabledKey) {
+            try {
+                const val = this._gsettings.get_boolean(modInfo.enabledKey);
+                if (modInfo.id === 'quickSettingsTweaks')
+                    console.log(`[LIDSoL Widgets] QST enabledKey=${modInfo.enabledKey} value=${val}`);
+                return val;
+            } catch (e) {
+                console.error(`[LIDSoL Widgets] Error reading ${modInfo.enabledKey}:`, e);
+                return false;
+            }
+        }
         return true;
     }
 

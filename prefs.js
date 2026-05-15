@@ -20,6 +20,7 @@ import {
     createDialog,
     createGroup,
 } from './prefsHelpers.js';
+import { openToggleOrderDialog } from './prefsToggleOrder.js';
 
 const CATEGORIES = [
     {
@@ -157,6 +158,16 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
             title: 'Avatar de Usuario',
             subtitle: 'Muestra tu foto de perfil en los ajustes rápidos',
             onDetailed: () => this._openDialog('Avatar de Usuario', p => this._buildUserAvatarDialog(p)),
+        }));
+        group.add(createModuleRow({
+            settings: this._settings,
+            bindKey: 'qst-toggles-enabled',
+            title: 'Quick Toggles Layout',
+            subtitle: 'Reordena y oculta toggles del menú de configuración rápida',
+            onDetailed: () => {
+                if (this._window && this._settings)
+                    openToggleOrderDialog(this._window, this._settings);
+            },
         }));
         page.add(group);
     }

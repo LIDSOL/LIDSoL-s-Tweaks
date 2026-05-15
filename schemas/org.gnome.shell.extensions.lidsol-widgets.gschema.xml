@@ -649,5 +649,43 @@
       <description>Elimina el fondo predeterminado del botón de ajustes</description>
     </key>
 
+    <!-- Quick Settings Tweaks -->
+    <key type="b" name="qst-enabled">
+      <default>false</default>
+      <summary>Habilitar Quick Settings Tweaks</summary>
+      <description>Activa las mejoras del menú de configuración rápida</description>
+    </key>
+
+    <key type="b" name="qst-toggles-enabled">
+      <default>true</default>
+      <summary>Habilitar ordenamiento de toggles</summary>
+      <description>Permite reordenar y ocultar los toggles del menú de configuración rápida</description>
+    </key>
+
+    <key type="aa{sv}" name="qst-toggles-order">
+      <default><![CDATA[
+        [
+          { 'hide': <false>, 'isSystem': <true>, 'constructorName': <'NMWiredToggle'> },
+          { 'hide': <false>, 'isSystem': <true>, 'constructorName': <'NMWirelessToggle'> },
+          { 'hide': <false>, 'isSystem': <true>, 'constructorName': <'NMModemToggle'> },
+          { 'hide': <false>, 'isSystem': <true>, 'constructorName': <'NMBluetoothToggle'> },
+          { 'hide': <false>, 'isSystem': <true>, 'constructorName': <'NMVpnToggle'> },
+          { 'hide': <false>, 'isSystem': <true>, 'constructorName': <'BluetoothToggle'> },
+          { 'hide': <false>, 'isSystem': <true>, 'constructorName': <'PowerProfilesToggle'> },
+          { 'hide': <false>, 'isSystem': <true>, 'constructorName': <'NightLightToggle'> },
+          { 'hide': <false>, 'isSystem': <true>, 'constructorName': <'DarkModeToggle'> },
+          { 'hide': <false>, 'isSystem': <true>, 'constructorName': <'DoNotDisturbToggle'> },
+          { 'hide': <false>, 'isSystem': <true>, 'constructorName': <'KeyboardBrightnessToggle'> },
+          { 'hide': <false>, 'isSystem': <true>, 'constructorName': <'RfkillToggle'> },
+          { 'hide': <false>, 'isSystem': <true>, 'constructorName': <'RotationToggle'> },
+          { 'hide': <false>, 'isSystem': <true>, 'constructorName': <'DndQuickToggle'> },
+          { 'hide': <false>, 'isSystem': <true>, 'constructorName': <'UnsafeQuickToggle'> },
+          { 'nonOrdered': <true>, 'hide': <false> }
+        ]
+      ]]></default>
+      <summary>Orden de los toggles</summary>
+      <description>Lista ordenada de toggles con opciones de ocultación</description>
+    </key>
+
   </schema>
 </schemalist>

@@ -27,6 +27,10 @@ export class WorkspaceIndicatorPrefs {
         mainGroup.add(enableRow);
         page.add(mainGroup);
 
+        this.populateGroups(page);
+    }
+
+    populateGroups(page) {
         this._addBehaviorGroup(page);
         this._addAppearanceGroup(page);
         this._addShortcutsGroup(page);

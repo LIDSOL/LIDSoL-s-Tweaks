@@ -77,6 +77,62 @@ function serializeToList(list) {
     });
 }
 
+function shouldShow(item) {
+    return true;
+}
+
+function moveBlocking(_list, _moving, _movingIndex, _target, _targetIndex) {
+    return false;
+}
+
+function skip(list, _moving, _movingIndex, target, _targetIndex) {
+    return shouldShow(target);
+}
+
+function moveItem(list, item, offset) {
+    const idx = list.indexOf(item);
+    if (idx === -1 || offset === 0) return false;
+    const sign = Math.sign(offset);
+    let targetIndex = idx;
+
+    for (let count = Math.abs(offset); count > 0;) {
+        if (targetIndex <= 0 && sign === -1) break;
+        if (targetIndex >= (list.length - 1) && sign === 1) break;
+        if (moveBlocking(list, item, idx, list[targetIndex], targetIndex)) break;
+        targetIndex += sign;
+        if (skip(list, item, idx, list[targetIndex], targetIndex)) count--;
+    }
+
+    if (idx === targetIndex) return false;
+    list.splice(idx, 1);
+    list.splice(targetIndex, 0, item);
+    return true;
+}
+
+function addMoveButtons(row, list, item, saveList, rebuild) {
+    const upBtn = Gtk.Button.new_from_icon_name('go-up-symbolic');
+    upBtn.has_frame = false;
+    upBtn.valign = Gtk.Align.CENTER;
+    upBtn.connect('clicked', () => {
+        if (moveItem(list, item, -1)) {
+            saveList(list);
+            rebuild();
+        }
+    });
+    row.add_prefix(upBtn);
+
+    const downBtn = Gtk.Button.new_from_icon_name('go-down-symbolic');
+    downBtn.has_frame = false;
+    downBtn.valign = Gtk.Align.CENTER;
+    downBtn.connect('clicked', () => {
+        if (moveItem(list, item, 1)) {
+            saveList(list);
+            rebuild();
+        }
+    });
+    row.add_prefix(downBtn);
+}
+
 export function openToggleOrderDialog(parentWindow, settings) {
     let dialog = null;
 
@@ -102,21 +158,14 @@ export function openToggleOrderDialog(parentWindow, settings) {
                 title: 'Toggles del sistema',
                 description: 'Usa las flechas para reordenar. Activa "Ocultar" para esconder un toggle.',
             });
-
-            const rowBox = new Gtk.Box({
-                orientation: Gtk.Orientation.VERTICAL,
-                spacing: 0,
-            });
-            group.add(rowBox);
             page.add(group);
 
+            const rows = [];
+
             const rebuild = () => {
-                let child = rowBox.get_first_child();
-                while (child) {
-                    const next = child.get_next_sibling();
-                    rowBox.remove(child);
-                    child = next;
-                }
+                for (const row of rows)
+                    group.remove(row);
+                rows.length = 0;
 
                 const resetBtn = Gtk.Button.new_from_icon_name('view-refresh-symbolic');
                 resetBtn.has_frame = false;
@@ -133,21 +182,25 @@ export function openToggleOrderDialog(parentWindow, settings) {
                 const list = getList();
 
                 const addRow = (item) => {
-                    if (item.nonOrdered) {
-                        const sep = new Adw.ActionRow({
-                            title: '─── Otros toggles ───',
-                            subtitle: 'Los toggles sin orden específico aparecen aquí',
-                            activatable: false,
-                        });
-                        rowBox.append(sep);
-                        return;
-                    }
-
                     const row = new Adw.ActionRow({
                         title: getDisplayName(item),
                         subtitle: getSubtitle(item),
                         activatable: false,
                     });
+
+                    if (item.nonOrdered) {
+                        const icon = Gtk.Image.new_from_icon_name('emblem-system-symbolic');
+                        icon.pixel_size = 18;
+                        icon.margin_start = 4;
+                        icon.margin_end = 4;
+                        row.add_prefix(icon);
+
+                        addMoveButtons(row, list, item, saveList, rebuild);
+
+                        rows.push(row);
+                        group.add(row);
+                        return;
+                    }
 
                     const icon = Gtk.Image.new_from_icon_name(getIconName(item));
                     icon.pixel_size = 18;
@@ -155,32 +208,7 @@ export function openToggleOrderDialog(parentWindow, settings) {
                     icon.margin_end = 4;
                     row.add_prefix(icon);
 
-                    const upBtn = Gtk.Button.new_from_icon_name('go-up-symbolic');
-                    upBtn.has_frame = false;
-                    upBtn.valign = Gtk.Align.CENTER;
-                    upBtn.connect('clicked', () => {
-                        const idx = list.indexOf(item);
-                        if (idx > 0 && !list[idx - 1]?.nonOrdered) {
-                            [list[idx - 1], list[idx]] = [list[idx], list[idx - 1]];
-                            saveList(list);
-                            rebuild();
-                        }
-                    });
-                    row.add_prefix(upBtn);
-
-                    const downBtn = Gtk.Button.new_from_icon_name('go-down-symbolic');
-                    downBtn.has_frame = false;
-                    downBtn.valign = Gtk.Align.CENTER;
-                    downBtn.connect('clicked', () => {
-                        const idx = list.indexOf(item);
-                        const target = idx + 1;
-                        if (target < list.length && !list[target]?.nonOrdered) {
-                            [list[idx], list[target]] = [list[target], list[idx]];
-                            saveList(list);
-                            rebuild();
-                        }
-                    });
-                    row.add_prefix(downBtn);
+                    addMoveButtons(row, list, item, saveList, rebuild);
 
                     const hideToggle = new Gtk.ToggleButton({
                         label: item.hide ? 'Ocultar' : 'Mostrar',
@@ -216,7 +244,8 @@ export function openToggleOrderDialog(parentWindow, settings) {
                         row.add_suffix(delBtn);
                     }
 
-                    rowBox.append(row);
+                    rows.push(row);
+                    group.add(row);
                 };
 
                 for (const item of list)
@@ -245,7 +274,8 @@ export function openToggleOrderDialog(parentWindow, settings) {
                 const addIcon = Gtk.Image.new_from_icon_name('list-add-symbolic');
                 addIcon.pixel_size = 16;
                 addRowBtn.add_suffix(addIcon);
-                rowBox.append(addRowBtn);
+                rows.push(addRowBtn);
+                group.add(addRowBtn);
             };
 
             rebuild();

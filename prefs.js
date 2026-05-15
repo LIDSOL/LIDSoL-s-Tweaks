@@ -2,9 +2,9 @@
 
 import Adw from 'gi://Adw';
 import Gtk from 'gi://Gtk';
-import Gdk from 'gi://Gdk';
 import GObject from 'gi://GObject';
 import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
 
 import {ExtensionPreferences} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 import { WorkspaceIndicatorPrefs } from './extension/modules/workspaceIndicator/prefsSettings.js';
@@ -85,26 +85,34 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
         toolbar.add_bottom_bar(switcherBar);
         toolbar.set_content(scrolled);
 
-        this._setupBreakpoint(toolbar, switcher, switcherBar);
+        this._setupBreakpoint(window, switcher, switcherBar);
 
         window.set_content(toolbar);
         window.set_default_size(900, 600);
     }
 
-    _setupBreakpoint(toolbar, switcher, switcherBar) {
+    _setupBreakpoint(window, switcher, switcherBar) {
+        const update = () => {
+            const w = window.get_width();
+            const narrow = w > 0 && w <= 700;
+            switcherBar.reveal = narrow;
+            switcher.visible = !narrow;
+        };
+
         try {
             const bp = new Adw.Breakpoint({
                 condition: Adw.BreakpointCondition.parse('max-width: 700px'),
             });
-            bp.connect('apply', (_bp, state) => {
-                const narrow = state === Adw.BreakpointState.APPLIED;
-                switcherBar.reveal = narrow;
-                switcher.visible = !narrow;
-            });
-            toolbar.add_breakpoint(bp);
+            bp.connect('apply', () => update());
+            window.add_breakpoint(bp);
         } catch (e) {
-            log('[LIDSoL] Breakpoints not supported, using wide-only mode');
-            switcherBar.reveal = false;
+            log('[LIDSoL] Window breakpoint failed, falling back to size polling');
+            let lastW = 0;
+            GLib.timeout_add(GLib.PRIORITY_DEFAULT, 200, () => {
+                const w = window.get_width();
+                if (w !== lastW) { lastW = w; update(); }
+                return GLib.SOURCE_CONTINUE;
+            });
         }
     }
 

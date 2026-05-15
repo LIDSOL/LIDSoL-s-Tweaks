@@ -41,7 +41,7 @@ const REGISTERED_MODULES = [
     {
         id: 'quickSettingsTweaks',
         name: 'Quick Settings Tweaks',
-        enabledKey: 'qst-enabled',
+        enabledKey: 'qst-toggles-enabled',
         moduleClass: QuickSettingsTweaksModule
     }
 ];

@@ -264,3 +264,16 @@ Gnome-Widgets/
 - Actualización reactiva controlada.
 *** Logger
 * ---
+Backend: Custom Toggle Creation
+extension/modules/quickSettingsTweaks/quickToggles.js — Rewritten to match the custom-command-toggle architecture:
+| Component               | Purpose                                                                                                                                                         |
+|-------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| LidSolQuickToggle       | QuickToggle subclass with toggleMode: true                                                                                                                      |
+| LidSolToggleIndicator   | SystemIndicator subclass — self-contained toggle with click handler, exit code check, async output reading, regex matching, and periodic sync polling           |
+| _createCustomToggles()  | Iterates the qst-toggles-order list; for items with commands (non-system, non-hidden), creates and registers a LidSolToggleIndicator via addExternalIndicator() |
+| _destroyCustomToggles() | Destroys all custom indicators and their quickSettingsItems                                                                                                     |
+| _onUpdate()             | Enhanced to find custom toggles by reference (not by toggleMatch) for correct reordering                                                                        |
+The lifecycle is: enable() → _loadSettings() → _startTracker() (system toggles) → _createCustomToggles() (custom toggles). On order change: _onOrderChanged() → _reload() → destroy + recreate both.
+Pending: Prefs push_subpage
+The + button and edit button call dialog.push_subpage(navPage). With the added try-catch, check journalctl -f -o cat /usr/bin/gnome-shell for [LIDSoL] prefixed logs. If it fails, the error will be logged.
+Want me to investigate the push_subpage issue next, or test the backend first?

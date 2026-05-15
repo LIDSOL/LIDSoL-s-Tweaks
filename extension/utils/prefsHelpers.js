@@ -6,7 +6,6 @@ import Gdk from 'gi://Gdk';
 import Gio from 'gi://Gio';
 import GObject from 'gi://GObject';
 
-// ── ModuleRow: SwitchRow + gear button ──────────────────────────
 export function createModuleRow({ settings, bindKey, title, subtitle, onDetailed }) {
     const row = new Adw.SwitchRow({
         title: title ?? '',
@@ -40,7 +39,6 @@ function _pushDetailedButton(row, onDetailed) {
     return btn;
 }
 
-// ── SwitchRow simple ────────────────────────────────────────────
 export function createSwitchRow({ settings, bindKey, title, subtitle, sensitiveBind }) {
     const row = new Adw.SwitchRow({
         title: title ?? '',
@@ -55,7 +53,6 @@ export function createSwitchRow({ settings, bindKey, title, subtitle, sensitiveB
     return row;
 }
 
-// ── SpinButtonRow ───────────────────────────────────────────────
 export function createSpinButtonRow({ settings, bindKey, title, subtitle, adjProps = {} }) {
     const adj = new Gtk.Adjustment({
         lower: adjProps.lower ?? 0,
@@ -80,7 +77,6 @@ export function createSpinButtonRow({ settings, bindKey, title, subtitle, adjPro
     return row;
 }
 
-// ── ColorButtonRow ──────────────────────────────────────────────
 export function createColorButtonRow({ settings, bindKey, title, subtitle, useAlpha = false }) {
     const btn = new Gtk.ColorButton({
         valign: Gtk.Align.CENTER,
@@ -108,7 +104,6 @@ export function createColorButtonRow({ settings, bindKey, title, subtitle, useAl
     return row;
 }
 
-// ── ComboRow (string options) ───────────────────────────────────
 export function createComboRow({ settings, bindKey, title, subtitle, options }) {
     const model = Gio.ListStore.new(DropDownChoice);
     for (const id in options)
@@ -143,7 +138,6 @@ export function createComboRow({ settings, bindKey, title, subtitle, options }) 
     return row;
 }
 
-// ── Int ComboRow (string values representing ints, eg font weight) ─
 export function createIntComboRow({ settings, bindKey, title, subtitle, options }) {
     const model = Gio.ListStore.new(DropDownChoice);
     for (const id in options)
@@ -178,7 +172,6 @@ export function createIntComboRow({ settings, bindKey, title, subtitle, options 
     return row;
 }
 
-// ── EntryRow ────────────────────────────────────────────────────
 export function createEntryRow({ settings, bindKey, title, subtitle }) {
     const row = new Adw.ActionRow({ title: title ?? '', subtitle: subtitle ?? null });
     const entry = new Gtk.Entry({
@@ -198,7 +191,6 @@ export function createEntryRow({ settings, bindKey, title, subtitle }) {
     return row;
 }
 
-// ── KeyboardShortcutRow ─────────────────────────────────────────
 export function createKeyboardShortcutRow({ settings, bindKey, title, subtitle }) {
     const row = new Adw.ActionRow({
         title: title ?? '',
@@ -273,7 +265,6 @@ export function createKeyboardShortcutRow({ settings, bindKey, title, subtitle }
     return row;
 }
 
-// ── Dialog (bottom sheet) ───────────────────────────────────────
 export function createDialog({ window, title, childrenRequest }) {
     const dialog = new Adw.PreferencesDialog({
         title: title ?? '',
@@ -288,7 +279,6 @@ export function createDialog({ window, title, childrenRequest }) {
     return dialog;
 }
 
-// ── Group helper ────────────────────────────────────────────────
 export function createGroup({ parent, title, description }) {
     const group = new Adw.PreferencesGroup({
         title: title ?? '',
@@ -298,7 +288,6 @@ export function createGroup({ parent, title, description }) {
     return group;
 }
 
-// ── Row helper ──────────────────────────────────────────────────
 export function createRow({ parent, title, subtitle, activatable, onActivated }) {
     const row = new Adw.ActionRow({
         title: title ?? '',
@@ -311,7 +300,6 @@ export function createRow({ parent, title, subtitle, activatable, onActivated })
     return row;
 }
 
-// ── DropDownChoice GObject ──────────────────────────────────────
 const DropDownChoice = GObject.registerClass({
     GTypeName: 'LidSolDropDownChoice',
     Properties: {

@@ -264,4 +264,3 @@ Gnome-Widgets/
 - Actualización reactiva controlada.
 *** Logger
 * ---
-* 3. RoadMap

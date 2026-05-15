@@ -19,8 +19,8 @@ import {
     createKeyboardShortcutRow,
     createDialog,
     createGroup,
-} from './prefsHelpers.js';
-import { openToggleOrderDialog } from './prefsToggleOrder.js';
+} from './extension/utils/prefsHelpers.js';
+import { openToggleOrderDialog } from './extension/modules/quickSettingsTweaks/prefsToggleOrder.js';
 
 const CATEGORIES = [
     {

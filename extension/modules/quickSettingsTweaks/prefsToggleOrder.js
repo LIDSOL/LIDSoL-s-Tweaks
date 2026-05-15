@@ -3,7 +3,7 @@
 import Adw from 'gi://Adw';
 import Gtk from 'gi://Gtk';
 import GLib from 'gi://GLib';
-import { createDialog } from './prefsHelpers.js';
+import { createDialog } from '../../utils/prefsHelpers.js';
 
 const SYSTEM_NAMES = {
     NMWiredToggle: 'Cableada',
@@ -103,7 +103,6 @@ export function openToggleOrderDialog(parentWindow, settings) {
                 description: 'Usa las flechas para reordenar. Activa "Ocultar" para esconder un toggle.',
             });
 
-            // Use Gtk.Box inside the group so we can reliably clear and re-add rows
             const rowBox = new Gtk.Box({
                 orientation: Gtk.Orientation.VERTICAL,
                 spacing: 0,
@@ -112,7 +111,6 @@ export function openToggleOrderDialog(parentWindow, settings) {
             page.add(group);
 
             const rebuild = () => {
-                // Clear existing rows (Gtk.Box.remove() works reliably in GTK4)
                 let child = rowBox.get_first_child();
                 while (child) {
                     const next = child.get_next_sibling();
@@ -120,7 +118,6 @@ export function openToggleOrderDialog(parentWindow, settings) {
                     child = next;
                 }
 
-                // Reset button in header
                 const resetBtn = Gtk.Button.new_from_icon_name('view-refresh-symbolic');
                 resetBtn.has_frame = false;
                 resetBtn.valign = Gtk.Align.CENTER;
@@ -163,7 +160,7 @@ export function openToggleOrderDialog(parentWindow, settings) {
                     upBtn.valign = Gtk.Align.CENTER;
                     upBtn.connect('clicked', () => {
                         const idx = list.indexOf(item);
-                        if (idx > 0) {
+                        if (idx > 0 && !list[idx - 1]?.nonOrdered) {
                             [list[idx - 1], list[idx]] = [list[idx], list[idx - 1]];
                             saveList(list);
                             rebuild();

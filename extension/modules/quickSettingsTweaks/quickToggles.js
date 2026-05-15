@@ -1,5 +1,7 @@
 'use strict';
 
+log('[LIDSoL QST FILE] quickToggles.js loaded - START');
+
 import {
     QuickToggle,
     QuickMenuToggle,
@@ -18,6 +20,8 @@ export class QuickTogglesFeature {
         this._order = [];
         this._unordered = null;
         this._gsettings = null;
+        // Signal handler ID for the only setting we watch
+        this._signalId = 0;
     }
 
     enable(gsettings) {
@@ -26,38 +30,69 @@ export class QuickTogglesFeature {
 
         if (!this._enabled) return;
 
+        this._startTracker();
+    }
+
+    // ── Setting listener management (single key) ──────────────
+    _connectOrderHandler() {
+        log(`[LIDSoL QST] _connectOrderHandler() signalId=${this._signalId}`);
+        this._signalId = this._gsettings.connect('changed::qst-toggles-order', () => {
+            log('[LIDSoL QST] changed::qst-toggles-order FIRED');
+            try {
+                this._onOrderChanged();
+            } catch (e) {
+                console.error('[LIDSoL QST] Error in handler:', e);
+            }
+        });
+    }
+
+    _disconnectOrderHandler() {
+        if (this._signalId && this._gsettings) {
+            this._gsettings.disconnect(this._signalId);
+            this._signalId = 0;
+        }
+    }
+
+    // ── Tracker lifecycle ─────────────────────────────────────
+    _startTracker() {
         this._tracker = new QuickSettingsToggleTracker();
         this._tracker.onToggleCreated = (maid, toggle) => this._onToggleCreated(maid, toggle);
         this._tracker.onUpdate = () => this._onUpdate();
         this._tracker.load();
-
-        this._registerOrderHandler();
     }
 
-    _registerOrderHandler() {
-        this._maid.connectJob(this._gsettings, 'changed::qst-toggles-order', () => {
-            this._onOrderChanged();
-        });
-    }
-
-    _onOrderChanged() {
-        this._maid.clear();
-        this._tracker?.unload();
-        this._loadSettings();
-        if (this._enabled) {
-            this._tracker = new QuickSettingsToggleTracker();
-            this._tracker.onToggleCreated = (maid, toggle) => this._onToggleCreated(maid, toggle);
-            this._tracker.onUpdate = () => this._onUpdate();
-            this._tracker.load();
-        }
-        this._registerOrderHandler();
-    }
-
-    disable() {
+    _stopTracker() {
         if (this._tracker) {
             this._tracker.unload();
             this._tracker = null;
         }
+    }
+
+    // ── Reload (mirrors FeatureBase.reload from reference) ────
+    _reload() {
+        this._stopTracker();
+        this._maid.clear();
+        if (this._enabled)
+            this._startTracker();
+    }
+
+    // ── Called when qst-toggles-order changes ─────────────────
+    _onOrderChanged() {
+        log('[LIDSoL QST] _onOrderChanged()');
+        // 1. Disconnect old handler (we're inside it, but that's fine in GJS)
+        this._disconnectOrderHandler();
+
+        // 2. Re-read settings — also re-connects the handler
+        this._loadSettings();
+
+        // 3. Full reload (stop tracker → maid.clear → start tracker)
+        this._reload();
+        log('[LIDSoL QST] _onOrderChanged() DONE, new signalId=' + this._signalId);
+    }
+
+    disable() {
+        this._disconnectOrderHandler();
+        this._stopTracker();
         this._maid.clear();
         this._order = [];
         this._unordered = null;
@@ -65,12 +100,21 @@ export class QuickTogglesFeature {
     }
 
     _loadSettings() {
+        log('[LIDSoL QST] _loadSettings()');
+        // Re-read enabled state
         this._enabled = this._gsettings.get_boolean('qst-toggles-enabled');
+
+        // Re-read order — this is where we ALSO re-connect the handler,
+        // mirroring SettingLoader.push() from the reference
         try {
             this._order = this._gsettings.get_value('qst-toggles-order').recursiveUnpack();
+            log('[LIDSoL QST] _loadSettings() order has ' + this._order.length + ' items');
         } catch (e) {
+            log('[LIDSoL QST] _loadSettings() failed to parse order:', e);
             this._order = [];
         }
+        this._connectOrderHandler();
+
         this._unordered = null;
         for (const item of this._order) {
             if (item.titleRegex)
@@ -83,6 +127,7 @@ export class QuickTogglesFeature {
     _onToggleCreated(maid, toggle) {
         const rule = this._order.find(item => ToggleOrderItem.toggleMatch(item, toggle))
             || this._unordered;
+        log(`[LIDSoL QST] Toggle created: ${toggle.constructor.name}, hide=${!!rule?.hide}`);
         if (rule?.hide)
             maid.hideJob(toggle);
     }

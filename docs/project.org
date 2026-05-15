@@ -135,7 +135,7 @@ Aún es neceario escribir la propuesta
   - [ ] Tamaño y redondez
   - [ ] Padding y espaciado
   - [ ] Fondo del díalogo
-**** TODO Quick Settings Tweaks
+**** IN-PROGRESS Quick Settings Tweaks
 *****  Aún es necesario escribir la propuesta
 **** IN-PROGRESS Quick Text [1/3] :shell:
 - [X] Darle soporte a GNOME 50 e integrar la extensión de LIDSoL's widgets 

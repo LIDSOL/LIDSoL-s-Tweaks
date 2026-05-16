@@ -264,7 +264,7 @@ Gnome-Widgets/
 - Actualización reactiva controlada.
 *** Logger
 * 4. Notas técnicas de cada commit:
-** Commit actual
+** 9f879cf
 - El día de ayer se añadió "correctamente" systemItems.js, pero hoy al intentar usar esta feature, dejó de funcionar. Así que se volvió a portar. Se hicieron los siguientes cambios:
   1. _getItems() siempre usaba GLib.idle_add incluso si _systemItem ya existía: Fast-path síncrono: si systemItem ya está disponible, resuelve inmediatamente sin idle_add
   2. Errores silenciosos invisibles infinitos — el catch devolvía SOURCE_CONTINUE sin log: console.warn() en el catch del idle poller para diagnosticar
@@ -283,4 +283,13 @@ Flujo de activación (dos niveles)
 2. QuickSettingsTweaksModule.enable() crea SystemItemsFeature y llama a su enable()
 3. SystemItemsFeature.enable() lee qst-system-items-enabled → si false, conecta handlers pero no aplica layout
 4. Cuando el usuario activa qst-system-items-enabled desde preferencias, el handler changed:: dispara _scheduleApply()
-
+** Actual commit
+- Los atajos de teclado para activar/desactivar los toggles personalizados no funcionaban correctamente.
+- **Keybinding de custom toggles migrado a `Main.wm.addKeybinding()`**:
+  - Reemplazado `global.display.connect('key-press-event', ...)` por `Main.wm.addKeybinding()` con slots GSettings (`qst-custom-kb-0` a `qst-custom-kb-9`), más estable y sin necesidad de parsear aceleradores manualmente.
+  - `_destroyCustomToggles()` ahora usa `Main.wm.removeKeybinding()` en vez de `global.display.disconnect()`.
+  - Cada toggle guarda `kbSlot` y `kbRegistered` en vez de `keybindingId`.
+- **10 nuevas keys GSettings** en el schema: `qst-custom-kb-0` a `qst-custom-kb-9` (tipo `as`, default `[]`).
+- **Reorganización de la página Quick Settings en prefs.js**:
+  - Separado en dos `Adw.PreferencesGroup`: "Área de sistema" (User Avatar + System Items) y "Toggles" (Quick Toggles Layout).
+  - Intercambiado el orden de las filas System Items ↔ Quick Toggles para que cada una quede en su grupo correcto.

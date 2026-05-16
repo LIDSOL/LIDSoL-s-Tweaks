@@ -93,25 +93,18 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     }
 
     _addQuicksettingsModuleGroup(page) {
-        const group = new Adw.PreferencesGroup();
-        group.add(createModuleRow({
+        const systemGroup = new Adw.PreferencesGroup({
+            title: 'Área de sistema',
+            description: 'Avatar de usuario y organización de los botones del sistema.',
+        });
+        systemGroup.add(createModuleRow({
             settings: this._settings,
             bindKey: 'user-avatar-enabled',
             title: 'Avatar de Usuario',
             subtitle: 'Muestra tu foto de perfil en los ajustes rápidos',
             onDetailed: () => this._openDialog('Avatar de Usuario', p => this._buildUserAvatarDialog(p)),
         }));
-        group.add(createModuleRow({
-            settings: this._settings,
-            bindKey: 'qst-toggles-enabled',
-            title: 'Quick Toggles Layout',
-            subtitle: 'Reordena y oculta toggles del menú de configuración rápida',
-            onDetailed: () => {
-                if (this._window && this._settings)
-                    openToggleOrderDialog(this._window, this._settings);
-            },
-        }));
-        group.add(createModuleRow({
+        systemGroup.add(createModuleRow({
             settings: this._settings,
             bindKey: 'qst-system-items-enabled',
             title: 'System Items Layout',
@@ -121,7 +114,23 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
                     openSystemItemsDialog(this._window, this._settings);
             },
         }));
-        page.add(group);
+        page.add(systemGroup);
+
+        const togglesGroup = new Adw.PreferencesGroup({
+            title: 'Toggles',
+            description: 'Personalización de los toggles del menú de configuración rápida.',
+        });
+        togglesGroup.add(createModuleRow({
+            settings: this._settings,
+            bindKey: 'qst-toggles-enabled',
+            title: 'Quick Toggles Layout',
+            subtitle: 'Reordena y oculta toggles del menú de configuración rápida',
+            onDetailed: () => {
+                if (this._window && this._settings)
+                    openToggleOrderDialog(this._window, this._settings);
+            },
+        }));
+        page.add(togglesGroup);
     }
 
     _addWidgetsModuleGroup(page) {

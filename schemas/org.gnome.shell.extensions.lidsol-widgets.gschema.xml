@@ -731,5 +731,47 @@
       <description>Orden de los botones del área de sistema</description>
     </key>
 
+    <!-- Custom toggle keybinding slots (used by QuickTogglesFeature via Main.wm.addKeybinding) -->
+    <key type="as" name="qst-custom-kb-0">
+      <default><![CDATA[[]]]></default>
+      <summary>Custom toggle keybinding slot 0</summary>
+    </key>
+    <key type="as" name="qst-custom-kb-1">
+      <default><![CDATA[[]]]></default>
+      <summary>Custom toggle keybinding slot 1</summary>
+    </key>
+    <key type="as" name="qst-custom-kb-2">
+      <default><![CDATA[[]]]></default>
+      <summary>Custom toggle keybinding slot 2</summary>
+    </key>
+    <key type="as" name="qst-custom-kb-3">
+      <default><![CDATA[[]]]></default>
+      <summary>Custom toggle keybinding slot 3</summary>
+    </key>
+    <key type="as" name="qst-custom-kb-4">
+      <default><![CDATA[[]]]></default>
+      <summary>Custom toggle keybinding slot 4</summary>
+    </key>
+    <key type="as" name="qst-custom-kb-5">
+      <default><![CDATA[[]]]></default>
+      <summary>Custom toggle keybinding slot 5</summary>
+    </key>
+    <key type="as" name="qst-custom-kb-6">
+      <default><![CDATA[[]]]></default>
+      <summary>Custom toggle keybinding slot 6</summary>
+    </key>
+    <key type="as" name="qst-custom-kb-7">
+      <default><![CDATA[[]]]></default>
+      <summary>Custom toggle keybinding slot 7</summary>
+    </key>
+    <key type="as" name="qst-custom-kb-8">
+      <default><![CDATA[[]]]></default>
+      <summary>Custom toggle keybinding slot 8</summary>
+    </key>
+    <key type="as" name="qst-custom-kb-9">
+      <default><![CDATA[[]]]></default>
+      <summary>Custom toggle keybinding slot 9</summary>
+    </key>
+
   </schema>
 </schemalist>

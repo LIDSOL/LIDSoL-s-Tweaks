@@ -293,3 +293,34 @@ Flujo de activación (dos niveles)
 - **Reorganización de la página Quick Settings en prefs.js**:
   - Separado en dos `Adw.PreferencesGroup`: "Área de sistema" (User Avatar + System Items) y "Toggles" (Quick Toggles Layout).
   - Intercambiado el orden de las filas System Items ↔ Quick Toggles para que cada una quede en su grupo correcto.
+
+- [-] Testing [14%]
+  - [-] Apariencia
+    - [X] Nombre
+    - [ ] Ícono
+  - [ ] Reglas de coincidencia?
+    - [ ] Constructor name?
+    - [ ] Rejex de título?
+    - [ ] GType name?
+  - [-] Comandos
+    - [X] Comando OFF
+    - [X] Comando ON
+    - [ ] Comando de verificación
+    - [ ] Término de busqueda
+    - [ ] Término de busqueda
+  - [-] Comportamiento de inicio
+    - [ ] Estado inicial
+    - [ ] Ejecturar comando al inicio
+    - [ ] Retardo
+  - [ ] Comportamiento del toggle
+    - [ ] Acción al hacer click
+      - [ ] Alternar
+      - [ ] Siempre activado
+      - [ ] Siempre desactivado
+    - [ ] Mostrar indicador
+    - [ ] Cerrar el menú al presionar
+    - [ ] Verificar código de salida?
+  - [ ] Sincronización
+    - [ ] Mantener sincronizado
+    - [ ] Frecuencia
+  - [X] Atajo de teclado

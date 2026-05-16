@@ -6,6 +6,7 @@ import { QuickTextModule } from '../modules/quickText/module.js';
 import { BackgroundClockModule } from '../modules/backgroundClock/module.js';
 import { UserAvatarModule } from '../modules/userAvatar/module.js';
 import { QuickSettingsTweaksModule } from '../modules/quickSettingsTweaks/module.js';
+import { SystemItemsModule } from '../modules/systemItems/module.js';
 
 const REGISTERED_MODULES = [
     {
@@ -43,6 +44,12 @@ const REGISTERED_MODULES = [
         name: 'Quick Settings Tweaks',
         enabledKey: 'qst-toggles-enabled',
         moduleClass: QuickSettingsTweaksModule
+    },
+    {
+        id: 'systemItems',
+        name: 'System Items Layout',
+        enabledKey: 'qst-system-items-enabled',
+        moduleClass: SystemItemsModule
     }
 ];
 

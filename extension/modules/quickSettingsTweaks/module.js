@@ -2,7 +2,6 @@
 
 globalThis.log('[LIDSoL QST MODULE] module.js loaded - START');
 import { QuickTogglesFeature } from './quickToggles.js';
-import { SystemItemsFeature } from './systemItems.js';
 
 export class QuickSettingsTweaksModule {
     constructor() {
@@ -18,12 +17,6 @@ export class QuickSettingsTweaksModule {
         toggles.enable(gsettings);
         log('[LIDSoL QST MODULE] QuickTogglesFeature enabled');
         this._features.push(toggles);
-
-        const systemItems = new SystemItemsFeature();
-        log('[LIDSoL QST MODULE] SystemItemsFeature created');
-        systemItems.enable(gsettings);
-        log('[LIDSoL QST MODULE] SystemItemsFeature enabled');
-        this._features.push(systemItems);
     }
 
     disable() {

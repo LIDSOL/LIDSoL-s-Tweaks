@@ -264,3 +264,23 @@ Gnome-Widgets/
 - Actualización reactiva controlada.
 *** Logger
 * 4. Notas técnicas de cada commit:
+** Commit actual
+- El día de ayer se añadió "correctamente" systemItems.js, pero hoy al intentar usar esta feature, dejó de funcionar. Así que se volvió a portar. Se hicieron los siguientes cambios:
+  1. _getItems() siempre usaba GLib.idle_add incluso si _systemItem ya existía: Fast-path síncrono: si systemItem ya está disponible, resuelve inmediatamente sin idle_add
+  2. Errores silenciosos invisibles infinitos — el catch devolvía SOURCE_CONTINUE sin log: console.warn() en el catch del idle poller para diagnosticar
+  3. Múltiples operaciones async concurrentes si cambiaban settings rápido: _pending guard: _cancelPending() elimina el idle callback anterior antes de crear uno nuevo
+  4. _maid.clear() se llamaba pero _getItems() podía resolver con items undefined, que hideJob() ignoraba silenciosamente: Todos los hideJob() protegidos con && items.xxx
+  5. Sin forma de cancelar idle_add en disable(): _cancelPending() en disable()
+  6. _disconnectHandlers() podía fallar si _gsettings era null: Guard null en _disconnectHandlers()
+- Aun así, seguía sin funcionar. Ahí fue cuando me di cuenta de que, si Quick Toggles Layout estaba activado, System Items Layout funcionaba; pero sí se desactivaba Quick Toggles Layout, System Items Layout dejaba de trabajar. El problema estaba en que ModuleLoader registraba todo quickSettingsTweaks con enableKey: 'qst-toggles-enabled', por lo que al desactivar Quick Toggles Layout se descargaba el módulo entero, incluyendo System Items Layout.
+  - Cambios realizados:
+    1. Nuevo módulo independiente extension/modules/systemItems/module.js — wrapper que crea un SystemItemsFeature como módulo autónomo.
+    2. extension/modules/quickSettingsTweaks/module.js — eliminado SystemItemsFeature y su import; ahora solo gestiona QuickTogglesFeature.
+    3. extension/core/moduleLoader.js — agregado SystemItemsModule en REGISTERED_MODULES con enabledKey: 'qst-system-items-enabled', separado del módulo de Quick Toggles.
+- El tamaño predefinido de la ventana de configuración prefs.js se cambió a a 495x600 
+Flujo de activación (dos niveles)
+1. ModuleLoader verifica qst-toggles-enabled → si true, crea QuickSettingsTweaksModule
+2. QuickSettingsTweaksModule.enable() crea SystemItemsFeature y llama a su enable()
+3. SystemItemsFeature.enable() lee qst-system-items-enabled → si false, conecta handlers pero no aplica layout
+4. Cuando el usuario activa qst-system-items-enabled desde preferencias, el handler changed:: dispara _scheduleApply()
+

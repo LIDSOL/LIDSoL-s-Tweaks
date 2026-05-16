@@ -21,23 +21,33 @@ export class SystemItemsFeature {
         this._gsettings = null;
         this._signalIds = [];
         this._enabled = false;
+        this._pending = null;
     }
 
     enable(gsettings) {
         this._gsettings = gsettings;
         this._loadSettings();
         if (!this._enabled) return;
-        this._apply();
+        this._scheduleApply();
     }
 
     disable() {
+        this._cancelPending();
         this._disconnectHandlers();
         this._maid.clear();
         this._gsettings = null;
     }
 
+    _cancelPending() {
+        if (this._pending) {
+            try { GLib.Source.remove(this._pending); } catch (_) {}
+            this._pending = null;
+        }
+    }
+
     _loadSettings() {
         const s = this._gsettings;
+        if (!s) return;
         this._enabled = s.get_boolean('qst-system-items-enabled');
         this._hideLayout = s.get_boolean('qst-system-items-hide');
         this._hideScreenshot = s.get_boolean('qst-system-items-hide-screenshot');
@@ -54,77 +64,92 @@ export class SystemItemsFeature {
         for (const key of SYSTEM_ITEM_KEYS) {
             const id = this._gsettings.connect(`changed::${key}`, () => {
                 this._loadSettings();
-                this._apply();
+                this._scheduleApply();
             });
             this._signalIds.push(id);
         }
     }
 
     _disconnectHandlers() {
+        if (!this._gsettings) {
+            this._signalIds = [];
+            return;
+        }
         for (const id of this._signalIds) {
             try { this._gsettings.disconnect(id); } catch (_) {}
         }
         this._signalIds = [];
     }
 
-    _getItems() {
+    _getSystemItem() {
         return new Promise((resolve) => {
-            const tryGet = () => {
+            const qs = Main.panel.statusArea.quickSettings;
+            const system = qs && qs._system;
+            const systemItem = system && system._systemItem;
+            if (systemItem) {
+                resolve(systemItem);
+                return;
+            }
+            const idleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
                 try {
-                    const qs = Main.panel.statusArea.quickSettings;
-                    const system = qs._system;
-                    if (!system) return GLib.SOURCE_CONTINUE;
-                    const systemItem = system._systemItem;
-                    if (!systemItem) return GLib.SOURCE_CONTINUE;
-                    const children = systemItem.child.get_children();
-
-                    let screenshot, settings, lock, shutdown;
-                    for (const child of children) {
-                        const name = child.constructor.name;
-                        if (name === 'ScreenshotItem') screenshot = child;
-                        else if (name === 'SettingsItem') settings = child;
-                        else if (name === 'LockItem') lock = child;
-                        else if (name === 'ShutdownItem') shutdown = child;
-                    }
-
-                    resolve({
-                        screenshot,
-                        settings,
-                        lock,
-                        shutdown,
-                        battery: systemItem.powerToggle,
-                        laptopSpacer: systemItem._laptopSpacer,
-                        desktopSpacer: systemItem._desktopSpacer,
-                        box: systemItem,
-                    });
+                    const qs2 = Main.panel.statusArea.quickSettings;
+                    const sys2 = qs2 && qs2._system;
+                    const item2 = sys2 && sys2._systemItem;
+                    if (!item2) return GLib.SOURCE_CONTINUE;
+                    resolve(item2);
                     return GLib.SOURCE_REMOVE;
                 } catch (e) {
+                    console.warn('[LIDSoL QST] Waiting for system item...', e);
                     return GLib.SOURCE_CONTINUE;
                 }
-            };
-            GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, tryGet);
-        });
+            });
+            this._pending = idleId;
+        }).finally(() => { this._pending = null; });
     }
 
-    _apply() {
+    _scheduleApply() {
+        this._cancelPending();
         this._maid.clear();
         if (!this._enabled) return;
 
-        this._getItems().then(items => {
+        this._getSystemItem().then(systemItem => {
+            const children = systemItem.child.get_children();
+
+            let screenshot, settings, lock, shutdown;
+            for (const child of children) {
+                const name = child.constructor.name;
+                if (name === 'ScreenshotItem') screenshot = child;
+                else if (name === 'SettingsItem') settings = child;
+                else if (name === 'LockItem') lock = child;
+                else if (name === 'ShutdownItem') shutdown = child;
+            }
+
+            const items = {
+                screenshot,
+                settings,
+                lock,
+                shutdown,
+                battery: systemItem.powerToggle,
+                laptopSpacer: systemItem._laptopSpacer,
+                desktopSpacer: systemItem._desktopSpacer,
+                box: systemItem,
+            };
+
             if (this._hideLayout) {
-                this._maid.hideJob(items.box, () => true);
+                if (items.box)
+                    this._maid.hideJob(items.box, () => true);
                 return;
             }
 
-            if (this._hideBattery)
+            if (this._hideBattery && items.battery)
                 this._maid.hideJob(items.battery, (old, obj) => { obj._sync(); });
-            if (this._hideScreenshot)
+            if (this._hideScreenshot && items.screenshot)
                 this._maid.hideJob(items.screenshot, () => true);
-            if (this._hideLock)
+            if (this._hideLock && items.lock)
                 this._maid.hideJob(items.lock, () => true);
-            if (this._hideShutdown)
+            if (this._hideShutdown && items.shutdown)
                 this._maid.hideJob(items.shutdown, () => true);
-            if (this._hideSettings)
+            if (this._hideSettings && items.settings)
                 this._maid.hideJob(items.settings, () => true);
 
             let last = null;

@@ -3,6 +3,7 @@
 import GObject from 'gi://GObject';
 import GLib from 'gi://GLib';
 import Gio from 'gi://Gio';
+import Gtk from 'gi://Gtk';
 import {
     QuickToggle,
     QuickMenuToggle,
@@ -353,6 +354,8 @@ export class QuickTogglesFeature {
     _destroyCustomToggles() {
         for (const ct of this._customToggles) {
             try {
+                if (ct.keybindingId)
+                    global.display.disconnect(ct.keybindingId);
                 if (ct.maid) ct.maid.destroy();
                 if (ct.indicator) {
                     ct.indicator.quickSettingsItems.forEach(item => {
@@ -394,10 +397,33 @@ export class QuickTogglesFeature {
             maid.destroy();
         });
 
+        log(`[LIDSoL QST] Custom toggle: "${item.friendlyName}" icon="${item.icon || '(empty)'}" showIndicator=${item.showIndicator}`);
+
+        // ── Keybinding support (dynamic, no schema keys needed) ─
+        let keybindingId = 0;
+        if (item.keybinding?.trim()) {
+            const [keyval, mask] = Gtk.accelerator_parse(item.keybinding);
+            if (keyval) {
+                log(`[LIDSoL QST] KB: "${item.keybinding}" parsed ok for "${item.friendlyName}"`);
+                keybindingId = global.display.connect('key-press-event', (_disp, event) => {
+                    const [, evKeyval] = event.get_keyval();
+                    const evState = event.get_state();
+                    const evMask = evState & Gtk.accelerator_get_default_mod_mask();
+                    if (evKeyval === keyval && evMask === mask) {
+                        toggle.checked = !toggle.checked;
+                        return Clutter.EVENT_STOP;
+                    }
+                    return Clutter.EVENT_PROPAGATE;
+                });
+            } else {
+                log(`[LIDSoL QST] KB parse failed: "${item.keybinding}"`);
+            }
+        }
+
         // Register in Quick Settings
         Main.panel.statusArea.quickSettings.addExternalIndicator(indicator);
 
-        this._customToggles.push({ item, indicator, toggle, maid });
+        this._customToggles.push({ item, indicator, toggle, maid, keybindingId });
     }
 
     // ── Reload ─────────────────────────────────────────────────

@@ -263,4 +263,4 @@ Gnome-Widgets/
 - Observadores desacoplados.
 - Actualización reactiva controlada.
 *** Logger
-* ---
+* 4. Notas técnicas de cada commit:

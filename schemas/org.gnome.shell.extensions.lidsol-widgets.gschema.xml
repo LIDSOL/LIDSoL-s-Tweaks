@@ -687,5 +687,49 @@
       <description>Lista ordenada de toggles con opciones de ocultación</description>
     </key>
 
+    <!-- System Items Layout -->
+    <key type="b" name="qst-system-items-enabled">
+      <default>false</default>
+      <summary>Habilitar System Items Layout</summary>
+      <description>Permite reordenar y ocultar los botones del área de sistema (captura, ajustes, bloqueo, apagado, batería)</description>
+    </key>
+
+    <key type="b" name="qst-system-items-hide">
+      <default>false</default>
+      <summary>Ocultar toda el área de sistema</summary>
+      <description>Oculta todos los botones del área de sistema por completo</description>
+    </key>
+
+    <key type="b" name="qst-system-items-hide-screenshot">
+      <default>false</default>
+      <summary>Ocultar botón de captura</summary>
+    </key>
+
+    <key type="b" name="qst-system-items-hide-settings">
+      <default>false</default>
+      <summary>Ocultar botón de ajustes</summary>
+    </key>
+
+    <key type="b" name="qst-system-items-hide-lock">
+      <default>false</default>
+      <summary>Ocultar botón de bloqueo</summary>
+    </key>
+
+    <key type="b" name="qst-system-items-hide-shutdown">
+      <default>false</default>
+      <summary>Ocultar botón de apagado</summary>
+    </key>
+
+    <key type="b" name="qst-system-items-hide-battery">
+      <default>false</default>
+      <summary>Ocultar indicador de batería</summary>
+    </key>
+
+    <key type="as" name="qst-system-items-order">
+      <default><![CDATA[['battery', 'laptopSpacer', 'screenshot', 'settings', 'desktopSpacer', 'lock', 'shutdown']]]></default>
+      <summary>Orden de los elementos del sistema</summary>
+      <description>Orden de los botones del área de sistema</description>
+    </key>
+
   </schema>
 </schemalist>

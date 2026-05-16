@@ -111,6 +111,16 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
                     openToggleOrderDialog(this._window, this._settings);
             },
         }));
+        group.add(createModuleRow({
+            settings: this._settings,
+            bindKey: 'qst-system-items-enabled',
+            title: 'System Items Layout',
+            subtitle: 'Reordena y oculta botones del área de sistema (captura, ajustes, bloqueo, apagado, batería)',
+            onDetailed: () => {
+                if (this._window && this._settings)
+                    openSystemItemsDialog(this._window, this._settings);
+            },
+        }));
         page.add(group);
     }
 
@@ -582,6 +592,164 @@ function openToggleOrderDialog(parentWindow, settings) {
                     group.add(row);
                 };
                 for (const item of list) addRow(item);
+            };
+            rebuild();
+        },
+    });
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  SYSTEM ITEMS LAYOUT
+// ══════════════════════════════════════════════════════════════════
+
+const SYSTEM_ITEM_NAMES = {
+    battery: 'Batería',
+    laptopSpacer: 'Espaciador (portátil)',
+    screenshot: 'Captura de pantalla',
+    settings: 'Ajustes',
+    desktopSpacer: 'Espaciador (escritorio)',
+    lock: 'Bloqueo',
+    shutdown: 'Apagado',
+};
+
+const SYSTEM_ITEM_ICONS = {
+    battery: 'battery-symbolic',
+    laptopSpacer: 'computer-symbolic',
+    screenshot: 'camera-photo-symbolic',
+    settings: 'preferences-system-symbolic',
+    desktopSpacer: 'computer-symbolic',
+    lock: 'system-lock-screen-symbolic',
+    shutdown: 'system-shutdown-symbolic',
+};
+
+const SYSTEM_ITEM_DEFAULT_ORDER = [
+    'battery', 'laptopSpacer', 'screenshot', 'settings',
+    'desktopSpacer', 'lock', 'shutdown',
+];
+
+const SYSTEM_ITEM_HIDE_KEYS = {
+    battery: 'qst-system-items-hide-battery',
+    screenshot: 'qst-system-items-hide-screenshot',
+    settings: 'qst-system-items-hide-settings',
+    lock: 'qst-system-items-hide-lock',
+    shutdown: 'qst-system-items-hide-shutdown',
+};
+
+function openSystemItemsDialog(parentWindow, settings) {
+    let dialog = null;
+    let rebuild = null;
+
+    const getOrder = () => {
+        try { return settings.get_strv('qst-system-items-order'); }
+        catch (e) { return [...SYSTEM_ITEM_DEFAULT_ORDER]; }
+    };
+    const saveOrder = (order) => {
+        settings.set_strv('qst-system-items-order', order);
+    };
+    const moveItem = (name, direction) => {
+        const order = getOrder();
+        const idx = order.indexOf(name);
+        if (idx === -1) return;
+        const target = idx + direction;
+        if (target < 0 || target >= order.length) return;
+        order.splice(idx, 1);
+        order.splice(target, 0, name);
+        saveOrder(order);
+    };
+
+    createDialog({
+        window: parentWindow,
+        title: 'Ordenar elementos del sistema',
+        childrenRequest: (page, dlg) => {
+            dialog = dlg;
+
+            const masterGroup = new Adw.PreferencesGroup({
+                title: 'Sistema',
+                description: 'Controla la visibilidad y el orden de los botones del área de sistema en el menú de ajustes rápidos.',
+            });
+            page.add(masterGroup);
+
+            const hideAllSwitch = new Gtk.Switch({
+                active: settings.get_boolean('qst-system-items-hide'),
+                valign: Gtk.Align.CENTER,
+            });
+            settings.bind('qst-system-items-hide', hideAllSwitch, 'active',
+                Gio.SettingsBindFlags.DEFAULT);
+            const hideAllRow = new Adw.ActionRow({
+                title: 'Ocultar toda el área de sistema',
+                subtitle: 'Reemplaza con el botón de apagado simplificado',
+                activatable_widget: hideAllSwitch,
+            });
+            hideAllRow.add_suffix(hideAllSwitch);
+            masterGroup.add(hideAllRow);
+
+            const orderGroup = new Adw.PreferencesGroup({
+                title: 'Orden y visibilidad',
+                description: 'Usa las flechas para reordenar. El switch oculta el elemento.',
+            });
+            page.add(orderGroup);
+            const rows = [];
+
+            rebuild = () => {
+                for (const r of rows) orderGroup.remove(r);
+                rows.length = 0;
+
+                const headerBox = new Gtk.Box({ spacing: 4 });
+                const resetBtn = Gtk.Button.new_from_icon_name('view-refresh-symbolic');
+                resetBtn.has_frame = false;
+                resetBtn.valign = Gtk.Align.CENTER;
+                resetBtn.tooltip_text = 'Restablecer orden predeterminado';
+                resetBtn.connect('clicked', () => {
+                    settings.reset('qst-system-items-order');
+                    for (const key of Object.values(SYSTEM_ITEM_HIDE_KEYS))
+                        settings.reset(key);
+                    rebuild();
+                });
+                headerBox.append(resetBtn);
+                orderGroup.header_suffix = headerBox;
+
+                const order = getOrder();
+                const addRow = (name) => {
+                    const title = SYSTEM_ITEM_NAMES[name] || name;
+                    const isSpacer = name === 'laptopSpacer' || name === 'desktopSpacer';
+                    const row = new Adw.ActionRow({ title, activatable: false });
+
+                    const icon = Gtk.Image.new_from_icon_name(
+                        SYSTEM_ITEM_ICONS[name] || 'emblem-system-symbolic');
+                    icon.pixel_size = 18;
+                    icon.margin_start = 4;
+                    icon.margin_end = 4;
+                    row.add_prefix(icon);
+
+                    const upBtn = Gtk.Button.new_from_icon_name('go-up-symbolic');
+                    upBtn.has_frame = false;
+                    upBtn.valign = Gtk.Align.CENTER;
+                    upBtn.tooltip_text = 'Mover arriba';
+                    upBtn.connect('clicked', () => { moveItem(name, -1); rebuild(); });
+                    row.add_prefix(upBtn);
+
+                    const downBtn = Gtk.Button.new_from_icon_name('go-down-symbolic');
+                    downBtn.has_frame = false;
+                    downBtn.valign = Gtk.Align.CENTER;
+                    downBtn.tooltip_text = 'Mover abajo';
+                    downBtn.connect('clicked', () => { moveItem(name, 1); rebuild(); });
+                    row.add_prefix(downBtn);
+
+                    if (!isSpacer) {
+                        const hideKey = SYSTEM_ITEM_HIDE_KEYS[name];
+                        const hideSwitch = new Gtk.Switch({
+                            active: !settings.get_boolean(hideKey),
+                            valign: Gtk.Align.CENTER,
+                        });
+                        settings.bind(hideKey, hideSwitch, 'active',
+                            Gio.SettingsBindFlags.INVERT_BOOLEAN);
+                        row.add_suffix(hideSwitch);
+                    }
+
+                    rows.push(row);
+                    orderGroup.add(row);
+                };
+                for (const name of order) addRow(name);
             };
             rebuild();
         },

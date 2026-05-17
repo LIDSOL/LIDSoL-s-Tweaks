@@ -486,6 +486,7 @@ export class QuickTogglesFeature {
         if (this._enabled) {
             this._startTracker();
             this._createCustomToggles();
+            this._onUpdate();
         }
         log('[LIDSoL QST] _reload() complete');
     }

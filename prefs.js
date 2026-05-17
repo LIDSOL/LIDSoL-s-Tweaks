@@ -596,7 +596,24 @@ function openToggleOrderDialog(parentWindow, settings) {
                 const resetBtn = Gtk.Button.new_from_icon_name('view-refresh-symbolic');
                 resetBtn.has_frame = false; resetBtn.valign = Gtk.Align.CENTER;
                 resetBtn.tooltip_text = 'Restablecer valores predeterminados';
-                resetBtn.connect('clicked', () => { settings.reset('qst-toggles-order'); rebuild(); });
+                resetBtn.connect('clicked', () => {
+                    const alert = new Adw.AlertDialog({
+                        heading: 'Restablecer valores predeterminados',
+                        body: 'Se perderán todos los cambios realizados en los toggles personalizados. ¿Continuar?',
+                    });
+                    alert.add_response('cancel', 'Cancelar');
+                    alert.add_response('reset', 'Restablecer');
+                    alert.set_response_appearance('reset', Adw.ResponseAppearance.DESTRUCTIVE);
+                    alert.set_default_response('cancel');
+                    alert.set_close_response('cancel');
+                    alert.connect('response', (_dlg, response) => {
+                        if (response === 'reset') {
+                            settings.reset('qst-toggles-order');
+                            rebuild();
+                        }
+                    });
+                    alert.present(parentWindow);
+                });
                 headerBox.append(resetBtn);
                 group.header_suffix = headerBox;
                 const list = getList();
@@ -731,10 +748,24 @@ function openSystemItemsDialog(parentWindow, settings) {
                 resetBtn.valign = Gtk.Align.CENTER;
                 resetBtn.tooltip_text = 'Restablecer orden predeterminado';
                 resetBtn.connect('clicked', () => {
-                    settings.reset('qst-system-items-order');
-                    for (const key of Object.values(SYSTEM_ITEM_HIDE_KEYS))
-                        settings.reset(key);
-                    rebuild();
+                    const alert = new Adw.AlertDialog({
+                        heading: 'Restablecer orden predeterminado',
+                        body: 'Se perderán todos los cambios en el orden y visibilidad de los elementos del sistema. ¿Continuar?',
+                    });
+                    alert.add_response('cancel', 'Cancelar');
+                    alert.add_response('reset', 'Restablecer');
+                    alert.set_response_appearance('reset', Adw.ResponseAppearance.DESTRUCTIVE);
+                    alert.set_default_response('cancel');
+                    alert.set_close_response('cancel');
+                    alert.connect('response', (_dlg, response) => {
+                        if (response === 'reset') {
+                            settings.reset('qst-system-items-order');
+                            for (const key of Object.values(SYSTEM_ITEM_HIDE_KEYS))
+                                settings.reset(key);
+                            rebuild();
+                        }
+                    });
+                    alert.present(parentWindow);
                 });
                 headerBox.append(resetBtn);
                 orderGroup.header_suffix = headerBox;

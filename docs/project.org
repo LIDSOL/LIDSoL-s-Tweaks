@@ -299,13 +299,16 @@ Flujo de activación (dos niveles)
   - Agregado `runAtBoot` con retardo: si `item.runAtBoot` es true, programa el comando ON/OFF según el estado resultante con `delayTime` segundos de espera.
   - Persistencia de estado en GSettings (`qst-custom-state-0..9`): cada toggle guarda su estado booleano al hacer clic, permitiendo que "Estado anterior" (initialState=2) funcione entre sesiones.
   - Schema — 10 nuevas keys qst-custom-state-0..9. Tipo b (boolean), default false. Siguen el mismo patrón que los slots de keybinding.
-** Commit actual
+** 84cb3b9
 - Mejoras en prefes.js:
   - /getIconName()/ ahora retorna /item-icon/ si está definido, mostrando el ícono real del toggle en la lista de ordenamiento.
   - Priview en vico del ícono en el formulario de edición (se actualiza al escribir).
   - Una nueva fila de "Sugerencias" con ejemplos de íconos y encace al repo de gitlab con los íconos simbólicos.
 - **Script de test Syncthing** (`scripts/syncthing-toggle.sh`) — Ejercita todos los campos de configuración de toggles personalizados:
   - `commandOn` / `commandOff` / `checkCommand` / `checkRegex` / `checkExitCode` / `commandSync`. Este solo es para testar, despues se eliminará.
+** Commit actual
+- Se edito la ventana de configuraciones, prefes.js, ambos *botones de restablecer* ahora muestran un Adw.AlertDialog de confirmación con respuesta destructiva antes de procedes. Es para evitar eliminar tus configuraciones por error.
+- Se editó quickToggles.js, había un error en el *reordenamiento en vivo* de los toggles personalizados, /_reload()/ ahora llama a /_onUpdate/ después de crear los toggles personalizados, para poder editar el orden de los quick settings.
 - [-] Testing [85%]
   - [X] Apariencia
     - [X] Nombre

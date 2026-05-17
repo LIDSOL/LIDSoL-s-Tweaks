@@ -319,6 +319,8 @@ function getSubtitle(item) {
 function getIconName(item) {
     if (item.isSystem && item.constructorName)
         return SYSTEM_ICONS[item.constructorName] || 'emblem-system-symbolic';
+    if (item.icon)
+        return item.icon;
     return 'preferences-other-symbolic';
 }
 
@@ -413,11 +415,31 @@ function buildEditFormRows(page, item, rootWindow) {
     rows.nameRow = new Adw.EntryRow({ title: 'Nombre' });
     rows.nameRow.set_text(item.friendlyName || '');
     appGroup.add(rows.nameRow);
-    rows.iconRow = new Adw.ActionRow({ title: 'Icono', subtitle: 'Nombre del icono (ej: face-smile-symbolic)' });
+    rows.iconRow = new Adw.ActionRow({ title: 'Icono', subtitle: 'Nombre del icono' });
+    const iconBox = new Gtk.Box({ spacing: 14, valign: Gtk.Align.CENTER });
+    rows.iconPreview = Gtk.Image.new_from_icon_name(item.icon || 'preferences-other-symbolic');
+    rows.iconPreview.pixel_size = 20;
+    iconBox.append(rows.iconPreview);
     rows.iconEntry = new Gtk.Entry({ text: item.icon || '', valign: Gtk.Align.CENTER });
-    rows.iconRow.add_suffix(rows.iconEntry);
+    iconBox.append(rows.iconEntry);
+    rows.iconRow.add_suffix(iconBox);
     rows.iconRow.activatable_widget = rows.iconEntry;
     appGroup.add(rows.iconRow);
+    rows.iconEntry.connect('changed', () => {
+        const name = rows.iconEntry.get_text().trim() || 'preferences-other-symbolic';
+        rows.iconPreview.icon_name = name;
+    });
+    const refLink = new Gtk.LinkButton({
+        uri: 'https://gitlab.gnome.org/GNOME/adwaita-icon-theme/-/tree/master/Adwaita/symbolic',
+        label: 'Más iconos',
+        valign: Gtk.Align.CENTER,
+    });
+    const refRow = new Adw.ActionRow({
+        title: 'Sugerencias',
+        subtitle: 'face-smile-symbolic, heart-symbolic, starred-symbolic, audio-headphones-symbolic, battery-good-symbolic, …',
+    });
+    refRow.add_suffix(refLink);
+    appGroup.add(refRow);
     const matchGroup = new Adw.PreferencesGroup({ title: 'Reglas de coincidencia', description: 'Identifica el toggle en el sistema. Vacío si es sólo comandos.' });
     page.add(matchGroup);
     rows.ctorRow = new Adw.EntryRow({ title: 'Constructor name' });

@@ -293,13 +293,20 @@ Flujo de activación (dos niveles)
 - **Reorganización de la página Quick Settings en prefs.js**:
   - Separado en dos `Adw.PreferencesGroup`: "Área de sistema" (User Avatar + System Items) y "Toggles" (Quick Toggles Layout).
   - Intercambiado el orden de las filas System Items ↔ Quick Toggles para que cada una quede en su grupo correcto.
-** Commit actual
+** 3876e7e 
 - Comportamiento de incicio corregido en quickToggles.js.
   - `LidSolToggleIndicator` ahora aplica `config.initialState` (0=On, 1=Off, 2=Previous, 3=Command output) al crearse, no solo confiaba en `_toggleState` (vacío al iniciar sesión).
   - Agregado `runAtBoot` con retardo: si `item.runAtBoot` es true, programa el comando ON/OFF según el estado resultante con `delayTime` segundos de espera.
   - Persistencia de estado en GSettings (`qst-custom-state-0..9`): cada toggle guarda su estado booleano al hacer clic, permitiendo que "Estado anterior" (initialState=2) funcione entre sesiones.
-  - Schema — 10 nuevas keys qst-custom-state-0..9. Tipo b (boolean), default false. Siguen el mismo patrón que los slots de keybinding. 
-- [-] Testing [57%]
+  - Schema — 10 nuevas keys qst-custom-state-0..9. Tipo b (boolean), default false. Siguen el mismo patrón que los slots de keybinding.
+** Commit actual
+- Mejoras en prefes.js:
+  - /getIconName()/ ahora retorna /item-icon/ si está definido, mostrando el ícono real del toggle en la lista de ordenamiento.
+  - Priview en vico del ícono en el formulario de edición (se actualiza al escribir).
+  - Una nueva fila de "Sugerencias" con ejemplos de íconos y encace al repo de gitlab con los íconos simbólicos.
+- **Script de test Syncthing** (`scripts/syncthing-toggle.sh`) — Ejercita todos los campos de configuración de toggles personalizados:
+  - `commandOn` / `commandOff` / `checkCommand` / `checkRegex` / `checkExitCode` / `commandSync`. Este solo es para testar, despues se eliminará.
+- [-] Testing [85%]
   - [X] Apariencia
     - [X] Nombre
     - [X] Ícono
@@ -307,12 +314,11 @@ Flujo de activación (dos niveles)
     - [ ] Constructor name?
     - [ ] Rejex de título?
     - [ ] GType name?
-  - [-] Comandos
+  - [X] Comandos
     - [X] Comando OFF
     - [X] Comando ON
-    - [ ] Comando de verificación
-    - [ ] Término de busqueda
-    - [ ] Término de busqueda
+    - [X] Comando de verificación
+    - [X] Término de busqueda
   - [X] Comportamiento de inicio
     - [X] Estado inicial
     - [X] Ejecutar comando al inicio
@@ -325,7 +331,7 @@ Flujo de activación (dos niveles)
     - [X] Mostrar indicador
     - [X] Cerrar el menú al presionar
     - [X] Verificar código de salida
-  - [ ] Sincronización
-    - [ ] Mantener sincronizado
-    - [ ] Frecuencia
+  - [X] Sincronización
+    - [X] Mantener sincronizado
+    - [X] Frecuencia
   - [X] Atajo de teclado

@@ -1,6 +1,5 @@
 'use strict';
 
-import GObject from 'gi://GObject';
 import Maid from '../core/maid.js';
 import {
     QuickToggle,
@@ -72,5 +71,55 @@ export class QuickSettingsToggleTracker extends ChildrenTrackerBase {
         if (this.onToggleCreated)
             this.onToggleCreated(toggleMaid, child);
         this.appliedChild.set(child, toggleMaid);
+    }
+}
+
+export class QuickSettingsMenuTracker {
+    constructor() {
+        this.onMenuCreated = null;
+        this.onMenuOpen = null;
+        this.items = [];
+        this._tracker = null;
+    }
+
+    load() {
+        if (this._tracker) return;
+        this._tracker = new QuickSettingsToggleTracker();
+        this._tracker.onToggleCreated = (maid, toggle) => {
+            if (toggle.menu)
+                this._trackMenu(maid, toggle.menu);
+        };
+        this._tracker.load();
+    }
+
+    unload() {
+        if (this._tracker) {
+            this._tracker.unload();
+            this._tracker = null;
+        }
+        this.items = [];
+    }
+
+    _trackMenu(toggleMaid, menu) {
+        if (this.items.includes(menu)) return;
+
+        const menuMaid = new Maid();
+        menuMaid.functionJob(() => {
+            const idx = this.items.indexOf(menu);
+            if (idx >= 0) this.items.splice(idx, 1);
+        });
+
+        toggleMaid.functionJob(() => {
+            menuMaid.destroy();
+        });
+
+        menuMaid.connectJob(menu, 'notify::isOpen', () => {
+            if (this.onMenuOpen)
+                this.onMenuOpen(menuMaid, menu, menu.isOpen);
+        });
+
+        this.items.push(menu);
+        if (this.onMenuCreated)
+            this.onMenuCreated(menuMaid, menu);
     }
 }

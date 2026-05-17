@@ -815,5 +815,45 @@
       <summary>Custom toggle state slot 9</summary>
     </key>
 
+    <!-- Overlay Menu -->
+    <key type="b" name="qst-overlay-menu-enabled">
+      <default>false</default>
+      <summary>Habilitar Overlay Mode</summary>
+      <description>Muestra los menús de toggles, energía y sonido como superposición sobre los ajustes rápidos, útil en pantallas pequeñas</description>
+    </key>
+
+    <key type="i" name="qst-overlay-menu-width">
+      <default>380</default>
+      <summary>Ancho del overlay</summary>
+      <description>Ancho en píxeles del menú superpuesto (0 = sin ajuste)</description>
+    </key>
+
+    <key type="i" name="qst-overlay-menu-animate-duration">
+      <default>360</default>
+      <summary>Duración de la animación</summary>
+      <description>Duración en milisegundos de la animación de apertura (0 = sin animación)</description>
+    </key>
+
+    <key type="s" name="qst-overlay-menu-animate-style">
+      <choices>
+        <choice value='flyout'/>
+        <choice value='dialog'/>
+      </choices>
+      <default>'dialog'</default>
+      <summary>Estilo de animación</summary>
+      <description>'flyout' se expande desde el toggle origen; 'dialog' escala desde el centro</description>
+    </key>
+
+    <key type="s" name="qst-overlay-menu-overflow-anchor">
+      <choices>
+        <choice value='top'/>
+        <choice value='center'/>
+        <choice value='bottom'/>
+      </choices>
+      <default>'top'</default>
+      <summary>Anclaje por desbordamiento</summary>
+      <description>Si el menú es más alto que la ventana de ajustes: top=anclar arriba, center=centrar, bottom=anclar abajo</description>
+    </key>
+
   </schema>
 </schemalist>

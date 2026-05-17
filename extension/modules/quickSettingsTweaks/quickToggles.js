@@ -55,7 +55,24 @@ const LidSolToggleIndicator = GObject.registerClass({
         this.toggle.bind_property('checked', this._indicator, 'visible',
             GObject.BindingFlags.SYNC_CREATE);
 
-        this.toggle.checked = _toggleState[this._stateId] ?? false;
+        // ── Initial state: 0=On, 1=Off, 2=Previous, 3=Command output ──
+        const initState = config.initialState ?? 2;
+        if (initState === 0) {
+            this.toggle.checked = true;
+        } else if (initState === 1) {
+            this.toggle.checked = false;
+        } else if (initState === 2) {
+            const gs = config._gsettings;
+            const slot = config._kbSlot;
+            if (gs != null && slot !== undefined) {
+                try {
+                    const saved = gs.get_boolean(`qst-custom-state-${slot}`);
+                    this.toggle.checked = saved;
+                } catch (_) {}
+            }
+        }
+        // initState 3 is handled in _setupCheckSync (delayed check)
+        _toggleState[this._stateId] = this.toggle.checked;
 
         if (!config.showIndicator)
             this._indicator.visible = false;
@@ -69,6 +86,20 @@ const LidSolToggleIndicator = GObject.registerClass({
         if (config.checkCommand?.trim()) {
             this._setupCheckSync();
         }
+
+        // ── Run command at boot (after all setup) ───────────────
+        if (config.runAtBoot) {
+            const delay = Math.max(0, config.delayTime ?? 3);
+            const bootCmd = this.toggle.checked ? config.commandOn : config.commandOff;
+            if (bootCmd?.trim()) {
+                const timeoutId = GLib.timeout_add_seconds(
+                    GLib.PRIORITY_DEFAULT, delay, () => {
+                        executeCommand(bootCmd, `boot-${config.friendlyName}`);
+                        return GLib.SOURCE_REMOVE;
+                    });
+                this._commandTimeoutIds.push(timeoutId);
+            }
+        }
     }
 
     _onToggleClicked() {
@@ -76,6 +107,16 @@ const LidSolToggleIndicator = GObject.registerClass({
         const checked = this.toggle.checked;
 
         _toggleState[this._stateId] = checked;
+
+        // Persist state to GSettings for cross-session "Previous state"
+        const gs = cfg._gsettings;
+        const slot = cfg._kbSlot;
+        const persistState = (val) => {
+            if (gs != null && slot !== undefined) {
+                try { gs.set_boolean(`qst-custom-state-${slot}`, val); } catch (_) {}
+            }
+        };
+        persistState(checked);
 
         if (cfg.closeMenu)
             Main.panel.closeQuickSettings();
@@ -87,12 +128,14 @@ const LidSolToggleIndicator = GObject.registerClass({
         if (clickAction === 0) {
             this.toggle.checked = true;
             _toggleState[this._stateId] = true;
+            persistState(true);
             executeCommand(cfg.commandOn, 'custom-on(always-on)');
             return;
         }
         if (clickAction === 1) {
             this.toggle.checked = false;
             _toggleState[this._stateId] = false;
+            persistState(false);
             executeCommand(cfg.commandOff, 'custom-off(always-off)');
             return;
         }
@@ -104,6 +147,7 @@ const LidSolToggleIndicator = GObject.registerClass({
                     GObject.signal_handler_block(this.toggle, this._toggleSignalId);
                     this.toggle.checked = !checked;
                     _toggleState[this._stateId] = !checked;
+                    persistState(!checked);
                     GObject.signal_handler_unblock(this.toggle, this._toggleSignalId);
                 } else {
                     executeCommand(cmd, `custom-${checked ? 'on' : 'off'}`);
@@ -395,6 +439,9 @@ export class QuickTogglesFeature {
 
     _createOneCustomToggle(item) {
         const maid = new Maid();
+        const kbSlot = this._customToggles.length;
+        item._gsettings = this._gsettings;
+        item._kbSlot = kbSlot;
         const indicator = new LidSolToggleIndicator(item);
         const toggle = indicator.toggle;
 
@@ -406,7 +453,6 @@ export class QuickTogglesFeature {
         log(`[LIDSoL QST] Custom toggle: "${item.friendlyName}" icon="${item.icon || '(empty)'}" showIndicator=${item.showIndicator}`);
 
         // ── Keybinding via Main.wm.addKeybinding (GSettings slots) ─
-        const kbSlot = this._customToggles.length;
         let kbRegistered = false;
 
         if (item.keybinding?.trim()) {

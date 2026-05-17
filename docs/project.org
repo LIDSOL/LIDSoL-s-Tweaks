@@ -283,7 +283,7 @@ Flujo de activación (dos niveles)
 2. QuickSettingsTweaksModule.enable() crea SystemItemsFeature y llama a su enable()
 3. SystemItemsFeature.enable() lee qst-system-items-enabled → si false, conecta handlers pero no aplica layout
 4. Cuando el usuario activa qst-system-items-enabled desde preferencias, el handler changed:: dispara _scheduleApply()
-** Actual commit
+** f487daa
 - Los atajos de teclado para activar/desactivar los toggles personalizados no funcionaban correctamente.
 - **Keybinding de custom toggles migrado a `Main.wm.addKeybinding()`**:
   - Reemplazado `global.display.connect('key-press-event', ...)` por `Main.wm.addKeybinding()` con slots GSettings (`qst-custom-kb-0` a `qst-custom-kb-9`), más estable y sin necesidad de parsear aceleradores manualmente.
@@ -293,11 +293,16 @@ Flujo de activación (dos niveles)
 - **Reorganización de la página Quick Settings en prefs.js**:
   - Separado en dos `Adw.PreferencesGroup`: "Área de sistema" (User Avatar + System Items) y "Toggles" (Quick Toggles Layout).
   - Intercambiado el orden de las filas System Items ↔ Quick Toggles para que cada una quede en su grupo correcto.
-
-- [-] Testing [14%]
-  - [-] Apariencia
+** Commit actual
+- Comportamiento de incicio corregido en quickToggles.js.
+  - `LidSolToggleIndicator` ahora aplica `config.initialState` (0=On, 1=Off, 2=Previous, 3=Command output) al crearse, no solo confiaba en `_toggleState` (vacío al iniciar sesión).
+  - Agregado `runAtBoot` con retardo: si `item.runAtBoot` es true, programa el comando ON/OFF según el estado resultante con `delayTime` segundos de espera.
+  - Persistencia de estado en GSettings (`qst-custom-state-0..9`): cada toggle guarda su estado booleano al hacer clic, permitiendo que "Estado anterior" (initialState=2) funcione entre sesiones.
+  - Schema — 10 nuevas keys qst-custom-state-0..9. Tipo b (boolean), default false. Siguen el mismo patrón que los slots de keybinding. 
+- [-] Testing [57%]
+  - [X] Apariencia
     - [X] Nombre
-    - [ ] Ícono
+    - [X] Ícono
   - [ ] Reglas de coincidencia?
     - [ ] Constructor name?
     - [ ] Rejex de título?
@@ -308,18 +313,18 @@ Flujo de activación (dos niveles)
     - [ ] Comando de verificación
     - [ ] Término de busqueda
     - [ ] Término de busqueda
-  - [-] Comportamiento de inicio
-    - [ ] Estado inicial
-    - [ ] Ejecturar comando al inicio
-    - [ ] Retardo
-  - [ ] Comportamiento del toggle
-    - [ ] Acción al hacer click
-      - [ ] Alternar
-      - [ ] Siempre activado
-      - [ ] Siempre desactivado
-    - [ ] Mostrar indicador
-    - [ ] Cerrar el menú al presionar
-    - [ ] Verificar código de salida?
+  - [X] Comportamiento de inicio
+    - [X] Estado inicial
+    - [X] Ejecutar comando al inicio
+    - [X] Retardo
+  - [X] Comportamiento del toggle
+    - [X] Acción al hacer click
+      - [X] Alternar
+      - [X] Siempre activado
+      - [X] Siempre desactivado
+    - [X] Mostrar indicador
+    - [X] Cerrar el menú al presionar
+    - [X] Verificar código de salida
   - [ ] Sincronización
     - [ ] Mantener sincronizado
     - [ ] Frecuencia

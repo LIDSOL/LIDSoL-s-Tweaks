@@ -773,5 +773,47 @@
       <summary>Custom toggle keybinding slot 9</summary>
     </key>
 
+    <!-- Custom toggle state persistence (matching keybinding slot indices) -->
+    <key type="b" name="qst-custom-state-0">
+      <default>false</default>
+      <summary>Custom toggle state slot 0</summary>
+    </key>
+    <key type="b" name="qst-custom-state-1">
+      <default>false</default>
+      <summary>Custom toggle state slot 1</summary>
+    </key>
+    <key type="b" name="qst-custom-state-2">
+      <default>false</default>
+      <summary>Custom toggle state slot 2</summary>
+    </key>
+    <key type="b" name="qst-custom-state-3">
+      <default>false</default>
+      <summary>Custom toggle state slot 3</summary>
+    </key>
+    <key type="b" name="qst-custom-state-4">
+      <default>false</default>
+      <summary>Custom toggle state slot 4</summary>
+    </key>
+    <key type="b" name="qst-custom-state-5">
+      <default>false</default>
+      <summary>Custom toggle state slot 5</summary>
+    </key>
+    <key type="b" name="qst-custom-state-6">
+      <default>false</default>
+      <summary>Custom toggle state slot 6</summary>
+    </key>
+    <key type="b" name="qst-custom-state-7">
+      <default>false</default>
+      <summary>Custom toggle state slot 7</summary>
+    </key>
+    <key type="b" name="qst-custom-state-8">
+      <default>false</default>
+      <summary>Custom toggle state slot 8</summary>
+    </key>
+    <key type="b" name="qst-custom-state-9">
+      <default>false</default>
+      <summary>Custom toggle state slot 9</summary>
+    </key>
+
   </schema>
 </schemalist>

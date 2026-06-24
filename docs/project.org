@@ -1,6 +1,6 @@
-#+TITLE: LIDSoL'S Widgets Proyect
+#+TITLE: LIDSoL's Extension Proyect
 #+AUTHOR: RamenRoot
-#+DATE: 12-05-2025
+#+DATE: 2025-06-24
 * 0. Introducción
 Este proyecto aborda la modernización y unificación de múltiples extensiones de GNOME.
 
@@ -309,7 +309,7 @@ Flujo de activación (dos niveles)
 ** 2bb9dce
 - Se edito la ventana de configuraciones, prefes.js, ambos *botones de restablecer* ahora muestran un Adw.AlertDialog de confirmación con respuesta destructiva antes de procedes. Es para evitar eliminar tus configuraciones por error.
 - Se editó quickToggles.js, había un error en el *reordenamiento en vivo* de los toggles personalizados, /_reload()/ ahora llama a /_onUpdate/ después de crear los toggles personalizados, para poder editar el orden de los quick settings.
-** Commit actual — Overlay Mode
+** 70c84ca
 - Se hizo un port de Overlay Mode desde Quick-Settings-Tweaks.
   - Se creo /extension/modules/quickSettingsTweaks/overlayMenu.js/ con /OverlayMenuFeature/.
   - Se usa /QuickSettingsMenuTracker/ para hookear creación/apertura de menús de toggles.
@@ -321,7 +321,11 @@ Flujo de activación (dos niveles)
 - /overlayMenu.js/ importaba /QuickSettingsMenuTracker/ desde /childrenTracker.js/, pero no existía → SyntaxError
 - Implementación: wrapper sobre /QuickSettingsToggleTracker/ que, por cada toggle con propiedad /.menu/, conecta /notify::isOpen/ y expone /onMenuCreated/onMenuOpen/
 - Ciclo de vida gestionado via /Maid/ (se limpia al destruirse el toggle)
- 
-- [ ] Fix, bug de posicionamiento en X. El menu box aparece hasta el extemo izquierdo de la pantalla, debería aparecer en el sitio en el cual se encuentran los quickSettings (más ademante se añadirá la posibilidad de mover los elementos del panel, así que debe aparecer en el lugar adecuado). Se hizo esto pero no se solucionó el bug:
-  - El overlay perdía su constraint horizontal al deshabilitar las del contendor, apareciendo en $x$=0
-  - /Clutter.BindConstraint/ para X vinculado a /menu-box/ (QuickSettings). Esto tenía la intención de mantener el overlay alineacio horizontalmente con los ajuster rápidos.
+** Commit Actual 
+- [X] Fix, bug de posicionamiento en X. El overlay aparecía en x=0 en vez de alineado con QuickSettings.
+  - Causa raíz: el `_xconstraint` usaba `menu.box` como source (coordenadas relativas al padre), no `menu._boxPointer` (coordenadas stage-absolutas). Además nunca se actualizaba `_xconstraint.offset`.
+  - Cambios en `/extension/modules/quickSettingsTweaks/overlayMenu.js`:
+    1. `_xconstraint.source` cambiado de `menu.box` → `menu._boxPointer` (mismo source que Y)
+    2. `_onOpen()` ahora setea `_xconstraint.offset = coords.offsetX`
+    3. `_onMenuCreated()` añade `menu.actor.x_align = Clutter.ActorAlign.CENTER` al fijar width
+    4. Handler `notify::height` ahora también actualiza `_xconstraint.offset`

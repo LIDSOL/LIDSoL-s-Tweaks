@@ -38,12 +38,12 @@ export class OverlayMenuFeature {
             source: menu._boxPointer,
         });
 
-        // X constraint: bind overlay X to the QuickSettings box
-        // This fixes the "left side of screen" bug that occurs when the
-        // overlay's default constraint is disabled
+        // X constraint: bind overlay X to box pointer (same as Y)
+        // Using menu.box would give coordinates relative to its parent,
+        // not stage-absolute, causing the overlay to appear at x=0
         this._xconstraint = new Clutter.BindConstraint({
             coordinate: Clutter.BindCoordinate.X,
-            source: menu.box,
+            source: menu._boxPointer,
         });
 
         // Disable default overlay container constraint
@@ -210,6 +210,8 @@ export class OverlayMenuFeature {
         const coords = this._getCoords(menu);
         if (this._yconstraint)
             this._yconstraint.offset = coords.offsetY;
+        if (this._xconstraint)
+            this._xconstraint.offset = coords.offsetX;
 
         if (this._duration) {
             // Fade in the content
@@ -264,6 +266,7 @@ export class OverlayMenuFeature {
         if (this._width) {
             menu.actor.width = this._width;
             menu.actor.x_expand = false;
+            menu.actor.x_align = Clutter.ActorAlign.CENTER;
         }
 
         // Recalculate Y offset when menu height changes
@@ -272,6 +275,8 @@ export class OverlayMenuFeature {
             const coords = this._getCoords(menu);
             if (this._yconstraint)
                 this._yconstraint.offset = coords.offsetY;
+            if (this._xconstraint)
+                this._xconstraint.offset = coords.offsetX;
         });
     }
 }

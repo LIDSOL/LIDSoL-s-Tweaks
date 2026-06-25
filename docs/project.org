@@ -1,37 +1,41 @@
-#+TITLE: LIDSoL's Extension Proyect
+#+TITLE: LIDSoL'a Extension Proyect
 #+AUTHOR: RamenRoot
-#+DATE: 2025-06-24
+#+DATE: 2026-06-25
 * 0. Introducción
 Este proyecto aborda la modernización y unificación de múltiples extensiones de GNOME.
 
-El problema central radica en la fragilidad del ecosistema de extensiones, el cual depende de APIs internas sujetas a cambios, esto genera obsolescencia: las actualizaciones del escritorio /pueden romper/ las extensiones.
+El problema central radica en la fragilidad de las extensiones, que dependen de APIs internas sujetas a cambios, lo que genera obsolescencia: las actualizaciones del escritorio /pueden romper/ las extensiones.
 
-Para este proyecto se propone estudiar el código de la extensión Aylur's Widgets (sin mantenimiento desde hace más de un par de años y por lo tanto incompatible con las versiones más recientes del escritorio) y de otro puñado de extensiones, con el propósito de modernizarlas y/o unificarlas en una única extensión compatible con GNOME Shell 50.
+Para este proyecto se propone estudiar el código de la extensión Aylur's Widgets (sin mantenimiento desde hace tres años y por lo tanto incompatible con las versiones más recientes del escritorio) y de otro puñado de extensiones, con el propósito de modernizarlas y unificarlas en una única extensión compatible con GNOME Shell 50.
 
-El resultado final esperado es una extensión con arquitectura modular, que gestione de forma centralizada las señales, con bajo, coplamiento, "lazy loading", optimizada y control explícito del ciclo de vida de cada componente. Su arquitectura debe facilitar su mantenimiento y se validará mediante métricas objetivas de rendimiento y estabilidad.
-
+El resultado final esperado es una extensión con arquitectura modular, que gestione de forma centralizada las señales, con bajo acoplamiento "lazy loading", optimizada y con control explícito del ciclo de vida de cada componente.
+Su arquitectura debe facilitar su mantenimiento y se validará mediante métricas objetivas de rendimiento.
 * 1. Objetivos
 ** Objetivos generales
-Diseñar, implementar y mantener una extensión modular para GNOME que reinterprete y modernice los componentes de [[https://extensions.gnome.org/extension/5338/aylurs-widgets/][Aylur's Widgets]] , mediante una arquitectura mantenible, adaptada a los cambios de API de GNOME Shell y GJS.
-[[./img/aylurs.png]]
-La propuesta no consiste en replicar la extensión original, sino en:
+Diseñar, implementar y mantener una extensión modular para GNOME que reinterprete y modernice los componentes de [[https://extensions.gnome.org/extension/5338/aylurs-widgets/][Aylur's Widgets]], mediante una arquitectura que facilite el mantenimiento, adaptada a los cambios de API de GNOME Shell y GJS.
+La propuesta no consiste en replicar la extensión original, si no en:
 - Evaluar la vigencia funcional de cada componente en GNOME 50.
-- Determinar cuáles han sido reemplazados por mejoras nativas del entorno de escritorio.
-- Rediseñar los módulos bajo principios de modularidad estricta.
-- Optimizar el rendimiento y evitar degradación en animaciones del Shell.
-- Consolidar un backend reutilizable y extensible.
+- Determinar cuáles
+- Rediseñar los módulos bajo el principio de "modularidad estricta"
+- Optimizar el rendimiento y evitar degradación de animaciones del Shell.
+- Consolidad un backend reusable y extensible.
 - Publicar la extensión
 ** Objetivos técnicos
-- Separar estrictamente la lógica de negocio y la capa de presentación (UI).
-- Implementar un sistema centralizado de señales.
-- Diseñar e implementar un framework modular interno.
+- Separar estrictamente la lógica de negocio y la capa de presentación (UI)
+- Diseñar un backend MPRIS unificado y reutilizable
+- Diseñar e implementar un framework modular interno
+- Implementar un sistema centralizado de señales
 - Implementar Lazy Loading de módulos
-- Minimizar conflictos con extensiones populares.
-- Diseñar un backen MPRIS unificado y reutilizable.
-- Reducir listeners globales innecesarios y evitar memory leaks.
-- Garantizar compatibilidad total con GNOME 50.
-- Validar consumo de CPU y memoria mediante profiling.
-- Documentar formalmente la arquitectura interna y contratos entre módulos.
+- Reducir listeners globales innecesarios y evitar memory leaks
+- Garantizar compatibilidad total con GNOME 50
+- Validar consumo de CPU y memoria mediante profiling
+- Minimizar conflictos con extensiones populares         
+- Documentar formalmente la arquitectura interna y contratos entre módulos
+** Objetivos específicos + Docs
+*** 
+* Arquitectura propuesta
+* ---
+* 1. Objetivos
 ** PROJECT (objetivos específicos+docs) [0%] [0/4]
 *** IN-PROGRESS Ventana de configuración
 - [ ] Mejorar la organización de los elementos
@@ -321,7 +325,7 @@ Flujo de activación (dos niveles)
 - /overlayMenu.js/ importaba /QuickSettingsMenuTracker/ desde /childrenTracker.js/, pero no existía → SyntaxError
 - Implementación: wrapper sobre /QuickSettingsToggleTracker/ que, por cada toggle con propiedad /.menu/, conecta /notify::isOpen/ y expone /onMenuCreated/onMenuOpen/
 - Ciclo de vida gestionado via /Maid/ (se limpia al destruirse el toggle)
-** Commit Actual 
+** 896629c 
 - [X] Fix, bug de posicionamiento en X. El overlay aparecía en x=0 en vez de alineado con QuickSettings.
   - Causa raíz: el `_xconstraint` usaba `menu.box` como source (coordenadas relativas al padre), no `menu._boxPointer` (coordenadas stage-absolutas). Además nunca se actualizaba `_xconstraint.offset`.
   - Cambios en `/extension/modules/quickSettingsTweaks/overlayMenu.js`:
@@ -329,3 +333,19 @@ Flujo de activación (dos niveles)
     2. `_onOpen()` ahora setea `_xconstraint.offset = coords.offsetX`
     3. `_onMenuCreated()` añade `menu.actor.x_align = Clutter.ActorAlign.CENTER` al fijar width
     4. Handler `notify::height` ahora también actualiza `_xconstraint.offset`
+** Commit actual
+- overlayMenu.js
+  - Posición X: _xconstraint vinculado a menu._boxPointer (no menu.box), y su offset se actualiza en _onOpen() y en notify::height.
+  - x_align = CENTER: al fijar menu.actor.width para que el menú se centre dentro del overlay.
+  - AdvAni.ease(): flyout usa LowBackover bezier (0.225, 1.2, 0.45, 1), dialog usa MiddleBackover (0.4, 1.35, 0.55, 1).
+  - Handlers siempre conectados: _connectHandlers() movido antes del if (!this._enabled) return.
+  - Live keys: duration, style, overflow anchor ya no hacen reload completo, solo _loadSettings().
+  - _scheduleReload() captura gsettings: evita que disable() (que setea _gsettings = null) rompa el enable() posterior.
+- childrenTracker.js
+  - QuickSettingsMenuTracker refactorizado: ahora extiende ChildrenTrackerBase directamente (como QST), monitorea _grid con child-added y detecta child.menu.
+  - open-state-changed en vez de notify::isOpen — es la señal nativa de QuickSettingsMenu.
+  - .menus getter (en vez de .items) que retorna las claves del appliedChild Map.
+- advani.js
+  - Nuevo archivo utility con AdvAni.ease(actor, params) que aplica custom cubic-bezier curves.
+  - Dos modos: LowBackover y MiddleBackover, definidos como ModeDefine con puntos de control Graphene.
+  - Tras llamar a actor.ease(), busca los transitions por key y llama set_cubic_bezier_progress() para sobrescribir la interpolación.

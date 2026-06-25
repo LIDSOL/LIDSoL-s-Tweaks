@@ -74,52 +74,40 @@ export class QuickSettingsToggleTracker extends ChildrenTrackerBase {
     }
 }
 
-export class QuickSettingsMenuTracker {
+export class QuickSettingsMenuTracker extends ChildrenTrackerBase {
     constructor() {
+        super();
         this.onMenuCreated = null;
         this.onMenuOpen = null;
-        this.items = [];
-        this._tracker = null;
     }
 
-    load() {
-        if (this._tracker) return;
-        this._tracker = new QuickSettingsToggleTracker();
-        this._tracker.onToggleCreated = (maid, toggle) => {
-            if (toggle.menu)
-                this._trackMenu(maid, toggle.menu);
-        };
-        this._tracker.load();
+    getConnectTarget() {
+        return Main.panel.statusArea.quickSettings?.menu?._grid || null;
     }
 
-    unload() {
-        if (this._tracker) {
-            this._tracker.unload();
-            this._tracker = null;
-        }
-        this.items = [];
-    }
-
-    _trackMenu(toggleMaid, menu) {
-        if (this.items.includes(menu)) return;
+    catchChild(child) {
+        const menu = child.menu;
+        if (!menu) return;
+        if (this.appliedChild.has(menu)) return;
 
         const menuMaid = new Maid();
         menuMaid.functionJob(() => {
-            const idx = this.items.indexOf(menu);
-            if (idx >= 0) this.items.splice(idx, 1);
+            this.appliedChild.delete(menu);
         });
-
-        toggleMaid.functionJob(() => {
+        menuMaid.connectJob(menu, 'open-state-changed', (_o, isOpen) => {
+            if (this.onMenuOpen)
+                this.onMenuOpen(menuMaid, menu, isOpen);
+        });
+        menuMaid.connectJob(menu, 'destroy', () => {
             menuMaid.destroy();
         });
-
-        menuMaid.connectJob(menu, 'notify::isOpen', () => {
-            if (this.onMenuOpen)
-                this.onMenuOpen(menuMaid, menu, menu.isOpen);
-        });
-
-        this.items.push(menu);
         if (this.onMenuCreated)
             this.onMenuCreated(menuMaid, menu);
+        this.appliedChild.set(menu, menuMaid);
+    }
+
+    get menus() {
+        if (!this.appliedChild) return [];
+        return [...this.appliedChild.keys()];
     }
 }

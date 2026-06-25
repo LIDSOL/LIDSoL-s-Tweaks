@@ -6,6 +6,7 @@ import {
     QuickSlider,
 } from 'resource:///org/gnome/shell/ui/quickSettings.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as AdvAni from '../../utils/advani.js';
 import Maid from '../../core/maid.js';
 import { QuickSettingsMenuTracker } from '../../utils/childrenTracker.js';
 
@@ -23,6 +24,10 @@ export class OverlayMenuFeature {
     enable(gsettings) {
         this._gsettings = gsettings;
         this._loadSettings();
+
+        // Connect handlers BEFORE the enabled check so they stay alive
+        // even when overlay is disabled, allowing re-enable via settings
+        this._connectHandlers();
         if (!this._enabled) return;
 
         const qs = Main.panel.statusArea.quickSettings;
@@ -69,8 +74,6 @@ export class OverlayMenuFeature {
         this._tracker.onMenuCreated = (maid, m) => this._onMenuCreated(maid, m);
         this._tracker.onMenuOpen = (maid, m, isOpen) => this._onOpen(maid, m, isOpen);
         this._tracker.load();
-
-        this._connectHandlers();
     }
 
     disable() {
@@ -78,7 +81,7 @@ export class OverlayMenuFeature {
 
         if (this._tracker) {
             // Restore individual menu constraints
-            for (const menu of this._tracker.items) {
+            for (const menu of this._tracker.menus) {
                 try {
                     menu.actor.x_expand = true;
                     const constraints = menu.actor.get_constraints();
@@ -128,6 +131,7 @@ export class OverlayMenuFeature {
     }
 
     _connectHandlers() {
+        // Keys that require a full reload (disable+enable)
         const reloadKeys = [
             'qst-overlay-menu-enabled',
             'qst-overlay-menu-width',
@@ -136,6 +140,19 @@ export class OverlayMenuFeature {
             const id = this._gsettings.connect(`changed::${key}`, () => {
                 this._loadSettings();
                 this._scheduleReload();
+            });
+            this._signalIds.push(id);
+        }
+
+        // Keys that only need settings refresh (live)
+        const liveKeys = [
+            'qst-overlay-menu-animate-duration',
+            'qst-overlay-menu-animate-style',
+            'qst-overlay-menu-overflow-anchor',
+        ];
+        for (const key of liveKeys) {
+            const id = this._gsettings.connect(`changed::${key}`, () => {
+                this._loadSettings();
             });
             this._signalIds.push(id);
         }
@@ -152,10 +169,11 @@ export class OverlayMenuFeature {
         if (this._reloadId) {
             try { GLib.source_remove(this._reloadId); } catch (_) {}
         }
+        const gsettings = this._gsettings;
         this._reloadId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
             this._reloadId = null;
             this.disable();
-            this.enable(this._gsettings);
+            this.enable(gsettings);
             return GLib.SOURCE_REMOVE;
         });
     }
@@ -219,37 +237,36 @@ export class OverlayMenuFeature {
             menu.box.ease({
                 opacity: 255,
                 duration: Math.floor(this._duration / 3),
-                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
             });
 
             if (this._animationStyle === 'flyout') {
-                // Animate from source toggle position/size
+                // Animate from source toggle position/size with custom overshoot bezier
                 menu.box.translation_x = Math.floor(
                     coords.sourceX - coords.offsetX + menu.box.marginLeft);
                 menu.box.translation_y = Math.floor(
                     coords.sourceY - coords.offsetY + menu.box.marginTop);
                 menu.box.scale_x = coords.sourceWidth / coords.targetWidth;
                 menu.box.scale_y = coords.sourceHeight / coords.targetHeight;
-                menu.box.ease({
+                AdvAni.ease(menu.box, {
                     translation_x: 0,
                     translation_y: 0,
                     scale_x: 1,
                     scale_y: 1,
-                    mode: Clutter.AnimationMode.EASE_OUT_BACK,
+                    mode: AdvAni.AdvAnimationMode.LowBackover,
                     duration: this._duration,
                 });
             } else if (this._animationStyle === 'dialog') {
-                // Scale up from center
+                // Scale up from center with custom overshoot bezier
                 menu.box.translation_x = 0.2 * coords.targetWidth * 0.5;
                 menu.box.translation_y = 0.2 * coords.targetHeight * 0.5;
                 menu.box.scale_x = 0.8;
                 menu.box.scale_y = 0.8;
-                menu.box.ease({
+                AdvAni.ease(menu.box, {
                     translation_x: 0,
                     translation_y: 0,
                     scale_x: 1,
                     scale_y: 1,
-                    mode: Clutter.AnimationMode.EASE_OUT_EXPO,
+                    mode: AdvAni.AdvAnimationMode.MiddleBackover,
                     duration: this._duration,
                 });
             }

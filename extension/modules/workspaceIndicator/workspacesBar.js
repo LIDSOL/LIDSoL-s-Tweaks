@@ -383,31 +383,7 @@ export class WorkspacesBar {
 
     _animateEnter(wsBox, style) {
         wsBox.remove_all_transitions();
-        if (style === 'subtle') {
-            wsBox.set_scale(0.95, 0.95);
-            wsBox.ease({
-                scale_x: 1.0,
-                scale_y: 1.0,
-                duration: 200,
-                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-            });
-        } else if (style === 'aggressive') {
-            wsBox.set_scale(0.7, 0.7);
-            wsBox.ease({
-                scale_x: 1.15,
-                scale_y: 1.15,
-                duration: 150,
-                mode: Clutter.AnimationMode.EASE_OUT_BACK,
-                onComplete: () => {
-                    wsBox.ease({
-                        scale_x: 1.0,
-                        scale_y: 1.0,
-                        duration: 100,
-                        mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-                    });
-                },
-            });
-        } else if (style === 'fade') {
+        if (style === 'fade') {
             const label = wsBox.get_child();
             label.remove_all_transitions();
             label.set_opacity(0);
@@ -416,20 +392,29 @@ export class WorkspacesBar {
                 duration: 250,
                 mode: Clutter.AnimationMode.EASE_OUT_QUAD,
             });
-        } else if (style === 'pulse') {
+        } else if (style === 'soft-pulse') {
             wsBox.ease({
-                scale_x: 1.1,
-                scale_y: 1.1,
-                duration: 140,
+                scale_x: 1.04,
+                scale_y: 1.04,
+                duration: 120,
                 mode: Clutter.AnimationMode.EASE_OUT_QUAD,
                 onComplete: () => {
                     wsBox.ease({
                         scale_x: 1.0,
                         scale_y: 1.0,
-                        duration: 180,
+                        duration: 160,
                         mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
                     });
                 },
+            });
+        } else if (style === 'soft-slide') {
+            wsBox.translation_y = 6;
+            wsBox.opacity = 0;
+            wsBox.ease({
+                translation_y: 0,
+                opacity: 255,
+                duration: 200,
+                mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
             });
         }
     }

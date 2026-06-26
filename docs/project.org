@@ -126,7 +126,7 @@ Para ello, se puede tomar como base la extensión [[https://github.com/boerderei
 - Descripción: Añade el avatar del usuario al Quick Settings, junto a la configuración relacionada con el sistema.
   - Se usará como base el código de la extensión [[https://github.com/d-go/quick-settings-avatar][Quick Settings Avatar de d-go]], esta es compatible hasta GNOME 50, por lo que su integración debería ser sencilla.
 - [X] Integrarla a LIDSoL's Extension.
-**** IN-PROGRESS Workspace Indicator [2/4] :topbar:
+**** IN-PROGRESS Workspace Indicator [2/3] :topbar:
 [[./img/aylurs-workspace.png]]
 - Descripción: Indicador de espacios de trabajo, ofrece una alternativa más configurable que la píldora nativa. Aylur's Widgets incluye un módulo indicador de espacios de trabajo, pero está diseñado para GNOME 44, en versiones posteriores del DE este indicador queda obsoleto.
 
@@ -138,7 +138,6 @@ Para ello, se puede tomar como base la extensión [[https://github.com/boerderei
 - [X] Añadir animaciones de transición cuando se cambia de espacio de trabajo.
   - [X] Animación similar a la píldora nativa.
   - [X] Animación más "agresiva"
-- [ ] Modificar los valores de configuración nativos de Space Bar por otros /más atractivos/.
 * 2. Arquitectura propuesta
 ** Estructura de directorios
 #+BEGIN_SRC bash
@@ -301,11 +300,12 @@ Flujo de activación (dos niveles)
 - _updateInPlace() actualiza styleClass y texto sin destruir actores
 - _animateEnter() aplica escala con easing: Subtle 0.95→1.0 (EASE_OUT_QUAD, 200ms), Aggressive 0.7→1.15 bounce (EASE_OUT_BACK, 150ms) luego a 1.0 (EASE_OUT_QUAD, 100ms)
 - prefsSettings.js: combo «Animación de transición» en grupo Apariencia
-** Commit actual
+** cbfae79
 - Bugfix: _updateInPlace() usaba referencia obsoleta de _dragHandler.wsBoxes — workspace.name no se actualizaba al renombrar. Fix: leer de this._ws.workspaces[workspace.index]
 - Bugfix: ease() race condition — dos wsBox.ease() consecutivos sobre las mismas propiedades (scale_x, scale_y) no encadenan; el segundo reemplaza al primero antes del primer frame. Fix: onComplete callback para secuenciar.
 - Fix: wsBox.remove_all_transitions() antes de cada animación para cancelar transiciones pendientes por cambios rápidos de workspace. label.remove_all_transitions() en fade.
 - fade: animación sobre label (opacity 0→255, EASE_OUT_QUAD, 250ms)
 - pulse: dos fases onComplete — scale 1.0→1.1 (EASE_OUT_QUAD, 140ms) → 1.1→1.0 (EASE_OUT_CUBIC, 180ms)
 - aggressive: corregido con onComplete (mismos parámetros, ahora secuencial limpio)
+** Commit actual
 

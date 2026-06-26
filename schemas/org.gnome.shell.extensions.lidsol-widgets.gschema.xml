@@ -355,13 +355,12 @@
 
     <key type="s" name="ws-transition-animation">
       <choices>
-        <choice value="none" />
-        <choice value="subtle" />
-        <choice value="aggressive" />
         <choice value="fade" />
-        <choice value="pulse" />
+        <choice value="soft-pulse" />
+        <choice value="soft-slide" />
+        <choice value="none" />
       </choices>
-      <default>"none"</default>
+      <default>"fade"</default>
       <summary>Animación de transición entre espacios</summary>
       <description>Estilo de animación al cambiar de espacio de trabajo activo en el panel</description>
     </key>

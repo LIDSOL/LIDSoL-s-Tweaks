@@ -109,11 +109,10 @@ export class WorkspaceIndicatorPrefs {
             key: 'ws-transition-animation',
             title: 'Animación de transición',
             options: {
-                none: 'Ninguna',
-                subtle: 'Sutil',
-                aggressive: 'Agresiva',
                 fade: 'Desvanecer',
-                pulse: 'Latido',
+                'soft-pulse': 'Latido',
+                'soft-slide': 'Deslizar + fundido',
+                none: 'Ninguna',
             },
         });
 

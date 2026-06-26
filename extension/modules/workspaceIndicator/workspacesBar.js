@@ -413,17 +413,11 @@ export class WorkspacesBar {
                 mode: Clutter.AnimationMode.EASE_OUT_QUAD,
             });
         } else if (style === 'pulse') {
-            wsBox.set_scale(1.0, 1.0);
-            wsBox.ease({
-                scale_x: 1.1,
-                scale_y: 1.1,
-                duration: 150,
-                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-            });
+            wsBox.set_scale(1.1, 1.1);
             wsBox.ease({
                 scale_x: 1.0,
                 scale_y: 1.0,
-                duration: 200,
+                duration: 300,
                 mode: Clutter.AnimationMode.EASE_OUT_BACK,
             });
         }

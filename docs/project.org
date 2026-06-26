@@ -126,7 +126,7 @@ Para ello, se puede tomar como base la extensión [[https://github.com/boerderei
 - Descripción: Añade el avatar del usuario al Quick Settings, junto a la configuración relacionada con el sistema.
   - Se usará como base el código de la extensión [[https://github.com/d-go/quick-settings-avatar][Quick Settings Avatar de d-go]], esta es compatible hasta GNOME 50, por lo que su integración debería ser sencilla.
 - [X] Integrarla a LIDSoL's Extension.
-**** IN-PROGRESS Workspace Indicator [1/4] :topbar:
+**** IN-PROGRESS Workspace Indicator [2/4] :topbar:
 [[./img/aylurs-workspace.png]]
 - Descripción: Indicador de espacios de trabajo, ofrece una alternativa más configurable que la píldora nativa. Aylur's Widgets incluye un módulo indicador de espacios de trabajo, pero está diseñado para GNOME 44, en versiones posteriores del DE este indicador queda obsoleto.
 
@@ -135,9 +135,9 @@ Para ello, se puede tomar como base la extensión [[https://github.com/boerderei
   - Pero, se puede tomar como base la extensión [[https://extensions.gnome.org/extension/5090/space-bar/][SpaceBar de luchrioh]], simplificarla, añadirle animaciones de transición entre espacios de trabajo e integrarla a LIDSoL's Widgets. Space Bar es compatible con GNOME 50, por lo que su integración debería ser sencilla.
 - [X] Integrar la extensión a LIDSoL's Widgets
 - [ ] Añadir una opción para usar el color de acento de GNOME como color de fondo del espacio activo.
-- [ ] Añadir animaciones de transición cuando se cambia de espacio de trabajo.
-  - [ ] Animación similar a la píldora nativa.
-  - [ ] Animación más "agresiva"
+- [X] Añadir animaciones de transición cuando se cambia de espacio de trabajo.
+  - [X] Animación similar a la píldora nativa.
+  - [X] Animación más "agresiva"
 - [ ] Modificar los valores de configuración nativos de Space Bar por otros /más atractivos/.
 * 2. Arquitectura propuesta
 ** Estructura de directorios
@@ -293,7 +293,7 @@ Flujo de activación (dos niveles)
   - Nuevo archivo utility con AdvAni.ease(actor, params) que aplica custom cubic-bezier curves.
   - Dos modos: LowBackover y MiddleBackover, definidos como ModeDefine con puntos de control Graphene.
   - Tras llamar a actor.ease(), busca los transitions por key y llama set_cubic_bezier_progress() para sobrescribir la interpolación.
-** Commit actual
+** bb029de
 - schemas/…gschema.xml: nueva key ws-transition-animation (enum: none/subtle/aggressive)
 - settings.js: transitionAnimation Subject agregado
 - workspacesBar.js: 
@@ -301,5 +301,4 @@ Flujo de activación (dos niveles)
 - _updateInPlace() actualiza styleClass y texto sin destruir actores
 - _animateEnter() aplica escala con easing: Subtle 0.95→1.0 (EASE_OUT_QUAD, 200ms), Aggressive 0.7→1.15 bounce (EASE_OUT_BACK, 150ms) luego a 1.0 (EASE_OUT_QUAD, 100ms)
 - prefsSettings.js: combo «Animación de transición» en grupo Apariencia
-  
-** 
+** Commit actual

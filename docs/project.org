@@ -1,136 +1,113 @@
-#+TITLE: LIDSoL'a Extension Proyect
+#+TITLE: LIDSoL's Extension Proyect
 #+AUTHOR: RamenRoot
 #+DATE: 2026-06-25
 * 0. Introducción
-Este proyecto aborda la modernización y unificación de múltiples extensiones de GNOME.
+Este proyecto aborda la modernización e integración de múltiples extensiones para GNOME Shell 50.
 
-El problema central radica en la fragilidad de las extensiones, que dependen de APIs internas sujetas a cambios, lo que genera obsolescencia: las actualizaciones del escritorio /pueden romper/ las extensiones.
+EL problema central radica en la fragilidad de las extensiones, que dependen de APIs internas sujetas a cambios, lo que genera obsolescencia: las actualizaciones del escritorio pueden /romper/ las extensiones.
 
-Para este proyecto se propone estudiar el código de la extensión Aylur's Widgets (sin mantenimiento desde hace tres años y por lo tanto incompatible con las versiones más recientes del escritorio) y de otro puñado de extensiones, con el propósito de modernizarlas y unificarlas en una única extensión compatible con GNOME Shell 50.
+Se propone usar como base el código de la extensión Aylur's Widgets (compatible hasta GNOME 44), Quick Settings Tweaks y otro puñado de extensiones con el propósito de modernizarlas y unificarlas en una única extensión compatible con GNOME Shell 50.
 
-El resultado final esperado es una extensión con arquitectura modular, que gestione de forma centralizada las señales, con bajo acoplamiento "lazy loading", optimizada y con control explícito del ciclo de vida de cada componente.
-Su arquitectura debe facilitar su mantenimiento y se validará mediante métricas objetivas de rendimiento.
+La arquitectura de la extensión debe facilitar su mantenimiento y se validará mediante métricas objetivas de rendimiento.
 * 1. Objetivos
 ** Objetivos generales
-Diseñar, implementar y mantener una extensión modular para GNOME que reinterprete y modernice los componentes de [[https://extensions.gnome.org/extension/5338/aylurs-widgets/][Aylur's Widgets]], mediante una arquitectura que facilite el mantenimiento, adaptada a los cambios de API de GNOME Shell y GJS.
-La propuesta no consiste en replicar la extensión original, si no en:
-- Evaluar la vigencia funcional de cada componente en GNOME 50.
-- Determinar cuáles
+Diseñar, implementar y mantener una extensión modular para GNOME que reinterprete y modernice los componentes de extensiones obsoletas como [[https://extensions.gnome.org/extension/5338/aylurs-widgets/][Aylur's Widgets]] mediante una arquitectura que facilite el mantenimiento, adaptada a los cambios de API de GNOME Shell y GJS. La propuesta no consiste en replicar las extensiones originales, si no en evaluar la vigencia de cada componente en GNOME 50, integrar aquello que siga aportando valor y descartar lo redundante. 
+- Garantizar compatibilidad total con GNOME 50
 - Rediseñar los módulos bajo el principio de "modularidad estricta"
-- Optimizar el rendimiento y evitar degradación de animaciones del Shell.
-- Consolidad un backend reusable y extensible.
-- Publicar la extensión
-** Objetivos técnicos
-- Separar estrictamente la lógica de negocio y la capa de presentación (UI)
-- Diseñar un backend MPRIS unificado y reutilizable
-- Diseñar e implementar un framework modular interno
+- Separar estrictamente la lógica de negocio y la capa de presentación (UI).
 - Implementar un sistema centralizado de señales
 - Implementar Lazy Loading de módulos
-- Reducir listeners globales innecesarios y evitar memory leaks
-- Garantizar compatibilidad total con GNOME 50
+- Reducir listeners globales innecesarios y evitar memory leaks 
 - Validar consumo de CPU y memoria mediante profiling
-- Minimizar conflictos con extensiones populares         
+- Optimizar el rendimiento y evitar degradación en animaciones del Shell
+- Consolidar un backend reusable y extensible. Diseñar un backend MPRIS unificado y reusable
+- Diseñar e implementar un framework modular interno
 - Documentar formalmente la arquitectura interna y contratos entre módulos
-** Objetivos específicos + Docs
-*** 
-* Arquitectura propuesta
-* ---
-* 1. Objetivos
-** PROJECT (objetivos específicos+docs) [0%] [0/4]
-*** IN-PROGRESS Ventana de configuración
+- Minimizar conflictos con extensiones populares
+- Publicar la extensión
+** Objetivos específicos
+*** IN-PROGRESS Ventana de configuraciones
 - [ ] Mejorar la organización de los elementos
 - [ ] Mejorar la responsividad
   - [ ] View Switcher en "ventana grande" y "View Switcher Bar" en ventana pequeña.
   - [ ] Evitar que el contenido se "pegue" a los switch
 *** IN-PROGRESS Core
 *** IN-PROGRESS Utils
-*** IN-PROGRESS Módulos [0/14]
-**** IN-PROGRESS Backgroud Clock [1/6] :widgets:
-- [X] Hacer compatible el módulo de aylur's con GNOME 50 e integrarlo a LIDSoL's Widgets
-- [ ] Testear
-- [ ] En el contorno del reloj/calendario y en el contenedor del contenedor se ve un márgen negro, muy pequeño, como si fuese una sombra.
-- [ ] Añadir una animación suave al ingresar al overview, para que no desaparezca de forma abrupta.
-- [ ] Posibilidad de usar el contenedor con color transparente.
-- [ ] La posición 0 no funciona adecuadamente.
-***** Descripción
-  [[./img/aylurs-clock.png]]
-  - Widget de reloj superpuesto en el escritorio, similar al comportamiento de [[https://github.com/brndnmtthws/conky][conky]].
-    - Se permite la configuración del posicionamiento mediante layouts o coordenadas.
-    - Personalización de la tipografía, color, tamaño y sombras.
-    - Configuración del contenedor: background, padding, bordes, redondeado.
-  - Se toma como base uno de los módulos de aylur's widgets
-  - Compatibilidad hasta GNOME 44, por lo que _será necesario darle mantenimiento_ para hacerlo compatible con GNOME 50.
-- [ ] Analizar conflictos con extensiones como [[https://extensions.gnome.org/extension/5263/gtk4-desktop-icons-ng-ding/][DING (Desktop Icons NG)]].
-- [ ] Mejorar el rendimiento (degradación de rendimiento al ingresar al Overview)
-  - [ ] Optimizar renderizado evitando bloqueos en animaciones.
-  - [ ] Minimizar impacto en la composición gráfica.
-**** TODO Battery Bar [0/1] :topbar:widgets:
-  - Descripción:
-    [[./img/aylurs-battery.png]]
-    - Indicador alternativo de batería en el Top Bar. Módulo de baja complejidad técnica y alto impacto visual. Ideal como implementación temprana. Permite configurar:
-      - Posición (izquierda, centro, derecha).
-      - Visibilidad de ícono y porcentaje.
-      - Dimensiones.
-      - Colores dinámicos configurables (batería baja, cargando, normal).
-    - Se toma como base uno de los módulos de Aylur's Widgets.
-    - Compatibilidad hasta GNOME 44, por lo que _será necesario darle mantenimiento_ para hacerlo compatible con GNOME 50.
-- [ ] ?
-**** TODO Date Menu Formatter [/] :topbar:
-  - Descripción:
-    - Permite la personalización del formato de la fecha y hora en el panel.
-      [[./img/date-format.png]]
-    - Aylur's widgets tiene un componente que permite personalizar esto, también se estudiará la extensión [[https://extensions.gnome.org/extension/4655/date-menu-formatter/][Date Menu Formatter de Marcin Jakubowski]].
-  - Compatibilidad: Date Menu Format es compatible hasta GNOME 50.
-**** TODO Dashboard
-Aún es neceario escribir la propuesta
-**** TODO Gnofi [0/0] :shell:
-  - Descripción
-    - Un launcher extensible, selector, buscador y paleta de comandos para GNOME. Añade un ícono al topbar que despliega el lanzador.
-      [[./img/gnofi.png]]
-    - Se usará como base el código de [[https://github.com/Aylur/gnome-extensions][Gnofi de Aylur]].
-    - Es compatible hasta GNOME 49. No debería ser difícil darle el mantenimiendo para darle compatibilidad para GNOME 50.
-**** TODO Media Player [0/13] :topbar:widgets:
-  - Descripción
-    [[./img/aylurs-player.png]]
-    - Controles multimedia integrados en el top bar (y en el dash?).
-    - Se toma como base uno de los módulos de Aylur's Widgets, pero también se estudiarán otras implementaciones:
-      - [[https://extensions.gnome.org/extension/4928/mpris-label/][Media Label and Controls (por moon-0xff)]], compatible hasta GNOME 49.
-      - [[https://extensions.gnome.org/extension/9334/dynamic-music-pill/][Dynamic Music Pill (por andbal)]], compatible hasta GNOME 50.
-      - [[https://extensions.gnome.org/extension/4470/media-controls/][Media Controls (por Sakith B.)]], compatible hasta GNOME 49.
-      - [[https://extensions.gnome.org/extension/9184/advanced-media-controller/][Advanced Media Controller (por sanjai)]], compatible hasta GNOME 50.
-  - Objetivos: 
-  - [ ] Mostar información de pista.
-  - [ ] Controles (anterior, pausa, siguiente).
-  - [ ] Widget Desplegable configurable.
-  - [ ] Selección de reproductor preferido.
-  - [ ] Evitar duplicidad entre el reproductor del Top Bar, del panel de notificaciones y del QuickSettings.
-  - [ ] Separar estrictamente el estado y la representación visual.
-  - [ ] Gestionar caché
-**** TODO Notificacion Indicator [0/1] :topbar:
-- Descripción:
-  - Indicador de notificaciones con contador numérico. GNOME Incluye un indicador visual de notificaciones, pero no contador cuantitativo. 
-    [[./img/aylurs-notify.png]]
-  - Se toma como base uno de los módulos de Aylur's Widgets.
-  - Compatibilidad hasta GNOME 44, por lo que será necesario darle mantenimiento para hacerlo compatible con GNOME 50.
-- [ ] Configuraciones
-  - [ ] Posición
-  - [ ] Offset
-  - [ ] Estilo (ícono o contador)
-  - [ ] Máximo de íconos
-  - [ ] Visibilidad del contador
-**** IN-PROGRESS Panel Corners [0/2] :topbar:
-- Descripción:
-  [[./img/panel-corners.png]]
-  - Añade esquinas redondeadas en la tob bar.
-  - Se usa como base el código de la extensión *Panel Corners* de *Aunetx*:
-    - [[https://extensions.gnome.org/extension/4805/panel-corners/][Panel Corners (extensions.gnome)]]
-    - [[https://github.com/aunetx/panel-corners][Panel Corners (github)]]
-  - Esta extensión es _compatible con GNOME 50_, por lo que será fácil de integrar.
-- [ ] Integrar la extensión a LIDSoL's Widgets.
-**** TODO Power Menu [0/1] :shell:
-- Descripción
-  - Botón personalizable con diálogo de apagado. Este es de los módulos más simples, por lo que puede ser ideal para implementar al inicio.
-    [[./img/aylurs-power.png]]
+*** IN-PROGRESS Módulos [3/11] [27%]
+**** TODO Battery Bar :topbar:
+[[./img/aylurs-battery.png]]
+
+- Descripción: Indicador alternativo de batería en el Top Bar.
+  - Se toma como base uno de los módulos de Aylur's Widgets. Compatible hasta GNOME 44, por lo que será necesario darle mantenimiento para hacerlo compatible con GNOME 50.
+- Configuración:
+  - Visibilidad de ícono y porcentaje.
+  - Dimensiones.
+  - Colores dinámicos configurables (batería baja, cargando, normal)
+**** TODO Date Menu (dinámico) :topbar:
+- Descripción: Basado en [[https://www.androidauthority.com/pixel-launcher-at-a-glance-widget-visibility-update-3597606/][el widget At a Glance de los Google Pixel]]. El texto del "Date Menu" cambia dinámicamente, muestra el contenido multimedia que se reproduce actualmente e indica de notificaciones.
+***** Date Menu Formatter :topbar:
+[[./img/date-format.png]]
+
+- Descripción: Permite la personalización del formato de la fecha y hora en el panel.
+  - Aylur's Widget tiene un componente que permite personalizar esto, también se tomará como referencia el código de la extensión [[https://extensions.gnome.org/extension/4655/date-menu-formatter/][Date Menu Formatter de Marcin Jakubowski]]. Esta última compatible hasta GNOME 50, por lo que no debería ser difícil integrarla.  
+***** Media Player
+[[./img/aylurs-player.png]]
+
+- Descripción: Controles multimedia integrados en el Date Menu ó Top Bar. El indicador no es visible al menos que se reproduzca contenido multimedia, tomando el lugar del Date Menu.
+  - Para usar como base, se pueden tomar en cuenta todas las siguientes implementaciones:
+    - [[https://extensions.gnome.org/extension/4928/mpris-label/][Media Label and Controls (por moon-0xff)]], compatible hasta GNOME 49.
+    - [[https://extensions.gnome.org/extension/9334/dynamic-music-pill/][Dynamic Music Pill (por andbal)]], compatible hasta GNOME 50.
+    - [[https://extensions.gnome.org/extension/4470/media-controls/][Media Controls (por Sakith B.)]], compatible hasta GNOME 49.
+    - [[https://extensions.gnome.org/extension/9184/advanced-media-controller/][Advanced Media Controller (por sanjai)]] compatible hasta GNOME 50.
+- Objetivos:
+- [ ] Mostrar información de pista.
+- [ ] Controles (anterior, pausa, siguiente)
+- [ ] Separar estrictamente el estado y la representación visual. 
+- [ ] Selección de reproductor preferido o descartados
+- [ ] Gestionar caché (portada de álbumes)
+- [ ] Widget de reproducción multimedia personalizable accesible desde el DateMenu
+***** Notification Indicator
+- Descripción: Indicador de notificaciones (contador numérico). 
+**** TODO Desktop Widgets :shell:
+***** Clock Widget
+***** Image Widget
+***** Weather Widget
+**** TODO Gnofi     :shell:
+[[./img/gnofi.png]]
+
+- Descripción: Un launcher extensible, selector, buscador y paleta de comandos para GNOME. Añade un ícono al top bar que despliega el lanzador.
+  - Se usará como base el código de [[Gnofi de Aylur]]. Es compatible hasta GNOME 49, no debería ser difícil darle el mantenimiento para darle compatibilidad con GNOME 50.
+**** DONE Quick Settings Tweaks [3/3] :quicksettings:
+- Descripción: Permite configurar los ajustes rápidos, adaptación parcial de [[https://github.com/qwreey/quick-settings-tweaks][Quick Settings Tweaks]]:
+- [X] System Items
+- [X] Quick Settings
+- [X] Overlay Mode
+**** IN-PROGRESS Quick Text [1/4] :shell:
+- Descripción: Un atajo de teclado (Ctrl+Super+i, aunque es personalizable) abre una ventana de diálogo desde la cual podemos escribir contenido que se insertará en algún alchivo de texto plano de nuestra preferencia; podemos configurar un prefijo o sufijo al texto insertado. Es útil para tomar notas rápidas, fragmentos de texto y anotar ideas; puede usarse como complemento a cualquier app de notas basada en texto plano. El nombre y la ruta de acceso al archivo de destino deben establecerse antes de utilizar la extensión y el archivo debe existir.
+  - Se usa como base el código de la extensión *Quick Text* de *Brainstormtrooper*. Esta extensión es compatible hasta GNOME 47, por lo que será necesario darle mantenimiento para darle compatibilidad con GNOME 50.
+    - [[https://github.com/brainstormtrooper/quicktext][QuickText (GitHub)]]
+    - [[https://extensions.gnome.org/extension/5892/quick-text/][QuickText (Extension.Gnome)]]
+- [X] Darle soporte a GNOME 50 e integrar la extensión a LIDSoL's Extensión
+- [ ] Mejorar la configuración de atajos de teclado
+- [ ] Cambiar el orden de los botones: Ok, Actions, Cancel
+- [ ] Configuración para tener o no salto de línea en el prefijo/sufijo
+
+La /primera versión/ será solamente adaptar y actualizar a GNOME 50 QuickText, pero, posteriormente sería interesante implementar algo similar a [[https://unclutterapp.com/][unclutter]]:
+
+[[./img/unclutter.gif]]
+
+Para ello, se puede tomar como base la extensión [[https://github.com/boerdereinar/copyous][copyous]].
+**** DONE Panel Corners [1/1] :topbar:
+[[./img/panel-corners.png]]
+
+- Descripción: Añade esquinas redondeadas en la top bar.
+  - Se usa como base el código de la extensión [[https://github.com/aunetx/panel-corners][Panel Corners de Aunetx]].
+  - Esta extensión es compatible con GNOME 50, por lo que será fácil de integrar.
+- [X] Integrar la extensión a LIDSoL'S Extension
+**** TODO Power Menu
+[[./img/aylurs-power.png]]
+
+- Descripción: Botón personalizable con diálogo de apagado. Este es de los módulos más simples, por lo que puede ser ideal para implementar al inicio.
   - Se toma como base uno de los módulos de Aylur's Widgets.
   - Compatibilidad hasta GNOME 44, por lo que _será necesario darle mantenimiento_ para hacerlo compatible con GNOME 50.
 - [ ] Configuraciones
@@ -139,63 +116,28 @@ Aún es neceario escribir la propuesta
   - [ ] Tamaño y redondez
   - [ ] Padding y espaciado
   - [ ] Fondo del díalogo
-**** IN-PROGRESS Quick Settings Tweaks
-*****  Aún es necesario escribir la propuesta
-**** IN-PROGRESS Quick Text [1/3] :shell:
-- [X] Darle soporte a GNOME 50 e integrar la extensión de LIDSoL's widgets 
-- [ ] Mejorar la configuración de atajos de teclado
-- [ ] Cambiar el orden de los botones Ok, Actions, Cancel
-***** Descripción
-  - Un atajo de teclado (Ctrl+Super+i, aunque es personalizable) abre una ventana de diálogo desde la cual podemos escribir texto que se insertará en algún alchivo de texto plano de nuestra preferencia; podemos configurar un prefijo o sufijo al texto insertado. Es útil para tomar notas rápidas, fragmentos de texto y anotar ideas; puede usarse como complemento a cualquier app de notas basada en texto plano. El nombre y la ruta de acceso al archivo de destino deben establecerse antes de utilizar la extensión y el archivo debe existir.
-      [[./img/quicktext.png]]
-  - Se usa como base el código de la extensión *Quick Text* de *Brainstormtrooper*:
-    - [[https://github.com/brainstormtrooper/quicktext][QuickText (GitHub)]]
-    - [[https://extensions.gnome.org/extension/5892/quick-text/][QuickText (Extension.Gnome)]]
-  - Esta extensión es compatible hasta GNOME 47, por lo que _será necesario darle mantenimiento_ para darle compatibilidad con GNOME 50
-- La primera versión será solamente adaptar a GNOME 50 esta extensión (e integrarla) pero, posteriormente:
-  [[./img/unclutter.gif]]
-- Inspiración en:
-  - [[https://unclutterapp.com/][unclutter]]
-  - [[https://github.com/boerdereinar/copyous][copyous]]
-- [ ] Historial de portapaleles
-- [ ] Vista desplegable estilo panel
-**** TODO Top Bar Organized [0/0] :topbar:
-- Descripción:
-  - Permite cambiar la ubicación de los elementos del topbar.
-  - Se usa como base el código de la extensión *Top Bar Organizad* de *June*
+**** TODO Top Bar Organized :topbar:
+- Descripción: Permite cambiar la ubicación de los elementos en el Top Bar. Compatible hasta GNOME 50, así que será fácil de integrar.
+  - Se usa como base el código de la extensión Top Bar Organized de June:
     - [[https://extensions.gnome.org/extension/4356/top-bar-organizer/][Top Bar Organized (extensions.gnome)]]
     - [[https://gitlab.gnome.org/june/top-bar-organizer][Top Bar Organized (gitlab)]]
-  - Esta extensión es _compatible hasta GNOME 50_, así que será fácil de integrar. 
-**** IN-PROGRESS User Avatar In QuickSettings [1/1] :quicksettings:
-- [X] Integrar a LIDSoL's Widgets
-***** Descripción
-    - Añade el avatar del usuario al Quick Settings, junto a la configuración relacionada con el sistema.
-      [[./img/avatar.png]]
-    - Se usará como base el código de la extensión [[https://github.com/d-go/quick-settings-avatar][Quick Settings Avatar de d-go]]. 
-    - Esta extensión es compatible con GNOME 50, por lo que su integración debería ser sencilla.
-  - [ ] ? 
-**** IN-PROGRESS Workspace Indicator [1/5] :topbar:widgets:
-- [X] Integrar la extensión a LIDSoL's Widgets
-- [ ] Añadir animaciones de transición entre espacios de trabajo
-  - [ ] Animación simiar a la de la píldora nativa
-  - [ ] Animación más "agresiva"
-- [ ] Añadir una opción para usar el color de acento de GNOME como color de fondo del espacio activo.
-- [ ] Modificar los valores de configuración nativos de Space Bar por otros /más atractivos/
-- [ ] Testing
-***** Descripción
+**** DONE User Avatar In Quick Settings [1/1] :quicksettings:
+[[./img/avatar.png]]
+- Descripción: Añade el avatar del usuario al Quick Settings, junto a la configuración relacionada con el sistema.
+  - Se usará como base el código de la extensión [[https://github.com/d-go/quick-settings-avatar][Quick Settings Avatar de d-go]], esta es compatible hasta GNOME 50, por lo que su integración debería ser sencilla.
+- [X] Integrarla a LIDSoL's Extension.
+**** IN-PROGRESS Workspace Indicator [1/4] :topbar:
 [[./img/aylurs-workspace.png]]
-- Indicador de espacios de trabajo: ofrece una alternativa más configurable que la píldora nativa. Aylur's Widgets incluye un módulo indicador de espacios de trabajo, pero está diseñado para GNOME 44, en versiones posteriores queda obsoleto ante el indicador nativo con mejor aspecto. Pero, se puede tomar como base la extensión [[https://extensions.gnome.org/extension/5090/space-bar/][SpaceBar de luchrioh]], simplificarla, añadirle animaciones de transición entre espacios de trabajo e integrarla a LIDSoL's Widgets.
-  [[./img/spacebar.png]]
-- Space Bae es compatible con GNOME 50, por lo que su integración debería ser sencilla. 
-***** Documentación
-
+- Descripción: Indicador de espacios de trabajo, ofrece una alternativa más configurable que la píldora nativa. Aylur's Widgets incluye un módulo indicador de espacios de trabajo, pero está diseñado para GNOME 44, en versiones posteriores del DE este indicador queda obsoleto.
+  [[./img/spacebar.png]] 
+  - Pero, se puede tomar como base la extensión [[https://extensions.gnome.org/extension/5090/space-bar/][SpaceBar de luchrioh]], simplificarla, añadirle animaciones de transición entre espacios de trabajo e integrarla a LIDSoL's Widgets. Space Bar es compatible con GNOME 50, por lo que su integración debería ser sencilla.
+- [X] Integrar la extensión a LIDSoL's Widgets
+- [ ] Añadir una opción para usar el color de acento de GNOME como color de fondo del espacio activo.
+- [ ] Añadir animaciones de transición cuando se cambia de espacio de trabajo.
+  - [ ] Animación similar a la píldora nativa.
+  - [ ] Animación más "agresiva"
+- [ ] Modificar los valores de configuración nativos de Space Bar por otros /más atractivos/.
 * 2. Arquitectura propuesta
-** Principios de diseño
-- "Núcleo", centralizar la gestión de señales y la comunicación con la API.
-- Modularidad. Separación de responsabilidades.
-- Alta cohesión
-- Gestión explícita el ciclo de vida.
-- Evitar dependencia directa de APIs internar con poca documentación.
 ** Estructura de directorios
 #+BEGIN_SRC bash
 Gnome-Widgets/
@@ -333,7 +275,7 @@ Flujo de activación (dos niveles)
     2. `_onOpen()` ahora setea `_xconstraint.offset = coords.offsetX`
     3. `_onMenuCreated()` añade `menu.actor.x_align = Clutter.ActorAlign.CENTER` al fijar width
     4. Handler `notify::height` ahora también actualiza `_xconstraint.offset`
-** Commit actual
+** 3a2f272
 - overlayMenu.js
   - Posición X: _xconstraint vinculado a menu._boxPointer (no menu.box), y su offset se actualiza en _onOpen() y en notify::height.
   - x_align = CENTER: al fijar menu.actor.width para que el menú se centre dentro del overlay.
@@ -349,3 +291,4 @@ Flujo de activación (dos niveles)
   - Nuevo archivo utility con AdvAni.ease(actor, params) que aplica custom cubic-bezier curves.
   - Dos modos: LowBackover y MiddleBackover, definidos como ModeDefine con puntos de control Graphene.
   - Tras llamar a actor.ease(), busca los transitions por key y llama set_cubic_bezier_progress() para sobrescribir la interpolación.
+** Commit actual

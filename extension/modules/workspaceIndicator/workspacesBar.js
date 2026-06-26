@@ -382,6 +382,7 @@ export class WorkspacesBar {
     }
 
     _animateEnter(wsBox, style) {
+        wsBox.remove_all_transitions();
         if (style === 'subtle') {
             wsBox.set_scale(0.95, 0.95);
             wsBox.ease({
@@ -397,15 +398,18 @@ export class WorkspacesBar {
                 scale_y: 1.15,
                 duration: 150,
                 mode: Clutter.AnimationMode.EASE_OUT_BACK,
-            });
-            wsBox.ease({
-                scale_x: 1.0,
-                scale_y: 1.0,
-                duration: 100,
-                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                onComplete: () => {
+                    wsBox.ease({
+                        scale_x: 1.0,
+                        scale_y: 1.0,
+                        duration: 100,
+                        mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                    });
+                },
             });
         } else if (style === 'fade') {
             const label = wsBox.get_child();
+            label.remove_all_transitions();
             label.set_opacity(0);
             label.ease({
                 opacity: 255,
@@ -413,12 +417,19 @@ export class WorkspacesBar {
                 mode: Clutter.AnimationMode.EASE_OUT_QUAD,
             });
         } else if (style === 'pulse') {
-            wsBox.set_scale(1.1, 1.1);
             wsBox.ease({
-                scale_x: 1.0,
-                scale_y: 1.0,
-                duration: 300,
-                mode: Clutter.AnimationMode.EASE_OUT_BACK,
+                scale_x: 1.1,
+                scale_y: 1.1,
+                duration: 140,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                onComplete: () => {
+                    wsBox.ease({
+                        scale_x: 1.0,
+                        scale_y: 1.0,
+                        duration: 180,
+                        mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
+                    });
+                },
             });
         }
     }

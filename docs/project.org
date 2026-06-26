@@ -302,3 +302,10 @@ Flujo de activación (dos niveles)
 - _animateEnter() aplica escala con easing: Subtle 0.95→1.0 (EASE_OUT_QUAD, 200ms), Aggressive 0.7→1.15 bounce (EASE_OUT_BACK, 150ms) luego a 1.0 (EASE_OUT_QUAD, 100ms)
 - prefsSettings.js: combo «Animación de transición» en grupo Apariencia
 ** Commit actual
+- Bugfix: _updateInPlace() usaba referencia obsoleta de _dragHandler.wsBoxes — workspace.name no se actualizaba al renombrar. Fix: leer de this._ws.workspaces[workspace.index]
+- Bugfix: ease() race condition — dos wsBox.ease() consecutivos sobre las mismas propiedades (scale_x, scale_y) no encadenan; el segundo reemplaza al primero antes del primer frame. Fix: onComplete callback para secuenciar.
+- Fix: wsBox.remove_all_transitions() antes de cada animación para cancelar transiciones pendientes por cambios rápidos de workspace. label.remove_all_transitions() en fade.
+- fade: animación sobre label (opacity 0→255, EASE_OUT_QUAD, 250ms)
+- pulse: dos fases onComplete — scale 1.0→1.1 (EASE_OUT_QUAD, 140ms) → 1.1→1.0 (EASE_OUT_CUBIC, 180ms)
+- aggressive: corregido con onComplete (mismos parámetros, ahora secuencial limpio)
+

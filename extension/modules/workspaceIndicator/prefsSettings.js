@@ -112,6 +112,8 @@ export class WorkspaceIndicatorPrefs {
                 none: 'Ninguna',
                 subtle: 'Sutil',
                 aggressive: 'Agresiva',
+                fade: 'Desvanecer',
+                pulse: 'Latido',
             },
         });
 

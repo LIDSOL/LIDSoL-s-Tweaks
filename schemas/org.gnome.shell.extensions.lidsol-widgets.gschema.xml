@@ -358,6 +358,8 @@
         <choice value="none" />
         <choice value="subtle" />
         <choice value="aggressive" />
+        <choice value="fade" />
+        <choice value="pulse" />
       </choices>
       <default>"none"</default>
       <summary>Animación de transición entre espacios</summary>

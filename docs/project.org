@@ -301,4 +301,5 @@ Flujo de activación (dos niveles)
 - _updateInPlace() actualiza styleClass y texto sin destruir actores
 - _animateEnter() aplica escala con easing: Subtle 0.95→1.0 (EASE_OUT_QUAD, 200ms), Aggressive 0.7→1.15 bounce (EASE_OUT_BACK, 150ms) luego a 1.0 (EASE_OUT_QUAD, 100ms)
 - prefsSettings.js: combo «Animación de transición» en grupo Apariencia
-- Schema compilado sin errores
+  
+** 

@@ -362,14 +362,16 @@ export class WorkspacesBar {
             && this._prevActiveIndex !== newActiveIndex;
 
         for (const { workspace, wsBox } of this._dragHandler.wsBoxes) {
+            const state = this._ws.workspaces[workspace.index];
+            if (!state) continue;
             const label = wsBox.get_child();
-            const isActive = workspace.index === newActiveIndex;
+            const isActive = state.index === newActiveIndex;
 
             let styleClass = 'space-bar-workspace-label';
             styleClass += isActive ? ' active' : ' inactive';
-            styleClass += workspace.hasWindows ? ' nonempty' : ' empty';
+            styleClass += state.hasWindows ? ' nonempty' : ' empty';
             label.styleClass = styleClass;
-            const text = this._ws.getDisplayName(workspace);
+            const text = this._ws.getDisplayName(state);
             label.set_text(text);
             if (text.trim() === '')
                 label.styleClass += ' no-text';
@@ -401,6 +403,28 @@ export class WorkspacesBar {
                 scale_y: 1.0,
                 duration: 100,
                 mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            });
+        } else if (style === 'fade') {
+            const label = wsBox.get_child();
+            label.set_opacity(0);
+            label.ease({
+                opacity: 255,
+                duration: 250,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            });
+        } else if (style === 'pulse') {
+            wsBox.set_scale(1.0, 1.0);
+            wsBox.ease({
+                scale_x: 1.1,
+                scale_y: 1.1,
+                duration: 150,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            });
+            wsBox.ease({
+                scale_x: 1.0,
+                scale_y: 1.0,
+                duration: 200,
+                mode: Clutter.AnimationMode.EASE_OUT_BACK,
             });
         }
     }

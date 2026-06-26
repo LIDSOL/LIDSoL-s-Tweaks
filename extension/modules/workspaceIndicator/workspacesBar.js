@@ -223,6 +223,7 @@ export class WorkspacesBar {
         this._wsBar = null;
         this._dragHandler = new WorkspacesBarDragHandler(() => this._updateWorkspaces());
         this._touchTimeout = new Timeout();
+        this._prevActiveIndex = -1;
     }
 
     init() {
@@ -328,6 +329,20 @@ export class WorkspacesBar {
     }
 
     _updateWorkspacesBar() {
+        const newActiveIndex = this._ws.currentIndex;
+        const children = this._wsBar?.get_children() ?? [];
+        const existingCount = children.length;
+        const expectedCount = this._ws.workspaces.filter(w => w.isVisible).length;
+
+        if (existingCount === expectedCount && existingCount > 0)
+            this._updateInPlace(newActiveIndex);
+        else
+            this._fullRefresh();
+
+        this._prevActiveIndex = newActiveIndex;
+    }
+
+    _fullRefresh() {
         this._wsBar?.destroy_all_children();
         this._dragHandler.wsBoxes = [];
         for (let ws_index = 0; ws_index < this._ws.numberOfEnabledWorkspaces; ++ws_index) {
@@ -337,6 +352,56 @@ export class WorkspacesBar {
                 this._wsBar?.add_child(wsBox);
                 this._dragHandler.wsBoxes.push({ workspace, wsBox });
             }
+        }
+    }
+
+    _updateInPlace(newActiveIndex) {
+        const animation = this._settings.transitionAnimation.value;
+        const shouldAnimate = animation !== 'none'
+            && this._prevActiveIndex >= 0
+            && this._prevActiveIndex !== newActiveIndex;
+
+        for (const { workspace, wsBox } of this._dragHandler.wsBoxes) {
+            const label = wsBox.get_child();
+            const isActive = workspace.index === newActiveIndex;
+
+            let styleClass = 'space-bar-workspace-label';
+            styleClass += isActive ? ' active' : ' inactive';
+            styleClass += workspace.hasWindows ? ' nonempty' : ' empty';
+            label.styleClass = styleClass;
+            const text = this._ws.getDisplayName(workspace);
+            label.set_text(text);
+            if (text.trim() === '')
+                label.styleClass += ' no-text';
+
+            if (shouldAnimate && isActive)
+                this._animateEnter(wsBox, animation);
+        }
+    }
+
+    _animateEnter(wsBox, style) {
+        if (style === 'subtle') {
+            wsBox.set_scale(0.95, 0.95);
+            wsBox.ease({
+                scale_x: 1.0,
+                scale_y: 1.0,
+                duration: 200,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            });
+        } else if (style === 'aggressive') {
+            wsBox.set_scale(0.7, 0.7);
+            wsBox.ease({
+                scale_x: 1.15,
+                scale_y: 1.15,
+                duration: 150,
+                mode: Clutter.AnimationMode.EASE_OUT_BACK,
+            });
+            wsBox.ease({
+                scale_x: 1.0,
+                scale_y: 1.0,
+                duration: 100,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            });
         }
     }
 

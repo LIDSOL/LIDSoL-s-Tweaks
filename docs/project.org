@@ -129,7 +129,9 @@ Para ello, se puede tomar como base la extensión [[https://github.com/boerderei
 **** IN-PROGRESS Workspace Indicator [1/4] :topbar:
 [[./img/aylurs-workspace.png]]
 - Descripción: Indicador de espacios de trabajo, ofrece una alternativa más configurable que la píldora nativa. Aylur's Widgets incluye un módulo indicador de espacios de trabajo, pero está diseñado para GNOME 44, en versiones posteriores del DE este indicador queda obsoleto.
-  [[./img/spacebar.png]] 
+
+[[./img/spacebar.png]]
+  
   - Pero, se puede tomar como base la extensión [[https://extensions.gnome.org/extension/5090/space-bar/][SpaceBar de luchrioh]], simplificarla, añadirle animaciones de transición entre espacios de trabajo e integrarla a LIDSoL's Widgets. Space Bar es compatible con GNOME 50, por lo que su integración debería ser sencilla.
 - [X] Integrar la extensión a LIDSoL's Widgets
 - [ ] Añadir una opción para usar el color de acento de GNOME como color de fondo del espacio activo.
@@ -292,3 +294,11 @@ Flujo de activación (dos niveles)
   - Dos modos: LowBackover y MiddleBackover, definidos como ModeDefine con puntos de control Graphene.
   - Tras llamar a actor.ease(), busca los transitions por key y llama set_cubic_bezier_progress() para sobrescribir la interpolación.
 ** Commit actual
+- schemas/…gschema.xml: nueva key ws-transition-animation (enum: none/subtle/aggressive)
+- settings.js: transitionAnimation Subject agregado
+- workspacesBar.js: 
+- _updateWorkspacesBar() → distingue cambio estructural (_fullRefresh) vs cambio de activo (_updateInPlace)
+- _updateInPlace() actualiza styleClass y texto sin destruir actores
+- _animateEnter() aplica escala con easing: Subtle 0.95→1.0 (EASE_OUT_QUAD, 200ms), Aggressive 0.7→1.15 bounce (EASE_OUT_BACK, 150ms) luego a 1.0 (EASE_OUT_QUAD, 100ms)
+- prefsSettings.js: combo «Animación de transición» en grupo Apariencia
+- Schema compilado sin errores

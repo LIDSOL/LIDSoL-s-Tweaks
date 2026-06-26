@@ -105,6 +105,16 @@ export class WorkspaceIndicatorPrefs {
         this._addSpinButton(group, { key: 'ws-workspaces-bar-padding', title: 'Padding de la barra', lower: 0, upper: 255 });
         this._addSpinButton(group, { key: 'ws-workspace-margin', title: 'Margen entre espacios', lower: 0, upper: 255 });
 
+        this._addCombo(group, {
+            key: 'ws-transition-animation',
+            title: 'Animación de transición',
+            options: {
+                none: 'Ninguna',
+                subtle: 'Sutil',
+                aggressive: 'Agresiva',
+            },
+        });
+
         page.add(group);
 
         // Active workspace

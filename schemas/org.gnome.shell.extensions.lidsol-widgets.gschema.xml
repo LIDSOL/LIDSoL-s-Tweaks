@@ -353,6 +353,17 @@
       <default>''</default>
     </key>
 
+    <key type="s" name="ws-transition-animation">
+      <choices>
+        <choice value="none" />
+        <choice value="subtle" />
+        <choice value="aggressive" />
+      </choices>
+      <default>"none"</default>
+      <summary>Animación de transición entre espacios</summary>
+      <description>Estilo de animación al cambiar de espacio de trabajo activo en el panel</description>
+    </key>
+
     <!-- Quick Text -->
     <key type="b" name="qt-enabled">
       <default>true</default>

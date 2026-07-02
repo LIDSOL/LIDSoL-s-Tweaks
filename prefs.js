@@ -35,7 +35,7 @@ const CATEGORIES = [
         title: 'Widgets',
         icon: 'applications-graphics-symbolic',
         summary: 'Widgets visuales para el escritorio',
-        description: 'Reloj de fondo, indicadores y controles multimedia.',
+        description: 'Widgets de escritorio: reloj, imagen, indicadores y controles multimedia.',
     },
     {
         id: 'topbar',

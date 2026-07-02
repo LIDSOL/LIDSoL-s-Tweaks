@@ -3,7 +3,7 @@
 import { PanelCornersModule } from '../modules/panelCorners/module.js';
 import { WorkspaceIndicatorModule } from '../modules/workspaceIndicator/module.js';
 import { QuickTextModule } from '../modules/quickText/module.js';
-import { BackgroundClockModule } from '../modules/backgroundClock/module.js';
+import { BackgroundWidgetsModule } from '../modules/backgroundWidgets/module.js';
 import { UserAvatarModule } from '../modules/userAvatar/module.js';
 import { QuickSettingsTweaksModule } from '../modules/quickSettingsTweaks/module.js';
 import { SystemItemsModule } from '../modules/systemItems/module.js';
@@ -28,10 +28,10 @@ const REGISTERED_MODULES = [
         moduleClass: QuickTextModule
     },
     {
-        id: 'backgroundClock',
-        name: 'Background Clock',
+        id: 'backgroundWidgets',
+        name: 'Background Widgets',
         enabledKey: 'background-clock-enabled',
-        moduleClass: BackgroundClockModule
+        moduleClass: BackgroundWidgetsModule
     },
     {
         id: 'userAvatar',

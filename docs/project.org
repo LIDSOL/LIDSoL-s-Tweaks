@@ -33,8 +33,9 @@ Diseñar, implementar y mantener una extensión modular para GNOME que reinterpr
   - [ ] Evitar que el contenido se "pegue" a los switch
 *** IN-PROGRESS Core
 *** IN-PROGRESS Utils
-*** IN-PROGRESS Módulos [3/11] [27%]
-**** TODO Battery Bar :topbar:
+*** IN-PROGRESS Módulos [3/12] [25%]
+**** TODO [#B] Battery Bar :topbar:
+DEADLINE: <2026-07-11 Sat>
 [[./img/aylurs-battery.png]]
 
 - Descripción: Indicador alternativo de batería en el Top Bar.
@@ -43,7 +44,8 @@ Diseñar, implementar y mantener una extensión modular para GNOME que reinterpr
   - Visibilidad de ícono y porcentaje.
   - Dimensiones.
   - Colores dinámicos configurables (batería baja, cargando, normal)
-**** TODO Date Menu (dinámico) :topbar:
+**** TODO [#B] Date Menu (dinámico) :topbar:
+DEADLINE: <2026-07-11 Sat>
 - Descripción: Basado en [[https://www.androidauthority.com/pixel-launcher-at-a-glance-widget-visibility-update-3597606/][el widget At a Glance de los Google Pixel]]. El texto del "Date Menu" cambia dinámicamente, muestra el contenido multimedia que se reproduce actualmente e indica de notificaciones.
 ***** Date Menu Formatter :topbar:
 [[./img/date-format.png]]
@@ -68,11 +70,15 @@ Diseñar, implementar y mantener una extensión modular para GNOME que reinterpr
 - [ ] Widget de reproducción multimedia personalizable accesible desde el DateMenu
 ***** Notification Indicator
 - Descripción: Indicador de notificaciones (contador numérico). 
-**** TODO Desktop Widgets :shell:
+**** TODO [#B] Dashboard 
+DEADLINE: <2026-07-08 Wed>
+**** IN-PROGRESS [#C] Desktop Widgets :shell:
+DEADLINE: <2026-07-11 Sat>
+***** IN-PROGRESS Image Widget
 ***** Clock Widget
-***** Image Widget
 ***** Weather Widget
-**** TODO Gnofi     :shell:
+**** TODO [#B] Gnofi :shell:
+DEADLINE: <2026-07-08 Wed>
 [[./img/gnofi.png]]
 
 - Descripción: Un launcher extensible, selector, buscador y paleta de comandos para GNOME. Añade un ícono al top bar que despliega el lanzador.
@@ -82,7 +88,8 @@ Diseñar, implementar y mantener una extensión modular para GNOME que reinterpr
 - [X] System Items
 - [X] Quick Settings
 - [X] Overlay Mode
-**** IN-PROGRESS Quick Text [1/4] :shell:
+**** IN-PROGRESS [#B] Quick Text [1/4] :shell:
+DEADLINE: <2026-07-08 Wed>
 - Descripción: Un atajo de teclado (Ctrl+Super+i, aunque es personalizable) abre una ventana de diálogo desde la cual podemos escribir contenido que se insertará en algún alchivo de texto plano de nuestra preferencia; podemos configurar un prefijo o sufijo al texto insertado. Es útil para tomar notas rápidas, fragmentos de texto y anotar ideas; puede usarse como complemento a cualquier app de notas basada en texto plano. El nombre y la ruta de acceso al archivo de destino deben establecerse antes de utilizar la extensión y el archivo debe existir.
   - Se usa como base el código de la extensión *Quick Text* de *Brainstormtrooper*. Esta extensión es compatible hasta GNOME 47, por lo que será necesario darle mantenimiento para darle compatibilidad con GNOME 50.
     - [[https://github.com/brainstormtrooper/quicktext][QuickText (GitHub)]]
@@ -104,7 +111,8 @@ Para ello, se puede tomar como base la extensión [[https://github.com/boerderei
   - Se usa como base el código de la extensión [[https://github.com/aunetx/panel-corners][Panel Corners de Aunetx]].
   - Esta extensión es compatible con GNOME 50, por lo que será fácil de integrar.
 - [X] Integrar la extensión a LIDSoL'S Extension
-**** TODO Power Menu
+**** TODO [#A] Power Menu
+DEADLINE: <2026-07-04 Sat>
 [[./img/aylurs-power.png]]
 
 - Descripción: Botón personalizable con diálogo de apagado. Este es de los módulos más simples, por lo que puede ser ideal para implementar al inicio.
@@ -116,7 +124,8 @@ Para ello, se puede tomar como base la extensión [[https://github.com/boerderei
   - [ ] Tamaño y redondez
   - [ ] Padding y espaciado
   - [ ] Fondo del díalogo
-**** TODO Top Bar Organized :topbar:
+**** NEXT [#A] Top Bar Organized :topbar:
+DEADLINE: <2026-07-04 Sat>
 - Descripción: Permite cambiar la ubicación de los elementos en el Top Bar. Compatible hasta GNOME 50, así que será fácil de integrar.
   - Se usa como base el código de la extensión Top Bar Organized de June:
     - [[https://extensions.gnome.org/extension/4356/top-bar-organizer/][Top Bar Organized (extensions.gnome)]]
@@ -126,7 +135,7 @@ Para ello, se puede tomar como base la extensión [[https://github.com/boerderei
 - Descripción: Añade el avatar del usuario al Quick Settings, junto a la configuración relacionada con el sistema.
   - Se usará como base el código de la extensión [[https://github.com/d-go/quick-settings-avatar][Quick Settings Avatar de d-go]], esta es compatible hasta GNOME 50, por lo que su integración debería ser sencilla.
 - [X] Integrarla a LIDSoL's Extension.
-**** IN-PROGRESS Workspace Indicator [2/3] :topbar:
+**** IN-PROGRESS [#B] Workspace Indicator [2/3] :topbar:
 [[./img/aylurs-workspace.png]]
 - Descripción: Indicador de espacios de trabajo, ofrece una alternativa más configurable que la píldora nativa. Aylur's Widgets incluye un módulo indicador de espacios de trabajo, pero está diseñado para GNOME 44, en versiones posteriores del DE este indicador queda obsoleto.
 
@@ -308,4 +317,10 @@ Flujo de activación (dos niveles)
 - pulse: dos fases onComplete — scale 1.0→1.1 (EASE_OUT_QUAD, 140ms) → 1.1→1.0 (EASE_OUT_CUBIC, 180ms)
 - aggressive: corregido con onComplete (mismos parámetros, ahora secuencial limpio)
 ** Commit actual
-
+- Renombrado extension/modules/backgroundClock/ → backgroundWidgets/
+- Extraída clase ClockWidget a clockWidget.js (antes BackgroundClockWidget dentro de module.js)
+- module.js convertido en orquestador: importa ClockWidget desde clockWidget.js
+- moduleLoader.js actualizado: import BackgroundWidgetsModule, id 'backgroundWidgets', name 'Background Widgets', enabledKey 'background-clock-enabled' (retrocompatible)
+- prefs.js: descripción de categoría Widgets actualizada
+- Schema GSettings sin cambios (claves background-clock-* intactas)
+   

@@ -17,8 +17,8 @@ const POSITION_ANCHORS = [
     { v: 'bottom', h: 'right'  },
 ];
 
-const BackgroundClockWidget = GObject.registerClass(
-class BackgroundClockWidget extends St.Widget {
+const ClockWidget = GObject.registerClass(
+class ClockWidget extends St.Widget {
     _init(settings) {
         super._init({ reactive: false });
 
@@ -211,29 +211,4 @@ class BackgroundClockWidget extends St.Widget {
     }
 });
 
-export class BackgroundClockModule {
-    constructor() {
-        this._widget = null;
-    }
-
-    enable(gsettings, extension) {
-        const monitor = Main.layoutManager.primaryMonitor;
-        if (!monitor) {
-            console.warn('[BackgroundClock] No primary monitor available');
-            return;
-        }
-
-        this._widget = new BackgroundClockWidget(gsettings);
-
-        const bgGroup = Main.layoutManager._backgroundGroup;
-        const container = bgGroup || Main.layoutManager.uiGroup;
-        container.add_child(this._widget);
-    }
-
-    disable() {
-        if (this._widget) {
-            this._widget.destroy();
-            this._widget = null;
-        }
-    }
-}
+export { ClockWidget };

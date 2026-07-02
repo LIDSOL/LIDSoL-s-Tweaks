@@ -4,6 +4,7 @@ import GObject from 'gi://GObject';
 import GLib from 'gi://GLib';
 import St from 'gi://St';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import { DesktopWidget } from './baseWidget.js';
 
 const POSITION_ANCHORS = [
     { v: 'top',    h: 'left'   },
@@ -18,11 +19,9 @@ const POSITION_ANCHORS = [
 ];
 
 const ClockWidget = GObject.registerClass(
-class ClockWidget extends St.Widget {
+class ClockWidget extends DesktopWidget {
     _init(settings) {
-        super._init({ reactive: false });
-
-        this._settings = settings;
+        super._init(settings);
 
         this._box = new St.BoxLayout({ vertical: true });
         this._clockLabel = new St.Label();

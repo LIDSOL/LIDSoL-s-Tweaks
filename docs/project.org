@@ -316,11 +316,20 @@ Flujo de activación (dos niveles)
 - fade: animación sobre label (opacity 0→255, EASE_OUT_QUAD, 250ms)
 - pulse: dos fases onComplete — scale 1.0→1.1 (EASE_OUT_QUAD, 140ms) → 1.1→1.0 (EASE_OUT_CUBIC, 180ms)
 - aggressive: corregido con onComplete (mismos parámetros, ahora secuencial limpio)
-** Commit actual
+** 7f8c563
 - Renombrado extension/modules/backgroundClock/ → backgroundWidgets/
 - Extraída clase ClockWidget a clockWidget.js (antes BackgroundClockWidget dentro de module.js)
 - module.js convertido en orquestador: importa ClockWidget desde clockWidget.js
 - moduleLoader.js actualizado: import BackgroundWidgetsModule, id 'backgroundWidgets', name 'Background Widgets', enabledKey 'background-clock-enabled' (retrocompatible)
 - prefs.js: descripción de categoría Widgets actualizada
 - Schema GSettings sin cambios (claves background-clock-* intactas)
+** Commit actual
+- Creado extension/modules/backgroundWidgets/baseWidget.js con clase DesktopWidget (extends St.Widget):
+  - _addToBackgroundGroup(): se inserta en Main.layoutManager._backgroundGroup
+  - _setupOverviewFade(): conecta notify::value de overview._controls._stateAdjustment → opacity = 255 * (1 - value)
+  - _removeOverviewFade(): desconecta la señal en destroy()
+  - _init() llama a ambos automáticamente
+- ClockWidget ahora extiende DesktopWidget en vez de St.Widget directamente
+- module.js simplificado: ya no agrega manualmente el widget al container (lo hace DesktopWidget._init)
+- moduleLoader.js y prefs.js sin cambios respecto a checkpoint-0
    

@@ -14,7 +14,9 @@ class DesktopWidget extends St.Widget {
         this._addToBackgroundGroup();
         this._setupOverviewFade();
 
-        this.connect('destroy', this._onDestroy.bind(this));
+        this.connect('destroy', () => {
+            this._removeOverviewFade();
+        });
     }
 
     _addToBackgroundGroup() {
@@ -43,10 +45,6 @@ class DesktopWidget extends St.Widget {
             this._stateSignalId = 0;
             this._stateAdjustment = null;
         }
-    }
-
-    _onDestroy() {
-        this._removeOverviewFade();
     }
 });
 

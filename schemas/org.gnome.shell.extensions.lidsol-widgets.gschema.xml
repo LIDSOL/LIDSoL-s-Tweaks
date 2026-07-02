@@ -867,5 +867,58 @@
       <description>Si el menú es más alto que la ventana de ajustes: top=anclar arriba, center=centrar, bottom=anclar abajo</description>
     </key>
 
+    <!-- Picture Widget -->
+    <key type="b" name="pw-enabled">
+      <default>false</default>
+      <summary>Habilitar Picture Widget</summary>
+      <description>Muestra una imagen en el escritorio</description>
+    </key>
+
+    <key type="s" name="pw-image-path">
+      <default>""</default>
+      <summary>Ruta de la imagen o carpeta</summary>
+      <description>Ruta al archivo de imagen o carpeta con imágenes para mostrar en el escritorio. Si es carpeta, se elige una imagen aleatoria.</description>
+    </key>
+
+    <key type="i" name="pw-size">
+      <default>200</default>
+      <summary>Tamaño base de la imagen</summary>
+      <description>Tamaño base en píxeles combinado con el aspect ratio para calcular ancho y alto</description>
+      <range min="10" max="2000"/>
+    </key>
+
+    <key type="d" name="pw-aspect-ratio">
+      <default>1.0</default>
+      <summary>Relación de aspecto (ancho/alto)</summary>
+      <description>Relación de aspecto de la imagen. 1.0 = cuadrado, 2.0 = doble ancho que alto, 0.5 = doble alto que ancho</description>
+      <range min="0.1" max="10"/>
+    </key>
+
+    <key type="i" name="pw-position-x">
+      <default>100</default>
+      <summary>Posición X</summary>
+      <description>Posición horizontal en píxeles desde la esquina superior izquierda de la pantalla</description>
+    </key>
+
+    <key type="i" name="pw-position-y">
+      <default>100</default>
+      <summary>Posición Y</summary>
+      <description>Posición vertical en píxeles desde la esquina superior izquierda de la pantalla</description>
+    </key>
+
+    <key type="i" name="pw-corner-radius">
+      <default>20</default>
+      <summary>Radio de esquina</summary>
+      <description>Porcentaje de radio de esquina (0-100) aplicado sobre la mitad de la dimensión menor</description>
+      <range min="0" max="100"/>
+    </key>
+
+    <key type="i" name="pw-refresh-interval">
+      <default>60</default>
+      <summary>Intervalo de actualización</summary>
+      <description>Segundos entre cambios de imagen cuando se usa una carpeta (0 = sin cambio automático)</description>
+      <range min="0" max="86400"/>
+    </key>
+
   </schema>
 </schemalist>

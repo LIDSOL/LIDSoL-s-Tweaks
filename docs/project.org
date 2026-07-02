@@ -323,7 +323,7 @@ Flujo de activación (dos niveles)
 - moduleLoader.js actualizado: import BackgroundWidgetsModule, id 'backgroundWidgets', name 'Background Widgets', enabledKey 'background-clock-enabled' (retrocompatible)
 - prefs.js: descripción de categoría Widgets actualizada
 - Schema GSettings sin cambios (claves background-clock-* intactas)
-** Commit actual
+** 4fab644
 - Creado extension/modules/backgroundWidgets/baseWidget.js con clase DesktopWidget (extends St.Widget):
   - _addToBackgroundGroup(): se inserta en Main.layoutManager._backgroundGroup
   - _setupOverviewFade(): conecta notify::value de overview._controls._stateAdjustment → opacity = 255 * (1 - value)
@@ -331,5 +331,25 @@ Flujo de activación (dos niveles)
   - _init() llama a ambos automáticamente
 - ClockWidget ahora extiende DesktopWidget en vez de St.Widget directamente
 - module.js simplificado: ya no agrega manualmente el widget al container (lo hace DesktopWidget._init)
+- Bugfix: DesktopWidget._init usa arrow function en connect('destroy') en vez de this._onDestroy.bind(this) — las subclases (ClockWidget) sobrescriben _onDestroy, la arrow function preserva el handler de la base
 - moduleLoader.js y prefs.js sin cambios respecto a checkpoint-0
-   
+** Commit actual
+- Creado extension/modules/backgroundWidgets/pictureWidget.js con clase PictureWidget (extends DesktopWidget):
+  - CSS background-image: url("file://...") con background-size: cover
+  - Soporta imagen única o carpeta con selección aleatoria (recursiva en subdirectorios)
+  - Tamaño base + aspect ratio → ancho/alto calculados
+  - Posición raw x/y (píxeles desde esq. sup. izq.)
+  - Corner radius porcentual sobre la dimensión menor
+  - Auto-refresh timer (GLib.timeout_add_seconds) para rotar imágenes de carpeta
+  - Destroy handler limpia refreshId
+- Agregadas 8 keys GSettings al schema unificado (prefijo pw-):
+  - pw-enabled (bool, master toggle, default false)
+  - pw-image-path (string, ruta archivo o carpeta)
+  - pw-size (int, 10-2000, default 200)
+  - pw-aspect-ratio (double, 0.1-10, default 1.0)
+  - pw-position-x/y (int, default 100)
+  - pw-corner-radius (int, 0-100, default 20)
+  - pw-refresh-interval (int, 0-86400, default 60)
+- module.js actualizado: gestiona ClockWidget y PictureWidget con toggles independientes (background-clock-enabled + pw-enabled) mediante watchers GSettings runtime
+- Schema compilado (glib-compile-schemas)
+

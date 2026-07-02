@@ -144,13 +144,30 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     }
 
     _addWidgetsModuleGroup(page) {
-        const group = new Adw.PreferencesGroup();
+        const group = new Adw.PreferencesGroup({
+            description: 'Activa o desactiva todos los widgets de escritorio.',
+        });
+        group.add(createSwitchRow({
+            settings: this._settings,
+            bindKey: 'background-widgets-enabled',
+            title: 'Background Widgets',
+            subtitle: 'Activar widgets de escritorio',
+        }));
+        group.add(createModuleRow({
+            settings: this._settings,
+            bindKey: 'pw-enabled',
+            title: 'Picture Widget',
+            subtitle: 'Imagen superpuesta en el escritorio',
+            onDetailed: () => this._openDialog('Picture Widget', p => this._buildPictureWidgetDialog(p)),
+            sensitiveBind: 'background-widgets-enabled',
+        }));
         group.add(createModuleRow({
             settings: this._settings,
             bindKey: 'background-clock-enabled',
             title: 'Background Clock',
             subtitle: 'Reloj superpuesto en el escritorio',
             onDetailed: () => this._openDialog('Background Clock', p => this._buildBackgroundClockDialog(p)),
+            sensitiveBind: 'background-widgets-enabled',
         }));
         page.add(group);
     }
@@ -219,6 +236,50 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     _buildWorkspaceIndicatorDialog(page) {
         const prefs = new WorkspaceIndicatorPrefs(this._settings);
         prefs.populateGroups(page);
+    }
+
+    _buildPictureWidgetDialog(page) {
+        const s = this._settings;
+
+        const pathGroup = createGroup({ parent: page, title: 'Imagen', description: 'Carpeta con imágenes para mostrar en el escritorio. Se elige una imagen aleatoria.' });
+        const folderRow = new Adw.ActionRow({ title: 'Carpeta de imágenes', subtitle: s.get_string('pw-image-path') || 'Sin carpeta seleccionada' });
+        const folderBtn = new Gtk.Button({ label: 'Examinar', valign: Gtk.Align.CENTER });
+        folderBtn.connect('clicked', () => {
+            const dialog = new Gtk.FileChooserDialog({
+                title: 'Seleccionar carpeta de imágenes',
+                transient_for: page.get_root(),
+                modal: true,
+                action: Gtk.FileChooserAction.SELECT_FOLDER,
+            });
+            dialog.add_button('_Cancelar', Gtk.ResponseType.CANCEL);
+            dialog.add_button('_Abrir', Gtk.ResponseType.OK);
+            dialog.connect('response', (dlg, response) => {
+                if (response === Gtk.ResponseType.OK) {
+                    const path = dlg.get_file().get_path();
+                    s.set_string('pw-image-path', path);
+                    folderRow.set_subtitle(path);
+                }
+                dlg.destroy();
+            });
+            dialog.present();
+        });
+        folderRow.add_suffix(folderBtn);
+        folderRow.activatable_widget = folderBtn;
+        pathGroup.add(folderRow);
+
+        const sizeGroup = createGroup({ parent: page, title: 'Tamaño' });
+        sizeGroup.add(createSpinButtonRow({ settings: s, bindKey: 'pw-size', title: 'Tamaño base', subtitle: 'Se combina con el aspect ratio', adjProps: { lower: 10, upper: 2000, step: 10 } }));
+        sizeGroup.add(createSpinButtonRow({ settings: s, bindKey: 'pw-aspect-ratio', title: 'Relación de aspecto', subtitle: 'Ancho / Alto (1.0 = cuadrado)', adjProps: { lower: 0.1, upper: 10, step: 0.1, digits: 2 } }));
+
+        const posGroup = createGroup({ parent: page, title: 'Posición' });
+        posGroup.add(createSpinButtonRow({ settings: s, bindKey: 'pw-position-x', title: 'Posición X', subtitle: 'Píxeles desde el borde izquierdo', adjProps: { lower: 0, upper: 10000, step: 5 } }));
+        posGroup.add(createSpinButtonRow({ settings: s, bindKey: 'pw-position-y', title: 'Posición Y', subtitle: 'Píxeles desde el borde superior', adjProps: { lower: 0, upper: 10000, step: 5 } }));
+
+        const appearGroup = createGroup({ parent: page, title: 'Apariencia' });
+        appearGroup.add(createSpinButtonRow({ settings: s, bindKey: 'pw-corner-radius', title: 'Radio de esquina', subtitle: 'Porcentaje (0 = sin bordes redondeados)', adjProps: { lower: 0, upper: 100, step: 5 } }));
+
+        const advGroup = createGroup({ parent: page, title: 'Avanzado' });
+        advGroup.add(createSpinButtonRow({ settings: s, bindKey: 'pw-refresh-interval', title: 'Intervalo de rotación', subtitle: 'Segundos (0 = sin cambio automático)', adjProps: { lower: 0, upper: 86400, step: 10 } }));
     }
 
     _buildBackgroundClockDialog(page) {

@@ -6,13 +6,16 @@ import Gdk from 'gi://Gdk';
 import Gio from 'gi://Gio';
 import GObject from 'gi://GObject';
 
-export function createModuleRow({ settings, bindKey, title, subtitle, onDetailed }) {
+export function createModuleRow({ settings, bindKey, title, subtitle, onDetailed, sensitiveBind }) {
     const row = new Adw.SwitchRow({
         title: title ?? '',
         subtitle: subtitle ?? null,
         active: settings.get_boolean(bindKey),
     });
     settings.bind(bindKey, row, 'active', Gio.SettingsBindFlags.DEFAULT);
+
+    if (sensitiveBind)
+        settings.bind(sensitiveBind, row, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
 
     if (onDetailed)
         _pushDetailedButton(row, onDetailed);

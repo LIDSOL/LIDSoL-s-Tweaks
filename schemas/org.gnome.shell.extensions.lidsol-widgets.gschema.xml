@@ -415,6 +415,13 @@
       <description>Oculta las notas marcadas como procesadas en la ventana de acciones</description>
     </key>
 
+    <!-- Background Widgets (master) -->
+    <key type="b" name="background-widgets-enabled">
+      <default>true</default>
+      <summary>Habilitar widgets de escritorio</summary>
+      <description>Activa o desactiva todos los widgets de escritorio (reloj, imagen, etc.)</description>
+    </key>
+
     <!-- Background Clock -->
     <key type="b" name="background-clock-enabled">
       <default>false</default>

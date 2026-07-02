@@ -30,7 +30,7 @@ const REGISTERED_MODULES = [
     {
         id: 'backgroundWidgets',
         name: 'Background Widgets',
-        enabledKey: 'background-clock-enabled',
+        enabledKey: 'background-widgets-enabled',
         moduleClass: BackgroundWidgetsModule
     },
     {

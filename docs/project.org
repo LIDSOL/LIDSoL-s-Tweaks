@@ -333,7 +333,7 @@ Flujo de activación (dos niveles)
 - module.js simplificado: ya no agrega manualmente el widget al container (lo hace DesktopWidget._init)
 - Bugfix: DesktopWidget._init usa arrow function en connect('destroy') en vez de this._onDestroy.bind(this) — las subclases (ClockWidget) sobrescriben _onDestroy, la arrow function preserva el handler de la base
 - moduleLoader.js y prefs.js sin cambios respecto a checkpoint-0
-** Commit actual
+** f101246
 - Creado extension/modules/backgroundWidgets/pictureWidget.js con clase PictureWidget (extends DesktopWidget):
   - CSS background-image: url("file://...") con background-size: cover
   - Soporta imagen única o carpeta con selección aleatoria (recursiva en subdirectorios)
@@ -352,4 +352,18 @@ Flujo de activación (dos niveles)
   - pw-refresh-interval (int, 0-86400, default 60)
 - module.js actualizado: gestiona ClockWidget y PictureWidget con toggles independientes (background-clock-enabled + pw-enabled) mediante watchers GSettings runtime
 - Schema compilado (glib-compile-schemas)
-
+** commit actual
+- prefs.js _addWidgetsModuleGroup: agregado createModuleRow para pw-enabled (Picture Widget) antes de Background Clock
+- Creado _buildPictureWidgetDialog() con grupos:
+  - Imagen: folder chooser con Gtk.FileChooserDialog (SELECT_FOLDER)
+  - Tamaño: tamaño base + aspect ratio (SpinButton con digits=2)
+  - Posición: X, Y en píxeles
+  - Apariencia: corner radius porcentual
+  - Avanzado: refresh interval (0 = sin auto-refresh)
+- Schema compilado
+- Bug: Picture Widget solo funcionaba si Background Clock estaba activo, porque ambos dependían de que ModuleLoader cargara backgroundWidgetsModule en base a background-clock-enabled
+- Solución: nuevo GSettings key background-widgets-enabled (bool, default true) como master toggle
+- moduleLoader.js: enabledKey cambiado de background-clock-enabled a background-widgets-enabled
+- module.js sin cambios — ya gestiona sub-toggles independientes (background-clock-enabled + pw-enabled)
+- prefs.js _addWidgetsModuleGroup: agregado master switch al inicio, sub-toggles con sensitiveBind
+- prefsHelpers.js createModuleRow: agregado parámetro sensitiveBind

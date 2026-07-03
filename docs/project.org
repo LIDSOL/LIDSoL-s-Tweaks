@@ -352,7 +352,7 @@ Flujo de activación (dos niveles)
   - pw-refresh-interval (int, 0-86400, default 60)
 - module.js actualizado: gestiona ClockWidget y PictureWidget con toggles independientes (background-clock-enabled + pw-enabled) mediante watchers GSettings runtime
 - Schema compilado (glib-compile-schemas)
-** commit actual
+** 2491e88
 - prefs.js _addWidgetsModuleGroup: agregado createModuleRow para pw-enabled (Picture Widget) antes de Background Clock
 - Creado _buildPictureWidgetDialog() con grupos:
   - Imagen: folder chooser con Gtk.FileChooserDialog (SELECT_FOLDER)
@@ -367,3 +367,11 @@ Flujo de activación (dos niveles)
 - module.js sin cambios — ya gestiona sub-toggles independientes (background-clock-enabled + pw-enabled)
 - prefs.js _addWidgetsModuleGroup: agregado master switch al inicio, sub-toggles con sensitiveBind
 - prefsHelpers.js createModuleRow: agregado parámetro sensitiveBind
+** Commit actual
+Ahora la animación face al ingresar al overview es visible. Y el widget es persistente durante el cambio de workspace.
+- Bug raíz: widget en _backgroundGroup → overview overlay (semi-transparente) lo cubría→cambios de opacidad invisibles. Además _backgroundGroup se reestructura al cambiar workspace.
+- Solución: Migrar de _backgroundGroup a Main.layoutManager.uiGroup como padre. Widget se renderiza SOBRE el overlay del overview (visible durante transición). uiGroup no se reestructura al cambiar workspace → widget persistente.
+- Mecanismo fade: monkey-patch de WorkspaceBackground.prototype._init + notify::value en _stateAdjustment (por-background, DING-style), sin filtro _isOverviewTransition(), sin initial-opacity en conexión. Adj.value 0→1 → opacity 255→0 progresivo, cuadro por cuadro.
+- raiseToTop: idle_add set_child_above_sibling(this, null) para mantener widget sobre el overview.
+- Eliminados: _setupWorkspaceHandlers (switch-workspace + active-workspace-changed), _reparentAfterSwitch, _isOverviewTransition(), initial-opacity set.
+- Referencia desktop-icons-ng: usa ventana real (Gtk) fuera del árbol Clutter → no sufre ocultación por overlay. Este enfoque (Clutter en uiGroup + _stateAdjustment) logra el mismo efecto visual con actores nativos.

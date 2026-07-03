@@ -2,59 +2,38 @@
 
 import GObject from 'gi://GObject';
 import GLib from 'gi://GLib';
+import Clutter from 'gi://Clutter';
 import St from 'gi://St';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
-import {WorkspaceBackground} from 'resource:///org/gnome/shell/ui/workspace.js';
+import * as Overview from 'resource:///org/gnome/shell/ui/overview.js';
 
-const _widgets = new Set();
-let _origBgInit = null;
-let _patchCount = 0;
-const _allConns = [];
+let _containerGroup = null;
 
-function _connectAdjustment(adj) {
-    const id = adj.connect('notify::value', () => {
-        const val = adj.value;
-        const newOpacity = Math.round(255 * (1 - val));
-        console.warn(`[LIDSoL] adj.value=${val} opacity=${newOpacity}`);
-        for (const w of _widgets)
-            w.opacity = newOpacity;
-    });
-    _allConns.push([adj, id]);
-}
+function _ensureContainer() {
+    if (_containerGroup)
+        return _containerGroup;
 
-function _walkAndConnect(actor, visited) {
-    if (actor._stateAdjustment && !visited.has(actor._stateAdjustment)) {
-        visited.add(actor._stateAdjustment);
-        _connectAdjustment(actor._stateAdjustment);
-    }
-    if (typeof actor.foreach === 'function')
-        actor.foreach(child => _walkAndConnect(child, visited));
-    else if (actor.get_children)
-        actor.get_children().forEach(child => _walkAndConnect(child, visited));
-}
-
-function _patchBgInit() {
-    if (_origBgInit)
-        return;
+    const wg = global.window_group;
     const bgGroup = Main.layoutManager._backgroundGroup;
-    if (bgGroup)
-        _walkAndConnect(bgGroup, new Set());
-    _origBgInit = WorkspaceBackground.prototype._init;
-    WorkspaceBackground.prototype._init = function (...args) {
-        _origBgInit.call(this, ...args);
-        if (this._stateAdjustment)
-            _connectAdjustment(this._stateAdjustment);
-    };
-}
-
-function _unpatchBgInit() {
-    for (const [adj, id] of _allConns)
-        adj.disconnect(id);
-    _allConns.length = 0;
-    if (_origBgInit) {
-        WorkspaceBackground.prototype._init = _origBgInit;
-        _origBgInit = null;
+    if (!wg || !bgGroup || bgGroup.get_parent() !== wg) {
+        console.log('[LIDSoL] cannot create container, fallback');
+        return null;
     }
+
+    _containerGroup = new St.Widget({ name: 'lidsol-widget-container' });
+
+    // Strategy: use set_child_below_sibling to place container BELOW the
+    // first non-bg child (which is always a window actor).
+    // This puts us between bg and window actors.
+
+    // First, add as a child
+    wg.add_child(_containerGroup);
+    // Move to right above bgGroup
+    wg.set_child_above_sibling(_containerGroup, bgGroup);
+
+    console.log('[LIDSoL] Container created above bgGroup');
+
+    return _containerGroup;
 }
 
 const DesktopWidget = GObject.registerClass(
@@ -63,54 +42,88 @@ class DesktopWidget extends St.Widget {
         super._init({ reactive: false });
 
         this._settings = settings;
-        this._raiseIdleId = 0;
+        this._adjSignalId = 0;
+        this._stateAdj = null;
 
-        Main.layoutManager.uiGroup.add_child(this);
-        this._raiseToTop();
-        this._setupOverviewFade();
-
-        if (Main.overview.visible)
-            this.opacity = 0;
+        this._addToDesktopContainer();
+        this._connectOverviewFade();
 
         this.connect('destroy', () => {
-            this._removeOverviewFade();
-            this._cancelRaiseIdle();
+            this._disconnectOverviewFade();
         });
     }
 
-    _raiseToTop() {
-        this._cancelRaiseIdle();
-        this._raiseIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-            this._raiseIdleId = 0;
-            const parent = this.get_parent();
-            if (parent)
-                parent.set_child_above_sibling(this, null);
-            return GLib.SOURCE_REMOVE;
-        });
-    }
-
-    _cancelRaiseIdle() {
-        if (this._raiseIdleId) {
-            GLib.source_remove(this._raiseIdleId);
-            this._raiseIdleId = 0;
+    _addToDesktopContainer() {
+        const container = _ensureContainer();
+        if (container) {
+            container.add_child(this);
+            console.log('[LIDSoL] Widget in lidSol container');
+        } else {
+            const bgGroup = Main.layoutManager._backgroundGroup;
+            if (bgGroup) {
+                bgGroup.add_child(this);
+                console.log('[LIDSoL] Widget in _backgroundGroup (fallback)');
+            } else {
+                console.log('[LIDSoL] Widget in uiGroup');
+                Main.layoutManager.uiGroup.add_child(this);
+            }
         }
     }
 
-    _setupOverviewFade() {
-        _widgets.add(this);
-        _patchCount++;
-        if (_patchCount === 1)
-            _patchBgInit();
+    _connectOverviewFade() {
+        try {
+            const o = Main.overview;
+            const adj = o?._overview?._controls?._stateAdjustment;
+
+            if (adj) {
+                console.log(`[LIDSoL] adj found, initial=${adj.value}`);
+                this._stateAdj = adj;
+                this._adjSignalId = adj.connect('notify::value', () => {
+                    const v = adj.value;
+                    this.set_opacity(Math.round(255 * (1 - Math.min(v, 1))));
+                });
+
+                if (adj.value >= 1)
+                    this.set_opacity(0);
+            } else {
+                console.log('[LIDSoL] No adj, using showing/hiding');
+                this._showingId = o.connect('showing', () => {
+                    console.log('[LIDSoL] showing signal');
+                    this.ease({
+                        opacity: 0,
+                        duration: Overview.ANIMATION_TIME,
+                        mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                    });
+                });
+                this._hidingId = o.connect('hiding', () => {
+                    console.log('[LIDSoL] hiding signal');
+                    this.ease({
+                        opacity: 255,
+                        duration: Overview.ANIMATION_TIME,
+                        mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                    });
+                });
+            }
+        } catch (e) {
+            console.log(`[LIDSoL] Fade err: ${e}`);
+        }
     }
 
-    _removeOverviewFade() {
-        _widgets.delete(this);
-        _patchCount--;
-        if (_patchCount <= 0) {
-            _patchCount = 0;
-            _unpatchBgInit();
+    _disconnectOverviewFade() {
+        if (this._adjSignalId && this._stateAdj) {
+            this._stateAdj.disconnect(this._adjSignalId);
+            this._adjSignalId = 0;
+            this._stateAdj = null;
+        }
+        if (this._showingId) {
+            Main.overview.disconnect(this._showingId);
+            this._showingId = 0;
+        }
+        if (this._hidingId) {
+            Main.overview.disconnect(this._hidingId);
+            this._hidingId = 0;
         }
     }
 });
 
-export { DesktopWidget };
+export {DesktopWidget};

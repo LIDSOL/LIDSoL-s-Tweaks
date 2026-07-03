@@ -124,7 +124,7 @@ DEADLINE: <2026-07-04 Sat>
   - [ ] Tamaño y redondez
   - [ ] Padding y espaciado
   - [ ] Fondo del díalogo
-**** NEXT [#A] Top Bar Organized :topbar:
+**** IN-PROGRESS [#A] Top Bar Organized :topbar:
 DEADLINE: <2026-07-04 Sat>
 - Descripción: Permite cambiar la ubicación de los elementos en el Top Bar. Compatible hasta GNOME 50, así que será fácil de integrar.
   - Se usa como base el código de la extensión Top Bar Organized de June:
@@ -367,7 +367,7 @@ Flujo de activación (dos niveles)
 - module.js sin cambios — ya gestiona sub-toggles independientes (background-clock-enabled + pw-enabled)
 - prefs.js _addWidgetsModuleGroup: agregado master switch al inicio, sub-toggles con sensitiveBind
 - prefsHelpers.js createModuleRow: agregado parámetro sensitiveBind
-** Commit actual
+** 4c2c1e2
 Ahora la animación face al ingresar al overview es visible. Y el widget es persistente durante el cambio de workspace.
 - Bug raíz: widget en _backgroundGroup → overview overlay (semi-transparente) lo cubría→cambios de opacidad invisibles. Además _backgroundGroup se reestructura al cambiar workspace.
 - Solución: Migrar de _backgroundGroup a Main.layoutManager.uiGroup como padre. Widget se renderiza SOBRE el overlay del overview (visible durante transición). uiGroup no se reestructura al cambiar workspace → widget persistente.
@@ -375,3 +375,19 @@ Ahora la animación face al ingresar al overview es visible. Y el widget es pers
 - raiseToTop: idle_add set_child_above_sibling(this, null) para mantener widget sobre el overview.
 - Eliminados: _setupWorkspaceHandlers (switch-workspace + active-workspace-changed), _reparentAfterSwitch, _isOverviewTransition(), initial-opacity set.
 - Referencia desktop-icons-ng: usa ventana real (Gtk) fuera del árbol Clutter → no sufre ocultación por overlay. Este enfoque (Clutter en uiGroup + _stateAdjustment) logra el mismo efecto visual con actores nativos.
+** Commit actual: Top Bar Organizer module
+- Implementado módulo topBarOrganizer que permite reordenar y ocultar elementos de la barra superior (panel).
+- 6 nuevas keys GSettings con prefijo tbo-:
+  - tbo-enabled (bool, default false) — master toggle del módulo
+  - tbo-left-box-order, tbo-center-box-order, tbo-right-box-order (as, default []) — orden por caja
+  - tbo-hide, tbo-show (as, default []) — ocultar/forzar mostrar items
+- module.js: hook de Panel.Panel.prototype._addToPanelBox via Maid.patchJob para interceptar nuevos items. Algoritmo:
+  - saveNewTopBarItems(): escanea Main.panel.statusArea, mapea container→role, agrega items desconocidos a GSettings
+  - orderTopBarItems(box): reordena hijos de _leftBox/_centerBox/_rightBox vía remove_child + insert_child_at_index, aplica hide/show según tbo-hide/tbo-show
+  - Conexión a changed:: de las 5 keys tbo-* para reordenar en vivo
+- moduleLoader.js: registrado TopBarOrganizerModule con enabledKey tbo-enabled
+- prefs.js: nuevo grupo "Organización del panel" en categoría Top Bar / Panel con:
+  - createModuleRow con switch de habilitación + botón "Organizar"
+  - Diálogo con 3 secciones (Left/Center/Right), flechas arriba/abajo por item, switch de visibilidad, botón restablecer
+  - Mapa de nombres e iconos para items conocidos (appMenu, dateMenu, activities, quickSettings, a11y, keyboard, screencastIndicator, remoteAccessIndicator)
+- Schema compilado, JS syntax-checkeado con node --check

@@ -7,6 +7,7 @@ import { BackgroundWidgetsModule } from '../modules/backgroundWidgets/module.js'
 import { UserAvatarModule } from '../modules/userAvatar/module.js';
 import { QuickSettingsTweaksModule } from '../modules/quickSettingsTweaks/module.js';
 import { SystemItemsModule } from '../modules/systemItems/module.js';
+import { TopBarOrganizerModule } from '../modules/topBarOrganizer/module.js';
 
 const REGISTERED_MODULES = [
     {
@@ -50,6 +51,12 @@ const REGISTERED_MODULES = [
         name: 'System Items Layout',
         enabledKey: 'qst-system-items-enabled',
         moduleClass: SystemItemsModule
+    },
+    {
+        id: 'topBarOrganizer',
+        name: 'Top Bar Organizer',
+        enabledKey: 'tbo-enabled',
+        moduleClass: TopBarOrganizerModule
     }
 ];
 

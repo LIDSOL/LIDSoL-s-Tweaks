@@ -927,5 +927,42 @@
       <range min="0" max="86400"/>
     </key>
 
+    <!-- Top Bar Organizer -->
+    <key type="b" name="tbo-enabled">
+      <default>false</default>
+      <summary>Habilitar Top Bar Organizer</summary>
+      <description>Activa la reorganización y ocultación de elementos de la barra superior</description>
+    </key>
+
+    <key type="as" name="tbo-left-box-order">
+      <default>[]</default>
+      <summary>Orden de la caja izquierda</summary>
+      <description>Orden de los elementos del panel izquierdo de la barra superior</description>
+    </key>
+
+    <key type="as" name="tbo-center-box-order">
+      <default>[]</default>
+      <summary>Orden de la caja central</summary>
+      <description>Orden de los elementos del panel central de la barra superior</description>
+    </key>
+
+    <key type="as" name="tbo-right-box-order">
+      <default>[]</default>
+      <summary>Orden de la caja derecha</summary>
+      <description>Orden de los elementos del panel derecho de la barra superior</description>
+    </key>
+
+    <key type="as" name="tbo-hide">
+      <default>[]</default>
+      <summary>Elementos ocultos</summary>
+      <description>Elementos de la barra superior que deben ocultarse</description>
+    </key>
+
+    <key type="as" name="tbo-show">
+      <default>[]</default>
+      <summary>Elementos forzados a mostrar</summary>
+      <description>Elementos de la barra superior que deben mostrarse forzosamente</description>
+    </key>
+
   </schema>
 </schemalist>

@@ -189,6 +189,22 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
             onDetailed: () => this._openDialog('Workspace Indicator', p => this._buildWorkspaceIndicatorDialog(p)),
         }));
         page.add(group);
+
+        const orgGroup = new Adw.PreferencesGroup({
+            title: 'Organización del panel',
+            description: 'Reordena y oculta elementos de la barra superior.',
+        });
+        orgGroup.add(createModuleRow({
+            settings: this._settings,
+            bindKey: 'tbo-enabled',
+            title: 'Top Bar Organizer',
+            subtitle: 'Reordena y oculta indicadores de la barra superior',
+            onDetailed: () => {
+                if (this._window && this._settings)
+                    openTopBarOrganizerDialog(this._window, this._settings);
+            },
+        }));
+        page.add(orgGroup);
     }
 
     _addShellModuleGroup(page) {
@@ -934,6 +950,193 @@ function openSystemItemsDialog(parentWindow, settings) {
                 };
                 for (const name of order) addRow(name);
             };
+            rebuild();
+        },
+    });
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  TOP BAR ORGANIZER
+// ══════════════════════════════════════════════════════════════════
+
+const TOP_BAR_ITEM_NAMES = {
+    appMenu: 'Menú de aplicación',
+    dateMenu: 'Fecha y hora',
+    activities: 'Actividades',
+    quickSettings: 'Ajustes rápidos',
+    a11y: 'Accesibilidad',
+    keyboard: 'Distribución del teclado',
+    screencastIndicator: 'Grabación de pantalla',
+    remoteAccessIndicator: 'Acceso remoto',
+    appindicatorContainer: 'Indicadores de aplicación',
+};
+
+const TOP_BAR_ITEM_ICONS = {
+    appMenu: 'application-x-executable-symbolic',
+    dateMenu: 'office-calendar-symbolic',
+    activities: 'view-grid-symbolic',
+    quickSettings: 'emblem-system-symbolic',
+    a11y: 'preferences-desktop-accessibility-symbolic',
+    keyboard: 'input-keyboard-symbolic',
+    screencastIndicator: 'media-record-symbolic',
+    remoteAccessIndicator: 'network-server-symbolic',
+};
+
+function getTopBarItemName(role) {
+    return TOP_BAR_ITEM_NAMES[role] || role;
+}
+
+function getTopBarItemIcon(role) {
+    return TOP_BAR_ITEM_ICONS[role] || 'pan-end-symbolic';
+}
+
+const BOX_NAMES = {
+    left: 'Caja izquierda',
+    center: 'Caja central',
+    right: 'Caja derecha',
+};
+
+function openTopBarOrganizerDialog(parentWindow, settings) {
+    const getOrder = (box) => {
+        try { return settings.get_strv(`tbo-${box}-box-order`); }
+        catch (e) { return []; }
+    };
+    const saveOrder = (box, order) => {
+        settings.set_strv(`tbo-${box}-box-order`, order);
+    };
+    const moveItem = (box, name, direction) => {
+        const order = getOrder(box);
+        const idx = order.indexOf(name);
+        if (idx === -1) return;
+        const target = idx + direction;
+        if (target < 0 || target >= order.length) return;
+        order.splice(idx, 1);
+        order.splice(target, 0, name);
+        saveOrder(box, order);
+    };
+
+    createDialog({
+        window: parentWindow,
+        title: 'Ordenar elementos de la barra superior',
+        childrenRequest: (page) => {
+            const groups = {};
+
+            for (const box of ['left', 'center', 'right']) {
+                const group = new Adw.PreferencesGroup({
+                    title: BOX_NAMES[box],
+                });
+                page.add(group);
+                groups[box] = group;
+            }
+
+            const headerBox = new Gtk.Box({ spacing: 4 });
+            const resetBtn = Gtk.Button.new_from_icon_name('view-refresh-symbolic');
+            resetBtn.has_frame = false;
+            resetBtn.valign = Gtk.Align.CENTER;
+            resetBtn.tooltip_text = 'Restablecer orden predeterminado';
+            resetBtn.connect('clicked', () => {
+                const alert = new Adw.AlertDialog({
+                    heading: 'Restablecer orden predeterminado',
+                    body: 'Se perderán todos los cambios en el orden y visibilidad de la barra superior. ¿Continuar?',
+                });
+                alert.add_response('cancel', 'Cancelar');
+                alert.add_response('reset', 'Restablecer');
+                alert.set_response_appearance('reset', Adw.ResponseAppearance.DESTRUCTIVE);
+                alert.set_default_response('cancel');
+                alert.set_close_response('cancel');
+                alert.connect('response', (_dlg, response) => {
+                    if (response === 'reset') {
+                        settings.reset('tbo-left-box-order');
+                        settings.reset('tbo-center-box-order');
+                        settings.reset('tbo-right-box-order');
+                        settings.reset('tbo-hide');
+                        settings.reset('tbo-show');
+                        rebuild();
+                    }
+                });
+                alert.present(parentWindow);
+            });
+
+            const rebuild = () => {
+                for (const box of ['left', 'center', 'right']) {
+                    const group = groups[box];
+                    for (let i = group.get_rows().length - 1; i >= 0; i--)
+                        group.remove(group.get_rows()[i]);
+
+                    if (box === 'left')
+                        group.header_suffix = headerBox;
+                    else
+                        group.header_suffix = null;
+
+                    const order = getOrder(box);
+
+                    if (order.length === 0) {
+                        const emptyRow = new Adw.ActionRow({
+                            title: 'Sin elementos',
+                            subtitle: 'Activa el módulo y reinicia sesión para descubrir los elementos del panel.',
+                            activatable: false,
+                        });
+                        group.add(emptyRow);
+                        continue;
+                    }
+
+                    for (const name of order) {
+                        const title = getTopBarItemName(name);
+                        const row = new Adw.ActionRow({ title, activatable: false });
+
+                        const icon = Gtk.Image.new_from_icon_name(getTopBarItemIcon(name));
+                        icon.pixel_size = 18;
+                        icon.margin_start = 4;
+                        icon.margin_end = 4;
+                        row.add_prefix(icon);
+
+                        const upBtn = Gtk.Button.new_from_icon_name('go-up-symbolic');
+                        upBtn.has_frame = false;
+                        upBtn.valign = Gtk.Align.CENTER;
+                        upBtn.tooltip_text = 'Mover arriba';
+                        upBtn.connect('clicked', () => { moveItem(box, name, -1); rebuild(); });
+                        row.add_prefix(upBtn);
+
+                        const downBtn = Gtk.Button.new_from_icon_name('go-down-symbolic');
+                        downBtn.has_frame = false;
+                        downBtn.valign = Gtk.Align.CENTER;
+                        downBtn.tooltip_text = 'Mover abajo';
+                        downBtn.connect('clicked', () => { moveItem(box, name, 1); rebuild(); });
+                        row.add_prefix(downBtn);
+
+                        const hideList = (() => {
+                            try { return settings.get_strv('tbo-hide'); }
+                            catch (e) { return []; }
+                        })();
+                        const hideSwitch = new Gtk.Switch({
+                            active: !hideList.includes(name),
+                            valign: Gtk.Align.CENTER,
+                        });
+                        hideSwitch.connect('notify::active', () => {
+                            const currentHide = (() => {
+                                try { return settings.get_strv('tbo-hide'); }
+                                catch (e) { return []; }
+                            })();
+                            if (hideSwitch.active) {
+                                const idx = currentHide.indexOf(name);
+                                if (idx !== -1) {
+                                    currentHide.splice(idx, 1);
+                                    settings.set_strv('tbo-hide', currentHide);
+                                }
+                            } else {
+                                if (!currentHide.includes(name)) {
+                                    currentHide.push(name);
+                                    settings.set_strv('tbo-hide', currentHide);
+                                }
+                            }
+                        });
+                        row.add_suffix(hideSwitch);
+
+                        group.add(row);
+                    }
+                }
+            };
+
             rebuild();
         },
     });

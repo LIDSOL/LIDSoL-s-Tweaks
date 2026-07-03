@@ -1057,11 +1057,14 @@ function openTopBarOrganizerDialog(parentWindow, settings) {
                 alert.present(parentWindow);
             });
 
+            const boxRows = { left: [], center: [], right: [] };
+
             const rebuild = () => {
                 for (const box of ['left', 'center', 'right']) {
                     const group = groups[box];
-                    for (let i = group.get_rows().length - 1; i >= 0; i--)
-                        group.remove(group.get_rows()[i]);
+                    for (const r of boxRows[box])
+                        group.remove(r);
+                    boxRows[box] = [];
 
                     if (box === 'left')
                         group.header_suffix = headerBox;
@@ -1077,6 +1080,7 @@ function openTopBarOrganizerDialog(parentWindow, settings) {
                             activatable: false,
                         });
                         group.add(emptyRow);
+                        boxRows[box].push(emptyRow);
                         continue;
                     }
 
@@ -1133,6 +1137,7 @@ function openTopBarOrganizerDialog(parentWindow, settings) {
                         row.add_suffix(hideSwitch);
 
                         group.add(row);
+                        boxRows[box].push(row);
                     }
                 }
             };

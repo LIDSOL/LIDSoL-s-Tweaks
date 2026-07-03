@@ -390,4 +390,5 @@ Ahora la animación face al ingresar al overview es visible. Y el widget es pers
   - createModuleRow con switch de habilitación + botón "Organizar"
   - Diálogo con 3 secciones (Left/Center/Right), flechas arriba/abajo por item, switch de visibilidad, botón restablecer
   - Mapa de nombres e iconos para items conocidos (appMenu, dateMenu, activities, quickSettings, a11y, keyboard, screencastIndicator, remoteAccessIndicator)
-- Schema compilado, JS syntax-checkeado con node --check
+** Commit actual
+No se mostraban los ajustes del top-bar-organizer. El error era Adw.PreferencesGroup.get_rows() — no existe en GTK4/Adw. Causaba un TypeError dentro de childrenRequest, lo que impedía que dialog.present() se ejecutara, nunca era visible el dialog que muestra las configuraciones. Se remplazó por un array boxRows que trackea las filas manualmente.

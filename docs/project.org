@@ -394,7 +394,7 @@ Ahora la animación face al ingresar al overview es visible. Y el widget es pers
 No se mostraban los ajustes del top-bar-organizer. El error era Adw.PreferencesGroup.get_rows() — no existe en GTK4/Adw. Causaba un TypeError dentro de childrenRequest, lo que impedía que dialog.present() se ejecutara, nunca era visible el dialog que muestra las configuraciones. Se remplazó por un array boxRows que trackea las filas manualmente.
 ** 3ab233f
 Al ocultar un elemento (switch on), se ocultaba correctamente, pero al intentar mostrarlo nuevamente (switch off), ya no se mostraba, ni desactivando/activando la extensión. La causa era que wasVisible se capturaba después de que se llamara a hide(), ya lo habia puesto en false, y el else if (!wasVisible) lo volvía a ocultar en el reordenamiento. Para soluciar esto se usa mejor una lógica directa: si está en tbo-hide, se oculta, si no se muestra.
-** Commit actual
+** 7e16ea5
 Se reemplazaron los botones ↑↓←→ por Gtk.ListBox (tipo drag & drop). Cada fila tiene:
 - Asa de arrastre (list-drag-handle-symbolic) + icono + nombre
 - Switch de ocultar/mostrar.
@@ -402,3 +402,8 @@ Se reemplazaron los botones ↑↓←→ por Gtk.ListBox (tipo drag & drop). Cad
 - DropTarget: acepta solo filas del mismo tipo. En el drop, calcula la posición correcta (misma caja → reordenar; caja distinta → mover entre cajas) y guarda a GSettings.
 - Cross-box: _saveBothListBoxOrders usa settings.delay() + apply() para evitar race conditions con el módulo.
 Las 3 cajas están dentro de un solo Adw.PreferencesGroup con Gtk.Label como encabezados de sección, y Gtk.ListBox con estilo boxed-list para la apariencia de lista Adw.
+** Commit actual
+El Gtk.ListBos ahora tiene:
+- set_size_request(-1, 60): ahora hay una altura mínima de 60px aunque esté vacío.
+- Gtk.ListBox.set_placeholder(): muestra "arrastrar elementos aquí" en gris atenuado cuando no hay fila. 
+Con esto se solucionó un bug que no permitia arrastar elementos a una caja vacía.

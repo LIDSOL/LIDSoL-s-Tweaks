@@ -62,10 +62,12 @@ export class TopBarOrganizerModule {
             Main.sessionMode.parentMode !== 'user') {
             return;
         }
+        console.log('[TBO] _handleNewItemsAndOrderTopBar called');
         this._saveNewTopBarItems();
         this._orderTopBarItems('left');
         this._orderTopBarItems('center');
         this._orderTopBarItems('right');
+        console.log('[TBO] _handleNewItemsAndOrderTopBar done');
     }
 
     _getBoxOrder(box) {

@@ -1037,16 +1037,23 @@ function openTopBarOrganizerDialog(parentWindow, settings) {
                 try { return settings.get_strv('tbo-hide'); }
                 catch (e) { return []; }
             })();
+            console.log(`[TBO] switch notify::active item=${item} active=${hideSwitch.active} hideList=${JSON.stringify(currentHide)} parentIsListBox=${row.get_parent() instanceof Gtk.ListBox} parentOrder=${row.get_parent()?.boxOrder || 'null'}`);
             if (hideSwitch.active) {
                 const idx = currentHide.indexOf(item);
                 if (idx !== -1) {
                     currentHide.splice(idx, 1);
                     settings.set_strv('tbo-hide', currentHide);
+                    console.log(`[TBO] switch ON → removed ${item} from tbo-hide`);
+                } else {
+                    console.log(`[TBO] switch ON → ${item} already not in tbo-hide, no-op`);
                 }
             } else {
                 if (!currentHide.includes(item)) {
                     currentHide.push(item);
                     settings.set_strv('tbo-hide', currentHide);
+                    console.log(`[TBO] switch OFF → added ${item} to tbo-hide`);
+                } else {
+                    console.log(`[TBO] switch OFF → ${item} already in tbo-hide, no-op`);
                 }
             }
         });
@@ -1142,9 +1149,12 @@ function openTopBarOrganizerDialog(parentWindow, settings) {
                 itemsB.push(child._item);
         }
         settings.delay();
-        settings.set_strv(keyA, itemsA);
-        settings.set_strv(keyB, itemsB);
-        settings.apply();
+        try {
+            settings.set_strv(keyA, itemsA);
+            settings.set_strv(keyB, itemsB);
+        } finally {
+            settings.apply();
+        }
     }
 
     function _populateListBox(listBox, box, settings) {
@@ -1154,7 +1164,10 @@ function openTopBarOrganizerDialog(parentWindow, settings) {
             const row = _createRow(name, settings);
             listBox.append(row);
         }
-        // Drop target at the list box level for dropping at the end
+    }
+
+    function _addListDropTarget(listBox) {
+        // Drop target at the list box level for dropping at the end / into empty box
         const listTarget = new Gtk.DropTarget({
             actions: Gdk.DragAction.MOVE,
             formats: Gdk.ContentFormats.new_for_gtype(TopBarOrganizerRow.$gtype),
@@ -1163,11 +1176,8 @@ function openTopBarOrganizerDialog(parentWindow, settings) {
             if (!(value instanceof TopBarOrganizerRow))
                 return false;
             const sourceList = value.get_parent();
-            if (!sourceList || sourceList === listBox) {
-                if (sourceList === listBox)
-                    return false;
+            if (!sourceList || sourceList === listBox)
                 return false;
-            }
             sourceList.remove(value);
             listBox.append(value);
             _saveBothListBoxOrders(sourceList, listBox, settings);
@@ -1232,10 +1242,20 @@ function openTopBarOrganizerDialog(parentWindow, settings) {
                     show_separators: true,
                 });
                 listBox.add_css_class('boxed-list');
+                listBox.set_size_request(-1, 60);
+                const placeholder = new Gtk.Label({
+                    label: 'Arrastra elementos aquí',
+                    sensitive: false,
+                    opacity: 0.5,
+                    margin_top: 16,
+                    margin_bottom: 16,
+                });
+                listBox.set_placeholder(placeholder);
                 group.add(listBox);
                 listBoxes[box] = listBox;
 
                 _populateListBox(listBox, box, settings);
+                _addListDropTarget(listBox);
             }
 
             function _rebuildAll() {

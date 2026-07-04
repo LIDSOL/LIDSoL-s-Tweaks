@@ -375,7 +375,7 @@ Ahora la animación face al ingresar al overview es visible. Y el widget es pers
 - raiseToTop: idle_add set_child_above_sibling(this, null) para mantener widget sobre el overview.
 - Eliminados: _setupWorkspaceHandlers (switch-workspace + active-workspace-changed), _reparentAfterSwitch, _isOverviewTransition(), initial-opacity set.
 - Referencia desktop-icons-ng: usa ventana real (Gtk) fuera del árbol Clutter → no sufre ocultación por overlay. Este enfoque (Clutter en uiGroup + _stateAdjustment) logra el mismo efecto visual con actores nativos.
-** Commit actual: Top Bar Organizer module
+** 3a32287
 - Implementado módulo topBarOrganizer que permite reordenar y ocultar elementos de la barra superior (panel).
 - 6 nuevas keys GSettings con prefijo tbo-:
   - tbo-enabled (bool, default false) — master toggle del módulo
@@ -390,5 +390,7 @@ Ahora la animación face al ingresar al overview es visible. Y el widget es pers
   - createModuleRow con switch de habilitación + botón "Organizar"
   - Diálogo con 3 secciones (Left/Center/Right), flechas arriba/abajo por item, switch de visibilidad, botón restablecer
   - Mapa de nombres e iconos para items conocidos (appMenu, dateMenu, activities, quickSettings, a11y, keyboard, screencastIndicator, remoteAccessIndicator)
-** Commit actual
+** 3414f12
 No se mostraban los ajustes del top-bar-organizer. El error era Adw.PreferencesGroup.get_rows() — no existe en GTK4/Adw. Causaba un TypeError dentro de childrenRequest, lo que impedía que dialog.present() se ejecutara, nunca era visible el dialog que muestra las configuraciones. Se remplazó por un array boxRows que trackea las filas manualmente.
+** Commit actual
+Al ocultar un elemento (switch on), se ocultaba correctamente, pero al intentar mostrarlo nuevamente (switch off), ya no se mostraba, ni desactivando/activando la extensión. La causa era que wasVisible se capturaba después de que se llamara a hide(), ya lo habia puesto en false, y el else if (!wasVisible) lo volvía a ocultar en el reordenamiento. Para soluciar esto se usa mejor una lógica directa: si está en tbo-hide, se oculta, si no se muestra.

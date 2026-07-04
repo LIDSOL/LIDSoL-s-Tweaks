@@ -136,7 +136,6 @@ export class TopBarOrganizerModule {
 
         const boxOrder = this._getBoxOrder(box);
         const hideItems = this._settings.get_strv('tbo-hide');
-        const showItems = this._settings.get_strv('tbo-show');
 
         const panelBox = Main.panel[`_${box}Box`];
         if (!panelBox) return;
@@ -156,12 +155,11 @@ export class TopBarOrganizerModule {
             validItems.push({
                 role,
                 container: indicator.container,
-                wasVisible: indicator.container.visible,
             });
         }
 
         for (let i = 0; i < validItems.length; i++) {
-            const { container, wasVisible } = validItems[i];
+            const { container } = validItems[i];
             const parent = container.get_parent();
             if (parent) parent.remove_child(container);
 
@@ -172,10 +170,8 @@ export class TopBarOrganizerModule {
 
             if (hideItems.includes(validItems[i].role))
                 container.hide();
-            else if (showItems.includes(validItems[i].role))
+            else
                 container.show();
-            else if (!wasVisible)
-                container.hide();
         }
     }
 }

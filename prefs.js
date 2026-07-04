@@ -990,6 +990,10 @@ function getTopBarItemIcon(role) {
     return TOP_BAR_ITEM_ICONS[role] || 'pan-end-symbolic';
 }
 
+const TopBarOrganizerRow = GObject.registerClass({
+    GTypeName: 'LidSolTopBarOrganizerRow',
+}, class TopBarOrganizerRow extends Adw.ActionRow {});
+
 const BOX_NAMES = {
     left: 'Caja izquierda',
     center: 'Caja central',
@@ -1001,43 +1005,195 @@ function openTopBarOrganizerDialog(parentWindow, settings) {
         try { return settings.get_strv(`tbo-${box}-box-order`); }
         catch (e) { return []; }
     };
-    const saveOrder = (box, order) => {
-        settings.set_strv(`tbo-${box}-box-order`, order);
-    };
-    const moveItem = (box, name, direction) => {
+
+    function _createRow(item, settings) {
+        const row = new TopBarOrganizerRow();
+        row._item = item;
+        row.set_title(getTopBarItemName(item));
+
+        const icon = Gtk.Image.new_from_icon_name(getTopBarItemIcon(item));
+        icon.pixel_size = 18;
+        icon.margin_start = 4;
+        icon.margin_end = 4;
+        row.add_prefix(icon);
+
+        const dragHandle = Gtk.Image.new_from_icon_name('list-drag-handle-symbolic');
+        dragHandle.pixel_size = 14;
+        dragHandle.margin_start = 4;
+        dragHandle.margin_end = 6;
+        dragHandle.opacity = 0.5;
+        row.add_prefix(dragHandle);
+
+        const hideList = (() => {
+            try { return settings.get_strv('tbo-hide'); }
+            catch (e) { return []; }
+        })();
+        const hideSwitch = new Gtk.Switch({
+            active: !hideList.includes(item),
+            valign: Gtk.Align.CENTER,
+        });
+        hideSwitch.connect('notify::active', () => {
+            const currentHide = (() => {
+                try { return settings.get_strv('tbo-hide'); }
+                catch (e) { return []; }
+            })();
+            if (hideSwitch.active) {
+                const idx = currentHide.indexOf(item);
+                if (idx !== -1) {
+                    currentHide.splice(idx, 1);
+                    settings.set_strv('tbo-hide', currentHide);
+                }
+            } else {
+                if (!currentHide.includes(item)) {
+                    currentHide.push(item);
+                    settings.set_strv('tbo-hide', currentHide);
+                }
+            }
+        });
+        row.add_suffix(hideSwitch);
+
+        const dragSource = new Gtk.DragSource({ actions: Gdk.DragAction.MOVE });
+        dragSource.connect('prepare', (_src, _x, _y) => {
+            const val = new GObject.Value();
+            val.init(TopBarOrganizerRow.$gtype);
+            val.set_object(row);
+            return Gdk.ContentProvider.new_for_value(val);
+        });
+        dragSource.connect('drag-begin', (_src, drag) => {
+            const alloc = row.get_allocation();
+            const iconBox = new Gtk.ListBox();
+            iconBox.set_size_request(alloc.width, alloc.height);
+            const ghost = _createRow(item, settings);
+            iconBox.append(ghost);
+            iconBox.drag_highlight_row(ghost);
+            const dragIcon = Gtk.DragIcon.get_for_drag(drag);
+            if (dragIcon) dragIcon.set_child(iconBox);
+        });
+        row.add_controller(dragSource);
+
+        const dropTarget = new Gtk.DropTarget({
+            actions: Gdk.DragAction.MOVE,
+            formats: Gdk.ContentFormats.new_for_gtype(TopBarOrganizerRow.$gtype),
+        });
+        dropTarget.connect('drop', (_trg, value, _x, _y) => {
+            return _handleDrop(value, row, settings);
+        });
+        row.add_controller(dropTarget);
+
+        return row;
+    }
+
+    function _handleDrop(value, targetRow, settings) {
+        if (!(value instanceof TopBarOrganizerRow))
+            return false;
+        if (value === targetRow)
+            return false;
+
+        const sourceList = value.get_parent();
+        const targetList = targetRow.get_parent();
+        if (!sourceList || !targetList)
+            return false;
+
+        const sourceIndex = value.get_index();
+        const targetIndex = targetRow.get_index();
+        const sameList = sourceList === targetList;
+
+        sourceList.remove(value);
+        const updatedTargetIndex = targetRow.get_index();
+
+        if (sameList) {
+            if (sourceIndex < targetIndex)
+                sourceList.insert(value, updatedTargetIndex + 1);
+            else
+                sourceList.insert(value, updatedTargetIndex);
+            _saveListBoxOrder(sourceList, settings);
+        } else {
+            const insertPos = (targetList.boxOrder === 'right-box-order' && sourceList.boxOrder !== 'right-box-order')
+                ? updatedTargetIndex + 1
+                : updatedTargetIndex;
+            targetList.insert(value, insertPos);
+            _saveBothListBoxOrders(sourceList, targetList, settings);
+        }
+
+        return true;
+    }
+
+    function _saveListBoxOrder(listBox, settings) {
+        const key = listBox.boxOrder;
+        const items = [];
+        for (const child of listBox) {
+            if (child instanceof TopBarOrganizerRow)
+                items.push(child._item);
+        }
+        settings.set_strv(key, items);
+    }
+
+    function _saveBothListBoxOrders(listBoxA, listBoxB, settings) {
+        const keyA = listBoxA.boxOrder;
+        const keyB = listBoxB.boxOrder;
+        const itemsA = [];
+        const itemsB = [];
+        for (const child of listBoxA) {
+            if (child instanceof TopBarOrganizerRow)
+                itemsA.push(child._item);
+        }
+        for (const child of listBoxB) {
+            if (child instanceof TopBarOrganizerRow)
+                itemsB.push(child._item);
+        }
+        settings.delay();
+        settings.set_strv(keyA, itemsA);
+        settings.set_strv(keyB, itemsB);
+        settings.apply();
+    }
+
+    function _populateListBox(listBox, box, settings) {
+        listBox.boxOrder = `tbo-${box}-box-order`;
         const order = getOrder(box);
-        const idx = order.indexOf(name);
-        if (idx === -1) return;
-        const target = idx + direction;
-        if (target < 0 || target >= order.length) return;
-        order.splice(idx, 1);
-        order.splice(target, 0, name);
-        saveOrder(box, order);
-    };
+        for (const name of order) {
+            const row = _createRow(name, settings);
+            listBox.append(row);
+        }
+        // Drop target at the list box level for dropping at the end
+        const listTarget = new Gtk.DropTarget({
+            actions: Gdk.DragAction.MOVE,
+            formats: Gdk.ContentFormats.new_for_gtype(TopBarOrganizerRow.$gtype),
+        });
+        listTarget.connect('drop', (_trg, value, _x, _y) => {
+            if (!(value instanceof TopBarOrganizerRow))
+                return false;
+            const sourceList = value.get_parent();
+            if (!sourceList || sourceList === listBox) {
+                if (sourceList === listBox)
+                    return false;
+                return false;
+            }
+            sourceList.remove(value);
+            listBox.append(value);
+            _saveBothListBoxOrders(sourceList, listBox, settings);
+            return true;
+        });
+        listBox.add_controller(listTarget);
+    }
 
     createDialog({
         window: parentWindow,
         title: 'Ordenar elementos de la barra superior',
         childrenRequest: (page) => {
-            const groups = {};
+            const group = new Adw.PreferencesGroup({
+                title: 'Orden de la barra superior',
+                description: 'Arrastra y suelta para reordenar los elementos entre cajas.',
+            });
+            page.add(group);
 
-            for (const box of ['left', 'center', 'right']) {
-                const group = new Adw.PreferencesGroup({
-                    title: BOX_NAMES[box],
-                });
-                page.add(group);
-                groups[box] = group;
-            }
-
-            const headerBox = new Gtk.Box({ spacing: 4 });
             const resetBtn = Gtk.Button.new_from_icon_name('view-refresh-symbolic');
             resetBtn.has_frame = false;
             resetBtn.valign = Gtk.Align.CENTER;
-            resetBtn.tooltip_text = 'Restablecer orden predeterminado';
+            resetBtn.tooltip_text = 'Restablecer valores predeterminados';
             resetBtn.connect('clicked', () => {
                 const alert = new Adw.AlertDialog({
                     heading: 'Restablecer orden predeterminado',
-                    body: 'Se perderán todos los cambios en el orden y visibilidad de la barra superior. ¿Continuar?',
+                    body: 'Se perderán todos los cambios en el orden y visibilidad de la barra superior.',
                 });
                 alert.add_response('cancel', 'Cancelar');
                 alert.add_response('reset', 'Restablecer');
@@ -1051,98 +1207,45 @@ function openTopBarOrganizerDialog(parentWindow, settings) {
                         settings.reset('tbo-right-box-order');
                         settings.reset('tbo-hide');
                         settings.reset('tbo-show');
-                        rebuild();
+                        _rebuildAll();
                     }
                 });
                 alert.present(parentWindow);
             });
+            const headerBox = new Gtk.Box({ spacing: 4 });
+            headerBox.append(resetBtn);
+            group.header_suffix = headerBox;
 
-            const boxRows = { left: [], center: [], right: [] };
+            const listBoxes = {};
 
-            const rebuild = () => {
+            for (const box of ['left', 'center', 'right']) {
+                const label = new Gtk.Label({
+                    label: BOX_NAMES[box],
+                    halign: Gtk.Align.START,
+                    margin_bottom: 6,
+                    margin_top: box === 'left' ? 0 : 12,
+                });
+                group.add(label);
+
+                const listBox = new Gtk.ListBox({
+                    selection_mode: Gtk.SelectionMode.NONE,
+                    show_separators: true,
+                });
+                listBox.add_css_class('boxed-list');
+                group.add(listBox);
+                listBoxes[box] = listBox;
+
+                _populateListBox(listBox, box, settings);
+            }
+
+            function _rebuildAll() {
                 for (const box of ['left', 'center', 'right']) {
-                    const group = groups[box];
-                    for (const r of boxRows[box])
-                        group.remove(r);
-                    boxRows[box] = [];
-
-                    if (box === 'left')
-                        group.header_suffix = headerBox;
-                    else
-                        group.header_suffix = null;
-
-                    const order = getOrder(box);
-
-                    if (order.length === 0) {
-                        const emptyRow = new Adw.ActionRow({
-                            title: 'Sin elementos',
-                            subtitle: 'Activa el módulo y reinicia sesión para descubrir los elementos del panel.',
-                            activatable: false,
-                        });
-                        group.add(emptyRow);
-                        boxRows[box].push(emptyRow);
-                        continue;
-                    }
-
-                    for (const name of order) {
-                        const title = getTopBarItemName(name);
-                        const row = new Adw.ActionRow({ title, activatable: false });
-
-                        const icon = Gtk.Image.new_from_icon_name(getTopBarItemIcon(name));
-                        icon.pixel_size = 18;
-                        icon.margin_start = 4;
-                        icon.margin_end = 4;
-                        row.add_prefix(icon);
-
-                        const upBtn = Gtk.Button.new_from_icon_name('go-up-symbolic');
-                        upBtn.has_frame = false;
-                        upBtn.valign = Gtk.Align.CENTER;
-                        upBtn.tooltip_text = 'Mover arriba';
-                        upBtn.connect('clicked', () => { moveItem(box, name, -1); rebuild(); });
-                        row.add_prefix(upBtn);
-
-                        const downBtn = Gtk.Button.new_from_icon_name('go-down-symbolic');
-                        downBtn.has_frame = false;
-                        downBtn.valign = Gtk.Align.CENTER;
-                        downBtn.tooltip_text = 'Mover abajo';
-                        downBtn.connect('clicked', () => { moveItem(box, name, 1); rebuild(); });
-                        row.add_prefix(downBtn);
-
-                        const hideList = (() => {
-                            try { return settings.get_strv('tbo-hide'); }
-                            catch (e) { return []; }
-                        })();
-                        const hideSwitch = new Gtk.Switch({
-                            active: !hideList.includes(name),
-                            valign: Gtk.Align.CENTER,
-                        });
-                        hideSwitch.connect('notify::active', () => {
-                            const currentHide = (() => {
-                                try { return settings.get_strv('tbo-hide'); }
-                                catch (e) { return []; }
-                            })();
-                            if (hideSwitch.active) {
-                                const idx = currentHide.indexOf(name);
-                                if (idx !== -1) {
-                                    currentHide.splice(idx, 1);
-                                    settings.set_strv('tbo-hide', currentHide);
-                                }
-                            } else {
-                                if (!currentHide.includes(name)) {
-                                    currentHide.push(name);
-                                    settings.set_strv('tbo-hide', currentHide);
-                                }
-                            }
-                        });
-                        row.add_suffix(hideSwitch);
-
-                        group.add(row);
-                        boxRows[box].push(row);
-                    }
+                    const listBox = listBoxes[box];
+                    while (listBox.get_first_child())
+                        listBox.remove(listBox.get_first_child());
+                    _populateListBox(listBox, box, settings);
                 }
-            };
-
-            rebuild();
+            }
         },
     });
 }

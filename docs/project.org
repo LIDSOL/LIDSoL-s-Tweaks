@@ -402,8 +402,10 @@ Se reemplazaron los botones ↑↓←→ por Gtk.ListBox (tipo drag & drop). Cad
 - DropTarget: acepta solo filas del mismo tipo. En el drop, calcula la posición correcta (misma caja → reordenar; caja distinta → mover entre cajas) y guarda a GSettings.
 - Cross-box: _saveBothListBoxOrders usa settings.delay() + apply() para evitar race conditions con el módulo.
 Las 3 cajas están dentro de un solo Adw.PreferencesGroup con Gtk.Label como encabezados de sección, y Gtk.ListBox con estilo boxed-list para la apariencia de lista Adw.
-** Commit actual
+** e09fc44
 El Gtk.ListBos ahora tiene:
 - set_size_request(-1, 60): ahora hay una altura mínima de 60px aunque esté vacío.
 - Gtk.ListBox.set_placeholder(): muestra "arrastrar elementos aquí" en gris atenuado cuando no hay fila. 
 Con esto se solucionó un bug que no permitia arrastar elementos a una caja vacía.
+** Commit actual
+ _saveListBoxOrder ahora usa settings.delay() + settings.apply() como _saveBothListBoxOrders y el switch handler.

@@ -1139,17 +1139,20 @@ function openTopBarOrganizerDialog(parentWindow, settings) {
             return false;
 
         const role = value._item;
+        const sourceIndex = value.get_index();
+        const targetBeforeRemove = targetRow.get_index();
         sourceList.remove(value);
 
         if (sourceList === targetList) {
-            const updatedTargetIndex = targetRow.get_index();
             const newRow = _createRow(role, settings);
-            sourceList.insert(newRow, updatedTargetIndex);
+            const insertIndex = sourceIndex < targetBeforeRemove
+                ? targetRow.get_index() + 1
+                : targetRow.get_index();
+            sourceList.insert(newRow, insertIndex);
             _saveListBoxOrder(sourceList, settings);
         } else {
-            const updatedTargetIndex = targetRow.get_index();
             const newRow = _createRow(role, settings);
-            targetList.insert(newRow, updatedTargetIndex);
+            targetList.insert(newRow, targetBeforeRemove);
             _saveBothListBoxOrders(sourceList, targetList, settings);
         }
 
@@ -1184,7 +1187,12 @@ function openTopBarOrganizerDialog(parentWindow, settings) {
             if (child instanceof TopBarOrganizerRow)
                 items.push(child._item);
         }
-        settings.set_strv(key, items);
+        settings.delay();
+        try {
+            settings.set_strv(key, items);
+        } finally {
+            settings.apply();
+        }
     }
 
     function _saveBothListBoxOrders(listBoxA, listBoxB, settings) {

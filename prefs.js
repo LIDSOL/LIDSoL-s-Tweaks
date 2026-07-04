@@ -994,6 +994,29 @@ const TopBarOrganizerRow = GObject.registerClass({
     GTypeName: 'LidSolTopBarOrganizerRow',
 }, class TopBarOrganizerRow extends Adw.ActionRow {});
 
+// Visual placeholder for empty lists (DnD handled by list-level DropTarget)
+const TopBarOrganizerPlaceholder = GObject.registerClass({
+    GTypeName: 'LidSolTopBarOrganizerPlaceholder',
+}, class TopBarOrganizerPlaceholder extends Gtk.Box {
+    _init(params = {}) {
+        super._init(params);
+        this.set_orientation(Gtk.Orientation.VERTICAL);
+        this.set_hexpand(true);
+        this.set_vexpand(true);
+
+        const label = new Gtk.Label({
+            label: 'Arrastra elementos aquí',
+            sensitive: false,
+            opacity: 0.5,
+            margin_top: 16,
+            margin_bottom: 16,
+            halign: Gtk.Align.CENTER,
+            valign: Gtk.Align.CENTER,
+        });
+        this.append(label);
+    }
+});
+
 const BOX_NAMES = {
     left: 'Caja izquierda',
     center: 'Caja central',
@@ -1037,24 +1060,29 @@ function openTopBarOrganizerDialog(parentWindow, settings) {
                 try { return settings.get_strv('tbo-hide'); }
                 catch (e) { return []; }
             })();
-            console.log(`[TBO] switch notify::active item=${item} active=${hideSwitch.active} hideList=${JSON.stringify(currentHide)} parentIsListBox=${row.get_parent() instanceof Gtk.ListBox} parentOrder=${row.get_parent()?.boxOrder || 'null'}`);
+            const currentShow = (() => {
+                try { return settings.get_strv('tbo-show'); }
+                catch (e) { return []; }
+            })();
             if (hideSwitch.active) {
-                const idx = currentHide.indexOf(item);
-                if (idx !== -1) {
-                    currentHide.splice(idx, 1);
-                    settings.set_strv('tbo-hide', currentHide);
-                    console.log(`[TBO] switch ON → removed ${item} from tbo-hide`);
-                } else {
-                    console.log(`[TBO] switch ON → ${item} already not in tbo-hide, no-op`);
-                }
+                const hideIdx = currentHide.indexOf(item);
+                if (hideIdx !== -1)
+                    currentHide.splice(hideIdx, 1);
+                if (!currentShow.includes(item))
+                    currentShow.push(item);
             } else {
-                if (!currentHide.includes(item)) {
+                const showIdx = currentShow.indexOf(item);
+                if (showIdx !== -1)
+                    currentShow.splice(showIdx, 1);
+                if (!currentHide.includes(item))
                     currentHide.push(item);
-                    settings.set_strv('tbo-hide', currentHide);
-                    console.log(`[TBO] switch OFF → added ${item} to tbo-hide`);
-                } else {
-                    console.log(`[TBO] switch OFF → ${item} already in tbo-hide, no-op`);
-                }
+            }
+            settings.delay();
+            try {
+                settings.set_strv('tbo-hide', currentHide);
+                settings.set_strv('tbo-show', currentShow);
+            } finally {
+                settings.apply();
             }
         });
         row.add_suffix(hideSwitch);
@@ -1070,9 +1098,18 @@ function openTopBarOrganizerDialog(parentWindow, settings) {
             const alloc = row.get_allocation();
             const iconBox = new Gtk.ListBox();
             iconBox.set_size_request(alloc.width, alloc.height);
-            const ghost = _createRow(item, settings);
-            iconBox.append(ghost);
-            iconBox.drag_highlight_row(ghost);
+            const ghostRow = new Gtk.ListBoxRow();
+            const ghostLabel = new Gtk.Label({
+                label: row.get_title(),
+                margin_start: 8,
+                margin_end: 8,
+                margin_top: 4,
+                margin_bottom: 4,
+                xalign: 0,
+            });
+            ghostRow.set_child(ghostLabel);
+            iconBox.append(ghostRow);
+            iconBox.drag_highlight_row(ghostRow);
             const dragIcon = Gtk.DragIcon.get_for_drag(drag);
             if (dragIcon) dragIcon.set_child(iconBox);
         });
@@ -1101,28 +1138,43 @@ function openTopBarOrganizerDialog(parentWindow, settings) {
         if (!sourceList || !targetList)
             return false;
 
-        const sourceIndex = value.get_index();
-        const targetIndex = targetRow.get_index();
-        const sameList = sourceList === targetList;
-
+        const role = value._item;
         sourceList.remove(value);
-        const updatedTargetIndex = targetRow.get_index();
 
-        if (sameList) {
-            if (sourceIndex < targetIndex)
-                sourceList.insert(value, updatedTargetIndex + 1);
-            else
-                sourceList.insert(value, updatedTargetIndex);
+        if (sourceList === targetList) {
+            const updatedTargetIndex = targetRow.get_index();
+            const newRow = _createRow(role, settings);
+            sourceList.insert(newRow, updatedTargetIndex);
             _saveListBoxOrder(sourceList, settings);
         } else {
-            const insertPos = (targetList.boxOrder === 'right-box-order' && sourceList.boxOrder !== 'right-box-order')
-                ? updatedTargetIndex + 1
-                : updatedTargetIndex;
-            targetList.insert(value, insertPos);
+            const updatedTargetIndex = targetRow.get_index();
+            const newRow = _createRow(role, settings);
+            targetList.insert(newRow, updatedTargetIndex);
             _saveBothListBoxOrders(sourceList, targetList, settings);
         }
 
         return true;
+    }
+
+    function _addListBoxDropTarget(listBox, settings) {
+        const dropTarget = new Gtk.DropTarget({
+            actions: Gdk.DragAction.MOVE,
+            formats: Gdk.ContentFormats.new_for_gtype(TopBarOrganizerRow.$gtype),
+        });
+        dropTarget.connect('drop', (_trg, value, _x, _y) => {
+            if (!(value instanceof TopBarOrganizerRow))
+                return false;
+            const src = value.get_parent();
+            if (!src || src === listBox)
+                return false;
+            const role = value._item;
+            src.remove(value);
+            const newRow = _createRow(role, settings);
+            listBox.append(newRow);
+            _saveBothListBoxOrders(src, listBox, settings);
+            return true;
+        });
+        listBox.add_controller(dropTarget);
     }
 
     function _saveListBoxOrder(listBox, settings) {
@@ -1164,26 +1216,6 @@ function openTopBarOrganizerDialog(parentWindow, settings) {
             const row = _createRow(name, settings);
             listBox.append(row);
         }
-    }
-
-    function _addListDropTarget(listBox) {
-        // Drop target at the list box level for dropping at the end / into empty box
-        const listTarget = new Gtk.DropTarget({
-            actions: Gdk.DragAction.MOVE,
-            formats: Gdk.ContentFormats.new_for_gtype(TopBarOrganizerRow.$gtype),
-        });
-        listTarget.connect('drop', (_trg, value, _x, _y) => {
-            if (!(value instanceof TopBarOrganizerRow))
-                return false;
-            const sourceList = value.get_parent();
-            if (!sourceList || sourceList === listBox)
-                return false;
-            sourceList.remove(value);
-            listBox.append(value);
-            _saveBothListBoxOrders(sourceList, listBox, settings);
-            return true;
-        });
-        listBox.add_controller(listTarget);
     }
 
     createDialog({
@@ -1243,19 +1275,16 @@ function openTopBarOrganizerDialog(parentWindow, settings) {
                 });
                 listBox.add_css_class('boxed-list');
                 listBox.set_size_request(-1, 60);
-                const placeholder = new Gtk.Label({
-                    label: 'Arrastra elementos aquí',
-                    sensitive: false,
-                    opacity: 0.5,
-                    margin_top: 16,
-                    margin_bottom: 16,
-                });
+                const placeholder = new TopBarOrganizerPlaceholder();
+                placeholder._targetListBox = listBox;
+                placeholder._targetBoxOrder = `tbo-${box}-box-order`;
+                placeholder._settings = settings;
                 listBox.set_placeholder(placeholder);
                 group.add(listBox);
                 listBoxes[box] = listBox;
 
                 _populateListBox(listBox, box, settings);
-                _addListDropTarget(listBox);
+                _addListBoxDropTarget(listBox, settings);
             }
 
             function _rebuildAll() {
@@ -1263,6 +1292,9 @@ function openTopBarOrganizerDialog(parentWindow, settings) {
                     const listBox = listBoxes[box];
                     while (listBox.get_first_child())
                         listBox.remove(listBox.get_first_child());
+                    listBox.set_placeholder(null);
+                    const placeholder = new TopBarOrganizerPlaceholder();
+                    listBox.set_placeholder(placeholder);
                     _populateListBox(listBox, box, settings);
                 }
             }

@@ -8,6 +8,7 @@ import { UserAvatarModule } from '../modules/userAvatar/module.js';
 import { QuickSettingsTweaksModule } from '../modules/quickSettingsTweaks/module.js';
 import { SystemItemsModule } from '../modules/systemItems/module.js';
 import { TopBarOrganizerModule } from '../modules/topBarOrganizer/module.js';
+import { DashboardModule } from '../modules/dashboard/module.js';
 
 const REGISTERED_MODULES = [
     {
@@ -57,6 +58,12 @@ const REGISTERED_MODULES = [
         name: 'Top Bar Organizer',
         enabledKey: 'tbo-enabled',
         moduleClass: TopBarOrganizerModule
+    },
+    {
+        id: 'dashboard',
+        name: 'Dashboard',
+        enabledKey: 'dashboard-enabled',
+        moduleClass: DashboardModule
     }
 ];
 

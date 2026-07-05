@@ -964,5 +964,192 @@
       <description>Elementos de la barra superior que deben mostrarse forzosamente</description>
     </key>
 
+    <!-- Dashboard -->
+    <key type="b" name="dashboard-enabled">
+      <default>false</default>
+      <summary>Habilitar Dashboard</summary>
+      <description>Activa el panel de inicio (Dashboard) con widgets configurables</description>
+    </key>
+
+    <key type="b" name="dashboard-button-enable">
+      <default>true</default>
+      <summary>Mostrar botón en el panel</summary>
+      <description>Muestra el botón de Dashboard en la barra superior</description>
+    </key>
+    <key type="b" name="dashboard-button-show-icon">
+      <default>true</default>
+      <summary>Mostrar icono en el botón</summary>
+    </key>
+    <key type="s" name="dashboard-button-icon-path">
+      <default>""</default>
+      <summary>Ruta del icono personalizado</summary>
+    </key>
+    <key type="s" name="dashboard-button-label">
+      <default>"Dash"</default>
+      <summary>Etiqueta del botón</summary>
+    </key>
+    <key type="i" name="dashboard-position">
+      <range min="0" max="2"/>
+      <default>1</default>
+      <summary>Posición del botón</summary>
+      <description>0=izquierda, 1=centro, 2=derecha</description>
+    </key>
+    <key type="i" name="dashboard-offset">
+      <range min="0" max="100"/>
+      <default>0</default>
+      <summary>Desplazamiento en el panel</summary>
+    </key>
+    <key type="as" name="dashboard-shortcut">
+      <default><![CDATA[['<Ctrl><Super>d']]]></default>
+      <summary>Atajo para abrir/cerrar Dashboard</summary>
+    </key>
+    <key type="b" name="dashboard-hide-activities">
+      <default>false</default>
+      <summary>Ocultar botón de Actividades</summary>
+    </key>
+
+    <key type="i" name="dashboard-x-align">
+      <range min="0" max="3"/>
+      <default>2</default>
+      <summary>Alineación horizontal</summary>
+    </key>
+    <key type="i" name="dashboard-y-align">
+      <range min="0" max="3"/>
+      <default>2</default>
+      <summary>Alineación vertical</summary>
+    </key>
+    <key type="i" name="dashboard-x-offset">
+      <default>0</default>
+      <summary>Desplazamiento X</summary>
+    </key>
+    <key type="i" name="dashboard-y-offset">
+      <default>0</default>
+      <summary>Desplazamiento Y</summary>
+    </key>
+    <key type="b" name="dashboard-darken">
+      <default>true</default>
+      <summary>Oscurecer fondo</summary>
+    </key>
+
+    <key type="s" name="dashboard-layout-json">
+      <default>'{"vertical":true,"children":[{"vertical":false,"children":["clock","settings","system"]},{"vertical":false,"children":[{"vertical":true,"children":["media","links"]},"apps"]},{"vertical":false,"children":["user","levels"]}]}'</default>
+      <summary>Layout JSON</summary>
+    </key>
+
+    <key type="i" name="dashboard-read-config">
+      <default>0</default>
+      <summary>Contador de lectura de config</summary>
+    </key>
+
+    <!-- ============================================================ -->
+    <!--  Widget base properties: x/y align, x/y expand, w, h, bg    -->
+    <!-- ============================================================ -->
+
+    <!-- Apps Widget -->
+    <key type="i" name="dashboard-apps-x-align"><default>0</default></key>
+    <key type="i" name="dashboard-apps-y-align"><default>0</default></key>
+    <key type="b" name="dashboard-apps-x-expand"><default>false</default></key>
+    <key type="b" name="dashboard-apps-y-expand"><default>false</default></key>
+    <key type="i" name="dashboard-apps-width"><default>0</default></key>
+    <key type="i" name="dashboard-apps-height"><default>0</default></key>
+    <key type="b" name="dashboard-apps-background"><default>true</default></key>
+    <key type="i" name="dashboard-apps-rows"><default>3</default></key>
+    <key type="i" name="dashboard-apps-cols"><default>3</default></key>
+    <key type="i" name="dashboard-apps-icon-size"><default>42</default></key>
+
+    <!-- Clock Widget -->
+    <key type="i" name="dashboard-clock-x-align"><default>0</default></key>
+    <key type="i" name="dashboard-clock-y-align"><default>0</default></key>
+    <key type="b" name="dashboard-clock-x-expand"><default>true</default></key>
+    <key type="b" name="dashboard-clock-y-expand"><default>false</default></key>
+    <key type="i" name="dashboard-clock-width"><default>0</default></key>
+    <key type="i" name="dashboard-clock-height"><default>0</default></key>
+    <key type="b" name="dashboard-clock-background"><default>true</default></key>
+    <key type="b" name="dashboard-clock-vertical"><default>false</default></key>
+
+    <!-- Levels Widget -->
+    <key type="i" name="dashboard-levels-x-align"><default>0</default></key>
+    <key type="i" name="dashboard-levels-y-align"><default>0</default></key>
+    <key type="b" name="dashboard-levels-x-expand"><default>true</default></key>
+    <key type="b" name="dashboard-levels-y-expand"><default>false</default></key>
+    <key type="i" name="dashboard-levels-width"><default>0</default></key>
+    <key type="i" name="dashboard-levels-height"><default>0</default></key>
+    <key type="b" name="dashboard-levels-background"><default>true</default></key>
+    <key type="b" name="dashboard-levels-vertical"><default>false</default></key>
+    <key type="b" name="dashboard-levels-show-battery"><default>true</default></key>
+    <key type="b" name="dashboard-levels-show-storage"><default>true</default></key>
+    <key type="b" name="dashboard-levels-show-cpu"><default>true</default></key>
+    <key type="b" name="dashboard-levels-show-ram"><default>true</default></key>
+    <key type="b" name="dashboard-levels-show-temp"><default>true</default></key>
+
+    <!-- Links Widget -->
+    <key type="i" name="dashboard-links-x-align"><default>0</default></key>
+    <key type="i" name="dashboard-links-y-align"><default>0</default></key>
+    <key type="b" name="dashboard-links-x-expand"><default>false</default></key>
+    <key type="b" name="dashboard-links-y-expand"><default>false</default></key>
+    <key type="i" name="dashboard-links-width"><default>0</default></key>
+    <key type="i" name="dashboard-links-height"><default>0</default></key>
+    <key type="b" name="dashboard-links-background"><default>false</default></key>
+    <key type="b" name="dashboard-links-vertical"><default>false</default></key>
+    <key type="i" name="dashboard-links-icon-size"><default>60</default></key>
+    <key type="as" name="dashboard-links-names"><default>['reddit','youtube','gmail','twitter','github']</default></key>
+    <key type="as" name="dashboard-links-urls"><default>['https://www.reddit.com/','https://www.youtube.com/','https://www.gmail.com/','https://twitter.com/','https://www.github.com/']</default></key>
+
+    <!-- Media Widget -->
+    <key type="i" name="dashboard-media-x-align"><default>0</default></key>
+    <key type="i" name="dashboard-media-y-align"><default>0</default></key>
+    <key type="b" name="dashboard-media-x-expand"><default>false</default></key>
+    <key type="b" name="dashboard-media-y-expand"><default>true</default></key>
+    <key type="i" name="dashboard-media-width"><default>0</default></key>
+    <key type="i" name="dashboard-media-height"><default>0</default></key>
+    <key type="b" name="dashboard-media-background"><default>true</default></key>
+    <key type="s" name="dashboard-media-prefer"><default>"spotify"</default></key>
+    <key type="i" name="dashboard-media-style"><default>1</default></key>
+    <key type="i" name="dashboard-media-cover-width"><default>160</default></key>
+    <key type="i" name="dashboard-media-cover-height"><default>160</default></key>
+    <key type="i" name="dashboard-media-cover-roundness"><default>8</default></key>
+    <key type="b" name="dashboard-media-fade"><default>true</default></key>
+    <key type="b" name="dashboard-media-show-text"><default>true</default></key>
+    <key type="i" name="dashboard-media-text-align"><default>1</default></key>
+    <key type="i" name="dashboard-media-text-position"><default>1</default></key>
+    <key type="b" name="dashboard-media-show-volume"><default>true</default></key>
+    <key type="b" name="dashboard-media-show-loop-shuffle"><default>true</default></key>
+
+    <!-- Settings Widget -->
+    <key type="i" name="dashboard-settings-x-align"><default>0</default></key>
+    <key type="i" name="dashboard-settings-y-align"><default>0</default></key>
+    <key type="b" name="dashboard-settings-x-expand"><default>false</default></key>
+    <key type="b" name="dashboard-settings-y-expand"><default>false</default></key>
+    <key type="i" name="dashboard-settings-width"><default>0</default></key>
+    <key type="i" name="dashboard-settings-height"><default>0</default></key>
+    <key type="b" name="dashboard-settings-background"><default>true</default></key>
+    <key type="b" name="dashboard-settings-vertical"><default>false</default></key>
+    <key type="i" name="dashboard-settings-icon-size"><default>34</default></key>
+
+    <!-- System Widget -->
+    <key type="i" name="dashboard-system-x-align"><default>0</default></key>
+    <key type="i" name="dashboard-system-y-align"><default>0</default></key>
+    <key type="b" name="dashboard-system-x-expand"><default>false</default></key>
+    <key type="b" name="dashboard-system-y-expand"><default>false</default></key>
+    <key type="i" name="dashboard-system-width"><default>0</default></key>
+    <key type="i" name="dashboard-system-height"><default>0</default></key>
+    <key type="b" name="dashboard-system-background"><default>true</default></key>
+    <key type="i" name="dashboard-system-layout"><default>0</default></key>
+    <key type="i" name="dashboard-system-icon-size"><default>34</default></key>
+
+    <!-- User Widget -->
+    <key type="i" name="dashboard-user-x-align"><default>1</default></key>
+    <key type="i" name="dashboard-user-y-align"><default>0</default></key>
+    <key type="b" name="dashboard-user-x-expand"><default>false</default></key>
+    <key type="b" name="dashboard-user-y-expand"><default>false</default></key>
+    <key type="i" name="dashboard-user-width"><default>0</default></key>
+    <key type="i" name="dashboard-user-height"><default>0</default></key>
+    <key type="b" name="dashboard-user-background"><default>true</default></key>
+    <key type="b" name="dashboard-user-vertical"><default>true</default></key>
+    <key type="i" name="dashboard-user-icon-roundness"><default>13</default></key>
+    <key type="i" name="dashboard-user-icon-width"><default>100</default></key>
+    <key type="i" name="dashboard-user-icon-height"><default>100</default></key>
+    <key type="b" name="dashboard-user-real-name"><default>false</default></key>
+
   </schema>
 </schemalist>

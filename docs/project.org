@@ -33,7 +33,7 @@ Diseñar, implementar y mantener una extensión modular para GNOME que reinterpr
   - [ ] Evitar que el contenido se "pegue" a los switch
 *** IN-PROGRESS Core
 *** IN-PROGRESS Utils
-*** IN-PROGRESS Módulos [3/12] [25%]
+*** IN-PROGRESS Módulos [4/12] [33%]
 **** TODO [#B] Battery Bar :topbar:
 DEADLINE: <2026-07-11 Sat>
 [[./img/aylurs-battery.png]]
@@ -70,7 +70,7 @@ DEADLINE: <2026-07-11 Sat>
 - [ ] Widget de reproducción multimedia personalizable accesible desde el DateMenu
 ***** Notification Indicator
 - Descripción: Indicador de notificaciones (contador numérico). 
-**** TODO [#B] Dashboard 
+**** IN-PROGRESS [#A] Dashboard 
 DEADLINE: <2026-07-08 Wed>
 **** IN-PROGRESS [#C] Desktop Widgets :shell:
 DEADLINE: <2026-07-11 Sat>
@@ -111,8 +111,8 @@ Para ello, se puede tomar como base la extensión [[https://github.com/boerderei
   - Se usa como base el código de la extensión [[https://github.com/aunetx/panel-corners][Panel Corners de Aunetx]].
   - Esta extensión es compatible con GNOME 50, por lo que será fácil de integrar.
 - [X] Integrar la extensión a LIDSoL'S Extension
-**** TODO [#A] Power Menu
-DEADLINE: <2026-07-04 Sat>
+**** TODO [#C] Power Menu
+DEADLINE: <2026-07-11 Sat>
 [[./img/aylurs-power.png]]
 
 - Descripción: Botón personalizable con diálogo de apagado. Este es de los módulos más simples, por lo que puede ser ideal para implementar al inicio.
@@ -124,7 +124,7 @@ DEADLINE: <2026-07-04 Sat>
   - [ ] Tamaño y redondez
   - [ ] Padding y espaciado
   - [ ] Fondo del díalogo
-**** IN-PROGRESS [#A] Top Bar Organized :topbar:
+**** DONE Top Bar Organized :topbar:
 DEADLINE: <2026-07-04 Sat>
 - Descripción: Permite cambiar la ubicación de los elementos en el Top Bar. Compatible hasta GNOME 50, así que será fácil de integrar.
   - Se usa como base el código de la extensión Top Bar Organized de June:

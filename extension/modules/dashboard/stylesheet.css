@@ -1,0 +1,163 @@
+.dashboard {
+    spacing: 12px;
+}
+
+.dashboard .container {
+    spacing: 8px;
+    padding: 4px;
+}
+
+.dashboard .dash-widget {
+    padding: 8px;
+    border-radius: 12px;
+}
+
+.dashboard .dash-widget.events-button {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.dashboard .dash-widget.user-widget {
+    min-width: 200px;
+}
+
+.dashboard .dash-widget.clock-widget {
+    min-width: 150px;
+}
+
+.dashboard .dash-widget.apps-widget {
+    min-width: 300px;
+}
+
+.dashboard .dash-button {
+    padding: 0 8px;
+}
+
+.dashboard .dash-label {
+    background-color: rgba(0, 0, 0, 0.8);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 12px;
+    color: white;
+}
+
+.dashboard .clock {
+    font-size: 48px;
+    font-weight: bold;
+    color: white;
+}
+
+.dashboard .date {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.dashboard .day {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.dashboard .user-icon-button {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dashboard .user-icon-button:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.dashboard .user-name {
+    font-size: 14px;
+    font-weight: bold;
+    color: white;
+}
+
+.dashboard .greetings {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.dashboard .text-box {
+    spacing: 2px;
+    padding: 4px 8px;
+}
+
+.dashboard .levels-box {
+    spacing: 4px;
+}
+
+.dashboard .level-item {
+    spacing: 6px;
+    padding: 2px 0;
+}
+
+.dashboard .level-icon {
+    min-width: 16px;
+}
+
+.dashboard .level-bar {
+    min-height: 8px;
+    border-radius: 4px;
+}
+
+.dashboard .level-label {
+    font-size: 11px;
+    min-width: 60px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.dashboard .media-cover-box {
+    spacing: 12px;
+    padding: 8px;
+}
+
+.dashboard .media-cover {
+    border-radius: 12px;
+}
+
+.dashboard .media-text-box {
+    spacing: 4px;
+}
+
+.dashboard .media-title {
+    font-size: 14px;
+    font-weight: bold;
+    color: white;
+}
+
+.dashboard .media-artist {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.dashboard .media-controls {
+    spacing: 8px;
+    padding: 4px 0;
+}
+
+.dashboard .media-control-button {
+    padding: 4px;
+    border-radius: 20px;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dashboard .media-control-button:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.dashboard .events-button {
+    border-radius: 8px;
+    padding: 4px;
+}
+
+.dashboard .events-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dashboard .message-media-control {
+    border-radius: 100px;
+    padding: 8px;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dashboard .message-media-control:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}

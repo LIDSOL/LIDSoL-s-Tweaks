@@ -15,14 +15,19 @@ import {
     createSpinButtonRow,
     createColorButtonRow,
     createComboRow,
-    createIntComboRow,
     createEntryRow,
-    createKeyboardShortcutRow,
     createDialog,
     createGroup,
 } from './extension/utils/prefsHelpers.js';
 
 const CATEGORIES = [
+    {
+        id: 'shell',
+        title: 'Shell',
+        icon: 'system-search-symbolic',
+        summary: 'Herramientas del sistema',
+        description: 'Lanzador, menú de apagado y notas rápidas.',
+    },
     {
         id: 'quicksettings',
         title: 'Quick Settings',
@@ -43,13 +48,6 @@ const CATEGORIES = [
         icon: 'pan-end-symbolic',
         summary: 'Personalización de la barra superior',
         description: 'Esquinas redondeadas, indicador de espacios, formato de fecha y notificaciones.',
-    },
-    {
-        id: 'shell',
-        title: 'Shell',
-        icon: 'system-search-symbolic',
-        summary: 'Herramientas del sistema',
-        description: 'Lanzador, menú de apagado y notas rápidas.',
     },
 ];
 
@@ -77,6 +75,9 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
         });
         page.add(descGroup);
 
+        if (cat.id === 'shell') {
+            this._addShellModuleGroup(page);
+        }
         if (cat.id === 'quicksettings') {
             this._addQuicksettingsModuleGroup(page);
         }
@@ -85,9 +86,6 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
         }
         if (cat.id === 'topbar') {
             this._addTopbarModuleGroup(page);
-        }
-        if (cat.id === 'shell') {
-            this._addShellModuleGroup(page);
         }
         return page;
     }
@@ -208,6 +206,19 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     }
 
     _addShellModuleGroup(page) {
+        const dashGroup = new Adw.PreferencesGroup({
+            title: 'Dashboard',
+            description: 'Panel de inicio con widgets configurables (aplicaciones, reloj, multimedia, sistema, etc.).',
+        });
+        dashGroup.add(createModuleRow({
+            settings: this._settings,
+            bindKey: 'dashboard-enabled',
+            title: 'Dashboard',
+            subtitle: 'Panel de inicio con acceso rápido a todo',
+            onDetailed: () => this._openDialog('Dashboard', p => this._buildDashboardDialog(p)),
+        }));
+        page.add(dashGroup);
+
         const group = new Adw.PreferencesGroup();
         group.add(createModuleRow({
             settings: this._settings,
@@ -335,6 +346,260 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
         group.add(createEntryRow({ settings: s, bindKey: 'qt-filepath', title: 'Archivo de notas', subtitle: 'Ruta absoluta al archivo de texto' }));
         group.add(createEntryRow({ settings: s, bindKey: 'qt-prepend', title: 'Prefijo', subtitle: 'Texto antes de cada nota (vacío = fecha actual)' }));
         group.add(createEntryRow({ settings: s, bindKey: 'qt-append', title: 'Separador', subtitle: 'Texto que separa las notas en el archivo' }));
+    }
+
+    _buildDashboardDialog(page) {
+        const s = this._settings;
+
+        const _alignModel = new Gtk.StringList({ strings: ['Fill', 'Start', 'Center', 'End'] });
+
+
+        function _makeAlignRow(title, bindKey) {
+            const row = new Adw.ComboRow({
+                title,
+                model: _alignModel,
+                selected: s.get_int(bindKey),
+            });
+            row.connect('notify::selected', () => s.set_int(bindKey, row.selected));
+            s.connect(`changed::${bindKey}`, () => { row.selected = s.get_int(bindKey); });
+            return row;
+        }
+
+        function _makeExpandRow(title, bindKey) {
+            const row = new Adw.SwitchRow({
+                title,
+                active: s.get_boolean(bindKey),
+            });
+            s.bind(bindKey, row, 'active', Gio.SettingsBindFlags.DEFAULT);
+            return row;
+        }
+
+        function _makeSpinRow(title, bindKey, low, high, step) {
+            const adj = new Gtk.Adjustment({ lower: low, upper: high, step_increment: step });
+            const spin = new Gtk.SpinButton({ adjustment: adj, numeric: true, valign: Gtk.Align.CENTER });
+            s.bind(bindKey, spin, 'value', Gio.SettingsBindFlags.DEFAULT);
+            const row = new Adw.ActionRow({ title, activatable_widget: spin });
+            row.add_suffix(spin);
+            return row;
+        }
+
+        function _makeWidgetExpander(name, title, extraRows) {
+            const prefix = `dashboard-${name}`;
+            const expander = new Adw.ExpanderRow({ title });
+            expander.add_row(_makeAlignRow('X Axis Align', `${prefix}-x-align`));
+            expander.add_row(_makeAlignRow('Y Axis Align', `${prefix}-y-align`));
+            expander.add_row(_makeExpandRow('X Axis Expand', `${prefix}-x-expand`));
+            expander.add_row(_makeExpandRow('Y Axis Expand', `${prefix}-y-expand`));
+            expander.add_row(_makeSpinRow('Width', `${prefix}-width`, 0, 500, 5));
+            expander.add_row(_makeSpinRow('Height', `${prefix}-height`, 0, 500, 5));
+            expander.add_row(_makeExpandRow('Background', `${prefix}-background`));
+            if (extraRows) extraRows(expander);
+            return expander;
+        }
+
+        // ── Panel Button group ──
+        const buttonGroup = new Adw.PreferencesGroup({ title: 'Panel Button' });
+        const hideActivitiesRow = new Adw.SwitchRow({
+            title: 'Hide Activities Button',
+            active: s.get_boolean('dashboard-hide-activities'),
+        });
+        s.bind('dashboard-hide-activities', hideActivitiesRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+        buttonGroup.add(hideActivitiesRow);
+
+        const enableSwitch = new Adw.SwitchRow({
+            title: 'Enable Panel Button',
+            active: s.get_boolean('dashboard-button-enable'),
+        });
+        s.bind('dashboard-button-enable', enableSwitch, 'active', Gio.SettingsBindFlags.DEFAULT);
+
+        const enableExpander = new Adw.ExpanderRow({ title: 'Panel Button' });
+        enableExpander.add_row(enableSwitch);
+
+        const posModel = new Gtk.StringList({ strings: ['Left', 'Center', 'Right'] });
+        const posRow = new Adw.ComboRow({ title: 'Position', model: posModel, selected: s.get_int('dashboard-position') });
+        posRow.connect('notify::selected', () => s.set_int('dashboard-position', posRow.selected));
+        enableExpander.add_row(posRow);
+
+        enableExpander.add_row(_makeSpinRow('Offset', 'dashboard-offset', 0, 100, 1));
+
+        const showIconRow = new Adw.SwitchRow({
+            title: 'Show Icon',
+            active: s.get_boolean('dashboard-button-show-icon'),
+        });
+        s.bind('dashboard-button-show-icon', showIconRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+        enableExpander.add_row(showIconRow);
+
+        const iconPathEntry = new Gtk.Entry({ text: s.get_string('dashboard-button-icon-path'), valign: Gtk.Align.CENTER });
+        const focusCtrl = new Gtk.EventControllerFocus();
+        focusCtrl.connect('leave', () => s.set_string('dashboard-button-icon-path', iconPathEntry.get_buffer().text));
+        iconPathEntry.add_controller(focusCtrl);
+        const iconPathRow = new Adw.ActionRow({ title: 'Icon Path', activatable_widget: iconPathEntry });
+        iconPathRow.add_suffix(iconPathEntry);
+        enableExpander.add_row(iconPathRow);
+
+        const labelEntry = new Gtk.Entry({ text: s.get_string('dashboard-button-label'), valign: Gtk.Align.CENTER });
+        const labelFocusCtrl = new Gtk.EventControllerFocus();
+        labelFocusCtrl.connect('leave', () => s.set_string('dashboard-button-label', labelEntry.get_buffer().text));
+        labelEntry.add_controller(labelFocusCtrl);
+        const labelRow = new Adw.ActionRow({ title: 'Label', activatable_widget: labelEntry });
+        labelRow.add_suffix(labelEntry);
+        enableExpander.add_row(labelRow);
+
+        buttonGroup.add(enableExpander);
+        page.add(buttonGroup);
+
+        // ── Dash group ──
+        const dashGroup = new Adw.PreferencesGroup({ title: 'Dash' });
+
+        const shortcutRow = new Adw.ActionRow({ title: 'Shortcut Hotkey' });
+        const shortcutLabel = new Gtk.ShortcutLabel({
+            accelerator: s.get_strv('dashboard-shortcut')[0] ?? null,
+            valign: Gtk.Align.CENTER,
+        });
+        const shortcutBtn = new Gtk.Button({ label: 'Set Hotkey', valign: Gtk.Align.CENTER });
+        shortcutBtn.connect('clicked', () => {
+            const dialog = new Gtk.Dialog({
+                title: 'Set Hotkey',
+                modal: true,
+                useHeaderBar: 1,
+                transientFor: page.get_root(),
+                widthRequest: 400,
+                heightRequest: 200,
+            });
+            const box = new Gtk.Box({
+                marginBottom: 12, marginEnd: 12, marginStart: 12, marginTop: 12,
+                orientation: Gtk.Orientation.VERTICAL, valign: Gtk.Align.CENTER,
+            });
+            box.append(new Gtk.Label({ label: 'Press a key combination:', marginBottom: 12 }));
+            box.append(new Gtk.Label({
+                label: 'Esc to cancel, Backspace to disable',
+                css_classes: ['dim-label'],
+            }));
+            dialog.set_child(box);
+            const keyCtrl = new Gtk.EventControllerKey({ propagationPhase: Gtk.PropagationPhase.CAPTURE });
+            dialog.add_controller(keyCtrl);
+            keyCtrl.connect('key-pressed', (_, keyval, _keycode, modifier) => {
+                modifier = modifier & ~64 & ~16;
+                if (!Gtk.accelerator_valid(keyval, modifier)) return Gdk.EVENT_STOP;
+                if (keyval === Gdk.KEY_Escape) { dialog.close(); return Gdk.EVENT_STOP; }
+                if (keyval === Gdk.KEY_BackSpace && !modifier) {
+                    s.set_strv('dashboard-shortcut', []);
+                    shortcutLabel.accelerator = null;
+                    dialog.close(); return Gdk.EVENT_STOP;
+                }
+                const accel = Gtk.accelerator_name(keyval, modifier);
+                s.set_strv('dashboard-shortcut', [accel]);
+                shortcutLabel.accelerator = accel;
+                dialog.close(); return Gdk.EVENT_STOP;
+            });
+            dialog.present();
+        });
+        shortcutRow.add_suffix(shortcutLabel);
+        shortcutRow.add_suffix(shortcutBtn);
+        dashGroup.add(shortcutRow);
+
+        const readConfigRow = new Adw.ActionRow({
+            title: 'Read Config',
+            subtitle: 'Load config from dashboard.json',
+        });
+        const readConfigBtn = new Gtk.Button({ label: 'Apply', valign: Gtk.Align.CENTER });
+        readConfigBtn.connect('clicked', () => {
+            s.set_int('dashboard-read-config', s.get_int('dashboard-read-config') + 1);
+        });
+        readConfigRow.add_suffix(readConfigBtn);
+        dashGroup.add(readConfigRow);
+
+        dashGroup.add(_makeAlignRow('X Align', 'dashboard-x-align'));
+        dashGroup.add(_makeAlignRow('Y Align', 'dashboard-y-align'));
+        dashGroup.add(_makeSpinRow('X Offset', 'dashboard-x-offset', -1000, 1000, 10));
+        dashGroup.add(_makeSpinRow('Y Offset', 'dashboard-y-offset', -1000, 1000, 10));
+        dashGroup.add(_makeExpandRow('Darken Background', 'dashboard-darken'));
+        page.add(dashGroup);
+
+        // ── Widgets group ──
+        const widgetsGroup = new Adw.PreferencesGroup({ title: 'Widgets' });
+        page.add(widgetsGroup);
+
+        widgetsGroup.add(_makeWidgetExpander('user', 'User', exp => {
+            exp.add_row(_makeSpinRow('Icon Roundness', 'dashboard-user-icon-roundness', 0, 99, 1));
+            exp.add_row(_makeSpinRow('Icon Width', 'dashboard-user-icon-width', 10, 500, 2));
+            exp.add_row(_makeSpinRow('Icon Height', 'dashboard-user-icon-height', 10, 500, 2));
+            exp.add_row(_makeExpandRow('Vertical', 'dashboard-user-vertical'));
+            exp.add_row(_makeExpandRow('Show Real Name', 'dashboard-user-real-name'));
+        }));
+
+        widgetsGroup.add(_makeWidgetExpander('levels', 'System Levels', exp => {
+            exp.add_row(_makeExpandRow('Vertical', 'dashboard-levels-vertical'));
+            exp.add_row(_makeExpandRow('Show Battery', 'dashboard-levels-show-battery'));
+            exp.add_row(_makeExpandRow('Show Storage', 'dashboard-levels-show-storage'));
+            exp.add_row(_makeExpandRow('Show CPU', 'dashboard-levels-show-cpu'));
+            exp.add_row(_makeExpandRow('Show RAM', 'dashboard-levels-show-ram'));
+            exp.add_row(_makeExpandRow('Show Temperature', 'dashboard-levels-show-temp'));
+        }));
+
+        widgetsGroup.add(_makeWidgetExpander('media', 'Media Player', exp => {
+            const preferEntry = new Gtk.Entry({ text: s.get_string('dashboard-media-prefer'), valign: Gtk.Align.CENTER });
+            const pf = new Gtk.EventControllerFocus();
+            pf.connect('leave', () => s.set_string('dashboard-media-prefer', preferEntry.get_buffer().text));
+            preferEntry.add_controller(pf);
+            const preferRow = new Adw.ActionRow({ title: 'Prefer', activatable_widget: preferEntry });
+            preferRow.add_suffix(preferEntry);
+            exp.add_row(preferRow);
+
+            const styleModel = new Gtk.StringList({ strings: ['Normal Vertical', 'Normal Horizontal', 'Label on Cover', 'Label on Cover +Vertical Controls', 'Full'] });
+            const styleRow = new Adw.ComboRow({ title: 'Style', model: styleModel, selected: s.get_int('dashboard-media-style') });
+            styleRow.connect('notify::selected', () => s.set_int('dashboard-media-style', styleRow.selected));
+            exp.add_row(styleRow);
+
+            exp.add_row(_makeSpinRow('Cover Width', 'dashboard-media-cover-width', 100, 800, 5));
+            exp.add_row(_makeSpinRow('Cover Height', 'dashboard-media-cover-height', 100, 800, 5));
+            exp.add_row(_makeSpinRow('Cover Roundness', 'dashboard-media-cover-roundness', 0, 48, 1));
+            exp.add_row(_makeExpandRow('Fade', 'dashboard-media-fade'));
+            exp.add_row(_makeExpandRow('Show Text', 'dashboard-media-show-text'));
+
+            const textExpander = new Adw.ExpanderRow({ title: 'Text Options' });
+            textExpander.add_row(_makeAlignRow('Title Align', 'dashboard-media-text-align'));
+            const titlePosModel = new Gtk.StringList({ strings: ['Top', 'Bottom'] });
+            const titlePosRow = new Adw.ComboRow({ title: 'Title Position', model: titlePosModel, selected: s.get_int('dashboard-media-text-position') });
+            titlePosRow.connect('notify::selected', () => s.set_int('dashboard-media-text-position', titlePosRow.selected));
+            textExpander.add_row(titlePosRow);
+            exp.add_row(textExpander);
+
+            exp.add_row(_makeExpandRow('Show Volume Slider', 'dashboard-media-show-volume'));
+            exp.add_row(_makeExpandRow('Show Loop and Shuffle', 'dashboard-media-show-loop-shuffle'));
+        }));
+
+        widgetsGroup.add(_makeWidgetExpander('links', 'Links', exp => {
+            exp.add_row(_makeExpandRow('Vertical', 'dashboard-links-vertical'));
+            exp.add_row(_makeSpinRow('Icon Size', 'dashboard-links-icon-size', 4, 100, 2));
+            exp.add_row(new Adw.ActionRow({
+                title: 'Web Links',
+                subtitle: 'You can change the links through dconf editor.\nPlace SVGs named name-symbolic.svg in the extension media folder.',
+            }));
+        }));
+
+        widgetsGroup.add(_makeWidgetExpander('clock', 'Clock', exp => {
+            exp.add_row(_makeExpandRow('Vertical', 'dashboard-clock-vertical'));
+        }));
+
+        widgetsGroup.add(_makeWidgetExpander('apps', 'App Launcher', exp => {
+            exp.add_row(_makeSpinRow('Rows', 'dashboard-apps-rows', 1, 6, 1));
+            exp.add_row(_makeSpinRow('Columns', 'dashboard-apps-cols', 1, 6, 1));
+            exp.add_row(_makeSpinRow('Icon Size', 'dashboard-apps-icon-size', 4, 100, 2));
+        }));
+
+        widgetsGroup.add(_makeWidgetExpander('settings', 'Settings', exp => {
+            exp.add_row(_makeExpandRow('Vertical', 'dashboard-settings-vertical'));
+            exp.add_row(_makeSpinRow('Icon Size', 'dashboard-settings-icon-size', 4, 100, 2));
+        }));
+
+        widgetsGroup.add(_makeWidgetExpander('system', 'System Actions', exp => {
+            const layoutModel = new Gtk.StringList({ strings: ['Vertical', 'Horizontal', '2x2'] });
+            const layoutRow = new Adw.ComboRow({ title: 'Layout', model: layoutModel, selected: s.get_int('dashboard-system-layout') });
+            layoutRow.connect('notify::selected', () => s.set_int('dashboard-system-layout', layoutRow.selected));
+            exp.add_row(layoutRow);
+            exp.add_row(_makeSpinRow('Icon Size', 'dashboard-system-icon-size', 4, 100, 2));
+        }));
     }
 
     _buildUserAvatarDialog(page) {

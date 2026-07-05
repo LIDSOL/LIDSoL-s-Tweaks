@@ -442,7 +442,7 @@ Con esto se solucionó un bug que no permitia arrastar elementos a una caja vac�
   3. _buildUI() y _parseJson() ahora envuelven CADA widget individualmente en try/catch — un widget roto no tumba los demás
 - **Bug: CSS sin scope** — selectores .clock, .date, .day sin prefijo .dashboard afectaban globalmente al Shell, agrandando el reloj del top bar. Fix: todos los selectores scoped bajo .dashboard
 - Schema compilado (glib-compile-schemas)
-** Commit actual
+** bf9c550
 El widget de multimedia del dashboard no se mostraba.
 El MprisService fue reescrito siguiendo el patrón de quick-settings-tweaks (QST). que tiene un widget multimedia probado y funcional.
 
@@ -500,4 +500,31 @@ El nuevo MprisService sigue la estructura de QST:
 - Desconecta señal al removerse el player
 - Detecta players ya descubiertos tras conectar señales
 - Cover art usa Gio.File.new_for_uri() + Gio.FileIcon (como QST)
+
+** Commit actual
+*Dashboard MediaWidget QST-style (mediaWidget.js)*
+- Nuevo componente ProgressControl: St.BoxLayout con label de posición, Slider,
+  label de duración; drag-to-seek via position/position-changed signals;
+  polling 1s via GLib.timeout_add
+- Nuevo componente PlayerView: cover art (St.Bin con St.Widget icon) + info box
+  (título, artista, ProgressControl, botones prev/play-pause/next)
+- Nuevo componente DashboardMediaWidget: contenedor vertical con header
+  (nombre del player + PageIndicators dots), content box con fade animation
+  en switch de player, sincronización con MprisService via player-added/player-removed
+- pageIndicator (St.Widget) con dots clickables que emiten page-activated
+- Reemplaza MediaBoxImpl en widgets.js por DashboardMediaWidget
+
+*Bugfix: JS getters vs GObject Properties en MprisPlayer*
+- get canPlay() y get canSeek() del prototipo shadoweaban las propiedades
+  GObject 'can-play'/'can-seek' declaradas en registerClass(READWRITE)
+- TypeError: setting getter-only property — this.canPlay = value fallaba
+  silenciosamente en _parseMetadata(), notify::can-play nunca se emitía,
+  player-added nunca llegaba, widget quedaba vacío
+- Fix: eliminar ambos getters JS (mprisService.js:204-209), dejar que
+  GObject property system maneje get/set automáticamente
+- Se añadió lección en AGENTS.md
+
+*Debug logging removido*
+- ~15 líneas [LIDSoL Dbg] en mprisService.js y mediaWidget.js
+  (eran solo para diagnóstico del bug)
 

@@ -198,12 +198,10 @@ var MprisPlayer = GObject.registerClass({
     get playbackStatus() {
         return this._playerProxy?.PlaybackStatus ?? 'Stopped';
     }
-    get canPlay() {
-        return !!this._playerProxy?.CanPlay;
-    }
-    get canSeek() {
-        return !!this._playerProxy?.CanSeek;
-    }
+    // canPlay and canSeek are GObject properties (see Properties registration above).
+    // JS getters are intentionally omitted to avoid conflict with the GObject property system.
+    // Setting them via `this.canPlay = value` fires `notify::can-play` which MprisService
+    // uses to emit player-added/player-removed.
 
     // QST compatibility aliases
     get status() {

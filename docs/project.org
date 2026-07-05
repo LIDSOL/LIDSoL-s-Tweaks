@@ -72,6 +72,21 @@ DEADLINE: <2026-07-11 Sat>
 - Descripción: Indicador de notificaciones (contador numérico). 
 **** IN-PROGRESS [#A] Dashboard 
 DEADLINE: <2026-07-08 Wed>
+Notas:
+- **Sincrónico vs asíncrono**: Gio.DBusProxy.new_sync() parece más simple
+  pero no espera a que el name-owner esté disponible. Usar new() + Promise
+  garantiza que las propiedades están cacheadas antes de acceder.
+- **GVariant a{sv}**: deepUnpack() desenrolla recursivamente, incluyendo
+  los v internos. Pero proxy.Metadata devuelve el GVariant crudo donde los
+  valores tipo v necesitan .deepUnpack() o .get_string() según el tipo.
+- **connectSignal vs signal_subscribe**: connectSignal en Gio.DBusProxy
+  es más simple y directo que signal_subscribe de Gio.DBus.session.
+- **can-play como guard**: No emitir player-added hasta que canPlay sea
+  true evita errores de "proxy no listo".
+- **Export en ESM**: GObject.registerClass() con export var puede fallar
+  si hay errores en tiempo de evaluación. Usar export { ... } explícito
+  al final del archivo es más fiable.
+
 **** IN-PROGRESS [#C] Desktop Widgets :shell:
 DEADLINE: <2026-07-11 Sat>
 ***** IN-PROGRESS Image Widget
@@ -407,5 +422,82 @@ El Gtk.ListBos ahora tiene:
 - set_size_request(-1, 60): ahora hay una altura mínima de 60px aunque esté vacío.
 - Gtk.ListBox.set_placeholder(): muestra "arrastrar elementos aquí" en gris atenuado cuando no hay fila. 
 Con esto se solucionó un bug que no permitia arrastar elementos a una caja vacía.
+** 673bd3b
+- Port completo del módulo Dashboard desde Aylur's Widgets (GNOME 44 -> 50):
+  - extension/modules/dashboard/module.js — módulo principal con stylesheet, panel button, hide-activities.
+  - extension/modules/dashboard/dashBoard.js — DashBoardModal (modal dialog con layout JSON) + DashBoardPanelButton (panel button con keybinding)
+  - extension/modules/dashboard/stylesheet.css — estilos scoped bajo .dashboard (fix: clases .clock/.date/.day sin scope causaban que el reloj del top bar se volviera enorme al activar el dashboard)
+  - extension/modules/dashboard/widgets.js — 8 widgets (User, Levels, Media, Links, Clock, Apps, Settings, System) + HoverButton + AppBtn + LevelsBox
+  - moduleLoader.js — registrado DashboardModule con enabledKey: dashboard-enabled
+  - Schema: 73 keys con prefijo dashboard- (layout, posición, offset, darken, button, shortcut + widget-specific keys)
+- Prefs UI completa (Aylur-style) en prefs.js _buildDashboardDialog:
+  - Panel Button (hide activities, enable, position, offset, icon, label)
+  - Dash (shortcut hotkey dialog con Gtk.EventControllerKey, read config, x/y align/offset, darken)
+  - 8 expanders de widget con x/y align, x/y expand, width, height, background + widget-specific controls
+  - Categoría Dashboard movida a Shell (categorías reordenadas: Shell → Quick Settings → Widgets → Top Bar)
+- Atajo de teclado: default cambiado de <Super>d a <Ctrl><Super>d para evitar conflicto con show-desktop nativo de GNOME
+ - **Bug: dashboard no mostraba widgets** — extension/utils/mprisService.js era un stub vacío (solo un comentario TODO). Al construir la UI, _buildUI() llamaba a _parseJson() que creaba un MediaWidget, cuyo MediaBoxImpl llamaba MprisService.getDefault() → TypeError. El try/catch en _buildUI() atrapaba el error y creaba un BoxLayout vacío. Solución:
+  1. MprisService implementado con getDefault() singleton y connectObject/disconnectObject compatibles con GObject pattern
+  2. MediaBoxImpl ahora envuelve MprisService.getDefault() en try/catch; si no disponible, muestra "Nothing Playing"
+  3. _buildUI() y _parseJson() ahora envuelven CADA widget individualmente en try/catch — un widget roto no tumba los demás
+- **Bug: CSS sin scope** — selectores .clock, .date, .day sin prefijo .dashboard afectaban globalmente al Shell, agrandando el reloj del top bar. Fix: todos los selectores scoped bajo .dashboard
+- Schema compilado (glib-compile-schemas)
 ** Commit actual
- _saveListBoxOrder ahora usa settings.delay() + settings.apply() como _saveBothListBoxOrders y el switch handler.
+El widget de multimedia del dashboard no se mostraba.
+El MprisService fue reescrito siguiendo el patrón de quick-settings-tweaks (QST). que tiene un widget multimedia probado y funcional.
+
+*Problema original*: El MprisService original usaba Gio.DBusProxy.new_sync() (síncrono) para crear los proxies D-Bus de cada reproductor MPRIS, y accedía a las propiedades via get_cached_property().deep_unpack(). Esto fallaba porque:
+1. El parseo de metadatos a{sv} con deep_unpack() no manejaba correctamente
+   la estructura de GVariant (los valores internos tipo v necesitan
+   desenrollado manual)
+2. No esperaba a que los proxies estuvieran listos antes de acceder a las
+   propiedades
+3. La detección de NameOwnerChanged usaba signal_subscribe en vez de
+   el patrón connectSignal de Gio.DBusProxy, que es más fiable
+4. La clase MprisPlayer no extendía GObject.Object correctamente (no tenía
+   signals ni propiedades GObject)
+
+*Solución:* patrones de QST
+El nuevo MprisService sigue la estructura de QST:
+- Extiende GObject.Object con:
+  - Propiedades GObject: can-play, can-seek (notifican cambios vía notify::)
+  - Señal: changed (se emite cada vez que cambian metadatos/estado)
+- Crea 3 proxies D-Bus ASÍNCRONOS via Gio.DBusProxy.new() (Promise):
+  1. org.mpris.MediaPlayer2.Player — metadatos, playback status, controls
+  2. org.mpris.MediaPlayer2 — identity, desktop entry, CanRaise
+  3. org.freedesktop.DBus.Properties — Position (async Get)
+- Promise.all() espera los 3, luego llama _ready()
+- _ready() conecta:
+  - notify::g-name-owner → detecta cierre del reproductor
+  - g-properties-changed → actualiza metadatos vía _update()
+- _parseMetadata() (idéntico a QST):
+  - metadata['mpris:trackid']?.get_string()[0] — track ID
+  - metadata['mpris:length']?.deepUnpack() — duración
+  - metadata['xesam:artist']?.deepUnpack() — artistas (string → array)
+  - metadata['xesam:title']?.deepUnpack() — título
+  - metadata['mpris:artUrl']?.deepUnpack() — URL de carátula
+  - DesktopEntry → Shell.AppSystem lookup
+- Métodos de control: play(), pause(), next(), prev(), playPause(), raise()
+  usando Proxy.MethodAsync() (Promise)
+- Getters compatibles: title, artist, coverArt, playbackStatus, status,
+  canGoNext, canGoPrevious, canPlay, canSeek, isPlaying()
+
+*MprisService (singleton gestor de reproductores)*: 
+- Clase GObject con signals: player-added, player-removed
+- getDefault() → singleton que auto-inicia start()
+- start() crea Gio.DBusProxy.new_sync() para org.freedesktop.DBus:
+  - ListNamesSync() descubre reproductores existentes
+  - connectSignal('NameOwnerChanged') detecta nuevos/cerrados
+- _addPlayer() crea MprisPlayer y escucha notify::can-play
+  - player-added se emite SOLO cuando can-play = true (proxy listo)
+- players → getter que filtra solo los que canPlay = true
+- Ciclo de vida sin recursión: _close() solo nullifica proxies,
+  _removePlayer() es llamado solo desde el servicio
+
+*Dashboard MediaBoxImpl actualizado*
+- Nuevos métodos _connectPlayer() / _disconnectPlayer() para manejo limpio
+- Conecta señal changed del player → _sync() (actualiza UI en track change)
+- Desconecta señal al removerse el player
+- Detecta players ya descubiertos tras conectar señales
+- Cover art usa Gio.File.new_for_uri() + Gio.FileIcon (como QST)
+

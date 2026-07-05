@@ -327,14 +327,14 @@ class MediaBoxImpl extends St.BoxLayout {
         if (this._mpris) {
             this._mpris.connectObject('player-added', (_mpris, player) => {
                 if (!this._player) {
-                    this._player = player;
-                    this._sync();
+                    this._connectPlayer(player);
                 }
             }, this);
             this._mpris.connectObject('player-removed', (_mpris, player) => {
                 if (this._player === player) {
+                    this._disconnectPlayer(player);
                     if (this._mpris.players.length > 0) {
-                        this._player = this._mpris.players[0];
+                        this._connectPlayer(this._mpris.players[0]);
                     } else {
                         this._player = null;
                     }
@@ -343,12 +343,33 @@ class MediaBoxImpl extends St.BoxLayout {
             }, this);
 
             this.connect('destroy', () => {
-                if (this._mpris) this._mpris.disconnectObject(this);
+                if (this._mpris) {
+                    if (this._player)
+                        this._disconnectPlayer(this._player);
+                    this._mpris.disconnectObject(this);
+                }
             });
+
+            // Pick up already-discovered players
+            if (!this._player && this._mpris.players.length > 0)
+                this._connectPlayer(this._mpris.players[0]);
         } else {
             this.connect('destroy', () => {});
         }
         this._sync();
+    }
+
+    _connectPlayer(player) {
+        this._player = player;
+        this._playerChangedId = player.connect('changed', () => this._sync());
+        this._sync();
+    }
+
+    _disconnectPlayer(player) {
+        if (this._playerChangedId) {
+            player.disconnect(this._playerChangedId);
+            this._playerChangedId = 0;
+        }
     }
 
     _sync() {
@@ -391,8 +412,9 @@ class MediaBoxImpl extends St.BoxLayout {
         });
 
         if (this._player.coverArt && this._player.coverArt !== '') {
+            const file = Gio.File.new_for_uri(this._player.coverArt);
             const coverIcon = new St.Icon({
-                gicon: Gio.icon_new_for_string(this._player.coverArt),
+                gicon: new Gio.FileIcon({ file }),
                 icon_size: coverSize,
             });
             cover.set_child(coverIcon);

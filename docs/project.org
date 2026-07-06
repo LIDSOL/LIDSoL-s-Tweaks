@@ -70,7 +70,7 @@ DEADLINE: <2026-07-11 Sat>
 - [ ] Widget de reproducción multimedia personalizable accesible desde el DateMenu
 ***** Notification Indicator
 - Descripción: Indicador de notificaciones (contador numérico). 
-**** IN-PROGRESS [#A] Dashboard 
+**** IN-PROGRESS [#A] Dashboard [0/13]
 DEADLINE: <2026-07-08 Wed>
 Notas:
 - **Sincrónico vs asíncrono**: Gio.DBusProxy.new_sync() parece más simple
@@ -86,7 +86,19 @@ Notas:
 - **Export en ESM**: GObject.registerClass() con export var puede fallar
   si hay errores en tiempo de evaluación. Usar export { ... } explícito
   al final del archivo es más fiable.
-
+***** TODO Redondeo de las barras del monitor del sistema
+***** TODO El fondo de las barras del monitor del sistema debe coincidir con el color de acento del sistema.
+***** TODO El monitor del sistema no funciona correctamente
+***** TODO Opción de modificar direcciones e íconos en los accesos directos web
+***** TODO Colocar íconos en los acceso directos web
+***** TODO Mejoras visuales en el dashboard (entrar los botones de control de multimedia, redondeo de portada)
+***** TODO Al hacer click en algún botón del widget multimedia evitar que se cierre el dashboard
+***** TODO Al hacer click en el reloj se debe abrir gnome clock, u otro programa que el usuario elija
+***** TODO Eliminar el fondo de los botones de botones de los ajustes/power
+***** TODO Reducir el tamaño de la "ventana", el fondo del dashboard
+***** TODO Opción "mostrar/ocultar" el fondo del dashboard
+***** TODO Modificar el tamaño de los gaps del dashboard, la separación entre los widgets
+***** TODO Cambiar el widget de lanzador (dashboard) por un widget del clima
 **** IN-PROGRESS [#C] Desktop Widgets :shell:
 DEADLINE: <2026-07-11 Sat>
 ***** IN-PROGRESS Image Widget
@@ -564,9 +576,15 @@ Corrección de errores al widget de avatar del dashboard
 - border-width: 0 y padding: 0 eliminan cualquier borde/padding heredado de la clase .button del tema.
 - background-color: transparent evita que el fondo semitransparente de .user-icon-button tintinee la foto.
 - El changed signal de AccountsService.User vuelve a llamar _loadAvatar con el mismo userBtn, actualizando el estilo in-place.
-** Commit actual
+** 7b66874
 Corrección en "show real name", en el dashboard:
 - _buildUI: GLib.get_real_name() → this._user.get_real_name() || GLib.get_real_name() (línea 194). AccountsService.User.get_real_name() retorna el nombre real del sistema; GLib.get_real_name() cae en "Unknown" en algunos entornos.
 - Señal notify::is-loaded (línea 172) — igual que en userAvatar, para cuando el usuario todavía no ha cargado.
 - _syncUserName() (líneas 211-215) — actualiza _nameLabel.text desde el usuario de AccountsService.
 - _nameLabel como propiedad de instancia para poder actualizarlo desde los callbacks.
+** Commit actual
+Mensaje de saludo dinámico según hora en dashboard UserWidget:
+- _getGreeting() segmenta el día en 4 rangos: 00-04 → "Night Time", 05-11 → "Good Morning", 12-17 → "Good Afternoon", 18-23 → "Good Evening".
+- Se actualiza automáticamente cada 5 minutos mediante setTimeout recursivo (GJS built-in, evita problemas con GLib.timeout_add que hacía desaparecer el widget).
+- _scheduleGreetingUpdate(interval) crea el timer; destroy handler lo limpia con clearTimeout.
+- Intervalo configurable: 10s para pruebas, 5min en producción.

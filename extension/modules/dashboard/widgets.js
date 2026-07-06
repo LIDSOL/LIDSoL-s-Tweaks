@@ -137,8 +137,15 @@ class UserWidget extends DashWidget {
         this._connect('icon-height');
         this._connect('vertical');
         this._connect('real-name');
-        this.connect('destroy', () => this._user?.disconnectObject(this));
         this._sync();
+        this._scheduleGreetingUpdate(300000);
+        this.connect('destroy', () => {
+            this._user?.disconnectObject(this);
+            if (this._greetingTimeout) {
+                clearTimeout(this._greetingTimeout);
+                this._greetingTimeout = 0;
+            }
+        });
     }
 
     _sync() {
@@ -153,6 +160,7 @@ class UserWidget extends DashWidget {
         this._user?.disconnectObject(this);
         this._user = null;
         this._nameLabel = null;
+        this._greetingLabel = null;
 
         const roundness = this._settings.get_int('dashboard-user-icon-roundness');
         const iconWidth = this._settings.get_int('dashboard-user-icon-width');
@@ -197,16 +205,24 @@ class UserWidget extends DashWidget {
             textBox.add_child(this._nameLabel);
         }
 
-        const greetingLabel = new St.Label({
+        this._greetingLabel = new St.Label({
             style_class: 'greetings',
             y_align: Clutter.ActorAlign.START,
             x_align: this.vertical ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.START,
             text: _getGreeting(),
         });
-        textBox.add_child(greetingLabel);
+        textBox.add_child(this._greetingLabel);
 
         this.add_child(userBtn);
         this.add_child(textBox);
+    }
+
+    _scheduleGreetingUpdate(interval) {
+        this._greetingTimeout = setTimeout(() => {
+            if (this._greetingLabel)
+                this._greetingLabel.text = _getGreeting();
+            this._scheduleGreetingUpdate(interval);
+        }, interval);
     }
 
     _syncUserName() {
@@ -247,6 +263,7 @@ class UserWidget extends DashWidget {
 
 function _getGreeting() {
     const hour = GLib.DateTime.new_now_local().get_hour();
+    if (hour < 5) return 'Night Time';
     if (hour < 12) return 'Good Morning';
     if (hour < 18) return 'Good Afternoon';
     return 'Good Evening';

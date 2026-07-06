@@ -501,7 +501,7 @@ El nuevo MprisService sigue la estructura de QST:
 - Detecta players ya descubiertos tras conectar señales
 - Cover art usa Gio.File.new_for_uri() + Gio.FileIcon (como QST)
 
-** Commit actual
+** eee0bab
 *Dashboard MediaWidget QST-style (mediaWidget.js)*
 - Nuevo componente ProgressControl: St.BoxLayout con label de posición, Slider,
   label de duración; drag-to-seek via position/position-changed signals;
@@ -528,3 +528,40 @@ El nuevo MprisService sigue la estructura de QST:
 - ~15 líneas [LIDSoL Dbg] en mprisService.js y mediaWidget.js
   (eran solo para diagnóstico del bug)
 
+*Dashboard: no cerrar al clickear media widget*
+- ModalDialog con shellReactive captura eventos via captured-event (capture phase)
+  y button-press-event en el diálogo (línea 41, bubble phase)
+- Solución final: conectar button-press-event en contentLayout del ModalDialog
+  (entre botones y diálogo en el árbol → firea antes en bubble phase)
+  - Clicks en media widget → Clutter.EVENT_STOP → no llega al diálogo
+  - Clicks en otro contenido → Clutter.EVENT_PROPAGATE → diálogo cierra
+- _isOnMediaWidget() usa Clutter.Actor.contains(source) para verificar si
+  el actor origen del evento está dentro del _mediaWidget
+- _mediaWidget almacenado en _buildUI via media factory, nulleado al rebuild
+- Intentos fallidos previos: EVENT_STOP en MediaWidget (sin efecto),
+  get_source() check en dialog (no funcionaba), reactive:true (rompía botones)
+- Solución definitiva: override de close() en DashBoardModal
+  - Captura TODAS las llamadas a close() venga de donde vengan
+  - Usa Clutter.get_current_event() para obtener el evento en curso
+  - Si es un BUTTON_PRESS cuyo source() está dentro del media widget,
+    close() no hace nada (return)
+  - KEY_PRESS (Escape) y otros eventos pasan directamente → close() normal
+  - Capas de defensa: close() override + contentLayout handler + line 58
+    original, las 3 cooperan para asegurar que media widget nunca cierre
+** Commit actual
+Corrección de errores al widget de avatar del dashboard
+- 1. Se importa AccountService y Avatar, la misma clase que usa el módulo userAvatar.
+- 2.  _buildUI (línea 173-182) — Reemplaza St.Icon con icon_name: 'avatar-default-symbolic' (siempre fallback) por la clase Avatar de GNOME Shell, que obtiene el usuario real via AccountsService.UserManager.get_default().get_user(GLib.get_user_name())
+  - Llama a user.get_icon_file() para obtener la ruta de la foto real
+  - Muestra la foto como background-image: url(...) en el St.Bin, con fallback al icono avatar-default-symbolic
+  - Actualización (línea 182) — Conecta señal changed del usuario para llamar _avatarPicture.update() cuando cambie la foto.
+  - Limpieza (líneas 134, 153-154) — Desconecta señales del usuario viejo en rebuild y destroy.
+  - _loadAvatar() (líneas 208-234) — Obtiene iconFile de AccountsService.User.get_icon_file(). Si existe: btn.child = null + background-image, background-size: cover, border-radius. Si no: fallback St.Icon con avatar-default-symbolic.
+- Eliminado import { Avatar } (innecesario).
+- Conecta _user.connectObject('changed', ...) para recargar al cambiar la foto (línea 170).
+- El baseStyle incluye padding: 0; border: none; para anular el padding/borde que la clase .button del tema de GNOME Shell pueda agregar. Con border-radius: 0 antes el padding extra hacía que el background-image se extendiera más allá del área esperada. Ahora queda fijo en el tamaño exacto de width × height.
+- Usa _loadAvatar que pone background-image: url("${iconFile}") directamente en el St.Button (idéntico a como la clase Avatar de GNOME Shell maneja la imagen internamente).
+- border-width: 0 y padding: 0 eliminan cualquier borde/padding heredado de la clase .button del tema.
+- background-color: transparent evita que el fondo semitransparente de .user-icon-button tintinee la foto.
+- El changed signal de AccountsService.User vuelve a llamar _loadAvatar con el mismo userBtn, actualizando el estilo in-place.
+   

@@ -38,6 +38,13 @@ class DashBoardModal extends ModalDialog.ModalDialog {
             key: Clutter.KEY_Escape,
         });
         closeBtn.hide();
+
+        this.contentLayout.reactive = true;
+        this.contentLayout.connect('button-press-event', (self, event) => {
+            if (this._isOnMediaWidget(event))
+                return Clutter.EVENT_STOP;
+            return Clutter.EVENT_PROPAGATE;
+        });
         this.connect('button-press-event', () => this.close());
 
         this.dialogLayout._dialog.add_style_class_name('dashboard');
@@ -86,10 +93,18 @@ class DashBoardModal extends ModalDialog.ModalDialog {
             this.set_style('background-color: transparent');
     }
 
+    _isOnMediaWidget(event) {
+        if (!this._mediaWidget)
+            return false;
+        const source = event.get_source();
+        return source ? this._mediaWidget.contains(source) : false;
+    }
+
     _buildUI() {
         if (this._mainBox) {
             this._mainBox.destroy();
             this._mainBox = null;
+            this._mediaWidget = null;
         }
 
         this._widgetList = {
@@ -97,7 +112,10 @@ class DashBoardModal extends ModalDialog.ModalDialog {
             clock: () => new ClockWidget(this._settings, this),
             levels: () => new LevelsWidget(this._settings, this),
             links: () => new LinksWidget(this._settings, this),
-            media: () => new MediaWidget(this._settings, this),
+            media: () => {
+                this._mediaWidget = new MediaWidget(this._settings, this);
+                return this._mediaWidget;
+            },
             settings: () => new SettingsWidget(this._settings, this),
             system: () => new SystemWidget(this._settings, this),
             user: () => new UserWidget(this._settings, this),

@@ -1,5 +1,6 @@
 'use strict';
 
+import AccountsService from 'gi://AccountsService';
 import Clutter from 'gi://Clutter';
 import GLib from 'gi://GLib';
 import Gio from 'gi://Gio';
@@ -136,6 +137,7 @@ class UserWidget extends DashWidget {
         this._connect('icon-height');
         this._connect('vertical');
         this._connect('real-name');
+        this.connect('destroy', () => this._user?.disconnectObject(this));
         this._sync();
     }
 
@@ -148,6 +150,9 @@ class UserWidget extends DashWidget {
     _buildUI() {
         this.destroy_all_children();
 
+        this._user?.disconnectObject(this);
+        this._user = null;
+
         const roundness = this._settings.get_int('dashboard-user-icon-roundness');
         const iconWidth = this._settings.get_int('dashboard-user-icon-width');
         const iconHeight = this._settings.get_int('dashboard-user-icon-height');
@@ -158,19 +163,11 @@ class UserWidget extends DashWidget {
             x_expand: true,
             y_expand: true,
             style_class: 'user-icon-button button',
-            style: `
-                border-radius: ${roundness}px;
-                width: ${iconWidth}px;
-                height: ${iconHeight}px;
-            `,
         });
 
-        const avatarIcon = new St.Icon({
-            icon_name: 'avatar-default-symbolic',
-            icon_size: Math.round(iconWidth * 0.7),
-            style_class: 'avatar-icon',
-        });
-        userBtn.set_child(avatarIcon);
+        this._user = AccountsService.UserManager.get_default().get_user(GLib.get_user_name());
+        this._loadAvatar(userBtn, roundness, iconWidth, iconHeight);
+        this._user.connectObject('changed', () => this._loadAvatar(userBtn, roundness, iconWidth, iconHeight), this);
 
         userBtn.connect('clicked', () => {
             if (this._parentDialog) this._parentDialog.close();
@@ -206,6 +203,35 @@ class UserWidget extends DashWidget {
 
         this.add_child(userBtn);
         this.add_child(textBox);
+    }
+
+    _loadAvatar(btn, roundness, iconWidth, iconHeight) {
+        const iconFile = this._user.get_icon_file();
+
+        btn.child = null;
+        btn.style = `
+            border-radius: ${roundness}px;
+            width: ${iconWidth}px;
+            height: ${iconHeight}px;
+            padding: 0;
+            border-width: 0;
+            background-color: transparent;
+        `;
+
+        if (iconFile && GLib.file_test(iconFile, GLib.FileTest.EXISTS)) {
+            btn.style += `
+                background-image: url("${iconFile}");
+                background-size: cover;
+                background-position: center;
+            `;
+        } else {
+            btn.child = new St.Icon({
+                icon_name: 'avatar-default-symbolic',
+                icon_size: Math.round(Math.min(iconWidth, iconHeight) * 0.7),
+                x_expand: true,
+                y_expand: true,
+            });
+        }
     }
 });
 

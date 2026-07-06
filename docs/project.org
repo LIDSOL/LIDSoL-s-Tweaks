@@ -592,7 +592,7 @@ Mensaje de saludo dinámico según hora en dashboard UserWidget:
 - _getGreeting() segmenta el día en 4 rangos: 00-04 → "Night Time", 05-11 → "Good Morning", 12-17 → "Good Afternoon", 18-23 → "Good Evening".
 - Se actualiza automáticamente cada 5 minutos mediante setTimeout recursivo (GJS built-in, evita problemas con GLib.timeout_add que hacía desaparecer el widget).
 - _scheduleGreetingUpdate(interval) crea el timer; destroy handler lo limpia con clearTimeout.
-** Abrir ajustes de usuario desde UserWidget
+** b5b72fa
 - Al pulsar el UserWidget se abre la ventana de ajustes de GNOME en la sección Usuarios.
 - lookup_app del desktop file correcto según versión de GNOME (>= 46 → gnome-users-panel.desktop).
 - Click handler movido de userBtn a toda la instancia del widget (this.reactive = true + button-press-event).
@@ -600,3 +600,8 @@ Mensaje de saludo dinámico según hora en dashboard UserWidget:
 - Si ya hay ventanas abiertas → GLib.timeout_add(150ms) + meta_window.activate(0) para enfocar.
 - Si no hay ventanas → Util.spawn para lanzar.
 - Intervalo de actualización del saludo: 300000 → 10000 temporalmente para pruebas.
+** Cambios actuales: userAvatar/module.js — mismo fix que dashboard UserWidget
+- Eliminado Shell.AppSystem.get_default().lookup_app(...).activate() que causaba cursor de carga persistente (heredado desde el port original).
+- Reemplazado por: si ya hay ventanas → GLib.timeout_add(150ms) + win.activate(0) para intentar enfocar; si no → Util.spawn(['gnome-control-center', 'system', 'users']).
+- Import agregado: Util.
+

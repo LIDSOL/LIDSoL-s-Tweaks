@@ -7,6 +7,7 @@ import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import Shell from 'gi://Shell';
 import St from 'gi://St';
+import * as Util from 'resource:///org/gnome/shell/misc/util.js';
 import { Avatar } from 'resource:///org/gnome/shell/ui/userWidget.js';
 import { QuickSettingsItem, SystemIndicator } from 'resource:///org/gnome/shell/ui/quickSettings.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
@@ -119,7 +120,18 @@ const AvatarItem = GObject.registerClass(
             this.connect('clicked', () => {
                 Main.overview.hide();
                 Main.panel.closeQuickSettings();
-                this._settingsApp.activate();
+                if (this._settingsApp) {
+                    const windows = this._settingsApp.get_windows();
+                    if (windows.length > 0) {
+                        const win = windows[0];
+                        GLib.timeout_add(GLib.PRIORITY_DEFAULT, 150, () => {
+                            win.activate(0);
+                            return GLib.SOURCE_REMOVE;
+                        });
+                    } else {
+                        Util.spawn(['gnome-control-center', 'system', 'users']);
+                    }
+                }
             });
         }
     }

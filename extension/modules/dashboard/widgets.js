@@ -14,6 +14,7 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as SystemActions from 'resource:///org/gnome/shell/misc/systemActions.js';
 
 import * as Util from 'resource:///org/gnome/shell/misc/util.js';
+import { PACKAGE_VERSION } from 'resource:///org/gnome/shell/misc/config.js';
 
 import { DashboardMediaWidget } from './mediaWidget.js';
 
@@ -138,7 +139,26 @@ class UserWidget extends DashWidget {
         this._connect('vertical');
         this._connect('real-name');
         this._sync();
-        this._scheduleGreetingUpdate(300000);
+        this._scheduleGreetingUpdate(10000);
+        this.reactive = true;
+        this.connect('button-press-event', () => {
+            if (this._parentDialog) this._parentDialog.close();
+            Main.overview.hide();
+            Main.panel.closeQuickSettings();
+            if (this._userSettingsApp) {
+                const windows = this._userSettingsApp.get_windows();
+                if (windows.length > 0) {
+                    const win = windows[0];
+                    GLib.timeout_add(GLib.PRIORITY_DEFAULT, 150, () => {
+                        win.activate(0);
+                        return GLib.SOURCE_REMOVE;
+                    });
+                } else {
+                    Util.spawn(['gnome-control-center', 'system', 'users']);
+                }
+            }
+            return Clutter.EVENT_STOP;
+        });
         this.connect('destroy', () => {
             this._user?.disconnectObject(this);
             if (this._greetingTimeout) {
@@ -181,10 +201,9 @@ class UserWidget extends DashWidget {
             'notify::is-loaded', () => this._syncUserName(),
             this);
 
-        userBtn.connect('clicked', () => {
-            if (this._parentDialog) this._parentDialog.close();
-            Shell.AppSystem.get_default().lookup_app('gnome-user-accounts-panel.desktop').activate();
-        });
+        const [major] = PACKAGE_VERSION.split('.').map(v => Number(v));
+        this._userSettingsApp = Shell.AppSystem.get_default().lookup_app(
+            major >= 46 ? 'gnome-users-panel.desktop' : 'gnome-user-accounts-panel.desktop');
 
         const textBox = new St.BoxLayout({
             vertical: true,

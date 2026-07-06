@@ -246,6 +246,11 @@ Gnome-Widgets/
 - Observadores desacoplados.
 - Actualización reactiva controlada.
 *** Logger
+* 5. Issues
+Aquí anotaré las cosas que sería bueno corregir/implementar pero que no son de alta prioridad (sería bueno que estén, pero no pasa nada si no están). Después las añadiré a las issues de github
+** UserWidget: no enfoca ventana existente de ajustes de usuario
+   - win.activate(0) no funciona en Wayland para enfocar la ventana de gnome-control-center ya abierta. Intentos fallidos: focus(), activate() con timestamps variados (event.get_time, global.get_current_time, META_CURRENT_TIME), idle_add, timeout_add(150ms), raise()+focus(). Sin cursor de carga (Util.spawn lo solucionó), pero la ventana no recibe foco.
+   - Posible causa: Mutter/Wayland rechaza peticiones de foco fuera del contexto directo de un evento de usuario. Pendiente de investigación.
 * 4. Notas técnicas de cada commit:
 ** 9f879cf
 - El día de ayer se añadió "correctamente" systemItems.js, pero hoy al intentar usar esta feature, dejó de funcionar. Así que se volvió a portar. Se hicieron los siguientes cambios:
@@ -582,9 +587,16 @@ Corrección en "show real name", en el dashboard:
 - Señal notify::is-loaded (línea 172) — igual que en userAvatar, para cuando el usuario todavía no ha cargado.
 - _syncUserName() (líneas 211-215) — actualiza _nameLabel.text desde el usuario de AccountsService.
 - _nameLabel como propiedad de instancia para poder actualizarlo desde los callbacks.
-** Commit actual
+** 77c3673
 Mensaje de saludo dinámico según hora en dashboard UserWidget:
 - _getGreeting() segmenta el día en 4 rangos: 00-04 → "Night Time", 05-11 → "Good Morning", 12-17 → "Good Afternoon", 18-23 → "Good Evening".
 - Se actualiza automáticamente cada 5 minutos mediante setTimeout recursivo (GJS built-in, evita problemas con GLib.timeout_add que hacía desaparecer el widget).
 - _scheduleGreetingUpdate(interval) crea el timer; destroy handler lo limpia con clearTimeout.
-- Intervalo configurable: 10s para pruebas, 5min en producción.
+** Abrir ajustes de usuario desde UserWidget
+- Al pulsar el UserWidget se abre la ventana de ajustes de GNOME en la sección Usuarios.
+- lookup_app del desktop file correcto según versión de GNOME (>= 46 → gnome-users-panel.desktop).
+- Click handler movido de userBtn a toda la instancia del widget (this.reactive = true + button-press-event).
+- launch: Util.spawn(['gnome-control-center', 'system', 'users']) en vez de Shell.App.activate() para evitar cursor de carga (Shell.App.activate() heredaba el bug de userAvatar/module.js que mostraba cursor de carga persistente).
+- Si ya hay ventanas abiertas → GLib.timeout_add(150ms) + meta_window.activate(0) para enfocar.
+- Si no hay ventanas → Util.spawn para lanzar.
+- Intervalo de actualización del saludo: 300000 → 10000 temporalmente para pruebas.

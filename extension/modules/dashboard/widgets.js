@@ -152,6 +152,7 @@ class UserWidget extends DashWidget {
 
         this._user?.disconnectObject(this);
         this._user = null;
+        this._nameLabel = null;
 
         const roundness = this._settings.get_int('dashboard-user-icon-roundness');
         const iconWidth = this._settings.get_int('dashboard-user-icon-width');
@@ -167,7 +168,10 @@ class UserWidget extends DashWidget {
 
         this._user = AccountsService.UserManager.get_default().get_user(GLib.get_user_name());
         this._loadAvatar(userBtn, roundness, iconWidth, iconHeight);
-        this._user.connectObject('changed', () => this._loadAvatar(userBtn, roundness, iconWidth, iconHeight), this);
+        this._user.connectObject(
+            'changed', () => this._loadAvatar(userBtn, roundness, iconWidth, iconHeight),
+            'notify::is-loaded', () => this._syncUserName(),
+            this);
 
         userBtn.connect('clicked', () => {
             if (this._parentDialog) this._parentDialog.close();
@@ -184,13 +188,13 @@ class UserWidget extends DashWidget {
         });
 
         if (this._settings.get_boolean('dashboard-user-real-name')) {
-            const nameLabel = new St.Label({
+            this._nameLabel = new St.Label({
                 style_class: 'user-name',
                 y_align: Clutter.ActorAlign.END,
                 x_align: this.vertical ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.START,
-                text: GLib.get_real_name(),
+                text: this._user.get_real_name() || GLib.get_real_name(),
             });
-            textBox.add_child(nameLabel);
+            textBox.add_child(this._nameLabel);
         }
 
         const greetingLabel = new St.Label({
@@ -203,6 +207,12 @@ class UserWidget extends DashWidget {
 
         this.add_child(userBtn);
         this.add_child(textBox);
+    }
+
+    _syncUserName() {
+        if (this._nameLabel) {
+            this._nameLabel.text = this._user.get_real_name() || GLib.get_real_name();
+        }
     }
 
     _loadAvatar(btn, roundness, iconWidth, iconHeight) {

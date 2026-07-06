@@ -548,7 +548,7 @@ El nuevo MprisService sigue la estructura de QST:
   - KEY_PRESS (Escape) y otros eventos pasan directamente → close() normal
   - Capas de defensa: close() override + contentLayout handler + line 58
     original, las 3 cooperan para asegurar que media widget nunca cierre
-** Commit actual
+** 34065d4
 Corrección de errores al widget de avatar del dashboard
 - 1. Se importa AccountService y Avatar, la misma clase que usa el módulo userAvatar.
 - 2.  _buildUI (línea 173-182) — Reemplaza St.Icon con icon_name: 'avatar-default-symbolic' (siempre fallback) por la clase Avatar de GNOME Shell, que obtiene el usuario real via AccountsService.UserManager.get_default().get_user(GLib.get_user_name())
@@ -564,4 +564,9 @@ Corrección de errores al widget de avatar del dashboard
 - border-width: 0 y padding: 0 eliminan cualquier borde/padding heredado de la clase .button del tema.
 - background-color: transparent evita que el fondo semitransparente de .user-icon-button tintinee la foto.
 - El changed signal de AccountsService.User vuelve a llamar _loadAvatar con el mismo userBtn, actualizando el estilo in-place.
-   
+** Commit actual
+Corrección en "show real name", en el dashboard:
+- _buildUI: GLib.get_real_name() → this._user.get_real_name() || GLib.get_real_name() (línea 194). AccountsService.User.get_real_name() retorna el nombre real del sistema; GLib.get_real_name() cae en "Unknown" en algunos entornos.
+- Señal notify::is-loaded (línea 172) — igual que en userAvatar, para cuando el usuario todavía no ha cargado.
+- _syncUserName() (líneas 211-215) — actualiza _nameLabel.text desde el usuario de AccountsService.
+- _nameLabel como propiedad de instancia para poder actualizarlo desde los callbacks.

@@ -615,7 +615,7 @@ Mensaje de saludo dinámico según hora en dashboard UserWidget:
 - widgets.js (UserWidget): se inserta un St.BoxLayout spacer entre avatar y textos con min-width/min-height = textSpacing.
 - Para evitar interferencia del CSS .container { spacing: 8px; }, UserWidget._sync() ya no asigna la clase container; define style_class como dash-widget user-widget [+ events-button si background].
 - Con textSpacing = 0 no hay spacer → gap 0.
-** Cambios actuales: Monitor de sistema en Dashboard
+** ac067d4: Monitor de sistema en Dashboard
 - Nuevo archivo: extension/modules/dashboard/systemMonitor.js
   - LevelBar — barra de progreso animada (St.BoxLayout + St.Bin) con Clutter.ease() para transiciones suaves, soporta orientación horizontal/vertical y border-radius.
   - UsageLevel — clase base que compone icono + barra + etiqueta + hover label, con colores por umbral vía pseudo-clases CSS (:red/:orange/:yellow/:green).
@@ -636,4 +636,17 @@ Mensaje de saludo dinámico según hora en dashboard UserWidget:
 - Reglas para .level-fill con colores Adwaita: verde #3A944A, amarillo #C88800, naranja #ED5B00, rojo #E42D42.
 - Estilo para .level-bar y .usage-level StIcon.
 - Pseudo-clases mapean al fill (:red .level-fill, :orange .level-fill, etc.).
+** Cambios actuales: fix en el monitor del  sistema.
+Picos anormales en el uso del upc que no corresponden con el uso verdadero.
+- Raiz del problema: 
+Raíz del problema: la línea cpu de /proc/stat tiene 10+ columnas. Solo leíamos 3:
+cpu  user nice system idle iowait irq softirq steal guest guest_nice
+      ^           ^      ^
+     leídos      leído  leído
+
+Faltaban:
+- nice en activo (tiempo de procesos re-niceados)
+- iowait, irq, softirq, steal en total
+Cuando el CPU atendía I/O o interrupciones entre dos lecturas, esos ticks se iban a campos que ignorábamos. El denominador totalDelta era artificialmente pequeño → usedDelta / totalDelta se disparaba.
+Ahora todos los campos en currentCPUTotal y nice en currentCPUUsed son incluidos, y se añadireron guardas para valores negativos/NaN/Infinity.
 

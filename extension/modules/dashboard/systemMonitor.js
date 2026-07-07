@@ -315,17 +315,29 @@ class CpuLevel extends UsageLevel {
                     continue;
                 if (fields[0] === 'cpu' && fields.length >= 5) {
                     const user = Number.parseInt(fields[1]);
+                    const nice = Number.parseInt(fields[2]) || 0;
                     const system = Number.parseInt(fields[3]);
                     const idle = Number.parseInt(fields[4]);
-                    currentCPUUsed = user + system;
-                    currentCPUTotal = user + system + idle;
+                    const iowait = Number.parseInt(fields[5]) || 0;
+                    const irq = Number.parseInt(fields[6]) || 0;
+                    const softirq = Number.parseInt(fields[7]) || 0;
+                    const steal = Number.parseInt(fields[8]) || 0;
+
+                    currentCPUUsed = user + nice + system;
+                    currentCPUTotal = user + nice + system + idle + iowait + irq + softirq + steal;
                     break;
                 }
             }
 
-            if (currentCPUTotal - this.lastCPUTotal !== 0) {
-                currentCPUUsage =
-                    (currentCPUUsed - this.lastCPUUsed) / (currentCPUTotal - this.lastCPUTotal);
+            const totalDelta = currentCPUTotal - this.lastCPUTotal;
+            const usedDelta = currentCPUUsed - this.lastCPUUsed;
+
+            if (totalDelta > 0) {
+                currentCPUUsage = usedDelta / totalDelta;
+                if (currentCPUUsage < 0 || !Number.isFinite(currentCPUUsage))
+                    currentCPUUsage = 0;
+            } else {
+                currentCPUUsage = 0;
             }
 
             this.lastCPUTotal = currentCPUTotal;

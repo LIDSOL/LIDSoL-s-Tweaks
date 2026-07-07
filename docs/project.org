@@ -604,7 +604,7 @@ Mensaje de saludo dinámico según hora en dashboard UserWidget:
 - Eliminado Shell.AppSystem.get_default().lookup_app(...).activate() que causaba cursor de carga persistente (heredado desde el port original).
 - Reemplazado por: si ya hay ventanas → GLib.timeout_add(150ms) + win.activate(0) para intentar enfocar; si no → Util.spawn(['gnome-control-center', 'system', 'users']).
 - Import agregado: Util.
-** Cambios actuales
+** ac998d4
 *** Eliminados ajustes genéricos de alineación/expansión/tamaño de todos los widgets del dashboard
 - prefs.js: _makeWidgetExpander ya no agrega filas de X/Y Axis Align, X/Y Axis Expand, Width, Height. Solo Background como fila genérica.
 - widgets.js (DashWidget): removidos _connect y _sync de y-align, x-align, y-expand, x-expand, width, height. Eliminada función _parseAlign (inused).
@@ -615,4 +615,3 @@ Mensaje de saludo dinámico según hora en dashboard UserWidget:
 - widgets.js (UserWidget): se inserta un St.BoxLayout spacer entre avatar y textos con min-width/min-height = textSpacing.
 - Para evitar interferencia del CSS .container { spacing: 8px; }, UserWidget._sync() ya no asigna la clase container; define style_class como dash-widget user-widget [+ events-button si background].
 - Con textSpacing = 0 no hay spacer → gap 0.
-

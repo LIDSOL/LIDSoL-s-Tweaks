@@ -150,6 +150,8 @@ class UserWidget extends DashWidget {
         this._hasBackground = this._settings.get_boolean('dashboard-user-background');
         this.style_class = `dash-widget user-widget` +
             (this._hasBackground ? ' events-button' : '');
+        const fw = this._settings.get_int('dashboard-levels-fixed-width');
+        if (fw > 0) this.style = `width: ${fw}px;`;
     }
 
     _buildUI() {
@@ -280,6 +282,7 @@ class LevelsWidget extends DashWidget {
     _init(settings, parentDialog) {
         super._init(settings, 'levels', parentDialog);
         this._connect('vertical');
+        this._connect('fixed-width');
         this._sync();
     }
 
@@ -287,6 +290,8 @@ class LevelsWidget extends DashWidget {
         this.vertical = this._settings.get_boolean('dashboard-levels-vertical');
         this._buildUI();
         super._sync();
+        const fw = this._settings.get_int('dashboard-levels-fixed-width');
+        this.style = fw > 0 ? `width: ${fw}px;` : '';
     }
 
     _buildUI() {

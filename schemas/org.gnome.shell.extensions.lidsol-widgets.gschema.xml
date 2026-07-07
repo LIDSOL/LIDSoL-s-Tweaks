@@ -1081,6 +1081,7 @@
     <key type="b" name="dashboard-levels-show-cpu"><default>true</default></key>
     <key type="b" name="dashboard-levels-show-ram"><default>true</default></key>
     <key type="b" name="dashboard-levels-show-temp"><default>true</default></key>
+    <key type="i" name="dashboard-levels-fixed-width"><default>250</default></key>
 
     <!-- Links Widget -->
     <key type="i" name="dashboard-links-x-align"><default>0</default></key>

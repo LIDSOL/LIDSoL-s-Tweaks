@@ -615,3 +615,25 @@ Mensaje de saludo dinámico según hora en dashboard UserWidget:
 - widgets.js (UserWidget): se inserta un St.BoxLayout spacer entre avatar y textos con min-width/min-height = textSpacing.
 - Para evitar interferencia del CSS .container { spacing: 8px; }, UserWidget._sync() ya no asigna la clase container; define style_class como dash-widget user-widget [+ events-button si background].
 - Con textSpacing = 0 no hay spacer → gap 0.
+** Cambios actuales: Monitor de sistema en Dashboard
+- Nuevo archivo: extension/modules/dashboard/systemMonitor.js
+  - LevelBar — barra de progreso animada (St.BoxLayout + St.Bin) con Clutter.ease() para transiciones suaves, soporta orientación horizontal/vertical y border-radius.
+  - UsageLevel — clase base que compone icono + barra + etiqueta + hover label, con colores por umbral vía pseudo-clases CSS (:red/:orange/:yellow/:green).
+  - CpuLevel — lectura de /proc/stat, cálculo delta (user+system / total) para uso real de CPU.
+  - RamLevel — lectura de /proc/meminfo (MemTotal - MemAvailable) para uso de RAM.
+  - TempLevel — lectura de /sys/class/thermal/thermal_zone0/temp (temperatura en °C/100).
+  - StorageLevel — uso de GTop (opcional, glibtop_fsusage) para uso de disco en /.
+  - PowerLevel — D-Bus UPower (org.freedesktop.UPower) para batería (porcentaje, estado de carga, iconos battery-level-*).
+- Modificación en extension/modules/dashboard/widgets.js
+  - LevelsWidget añadió startTimeout() / stopTimeout() que delegan a LevelsBox.
+  - LevelsBox reemplazó los placeholders (dibujados con St.DrawingArea y valores fijos) por instancias reales de PowerLevel, StorageLevel, CpuLevel, RamLevel, TempLevel.
+  - Timeout de 1 segundo con GLib.timeout_add_seconds() solo mientras el dashboard está abierto.
+  - Conexiones GSettings limpiadas al destruir.
+- Modificación: extension/modules/dashboard/dashBoard.js
+  - DashBoardModal guarda referencia a this._levelsWidget.
+  - Señal opened → startTimeout(), closed → stopTimeout().
+- Modificación: extension/modules/dashboard/stylesheet.css
+- Reglas para .level-fill con colores Adwaita: verde #3A944A, amarillo #C88800, naranja #ED5B00, rojo #E42D42.
+- Estilo para .level-bar y .usage-level StIcon.
+- Pseudo-clases mapean al fill (:red .level-fill, :orange .level-fill, etc.).
+

@@ -84,23 +84,42 @@
     spacing: 4px;
 }
 
-.dashboard .level-item {
+.dashboard .usage-level {
     spacing: 6px;
     padding: 2px 0;
 }
 
-.dashboard .level-icon {
-    min-width: 16px;
+.dashboard .usage-level StIcon {
+    icon-size: 16px;
 }
 
 .dashboard .level-bar {
-    min-height: 8px;
-    border-radius: 4px;
+    min-height: 10px;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dashboard .level-fill {
+    border-radius: 5px;
+    background-color: #62a0ea;
+}
+
+.dashboard .usage-level:red .level-fill {
+    background-color: #E42D42;
+}
+.dashboard .usage-level:orange .level-fill {
+    background-color: #ED5B00;
+}
+.dashboard .usage-level:yellow .level-fill {
+    background-color: #C88800;
+}
+.dashboard .usage-level:green .level-fill {
+    background-color: #3A944A;
 }
 
 .dashboard .level-label {
     font-size: 11px;
-    min-width: 60px;
+    min-width: 50px;
     color: rgba(255, 255, 255, 0.8);
 }
 

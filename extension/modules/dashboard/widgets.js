@@ -17,6 +17,13 @@ import * as Util from 'resource:///org/gnome/shell/misc/util.js';
 import { PACKAGE_VERSION } from 'resource:///org/gnome/shell/misc/config.js';
 
 import { DashboardMediaWidget } from './mediaWidget.js';
+import {
+    PowerLevel,
+    StorageLevel,
+    CpuLevel,
+    RamLevel,
+    TempLevel,
+} from './systemMonitor.js';
 
 function _getSettingKey(module, name) {
     return `dashboard-${module}-${name.replace(/_/g, '-')}`;
@@ -286,6 +293,16 @@ class LevelsWidget extends DashWidget {
         this._sync();
     }
 
+    startTimeout() {
+        if (this._levels)
+            this._levels.startTimeout();
+    }
+
+    stopTimeout() {
+        if (this._levels)
+            this._levels.stopTimeout();
+    }
+
     _sync() {
         this.vertical = this._settings.get_boolean('dashboard-levels-vertical');
         this._buildUI();
@@ -299,6 +316,11 @@ class LevelsWidget extends DashWidget {
         this._levels = new LevelsBox(this._settings);
         this.add_child(this._levels);
     }
+
+    _onDestroy() {
+        this.stopTimeout();
+        super._onDestroy();
+    }
 });
 
 const LevelsBox = GObject.registerClass(
@@ -311,61 +333,72 @@ class LevelsBox extends St.BoxLayout {
             y_expand: true,
         });
         this._settings = settings;
-        this._levels = {};
-        this._updateLevels();
+        this.levels = [];
+        this._handlerIds = [];
+
+        this._connect('battery');
+        this._connect('storage');
+        this._connect('cpu');
+        this._connect('ram');
+        this._connect('temp');
+
+        this._sync();
+        this._timeout = null;
+
+        this.connect('destroy', () => {
+            this.stopTimeout();
+            this._handlerIds.forEach(id => {
+                if (this._settings) this._settings.disconnect(id);
+            });
+            this._handlerIds = [];
+            this._settings = null;
+        });
     }
 
-    _updateLevels() {
+    _connect(name) {
+        this._handlerIds.push(
+            this._settings.connect(`changed::dashboard-levels-show-${name}`,
+                () => this._sync())
+        );
+    }
+
+    _sync() {
         this.destroy_all_children();
+        this.levels = [];
+
+        const vertical = this._settings.get_boolean('dashboard-levels-vertical');
         const showBattery = this._settings.get_boolean('dashboard-levels-show-battery');
         const showStorage = this._settings.get_boolean('dashboard-levels-show-storage');
         const showCpu = this._settings.get_boolean('dashboard-levels-show-cpu');
         const showRam = this._settings.get_boolean('dashboard-levels-show-ram');
         const showTemp = this._settings.get_boolean('dashboard-levels-show-temp');
 
-        if (showBattery) this.add_child(this._createLevel('battery-symbolic', 'Battery', 0.75));
-        if (showStorage) this.add_child(this._createLevel('drive-harddisk-symbolic', 'Storage', 0.5));
-        if (showCpu) this.add_child(this._createLevel('cpu-symbolic', 'CPU', 0.3));
-        if (showRam) this.add_child(this._createLevel('memory-symbolic', 'RAM', 0.6));
-        if (showTemp) this.add_child(this._createLevel('weather-clear-night-symbolic', 'Temperature', 0.4));
+        if (showBattery) this._addLevel(new PowerLevel(vertical));
+        if (showStorage) this._addLevel(new StorageLevel(vertical));
+        if (showCpu) this._addLevel(new CpuLevel(vertical));
+        if (showRam) this._addLevel(new RamLevel(vertical));
+        if (showTemp) this._addLevel(new TempLevel(vertical));
     }
 
-    _createLevel(icon, label, value) {
-        const box = new St.BoxLayout({
-            style_class: 'level-item',
-            x_expand: true,
-        });
-        const iconActor = new St.Icon({
-            icon_name: icon,
-            icon_size: 16,
-            style_class: 'level-icon',
-        });
-        box.add_child(iconActor);
+    _addLevel(level) {
+        this.add_child(level);
+        this.levels.push(level);
+    }
 
-        const levelBar = new St.DrawingArea({
-            style_class: 'level-bar',
-            x_expand: true,
-            height: 8,
-        });
-        levelBar.connect('repaint', () => {
-            const cr = levelBar.get_context();
-            const [w, h] = levelBar.get_surface_size();
-            cr.setSourceRGBA(0.5, 0.5, 0.5, 0.3);
-            cr.rectangle(0, 0, w, h);
-            cr.fill();
-            cr.setSourceRGBA(0.3, 0.6, 1.0, 0.8);
-            cr.rectangle(0, 0, w * value, h);
-            cr.fill();
-        });
-        box.add_child(levelBar);
+    startTimeout() {
+        if (this._timeout) return;
+        this._timeout = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1,
+            () => {
+                this.levels.forEach(l => l.updateLevel());
+                return GLib.SOURCE_CONTINUE;
+            });
+    }
 
-        const labelActor = new St.Label({
-            text: label,
-            style_class: 'level-label',
-            y_align: Clutter.ActorAlign.CENTER,
-        });
-        box.add_child(labelActor);
-        return box;
+    stopTimeout() {
+        if (this._timeout) {
+            GLib.source_remove(this._timeout);
+            this._timeout = null;
+        }
     }
 });
 

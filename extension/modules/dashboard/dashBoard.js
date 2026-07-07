@@ -60,8 +60,12 @@ class DashBoardModal extends ModalDialog.ModalDialog {
         );
         this.connectObject(
             'opened', () => {
-                if (this.levelsBox)
-                    this.levelsBox._updateLevels();
+                if (this._levelsWidget)
+                    this._levelsWidget.startTimeout();
+            },
+            'closed', () => {
+                if (this._levelsWidget)
+                    this._levelsWidget.stopTimeout();
             },
             'destroy', () => {
                 this._settings.disconnectObject(this);
@@ -105,12 +109,16 @@ class DashBoardModal extends ModalDialog.ModalDialog {
             this._mainBox.destroy();
             this._mainBox = null;
             this._mediaWidget = null;
+            this._levelsWidget = null;
         }
 
         this._widgetList = {
             apps: () => new AppsWidget(this._settings, this),
             clock: () => new ClockWidget(this._settings, this),
-            levels: () => new LevelsWidget(this._settings, this),
+            levels: () => {
+                this._levelsWidget = new LevelsWidget(this._settings, this);
+                return this._levelsWidget;
+            },
             links: () => new LinksWidget(this._settings, this),
             media: () => {
                 this._mediaWidget = new MediaWidget(this._settings, this);

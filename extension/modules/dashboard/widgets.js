@@ -18,15 +18,6 @@ import { PACKAGE_VERSION } from 'resource:///org/gnome/shell/misc/config.js';
 
 import { DashboardMediaWidget } from './mediaWidget.js';
 
-function _parseAlign(num) {
-    switch (num) {
-    case 1: return Clutter.ActorAlign.START;
-    case 2: return Clutter.ActorAlign.CENTER;
-    case 3: return Clutter.ActorAlign.END;
-    default: return Clutter.ActorAlign.FILL;
-    }
-}
-
 function _getSettingKey(module, name) {
     return `dashboard-${module}-${name.replace(/_/g, '-')}`;
 }
@@ -39,12 +30,6 @@ class DashWidget extends St.BoxLayout {
         this._settings = settings;
         this._module = module;
         this._handlerIds = [];
-        this._connect('y-align');
-        this._connect('x-align');
-        this._connect('y-expand');
-        this._connect('x-expand');
-        this._connect('width');
-        this._connect('height');
         this._connect('background');
         this.connect('destroy', this._onDestroy.bind(this));
     }
@@ -68,16 +53,6 @@ class DashWidget extends St.BoxLayout {
     }
 
     _sync() {
-        this.y_align = _parseAlign(this._settings.get_int(`dashboard-${this._module}-y-align`));
-        this.x_align = _parseAlign(this._settings.get_int(`dashboard-${this._module}-x-align`));
-        this.y_expand = this._settings.get_boolean(`dashboard-${this._module}-y-expand`);
-        this.x_expand = this._settings.get_boolean(`dashboard-${this._module}-x-expand`);
-        const width = this._settings.get_int(`dashboard-${this._module}-width`);
-        const height = this._settings.get_int(`dashboard-${this._module}-height`);
-        this.set_style(`
-            ${width > 0 ? `width: ${width}px;` : ''}
-            ${height > 0 ? `height: ${height}px;` : ''}
-        `);
         this._hasBackground = this._settings.get_boolean(`dashboard-${this._module}-background`);
         this.style_class = `container dash-widget ${this._module}-widget` +
             (this._hasBackground ? ' events-button' : '');
@@ -138,6 +113,7 @@ class UserWidget extends DashWidget {
         this._connect('icon-height');
         this._connect('vertical');
         this._connect('real-name');
+        this._connect('text-spacing');
         this._sync();
         this._scheduleGreetingUpdate(10000);
         this.reactive = true;
@@ -171,7 +147,9 @@ class UserWidget extends DashWidget {
     _sync() {
         this.vertical = this._settings.get_boolean('dashboard-user-vertical');
         this._buildUI();
-        super._sync();
+        this._hasBackground = this._settings.get_boolean('dashboard-user-background');
+        this.style_class = `dash-widget user-widget` +
+            (this._hasBackground ? ' events-button' : '');
     }
 
     _buildUI() {
@@ -233,6 +211,15 @@ class UserWidget extends DashWidget {
         textBox.add_child(this._greetingLabel);
 
         this.add_child(userBtn);
+        const textSpacing = this._settings.get_int('dashboard-user-text-spacing');
+        if (textSpacing > 0) {
+            const spacer = new St.BoxLayout({
+                style: this.vertical
+                    ? `min-height: ${textSpacing}px;`
+                    : `min-width: ${textSpacing}px;`,
+            });
+            this.add_child(spacer);
+        }
         this.add_child(textBox);
     }
 

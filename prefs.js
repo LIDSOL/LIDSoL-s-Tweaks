@@ -386,12 +386,6 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
         function _makeWidgetExpander(name, title, extraRows) {
             const prefix = `dashboard-${name}`;
             const expander = new Adw.ExpanderRow({ title });
-            expander.add_row(_makeAlignRow('X Axis Align', `${prefix}-x-align`));
-            expander.add_row(_makeAlignRow('Y Axis Align', `${prefix}-y-align`));
-            expander.add_row(_makeExpandRow('X Axis Expand', `${prefix}-x-expand`));
-            expander.add_row(_makeExpandRow('Y Axis Expand', `${prefix}-y-expand`));
-            expander.add_row(_makeSpinRow('Width', `${prefix}-width`, 0, 500, 5));
-            expander.add_row(_makeSpinRow('Height', `${prefix}-height`, 0, 500, 5));
             expander.add_row(_makeExpandRow('Background', `${prefix}-background`));
             if (extraRows) extraRows(expander);
             return expander;
@@ -524,6 +518,7 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
             exp.add_row(_makeSpinRow('Icon Roundness', 'dashboard-user-icon-roundness', 0, 99, 1));
             exp.add_row(_makeSpinRow('Icon Width', 'dashboard-user-icon-width', 10, 500, 2));
             exp.add_row(_makeSpinRow('Icon Height', 'dashboard-user-icon-height', 10, 500, 2));
+            exp.add_row(_makeSpinRow('Text Spacing', 'dashboard-user-text-spacing', 0, 80, 1));
             exp.add_row(_makeExpandRow('Vertical', 'dashboard-user-vertical'));
             exp.add_row(_makeExpandRow('Show Real Name', 'dashboard-user-real-name'));
         }));

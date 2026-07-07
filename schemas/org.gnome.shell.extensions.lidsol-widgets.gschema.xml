@@ -1150,6 +1150,7 @@
     <key type="i" name="dashboard-user-icon-width"><default>100</default></key>
     <key type="i" name="dashboard-user-icon-height"><default>100</default></key>
     <key type="b" name="dashboard-user-real-name"><default>false</default></key>
+    <key type="i" name="dashboard-user-text-spacing"><default>12</default></key>
 
   </schema>
 </schemalist>

@@ -39,6 +39,7 @@ var MprisPlayer = GObject.registerClass({
         this._trackTitle = null;
         this._trackCoverUrl = null;
         this._app = null;
+        this._lastPlayingTime = 0;
 
         this._createProxies();
     }
@@ -250,6 +251,7 @@ var MprisPlayer = GObject.registerClass({
             this._trackId = null;
             this._length = null;
             this._trackArtists = null;
+            this._trackTitle = null;
             this._trackCoverUrl = null;
             return;
         }
@@ -291,7 +293,13 @@ var MprisPlayer = GObject.registerClass({
         } catch (e) {
             console.error(`[MprisService] _update error for ${this._busName}:`, e);
         }
+        if (this.playbackStatus === 'Playing')
+            this._lastPlayingTime = Date.now();
         this.emit('changed');
+    }
+
+    get lastPlayingTime() {
+        return this._lastPlayingTime;
     }
 
     // #endregion
@@ -495,6 +503,36 @@ var MprisService = GObject.registerClass({
         player.disconnectObject(this);
         player.destroy();
         this.emit('player-removed', player);
+    }
+
+    getActivePlayer() {
+        const players = this.players;
+        if (players.length === 0) return null;
+
+        const scored = players.map(p => {
+            let score = 0;
+            const status = p.playbackStatus;
+            const hasTitle = !!p.trackTitle && p.trackTitle !== 'Unknown title';
+
+            if (status === 'Playing' && hasTitle) score = 500;
+            else if (status === 'Paused' && hasTitle) score = 100;
+
+            return { player: p, score };
+        });
+
+        scored.sort((a, b) => {
+            if (b.score !== a.score) return b.score - a.score;
+            return b.player.lastPlayingTime - a.player.lastPlayingTime;
+        });
+
+        if (scored[0].player.playbackStatus !== 'Playing') {
+            const playing = scored.find(s =>
+                s.player.playbackStatus === 'Playing' && s.score > 0
+            );
+            if (playing) return playing.player;
+        }
+
+        return scored[0].score > 0 ? scored[0].player : null;
     }
 
     get players() {

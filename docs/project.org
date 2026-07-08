@@ -44,15 +44,15 @@ DEADLINE: <2026-07-11 Sat>
   - Visibilidad de ícono y porcentaje.
   - Dimensiones.
   - Colores dinámicos configurables (batería baja, cargando, normal)
-**** IN-PROGRESS [#B] Date Menu (dinámico) [0/3] :topbar:
+**** IN-PROGRESS [#B] Date Menu (dinámico) [1/3] :topbar:
 DEADLINE: <2026-07-11 Sat>
 - Descripción: Basado en [[https://www.androidauthority.com/pixel-launcher-at-a-glance-widget-visibility-update-3597606/][el widget At a Glance de los Google Pixel]]. El texto del "Date Menu" cambia dinámicamente, muestra el contenido multimedia que se reproduce actualmente e indica de notificaciones.
-***** IN-PROGRESS Date Menu Formatter :topbar:
+***** DONE Date Menu Formatter :topbar:
 [[./img/date-format.png]]
 
 - Descripción: Permite la personalización del formato de la fecha y hora en el panel.
   - Aylur's Widget tiene un componente que permite personalizar esto, también se tomará como referencia el código de la extensión [[https://extensions.gnome.org/extension/4655/date-menu-formatter/][Date Menu Formatter de Marcin Jakubowski]]. Esta última compatible hasta GNOME 50, por lo que no debería ser difícil integrarla.  
-***** TODO Media Player
+***** IN-PROGRESS Media Player
 [[./img/aylurs-player.png]]
 
 - Descripción: Controles multimedia integrados en el Date Menu ó Top Bar. El indicador no es visible al menos que se reproduzca contenido multimedia, tomando el lugar del Date Menu.
@@ -638,7 +638,7 @@ Ahora todos los campos en currentCPUTotal y nice en currentCPUUsed son incluidos
 ** a26abc9: Feat, acción al pulsar el widget de monitor del sistema
 - Schema: añadido dashboard-levels-command (string, default gnome-system-monitor)
 - Levels click: LevelsBox recibe _parentDialog, y el handler de button-press-event cierra el diálogo antes de ejecutar el comando.
-** Cambios actuales: feat: se implementa el date menu config y el indicador de reproducción multimedia. Cambios al dashboard.
+** 54bb0f2: feat, se implementa el date menu config y el indicador de reproducción multimedia. Cambios al dashboard.
 - Se crearon los archivos:
   - extension/modules/dateMenu/module.js — DateMenuModule (enable/disable, stylesheet, settings reload)
   - extension/modules/dateMenu/dateMenu.js — AtAGlanceIndicator (reemplazo del reloj con formato personalizado + media pill)
@@ -656,5 +656,25 @@ Ahora todos los campos en currentCPUTotal y nice en currentCPUUsed son incluidos
   - 4. Timer de 1s actualiza hora y verifica cambios de estado multimedia (play/pause/cambio de tema)
   - 5. Clicks se propagan al dateMenu hermano (abre notificaciones/calendario normalmente)
   - 6. Al deshabilitar, restaura _clockDisplay original
+** Cambios actuales
+- mprisService.js
+  - _lastPlayingTime: nueva propiedad en MprisPlayer, se actualiza en _update() cuando playbackStatus === 'Playing'
+  - getActivePlayer(): nuevo método en MprisService con scoring tipo dynamic-music-pill:
+  - Playing+hasTitle → 500pts, Paused+hasTitle → 100pts
+  - Tiebreak por lastPlayingTime (más reciente gana)
+  - Si el top scorer no está Playing pero otro sí → gana el que está Playing
+  - _parseMetadata() ahora limpia _trackTitle cuando metadata es null (antes no, causaba stale data)
+- dateMenu.js
+  - _onPlayerListChanged(): usa getActivePlayer() en vez de find(p => p.isPlaying())
+  - _onPlayerUpdate(): conectado directamente al changed del player activo → responde inmediatamente a cambios de Metadata/PlaybackStatus, sin esperar el timer de 1s
+  - Timer de 1s: solo actualiza el reloj, ya no hace polling de estado multimedia
+  - y_align: CENTER en _mediaLabel para centrar el texto verticalmente
+  - Desconexión segura: al cambiar de player activo, desconecta la señal changed del anterior antes de conectar al nuevo
+  - dateMenu.js — _onPlayerUpdate() ahora compara el texto mostrado (_lastMediaText) y cover URL en vez de track
+  - newPlayer && newPlayer === this._player evita el early return cuando ambos son null. Si no hay player activo, cae al else (líneas 117-122) y se conecta al primer player disponible como "dormant" — así escucha su changed para detectar cuando empiece a reproducir.
+  - _onPlayerUpdate() re-evalúa getActivePlayer() en cada cambio. Si un player dormant empieza a reproducir (o el usuario cambia de fuente multimedia), detecta que el active player cambió y llama _onPlayerListChanged() para reconectar y sincronizar.
 
-
+Esto cubre:
+- Startup: scan inicial emitió player-added antes de que conectáramos handlers → detectamos el player dormant → cuando empieza a sonar, _onPlayerUpdate dispara reconexión
+- Multi-source: cambiar entre Spotify/Firefox sin add/remove → _onPlayerUpdate detecta el nuevo active player y reconecta
+- Normal: track changes dentro del mismo player siguen funcionando con comparación de texto

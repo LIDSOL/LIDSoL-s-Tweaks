@@ -18,8 +18,11 @@ export class AtAGlanceIndicator {
         this._timerId = 0;
         this._service = null;
         this._serviceHandlers = [];
+        this._playerChangedId = 0;
         this._player = null;
-        this._lastTrackId = null;
+        this._lastMediaText = '';
+        this._lastCoverUrl = null;
+        this._lastPlayingState = false;
         this._settingsChangedId = 0;
     }
 
@@ -62,6 +65,7 @@ export class AtAGlanceIndicator {
         this._mediaLabel = new St.Label({
             style_class: 'at-a-glance-media-label',
             text: '',
+            y_align: Clutter.ActorAlign.CENTER,
         });
         this._mediaPill.add_child(this._mediaLabel);
 
@@ -73,14 +77,13 @@ export class AtAGlanceIndicator {
 
         this._service = MprisService.getDefault();
         this._serviceHandlers = [
-            this._service.connect('player-added', this._onPlayerChanged.bind(this)),
-            this._service.connect('player-removed', this._onPlayerChanged.bind(this)),
+            this._service.connect('player-added', this._onPlayerListChanged.bind(this)),
+            this._service.connect('player-removed', this._onPlayerListChanged.bind(this)),
         ];
-        this._onPlayerChanged();
+        this._onPlayerListChanged();
 
         this._updateClock();
         this._timerId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1, () => {
-            this._checkPlayerState();
             this._updateClock();
             return GLib.SOURCE_CONTINUE;
         });
@@ -90,34 +93,79 @@ export class AtAGlanceIndicator {
         });
     }
 
-    _onPlayerChanged() {
-        const players = this._service.players;
-        this._player = players.find(p => p.isPlaying()) || players[0] || null;
-        this._updateMedia();
-        this._updateMediaVisibility();
+    _onPlayerListChanged() {
+        const newPlayer = this._service.getActivePlayer();
+
+        if (newPlayer && newPlayer === this._player)
+            return;
+
+        if (this._playerChangedId && this._player) {
+            this._player.disconnect(this._playerChangedId);
+            this._playerChangedId = 0;
+        }
+
+        this._player = newPlayer;
+        this._lastMediaText = '';
+        this._lastCoverUrl = null;
+
+        if (this._player) {
+            this._playerChangedId = this._player.connect('changed', () => {
+                this._onPlayerUpdate();
+            });
+            this._syncPlayerState();
+        } else {
+            const players = this._service.players;
+            if (players.length > 0) {
+                this._player = players[0];
+                this._playerChangedId = this._player.connect('changed', () => {
+                    this._onPlayerUpdate();
+                });
+            }
+            this._updateMedia();
+            this._updateMediaVisibility();
+        }
     }
 
-    _checkPlayerState() {
-        const hadPlayer = !!this._player;
-        const wasPlaying = this._player && this._player.isPlaying();
+    _onPlayerUpdate() {
+        if (!this._player) return;
 
-        const players = this._service.players;
-        this._player = players.find(p => p.isPlaying()) || players[0] || null;
-        const nowPlaying = this._player && this._player.isPlaying();
-
-        if (wasPlaying !== nowPlaying || (!hadPlayer && nowPlaying))
-            this._updateMediaVisibility();
-
-        if (this._player && (this._player.trackId !== this._lastTrackId)) {
-            this._lastTrackId = this._player.trackId;
-            this._updateMedia();
+        const activePlayer = this._service.getActivePlayer();
+        if (activePlayer && activePlayer !== this._player) {
+            this._onPlayerListChanged();
+            return;
         }
+
+        const nowPlaying = this._player.isPlaying();
+        const title = this._player.trackTitle || '';
+        const artist = this._player.trackArtists ? this._player.trackArtists.join(', ') : '';
+        const text = title + (artist ? ` — ${artist}` : '');
+        const cover = this._player.trackCoverUrl;
+
+        if (nowPlaying !== this._lastPlayingState ||
+            text !== this._lastMediaText ||
+            cover !== this._lastCoverUrl) {
+            this._lastPlayingState = nowPlaying;
+            this._lastMediaText = text;
+            this._lastCoverUrl = cover;
+            this._updateMedia();
+            this._updateMediaVisibility();
+        }
+    }
+
+    _syncPlayerState() {
+        if (!this._player) return;
+        const title = this._player.trackTitle || '';
+        const artist = this._player.trackArtists ? this._player.trackArtists.join(', ') : '';
+        this._lastMediaText = title + (artist ? ` — ${artist}` : '');
+        this._lastCoverUrl = this._player.trackCoverUrl;
+        this._lastPlayingState = this._player.isPlaying();
+        this._updateMedia();
+        this._updateMediaVisibility();
     }
 
     _updateMedia() {
         if (!this._player) {
             this._mediaLabel.text = '';
-            this._lastTrackId = null;
             return;
         }
 
@@ -135,9 +183,8 @@ export class AtAGlanceIndicator {
 
     _updateMediaVisibility() {
         const showMedia = this._gsettings.get_boolean('dm-show-media');
-        const isPlaying = this._player && this._player.isPlaying();
 
-        if (showMedia && isPlaying) {
+        if (showMedia && this._lastPlayingState) {
             this._clockLabel.visible = false;
             this._mediaPill.visible = true;
         } else {
@@ -156,6 +203,11 @@ export class AtAGlanceIndicator {
         if (this._timerId) {
             GLib.Source.remove(this._timerId);
             this._timerId = 0;
+        }
+
+        if (this._playerChangedId && this._player) {
+            this._player.disconnect(this._playerChangedId);
+            this._playerChangedId = 0;
         }
 
         if (this._settingsChangedId) {

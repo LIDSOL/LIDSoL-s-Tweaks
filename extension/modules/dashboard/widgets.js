@@ -611,7 +611,7 @@ class AppsWidget extends DashWidget {
 export var SettingsWidget = GObject.registerClass(
 class SettingsWidget extends DashWidget {
     _init(settings, parentDialog) {
-        super._init(settings, 'settings', parentDialog);
+        super._init(settings, 'settings', parentDialog, {x_expand: true});
         this._connect('icon-size');
         this._connect('vertical');
         this._sync();
@@ -651,7 +651,7 @@ class SettingsWidget extends DashWidget {
 export var SystemWidget = GObject.registerClass(
 class SystemWidget extends DashWidget {
     _init(settings, parentDialog) {
-        super._init(settings, 'system', parentDialog);
+        super._init(settings, 'system', parentDialog, {x_expand: true});
         this._connect('icon-size');
         this._connect('layout');
         this._sync();

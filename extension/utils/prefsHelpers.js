@@ -181,13 +181,18 @@ export function createEntryRow({ settings, bindKey, title, subtitle }) {
         text: settings.get_string(bindKey) || '',
         valign: Gtk.Align.CENTER,
     });
-    const focusController = new Gtk.EventControllerFocus();
-    focusController.connect('leave', () => {
+    let updating = false;
+    entry.connect('changed', () => {
+        if (updating) return;
+        updating = true;
         settings.set_string(bindKey, entry.get_buffer().text || '');
+        updating = false;
     });
-    entry.add_controller(focusController);
     settings.connect(`changed::${bindKey}`, () => {
+        if (updating) return;
+        updating = true;
         entry.set_text(settings.get_string(bindKey) || '');
+        updating = false;
     });
     row.add_suffix(entry);
     row.activatable_widget = entry;

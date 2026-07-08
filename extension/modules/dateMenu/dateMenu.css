@@ -1,0 +1,17 @@
+.at-a-glance-indicator {
+    spacing: 0;
+}
+
+.at-a-glance-media {
+    spacing: 6px;
+}
+
+.at-a-glance-media-art {
+    border-radius: 12px;
+    min-width: 24px;
+    min-height: 24px;
+}
+
+.at-a-glance-media-label {
+    font-size: 9pt;
+}

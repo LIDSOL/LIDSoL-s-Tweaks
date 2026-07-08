@@ -44,15 +44,15 @@ DEADLINE: <2026-07-11 Sat>
   - Visibilidad de ícono y porcentaje.
   - Dimensiones.
   - Colores dinámicos configurables (batería baja, cargando, normal)
-**** TODO [#B] Date Menu (dinámico) :topbar:
+**** IN-PROGRESS [#B] Date Menu (dinámico) [0/3] :topbar:
 DEADLINE: <2026-07-11 Sat>
 - Descripción: Basado en [[https://www.androidauthority.com/pixel-launcher-at-a-glance-widget-visibility-update-3597606/][el widget At a Glance de los Google Pixel]]. El texto del "Date Menu" cambia dinámicamente, muestra el contenido multimedia que se reproduce actualmente e indica de notificaciones.
-***** Date Menu Formatter :topbar:
+***** IN-PROGRESS Date Menu Formatter :topbar:
 [[./img/date-format.png]]
 
 - Descripción: Permite la personalización del formato de la fecha y hora en el panel.
   - Aylur's Widget tiene un componente que permite personalizar esto, también se tomará como referencia el código de la extensión [[https://extensions.gnome.org/extension/4655/date-menu-formatter/][Date Menu Formatter de Marcin Jakubowski]]. Esta última compatible hasta GNOME 50, por lo que no debería ser difícil integrarla.  
-***** Media Player
+***** TODO Media Player
 [[./img/aylurs-player.png]]
 
 - Descripción: Controles multimedia integrados en el Date Menu ó Top Bar. El indicador no es visible al menos que se reproduzca contenido multimedia, tomando el lugar del Date Menu.
@@ -68,7 +68,7 @@ DEADLINE: <2026-07-11 Sat>
 - [ ] Selección de reproductor preferido o descartados
 - [ ] Gestionar caché (portada de álbumes)
 - [ ] Widget de reproducción multimedia personalizable accesible desde el DateMenu
-***** Notification Indicator
+***** TODO Notification Indicator
 - Descripción: Indicador de notificaciones (contador numérico). 
 **** IN-PROGRESS [#A] Dashboard [2/12]
 DEADLINE: <2026-07-09 Thu>
@@ -635,8 +635,26 @@ Faltaban:
 - iowait, irq, softirq, steal en total
 Cuando el CPU atendía I/O o interrupciones entre dos lecturas, esos ticks se iban a campos que ignorábamos. El denominador totalDelta era artificialmente pequeño → usedDelta / totalDelta se disparaba.
 Ahora todos los campos en currentCPUTotal y nice en currentCPUUsed son incluidos, y se añadireron guardas para valores negativos/NaN/Infinity.
-** Cambios actuales: Feat, acción al pulsar el widget de monitor del sistema
+** a26abc9: Feat, acción al pulsar el widget de monitor del sistema
 - Schema: añadido dashboard-levels-command (string, default gnome-system-monitor)
 - Levels click: LevelsBox recibe _parentDialog, y el handler de button-press-event cierra el diálogo antes de ejecutar el comando.
- 
+** Cambios actuales: feat: se implementa el date menu config y el indicador de reproducción multimedia. Cambios al dashboard.
+- Se crearon los archivos:
+  - extension/modules/dateMenu/module.js — DateMenuModule (enable/disable, stylesheet, settings reload)
+  - extension/modules/dateMenu/dateMenu.js — AtAGlanceIndicator (reemplazo del reloj con formato personalizado + media pill)
+  - extension/modules/dateMenu/dateMenu.css — estilos mínimos
+- Modificaciones:
+  - schemas/org.gnome.shell.extensions.lidsol-widgets.gschema.xml — 5 keys nuevas (dm-*)
+  - extension/core/moduleLoader.js — import + registro del módulo
+  - prefs.js — grupo "Date Menu" en Top Bar/Panel + diálogo de configuración
+  - Layout JSON en schema — las 3 filas ahora tienen "x_expand": true para que ocupen todo el ancho del dashboard.
+  - SystemWidget — super._init(..., {x_expand: true}) para que se expanda dentro de su fila, eliminando el espacio en blanco a la derecha.
+- Funcionamiento:
+  - 1. Activar desde Prefs → Top Bar/Panel → Date Menu
+  - 2. Reemplaza Main.panel.statusArea.dateMenu._clockDisplay por un St.BoxLayout con reloj formateado
+  - 3. Cuando dm-show-media está activo y hay reproducción MPRIS, el reloj se oculta y se muestra un pill con album art circular (24×24) + título/artista
+  - 4. Timer de 1s actualiza hora y verifica cambios de estado multimedia (play/pause/cambio de tema)
+  - 5. Clicks se propagan al dateMenu hermano (abre notificaciones/calendario normalmente)
+  - 6. Al deshabilitar, restaura _clockDisplay original
+
 

@@ -964,6 +964,25 @@
       <description>Elementos de la barra superior que deben mostrarse forzosamente</description>
     </key>
 
+    <!-- Date Menu (At a Glance) -->
+    <key type="b" name="dm-enabled">
+      <default>false</default>
+      <summary>Habilitar Date Menu (At a Glance)</summary>
+      <description>Reemplaza el reloj del panel por un formato personalizado con indicador multimedia opcional</description>
+    </key>
+
+    <key type="s" name="dm-format">
+      <default>"%B %d, %I:%M %p"</default>
+      <summary>Formato de fecha y hora</summary>
+      <description>Formato strftime para el reloj del panel (fecha y hora en una línea)</description>
+    </key>
+
+    <key type="b" name="dm-show-media">
+      <default>true</default>
+      <summary>Mostrar multimedia al reproducir</summary>
+      <description>Muestra la información de reproducción multimedia en lugar del reloj cuando hay contenido activo</description>
+    </key>
+
     <!-- Dashboard -->
     <key type="b" name="dashboard-enabled">
       <default>false</default>
@@ -1032,7 +1051,7 @@
     </key>
 
     <key type="s" name="dashboard-layout-json">
-      <default>'{"vertical":true,"children":[{"vertical":false,"children":["clock","settings","system"]},{"vertical":false,"children":[{"vertical":true,"children":["media","links"]},"apps"]},{"vertical":false,"children":["user","levels"]}]}'</default>
+      <default>'{"vertical":true,"children":[{"vertical":false,"x_expand":true,"children":["clock","settings","system"]},{"vertical":false,"x_expand":true,"children":[{"vertical":true,"children":["media","links"]},"apps"]},{"vertical":false,"x_expand":true,"children":["user","levels"]}]}'</default>
       <summary>Layout JSON</summary>
     </key>
 

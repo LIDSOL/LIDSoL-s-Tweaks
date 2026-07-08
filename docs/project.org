@@ -33,7 +33,7 @@ Diseñar, implementar y mantener una extensión modular para GNOME que reinterpr
   - [ ] Evitar que el contenido se "pegue" a los switch
 *** IN-PROGRESS Core
 *** IN-PROGRESS Utils
-*** IN-PROGRESS Módulos [4/12] [33%]
+*** IN-PROGRESS Módulos [4/11] [36%]
 **** TODO [#B] Battery Bar :topbar:
 DEADLINE: <2026-07-11 Sat>
 [[./img/aylurs-battery.png]]
@@ -70,8 +70,8 @@ DEADLINE: <2026-07-11 Sat>
 - [ ] Widget de reproducción multimedia personalizable accesible desde el DateMenu
 ***** Notification Indicator
 - Descripción: Indicador de notificaciones (contador numérico). 
-**** IN-PROGRESS [#A] Dashboard [0/13]
-DEADLINE: <2026-07-08 Wed>
+**** IN-PROGRESS [#A] Dashboard [2/12]
+DEADLINE: <2026-07-09 Thu>
 Notas:
 - **Sincrónico vs asíncrono**: Gio.DBusProxy.new_sync() parece más simple
   pero no espera a que el name-owner esté disponible. Usar new() + Promise
@@ -86,26 +86,25 @@ Notas:
 - **Export en ESM**: GObject.registerClass() con export var puede fallar
   si hay errores en tiempo de evaluación. Usar export { ... } explícito
   al final del archivo es más fiable.
-***** TODO Redondeo de las barras del monitor del sistema
-***** TODO El fondo de las barras del monitor del sistema debe coincidir con el color de acento del sistema.
-***** TODO El monitor del sistema no funciona correctamente
+***** DONE Redondeo de las barras del monitor del sistema
+***** DONE El monitor del sistema no funciona correctamente
+***** TODO Al hacer click en el reloj se debe abrir gnome clock, u otro programa que el usuario elija
 ***** TODO Opción de modificar direcciones e íconos en los accesos directos web
 ***** TODO Colocar íconos en los acceso directos web
-***** TODO Mejoras visuales en el dashboard (entrar los botones de control de multimedia, redondeo de portada)
+***** TODO Mejoras visuales en el dashboard (centrar los botones de control de multimedia, redondeo de portada)
 ***** TODO Al hacer click en algún botón del widget multimedia evitar que se cierre el dashboard
-***** TODO Al hacer click en el reloj se debe abrir gnome clock, u otro programa que el usuario elija
 ***** TODO Eliminar el fondo de los botones de botones de los ajustes/power
 ***** TODO Reducir el tamaño de la "ventana", el fondo del dashboard
 ***** TODO Opción "mostrar/ocultar" el fondo del dashboard
 ***** TODO Modificar el tamaño de los gaps del dashboard, la separación entre los widgets
 ***** TODO Cambiar el widget de lanzador (dashboard) por un widget del clima
 **** IN-PROGRESS [#C] Desktop Widgets :shell:
-DEADLINE: <2026-07-11 Sat>
+DEADLINE: <2026-07-18 Sat>
 ***** IN-PROGRESS Image Widget
 ***** Clock Widget
 ***** Weather Widget
 **** TODO [#B] Gnofi :shell:
-DEADLINE: <2026-07-08 Wed>
+DEADLINE: <2026-07-10 Fri>
 [[./img/gnofi.png]]
 
 - Descripción: Un launcher extensible, selector, buscador y paleta de comandos para GNOME. Añade un ícono al top bar que despliega el lanzador.
@@ -116,7 +115,7 @@ DEADLINE: <2026-07-08 Wed>
 - [X] Quick Settings
 - [X] Overlay Mode
 **** IN-PROGRESS [#B] Quick Text [1/4] :shell:
-DEADLINE: <2026-07-08 Wed>
+DEADLINE: <2026-07-09 Thu>
 - Descripción: Un atajo de teclado (Ctrl+Super+i, aunque es personalizable) abre una ventana de diálogo desde la cual podemos escribir contenido que se insertará en algún alchivo de texto plano de nuestra preferencia; podemos configurar un prefijo o sufijo al texto insertado. Es útil para tomar notas rápidas, fragmentos de texto y anotar ideas; puede usarse como complemento a cualquier app de notas basada en texto plano. El nombre y la ruta de acceso al archivo de destino deben establecerse antes de utilizar la extensión y el archivo debe existir.
   - Se usa como base el código de la extensión *Quick Text* de *Brainstormtrooper*. Esta extensión es compatible hasta GNOME 47, por lo que será necesario darle mantenimiento para darle compatibilidad con GNOME 50.
     - [[https://github.com/brainstormtrooper/quicktext][QuickText (GitHub)]]
@@ -138,19 +137,6 @@ Para ello, se puede tomar como base la extensión [[https://github.com/boerderei
   - Se usa como base el código de la extensión [[https://github.com/aunetx/panel-corners][Panel Corners de Aunetx]].
   - Esta extensión es compatible con GNOME 50, por lo que será fácil de integrar.
 - [X] Integrar la extensión a LIDSoL'S Extension
-**** TODO [#C] Power Menu
-DEADLINE: <2026-07-11 Sat>
-[[./img/aylurs-power.png]]
-
-- Descripción: Botón personalizable con diálogo de apagado. Este es de los módulos más simples, por lo que puede ser ideal para implementar al inicio.
-  - Se toma como base uno de los módulos de Aylur's Widgets.
-  - Compatibilidad hasta GNOME 44, por lo que _será necesario darle mantenimiento_ para hacerlo compatible con GNOME 50.
-- [ ] Configuraciones
-  - [ ] Posición
-  - [ ] Layout (2x2 o 1x4)
-  - [ ] Tamaño y redondez
-  - [ ] Padding y espaciado
-  - [ ] Fondo del díalogo
 **** DONE Top Bar Organized :topbar:
 DEADLINE: <2026-07-04 Sat>
 - Descripción: Permite cambiar la ubicación de los elementos en el Top Bar. Compatible hasta GNOME 50, así que será fácil de integrar.
@@ -636,7 +622,7 @@ Mensaje de saludo dinámico según hora en dashboard UserWidget:
 - Reglas para .level-fill con colores Adwaita: verde #3A944A, amarillo #C88800, naranja #ED5B00, rojo #E42D42.
 - Estilo para .level-bar y .usage-level StIcon.
 - Pseudo-clases mapean al fill (:red .level-fill, :orange .level-fill, etc.).
-** Cambios actuales: fix en el monitor del  sistema.
+** f183e28: fix en el monitor del  sistema.
 Picos anormales en el uso del upc que no corresponden con el uso verdadero.
 - Raiz del problema: 
 Raíz del problema: la línea cpu de /proc/stat tiene 10+ columnas. Solo leíamos 3:
@@ -649,4 +635,8 @@ Faltaban:
 - iowait, irq, softirq, steal en total
 Cuando el CPU atendía I/O o interrupciones entre dos lecturas, esos ticks se iban a campos que ignorábamos. El denominador totalDelta era artificialmente pequeño → usedDelta / totalDelta se disparaba.
 Ahora todos los campos en currentCPUTotal y nice en currentCPUUsed son incluidos, y se añadireron guardas para valores negativos/NaN/Infinity.
+** Cambios actuales: Feat, acción al pulsar el widget de monitor del sistema
+- Schema: añadido dashboard-levels-command (string, default gnome-system-monitor)
+- Levels click: LevelsBox recibe _parentDialog, y el handler de button-press-event cierra el diálogo antes de ejecutar el comando.
+ 
 

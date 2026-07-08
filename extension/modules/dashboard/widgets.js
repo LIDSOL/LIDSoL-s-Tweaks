@@ -313,7 +313,7 @@ class LevelsWidget extends DashWidget {
 
     _buildUI() {
         this.destroy_all_children();
-        this._levels = new LevelsBox(this._settings);
+        this._levels = new LevelsBox(this._settings, this._parentDialog);
         this.add_child(this._levels);
     }
 
@@ -325,14 +325,17 @@ class LevelsWidget extends DashWidget {
 
 const LevelsBox = GObject.registerClass(
 class LevelsBox extends St.BoxLayout {
-    _init(settings) {
+    _init(settings, parentDialog = null) {
         super._init({
             vertical: true,
             style_class: 'levels-box',
             x_expand: true,
             y_expand: true,
+            reactive: true,
+            track_hover: true,
         });
         this._settings = settings;
+        this._parentDialog = parentDialog;
         this.levels = [];
         this._handlerIds = [];
 
@@ -344,6 +347,15 @@ class LevelsBox extends St.BoxLayout {
 
         this._sync();
         this._timeout = null;
+
+        this.connect('button-press-event', () => {
+            if (this._parentDialog)
+                this._parentDialog.close();
+            const cmd = this._settings.get_string('dashboard-levels-command');
+            if (cmd)
+                Util.spawnCommandLine(cmd);
+            return Clutter.EVENT_STOP;
+        });
 
         this.connect('destroy', () => {
             this.stopTimeout();

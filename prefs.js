@@ -531,6 +531,17 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
             exp.add_row(_makeExpandRow('Show CPU', 'dashboard-levels-show-cpu'));
             exp.add_row(_makeExpandRow('Show RAM', 'dashboard-levels-show-ram'));
             exp.add_row(_makeExpandRow('Show Temperature', 'dashboard-levels-show-temp'));
+
+            const commandEntry = new Gtk.Entry({
+                text: s.get_string('dashboard-levels-command'),
+                valign: Gtk.Align.CENTER,
+            });
+            const cf = new Gtk.EventControllerFocus();
+            cf.connect('leave', () => s.set_string('dashboard-levels-command', commandEntry.get_buffer().text));
+            commandEntry.add_controller(cf);
+            const commandRow = new Adw.ActionRow({ title: 'Command', activatable_widget: commandEntry });
+            commandRow.add_suffix(commandEntry);
+            exp.add_row(commandRow);
         }));
 
         widgetsGroup.add(_makeWidgetExpander('media', 'Media Player', exp => {

@@ -1010,6 +1010,24 @@
       <description>Altura en píxeles del área del visualizador</description>
     </key>
 
+    <key type="b" name="dm-pill-mode">
+      <default>false</default>
+      <summary>Modo píldora</summary>
+      <description>Muestra el indicador multimedia con fondo y borde del color del álbum</description>
+    </key>
+
+    <key type="b" name="dm-pill-border">
+      <default>true</default>
+      <summary>Borde de la píldora</summary>
+      <description>Muestra un borde de 1px en el modo píldora con el color de acento más cercano</description>
+    </key>
+
+    <key type="b" name="dm-hide-text">
+      <default>false</default>
+      <summary>Modo compacto</summary>
+      <description>Oculta el texto del título y artista. Solo muestra reloj, carátula y visualizador</description>
+    </key>
+
     <!-- Dashboard -->
     <key type="b" name="dashboard-enabled">
       <default>false</default>

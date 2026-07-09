@@ -539,6 +539,10 @@ var MprisService = GObject.registerClass({
         return [...this._players.values()].filter(p => p.canPlay);
     }
 
+    get allPlayers() {
+        return [...this._players.values()];
+    }
+
     destroy() {
         for (const [name, player] of this._players) {
             player.disconnectObject(this);

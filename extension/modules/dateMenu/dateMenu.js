@@ -21,7 +21,6 @@ export class AtAGlanceIndicator {
         this._timerId = 0;
         this._service = null;
         this._serviceHandlers = [];
-        this._playerChangedId = 0;
         this._player = null;
         this._lastMediaText = '';
         this._lastCoverUrl = null;
@@ -37,6 +36,7 @@ export class AtAGlanceIndicator {
         this._pillModeChangedId = 0;
         this._pillBorderChangedId = 0;
         this._hideTextChangedId = 0;
+        this._playerChangedIds = [];
     }
 
     enable(gsettings) {
@@ -89,11 +89,10 @@ export class AtAGlanceIndicator {
         this._mediaPill.reactive = true;
         this._mediaPill.set_pivot_point(0.5, 0.5);
         this._mediaPill.connect('button-press-event', () => {
-            this._mediaPill.remove_all_transitions();
             this._mediaPill.ease({
-                scale_x: 0.96,
-                scale_y: 0.96,
-                duration: 75,
+                scale_x: 0.90,
+                scale_y: 0.90,
+                duration: 100,
                 mode: Clutter.AnimationMode.EASE_OUT_QUAD,
             });
             return Clutter.EVENT_PROPAGATE;
@@ -102,7 +101,7 @@ export class AtAGlanceIndicator {
             this._mediaPill.ease({
                 scale_x: 1.0,
                 scale_y: 1.0,
-                duration: 160,
+                duration: 200,
                 mode: Clutter.AnimationMode.EASE_OUT_BACK,
             });
             return Clutter.EVENT_PROPAGATE;
@@ -111,7 +110,7 @@ export class AtAGlanceIndicator {
             this._mediaPill.ease({
                 scale_x: 1.0,
                 scale_y: 1.0,
-                duration: 100,
+                duration: 150,
                 mode: Clutter.AnimationMode.EASE_OUT_QUAD,
             });
             return Clutter.EVENT_PROPAGATE;
@@ -162,47 +161,57 @@ export class AtAGlanceIndicator {
         });
     }
 
+    _connectAllPlayers() {
+        for (const entry of this._playerChangedIds) {
+            entry.player.disconnect(entry.id);
+        }
+        this._playerChangedIds = [];
+
+        for (const player of this._service.allPlayers) {
+            const id = player.connect('changed', () => {
+                this._onAnyPlayerUpdate(player);
+            });
+            this._playerChangedIds.push({ player, id });
+        }
+    }
+
     _onPlayerListChanged() {
         const newPlayer = this._service.getActivePlayer();
 
-        if (newPlayer && newPlayer === this._player)
-            return;
-
-        if (this._playerChangedId && this._player) {
-            this._player.disconnect(this._playerChangedId);
-            this._playerChangedId = 0;
-        }
+        this._connectAllPlayers();
 
         this._player = newPlayer;
         this._lastMediaText = '';
         this._lastCoverUrl = null;
 
         if (this._player) {
-            this._playerChangedId = this._player.connect('changed', () => {
-                this._onPlayerUpdate();
-            });
             this._syncPlayerState();
         } else {
-            const players = this._service.players;
+            const players = this._service.allPlayers;
             if (players.length > 0) {
                 this._player = players[0];
-                this._playerChangedId = this._player.connect('changed', () => {
-                    this._onPlayerUpdate();
-                });
             }
             this._updateMedia();
             this._updateMediaVisibility();
         }
     }
 
-    _onPlayerUpdate() {
-        if (!this._player) return;
-
+    _onAnyPlayerUpdate(emitter) {
         const activePlayer = this._service.getActivePlayer();
+
         if (activePlayer && activePlayer !== this._player) {
             this._onPlayerListChanged();
             return;
         }
+
+        if (emitter !== this._player)
+            return;
+
+        this._onPlayerUpdate();
+    }
+
+    _onPlayerUpdate() {
+        if (!this._player) return;
 
         const nowPlaying = this._player.isPlaying();
         const title = this._player.trackTitle || '';
@@ -314,17 +323,17 @@ export class AtAGlanceIndicator {
     }
 
     _extractColor(coverUrl) {
-        if (!coverUrl) {
-            this._pillBgColor = null;
-            this._applyPillStyle();
-            return;
-        }
-
         if (!this._gsettings.get_boolean('dm-pill-mode')) {
             this._pillBgColor = null;
             this._applyPillStyle();
             return;
         }
+
+        this._pillBgColor = { r: 60, g: 60, b: 60 };
+        this._applyPillStyle();
+
+        if (!coverUrl)
+            return;
 
         loadColorFromArt(coverUrl, (color) => {
             this._pillBgColor = color;
@@ -338,12 +347,13 @@ export class AtAGlanceIndicator {
         const pillMode = this._gsettings.get_boolean('dm-pill-mode');
         const showBorder = this._gsettings.get_boolean('dm-pill-border');
 
-        if (!pillMode || !this._pillBgColor) {
+        if (!pillMode) {
             this._mediaPill.set_style('');
             return;
         }
 
-        const { r, g, b } = this._pillBgColor;
+        const color = this._pillBgColor || { r: 60, g: 60, b: 60 };
+        const { r, g, b } = color;
         const accent = getClosestGnomeAccent(r, g, b);
         const borderColor = accent === 'slate' ? 'rgba(128,128,128,0.4)' : `rgba(${r},${g},${b},0.6)`;
         const borderStyle = showBorder ? `border: 1px solid ${borderColor};` : '';
@@ -393,10 +403,10 @@ export class AtAGlanceIndicator {
             this._timerId = 0;
         }
 
-        if (this._playerChangedId && this._player) {
-            this._player.disconnect(this._playerChangedId);
-            this._playerChangedId = 0;
+        for (const entry of this._playerChangedIds) {
+            entry.player.disconnect(entry.id);
         }
+        this._playerChangedIds = [];
 
         if (this._settingsChangedId) {
             this._gsettings.disconnect(this._settingsChangedId);

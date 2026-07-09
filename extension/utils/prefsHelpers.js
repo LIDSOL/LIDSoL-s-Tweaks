@@ -308,7 +308,7 @@ export function createRow({ parent, title, subtitle, activatable, onActivated })
     return row;
 }
 
-const DropDownChoice = GObject.registerClass({
+export const DropDownChoice = GObject.registerClass({
     GTypeName: 'LidSolDropDownChoice',
     Properties: {
         id: GObject.ParamSpec.string('id', 'ID', 'Identifier',

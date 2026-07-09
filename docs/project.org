@@ -678,7 +678,7 @@ Esto cubre:
 - Startup: scan inicial emitió player-added antes de que conectáramos handlers → detectamos el player dormant → cuando empieza a sonar, _onPlayerUpdate dispara reconexión
 - Multi-source: cambiar entre Spotify/Firefox sin add/remove → _onPlayerUpdate detecta el nuevo active player y reconecta
 - Normal: track changes dentro del mismo player siguen funcionando con comparación de texto
-** Cambios actuales
+** 25e0b41
 - crossfadeArt.js — port del CrossfadeArt con fade-in 1800ms (EASE_OUT_QUAD) + fade-out 300ms de capas viejas 
 - dateMenu.js
   - Debounce de pausa — cuando el player pasa a Stopped/Paused durante una transición de pista, espera 500ms antes de mostrar el reloj. Si el nuevo track empieza dentro de ese lapso, el contenido viejo se mantiene visible y se cancela el timer
@@ -686,4 +686,21 @@ Esto cubre:
   - Crossfade de carátula — _mediaArt.setArt() maneja el fade del album art independientemente
 - Schema — dm-show-art (bool, default true)
 - Prefs — switch "Mostrar carátula del álbum" bajo "Mostrar multimedia al reproducir"
+** Cambios actuales
+- visualizer.js — tres clases internas + wrapper:
+  - CavaEngine (GObject) — subprocess cava, lectura async de stdout, normalización FFT con EMA rolling max, detección de silencio (30 frames)
+  - SimulatedVisualizer (St.BoxLayout) — barras St.Widget con animación sintética vía GLib.timeout_add(16ms). Wave: sin(t - idx * 1.0) pivot_y=1.0. Beat: sin(t * speeds[idx]) pivot_y=0.5
+  - CavaVisualizer (St.DrawingArea) — Cairo repaint con barras simétricas desde el centro, peak dots, edge fade, suavizado EMA
+  - VisualizerWidget (exported, St.BoxLayout) — wrapper con setMode(), setBarCount(), setVisualizerHeight(), setPlaying(). Fallback automático 3→2 si cava no está instalado
+- Integración (dateMenu.js)
+  - _updateVisualizer() — lee dm-visualizer-style, aplica modo, visibilidad y playing state
+  - Llamado desde _updateMediaVisibility() (ciclo normal) y desde changed::dm-visualizer-style (cambio en vivo)
+  - Visualizer añadido al _mediaPill después de _mediaLabel
+- Schema
+  - dm-visualizer-style (int, 0-3, default 0)
+  - dm-visualizer-bars (int, 2-16, default 4)
+  - dm-visualizer-height (int, 8-64, default 24)
+- Prefs
+  - Grupo "Visualizador" con ComboRow (Off/Wave/Beat/Cava) + SpinButtonRow para barras y altura
+The fix: DropDownChoice ahora se exporta desde prefsHelpers.js y se importa en prefs.js. Sin eso, el diálogo de Date Menu fallaba con ReferenceError silencioso y nunca se abría, impidiendo cambiar dm-visualizer-style de su default 0.
 

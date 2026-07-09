@@ -6,6 +6,7 @@ import St from 'gi://St';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import { MprisService } from '../../utils/mprisService.js';
 import { CrossfadeArt } from './crossfadeArt.js';
+import { VisualizerWidget } from './visualizer.js';
 
 export class AtAGlanceIndicator {
     constructor() {
@@ -27,6 +28,10 @@ export class AtAGlanceIndicator {
         this._settingsChangedId = 0;
         this._showArtChangedId = 0;
         this._pauseDebounceId = 0;
+        this._visualizer = null;
+        this._vizStyleChangedId = 0;
+        this._vizBarsChangedId = 0;
+        this._vizHeightChangedId = 0;
     }
 
     enable(gsettings) {
@@ -71,6 +76,11 @@ export class AtAGlanceIndicator {
         });
         this._mediaPill.add_child(this._mediaLabel);
 
+        this._visualizer = new VisualizerWidget();
+        this._visualizer.setBarCount(this._gsettings.get_int('dm-visualizer-bars'));
+        this._visualizer.setVisualizerHeight(this._gsettings.get_int('dm-visualizer-height'));
+        this._mediaPill.add_child(this._visualizer);
+
         this._container.add_child(this._mediaPill);
 
         dateMenuButton.insert_child_at_index(this._container, 1);
@@ -95,6 +105,15 @@ export class AtAGlanceIndicator {
         });
         this._showArtChangedId = this._gsettings.connect('changed::dm-show-art', () => {
             this._updateArtVisibility();
+        });
+        this._vizStyleChangedId = this._gsettings.connect('changed::dm-visualizer-style', () => {
+            this._updateVisualizer();
+        });
+        this._vizBarsChangedId = this._gsettings.connect('changed::dm-visualizer-bars', () => {
+            this._visualizer?.setBarCount(this._gsettings.get_int('dm-visualizer-bars'));
+        });
+        this._vizHeightChangedId = this._gsettings.connect('changed::dm-visualizer-height', () => {
+            this._visualizer?.setVisualizerHeight(this._gsettings.get_int('dm-visualizer-height'));
         });
     }
 
@@ -246,6 +265,14 @@ export class AtAGlanceIndicator {
         this._mediaArt.visible = showArt && hasCover;
     }
 
+    _updateVisualizer() {
+        if (!this._visualizer) return;
+        const style = this._gsettings.get_int('dm-visualizer-style');
+        this._visualizer.setMode(style);
+        this._visualizer.visible = style > 0 && this._lastPlayingState;
+        this._visualizer.setPlaying(style > 0 && this._lastPlayingState);
+    }
+
     _updateMediaVisibility() {
         const showMedia = this._gsettings.get_boolean('dm-show-media');
 
@@ -256,6 +283,8 @@ export class AtAGlanceIndicator {
             this._clockLabel.visible = true;
             this._mediaPill.visible = false;
         }
+
+        this._updateVisualizer();
     }
 
     _updateClock() {
@@ -290,6 +319,19 @@ export class AtAGlanceIndicator {
             this._pauseDebounceId = 0;
         }
 
+        if (this._vizStyleChangedId) {
+            this._gsettings.disconnect(this._vizStyleChangedId);
+            this._vizStyleChangedId = 0;
+        }
+        if (this._vizBarsChangedId) {
+            this._gsettings.disconnect(this._vizBarsChangedId);
+            this._vizBarsChangedId = 0;
+        }
+        if (this._vizHeightChangedId) {
+            this._gsettings.disconnect(this._vizHeightChangedId);
+            this._vizHeightChangedId = 0;
+        }
+
         if (this._service) {
             this._serviceHandlers.forEach(h => this._service.disconnect(h));
             this._serviceHandlers = [];
@@ -315,6 +357,7 @@ export class AtAGlanceIndicator {
         this._mediaPill = null;
         this._mediaArt = null;
         this._mediaLabel = null;
+        this._visualizer = null;
         this._gsettings = null;
     }
 }

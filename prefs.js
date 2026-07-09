@@ -18,6 +18,7 @@ import {
   createEntryRow,
   createDialog,
   createGroup,
+  DropDownChoice,
 } from './extension/utils/prefsHelpers.js';
 
 const CATEGORIES = [
@@ -712,6 +713,62 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
       title: 'Mostrar carátula del álbum',
       subtitle: 'Muestra la carátula del álbum junto a la información de la canción (crossfade)',
     }));
+
+    const vizGroup = createGroup({
+      parent: page,
+      title: 'Visualizador',
+      description: 'Animaciones de barras que reaccionan a la reproducción multimedia',
+    });
+    vizGroup.add(this._createVisualizerStyleRow(s));
+    vizGroup.add(createSpinButtonRow({
+      settings: s,
+      bindKey: 'dm-visualizer-bars',
+      title: 'Barras',
+      subtitle: 'Cantidad de barras del visualizador',
+      adjProps: { lower: 2, upper: 16 },
+    }));
+    vizGroup.add(createSpinButtonRow({
+      settings: s,
+      bindKey: 'dm-visualizer-height',
+      title: 'Altura',
+      subtitle: 'Altura en píxeles del visualizador',
+      adjProps: { lower: 8, upper: 64 },
+    }));
+  }
+
+  _createVisualizerStyleRow(settings) {
+    const model = Gio.ListStore.new(DropDownChoice);
+    const options = { '0': 'Off', '1': 'Wave', '2': 'Beat', '3': 'Cava' };
+    for (const id in options)
+      model.append(new DropDownChoice({ id, title: options[id] }));
+
+    const row = new Adw.ComboRow({
+      title: 'Estilo',
+      subtitle: '0=Off, 1=Wave, 2=Beat, 3=Cava (requiere cava)',
+      model,
+      expression: Gtk.PropertyExpression.new(DropDownChoice, null, 'title'),
+    });
+
+    const updateSelected = () => {
+      const current = String(settings.get_int('dm-visualizer-style'));
+      for (let i = 0; i < model.get_n_items(); i++) {
+        if (model.get_item(i).id === current) {
+          row.selected = i;
+          return;
+        }
+      }
+      row.selected = Gtk.INVALID_LIST_POSITION;
+    };
+    updateSelected();
+
+    row.connect('notify::selected-item', () => {
+      const value = row.selectedItem?.id;
+      if (value !== undefined && value !== null)
+        settings.set_int('dm-visualizer-style', parseInt(value, 10));
+    });
+    settings.connect('changed::dm-visualizer-style', updateSelected);
+
+    return row;
   }
 
   _addEnableSubSwitch(group, settings, bindKey, title) {

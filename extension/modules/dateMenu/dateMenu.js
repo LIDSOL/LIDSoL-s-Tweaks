@@ -49,6 +49,15 @@ export class AtAGlanceIndicator {
             vertical: false,
             x_align: Clutter.ActorAlign.CENTER,
             y_align: Clutter.ActorAlign.CENTER,
+            reactive: true,
+        });
+        this._container.connect('enter-event', () => {
+            this._container.add_style_pseudo_class('hover');
+            return Clutter.EVENT_PROPAGATE;
+        });
+        this._container.connect('leave-event', () => {
+            this._container.remove_style_pseudo_class('hover');
+            return Clutter.EVENT_PROPAGATE;
         });
 
         this._clockLabel = new St.Label({
@@ -61,8 +70,10 @@ export class AtAGlanceIndicator {
             style_class: 'at-a-glance-media',
             visible: false,
             vertical: false,
-            x_align: Clutter.ActorAlign.CENTER,
+            x_align: Clutter.ActorAlign.FILL,
+            x_expand: true,
             y_align: Clutter.ActorAlign.CENTER,
+            clip_to_allocation: true,
         });
 
         this._mediaArt = new CrossfadeArt(12);

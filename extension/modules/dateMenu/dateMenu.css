@@ -2,8 +2,13 @@
     spacing: 0;
 }
 
+.at-a-glance-indicator:hover {
+    background-color: rgb(43, 43, 43);
+    border-radius: 16px;
+}
+
 .at-a-glance-indicator:active {
-    background-color: rgba(255, 255, 255, 0.3);
+    background-color: rgb(71, 71, 71);
     border-radius: 16px;
 }
 

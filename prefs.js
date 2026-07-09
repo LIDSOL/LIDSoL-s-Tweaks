@@ -706,6 +706,12 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
       title: 'Mostrar multimedia al reproducir',
       subtitle: 'Muestra el título y artista en lugar del reloj cuando hay música',
     }));
+    group.add(createSwitchRow({
+      settings: s,
+      bindKey: 'dm-show-art',
+      title: 'Mostrar carátula del álbum',
+      subtitle: 'Muestra la carátula del álbum junto a la información de la canción (crossfade)',
+    }));
   }
 
   _addEnableSubSwitch(group, settings, bindKey, title) {

@@ -983,6 +983,12 @@
       <description>Muestra la información de reproducción multimedia en lugar del reloj cuando hay contenido activo</description>
     </key>
 
+    <key type="b" name="dm-show-art">
+      <default>true</default>
+      <summary>Mostrar carátula del álbum</summary>
+      <description>Muestra la carátula del álbum junto a la información de reproducción multimedia</description>
+    </key>
+
     <!-- Dashboard -->
     <key type="b" name="dashboard-enabled">
       <default>false</default>

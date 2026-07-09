@@ -656,7 +656,7 @@ Ahora todos los campos en currentCPUTotal y nice en currentCPUUsed son incluidos
   - 4. Timer de 1s actualiza hora y verifica cambios de estado multimedia (play/pause/cambio de tema)
   - 5. Clicks se propagan al dateMenu hermano (abre notificaciones/calendario normalmente)
   - 6. Al deshabilitar, restaura _clockDisplay original
-** Cambios actuales
+** 66b49c8
 - mprisService.js
   - _lastPlayingTime: nueva propiedad en MprisPlayer, se actualiza en _update() cuando playbackStatus === 'Playing'
   - getActivePlayer(): nuevo método en MprisService con scoring tipo dynamic-music-pill:
@@ -678,3 +678,12 @@ Esto cubre:
 - Startup: scan inicial emitió player-added antes de que conectáramos handlers → detectamos el player dormant → cuando empieza a sonar, _onPlayerUpdate dispara reconexión
 - Multi-source: cambiar entre Spotify/Firefox sin add/remove → _onPlayerUpdate detecta el nuevo active player y reconecta
 - Normal: track changes dentro del mismo player siguen funcionando con comparación de texto
+** Cambios actuales
+- crossfadeArt.js — port del CrossfadeArt con fade-in 1800ms (EASE_OUT_QUAD) + fade-out 300ms de capas viejas 
+- dateMenu.js
+  - Debounce de pausa — cuando el player pasa a Stopped/Paused durante una transición de pista, espera 500ms antes de mostrar el reloj. Si el nuevo track empieza dentro de ese lapso, el contenido viejo se mantiene visible y se cancela el timer
+  - Crossfade de texto — al cambiar de pista, el texto del label hace fade-out 150ms → cambio de texto → fade-in 300ms
+  - Crossfade de carátula — _mediaArt.setArt() maneja el fade del album art independientemente
+- Schema — dm-show-art (bool, default true)
+- Prefs — switch "Mostrar carátula del álbum" bajo "Mostrar multimedia al reproducir"
+

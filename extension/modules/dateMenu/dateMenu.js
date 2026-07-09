@@ -5,6 +5,7 @@ import Clutter from 'gi://Clutter';
 import St from 'gi://St';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import { MprisService } from '../../utils/mprisService.js';
+import { CrossfadeArt } from './crossfadeArt.js';
 
 export class AtAGlanceIndicator {
     constructor() {
@@ -24,6 +25,8 @@ export class AtAGlanceIndicator {
         this._lastCoverUrl = null;
         this._lastPlayingState = false;
         this._settingsChangedId = 0;
+        this._showArtChangedId = 0;
+        this._pauseDebounceId = 0;
     }
 
     enable(gsettings) {
@@ -55,11 +58,10 @@ export class AtAGlanceIndicator {
             y_align: Clutter.ActorAlign.CENTER,
         });
 
-        this._mediaArt = new St.Widget({
-            style_class: 'at-a-glance-media-art',
-            width: 24,
-            height: 24,
-        });
+        this._mediaArt = new CrossfadeArt(12);
+        this._mediaArt.add_style_class_name('at-a-glance-media-art');
+        this._mediaArt.set_width(24);
+        this._mediaArt.set_height(24);
         this._mediaPill.add_child(this._mediaArt);
 
         this._mediaLabel = new St.Label({
@@ -90,6 +92,9 @@ export class AtAGlanceIndicator {
 
         this._settingsChangedId = this._gsettings.connect('changed::dm-show-media', () => {
             this._updateMediaVisibility();
+        });
+        this._showArtChangedId = this._gsettings.connect('changed::dm-show-art', () => {
+            this._updateArtVisibility();
         });
     }
 
@@ -141,15 +146,70 @@ export class AtAGlanceIndicator {
         const text = title + (artist ? ` — ${artist}` : '');
         const cover = this._player.trackCoverUrl;
 
-        if (nowPlaying !== this._lastPlayingState ||
-            text !== this._lastMediaText ||
-            cover !== this._lastCoverUrl) {
-            this._lastPlayingState = nowPlaying;
-            this._lastMediaText = text;
-            this._lastCoverUrl = cover;
-            this._updateMedia();
-            this._updateMediaVisibility();
+        if (nowPlaying) {
+            if (this._pauseDebounceId) {
+                GLib.Source.remove(this._pauseDebounceId);
+                this._pauseDebounceId = 0;
+            }
+            this._onMediaUpdate(text, cover, true);
+            return;
         }
+
+        if (!this._pauseDebounceId) {
+            this._pauseDebounceId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
+                this._pauseDebounceId = 0;
+                this._lastPlayingState = false;
+                this._lastMediaText = '';
+                this._lastCoverUrl = null;
+                this._updateMedia();
+                this._updateMediaVisibility();
+                return GLib.SOURCE_REMOVE;
+            });
+        }
+    }
+
+    _onMediaUpdate(text, cover, nowPlaying) {
+        const textChanged = text !== this._lastMediaText;
+        const coverChanged = cover !== this._lastCoverUrl;
+        const stateChanged = nowPlaying !== this._lastPlayingState;
+
+        if (!textChanged && !coverChanged && !stateChanged)
+            return;
+
+        this._lastPlayingState = nowPlaying;
+        this._lastMediaText = text;
+        this._lastCoverUrl = cover;
+
+        if (textChanged)
+            this._crossfadeMedia(text, cover);
+        else
+            this._updateMedia();
+
+        this._updateMediaVisibility();
+    }
+
+    _crossfadeMedia(text, cover) {
+        if (this._mediaLabel.text !== text) {
+            this._mediaLabel.remove_all_transitions();
+            this._mediaLabel.ease({
+                opacity: 0,
+                duration: 150,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                onStopped: () => {
+                    this._mediaLabel.text = text;
+                    this._mediaLabel.ease({
+                        opacity: 255,
+                        duration: 300,
+                        mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                    });
+                },
+            });
+        }
+
+        if (cover)
+            this._mediaArt.setArt(cover);
+
+        this._updateArtVisibility();
     }
 
     _syncPlayerState() {
@@ -174,11 +234,16 @@ export class AtAGlanceIndicator {
         const text = title + (artist ? ` — ${artist}` : '');
         this._mediaLabel.text = text;
 
-        if (this._player.trackCoverUrl) {
-            this._mediaArt.style = `background-image: url('${this._player.trackCoverUrl}'); background-size: cover;`;
-        } else {
-            this._mediaArt.style = '';
-        }
+        if (this._player.trackCoverUrl)
+            this._mediaArt.setArt(this._player.trackCoverUrl);
+
+        this._updateArtVisibility();
+    }
+
+    _updateArtVisibility() {
+        const showArt = this._gsettings.get_boolean('dm-show-art');
+        const hasCover = !!this._player?.trackCoverUrl;
+        this._mediaArt.visible = showArt && hasCover;
     }
 
     _updateMediaVisibility() {
@@ -213,6 +278,16 @@ export class AtAGlanceIndicator {
         if (this._settingsChangedId) {
             this._gsettings.disconnect(this._settingsChangedId);
             this._settingsChangedId = 0;
+        }
+
+        if (this._showArtChangedId) {
+            this._gsettings.disconnect(this._showArtChangedId);
+            this._showArtChangedId = 0;
+        }
+
+        if (this._pauseDebounceId) {
+            GLib.Source.remove(this._pauseDebounceId);
+            this._pauseDebounceId = 0;
         }
 
         if (this._service) {

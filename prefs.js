@@ -715,18 +715,6 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     }));
     group.add(createSwitchRow({
       settings: s,
-      bindKey: 'dm-pill-mode',
-      title: 'Pill Mode',
-      subtitle: 'Fondo con el color extraído de la carátula y bordes redondeados',
-    }));
-    group.add(createSwitchRow({
-      settings: s,
-      bindKey: 'dm-pill-border',
-      title: 'Borde decorativo',
-      subtitle: 'Borde fino con el color del acento GNOME más cercano',
-    }));
-    group.add(createSwitchRow({
-      settings: s,
       bindKey: 'dm-hide-text',
       title: 'Modo compacto',
       subtitle: 'Oculta el texto del tema musical; siempre muestra el reloj',

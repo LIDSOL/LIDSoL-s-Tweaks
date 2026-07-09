@@ -7,7 +7,6 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import { MprisService } from '../../utils/mprisService.js';
 import { CrossfadeArt } from './crossfadeArt.js';
 import { VisualizerWidget } from './visualizer.js';
-import { loadColorFromArt, getClosestGnomeAccent } from './colorUtils.js';
 
 export class AtAGlanceIndicator {
     constructor() {
@@ -32,11 +31,9 @@ export class AtAGlanceIndicator {
         this._vizStyleChangedId = 0;
         this._vizBarsChangedId = 0;
         this._vizHeightChangedId = 0;
-        this._pillBgColor = null;
-        this._pillModeChangedId = 0;
-        this._pillBorderChangedId = 0;
         this._hideTextChangedId = 0;
         this._playerChangedIds = [];
+        this._menuOpenId = 0;
     }
 
     enable(gsettings) {
@@ -86,36 +83,6 @@ export class AtAGlanceIndicator {
         this._visualizer.setVisualizerHeight(this._gsettings.get_int('dm-visualizer-height'));
         this._mediaPill.add_child(this._visualizer);
 
-        this._mediaPill.reactive = true;
-        this._mediaPill.set_pivot_point(0.5, 0.5);
-        this._mediaPill.connect('button-press-event', () => {
-            this._mediaPill.ease({
-                scale_x: 0.90,
-                scale_y: 0.90,
-                duration: 100,
-                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-            });
-            return Clutter.EVENT_PROPAGATE;
-        });
-        this._mediaPill.connect('button-release-event', () => {
-            this._mediaPill.ease({
-                scale_x: 1.0,
-                scale_y: 1.0,
-                duration: 200,
-                mode: Clutter.AnimationMode.EASE_OUT_BACK,
-            });
-            return Clutter.EVENT_PROPAGATE;
-        });
-        this._mediaPill.connect('leave-event', () => {
-            this._mediaPill.ease({
-                scale_x: 1.0,
-                scale_y: 1.0,
-                duration: 150,
-                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-            });
-            return Clutter.EVENT_PROPAGATE;
-        });
-
         this._container.add_child(this._mediaPill);
 
         dateMenuButton.insert_child_at_index(this._container, 1);
@@ -150,14 +117,15 @@ export class AtAGlanceIndicator {
         this._vizHeightChangedId = this._gsettings.connect('changed::dm-visualizer-height', () => {
             this._visualizer?.setVisualizerHeight(this._gsettings.get_int('dm-visualizer-height'));
         });
-        this._pillModeChangedId = this._gsettings.connect('changed::dm-pill-mode', () => {
-            this._applyPillStyle();
-        });
-        this._pillBorderChangedId = this._gsettings.connect('changed::dm-pill-border', () => {
-            this._applyPillStyle();
-        });
         this._hideTextChangedId = this._gsettings.connect('changed::dm-hide-text', () => {
             this._updateMediaVisibility();
+        });
+
+        this._menuOpenId = dateMenu.menu.connect('open-state-changed', (menu, open) => {
+            if (open)
+                this._container.add_style_pseudo_class('active');
+            else
+                this._container.remove_style_pseudo_class('active');
         });
     }
 
@@ -282,7 +250,6 @@ export class AtAGlanceIndicator {
         if (cover)
             this._mediaArt.setArt(cover);
 
-        this._extractColor(cover);
         this._updateArtVisibility();
     }
 
@@ -312,7 +279,6 @@ export class AtAGlanceIndicator {
         if (cover)
             this._mediaArt.setArt(cover);
 
-        this._extractColor(cover);
         this._updateArtVisibility();
     }
 
@@ -320,46 +286,6 @@ export class AtAGlanceIndicator {
         const showArt = this._gsettings.get_boolean('dm-show-art');
         const hasCover = !!this._player?.trackCoverUrl;
         this._mediaArt.visible = showArt && hasCover;
-    }
-
-    _extractColor(coverUrl) {
-        if (!this._gsettings.get_boolean('dm-pill-mode')) {
-            this._pillBgColor = null;
-            this._applyPillStyle();
-            return;
-        }
-
-        this._pillBgColor = { r: 60, g: 60, b: 60 };
-        this._applyPillStyle();
-
-        if (!coverUrl)
-            return;
-
-        loadColorFromArt(coverUrl, (color) => {
-            this._pillBgColor = color;
-            this._applyPillStyle();
-        });
-    }
-
-    _applyPillStyle() {
-        if (!this._mediaPill || !this._gsettings) return;
-
-        const pillMode = this._gsettings.get_boolean('dm-pill-mode');
-        const showBorder = this._gsettings.get_boolean('dm-pill-border');
-
-        if (!pillMode) {
-            this._mediaPill.set_style('');
-            return;
-        }
-
-        const color = this._pillBgColor || { r: 60, g: 60, b: 60 };
-        const { r, g, b } = color;
-        const accent = getClosestGnomeAccent(r, g, b);
-        const borderColor = accent === 'slate' ? 'rgba(128,128,128,0.4)' : `rgba(${r},${g},${b},0.6)`;
-        const borderStyle = showBorder ? `border: 1px solid ${borderColor};` : '';
-        this._mediaPill.set_style(
-            `background-color: rgba(${r},${g},${b},0.15); border-radius: 24px; padding: 0 12px; ${borderStyle}`
-        );
     }
 
     _updateVisualizer() {
@@ -403,6 +329,13 @@ export class AtAGlanceIndicator {
             this._timerId = 0;
         }
 
+        if (this._menuOpenId) {
+            const dateMenu = Main.panel.statusArea.dateMenu;
+            if (dateMenu && dateMenu.menu)
+                dateMenu.menu.disconnect(this._menuOpenId);
+            this._menuOpenId = 0;
+        }
+
         for (const entry of this._playerChangedIds) {
             entry.player.disconnect(entry.id);
         }
@@ -436,14 +369,6 @@ export class AtAGlanceIndicator {
             this._vizHeightChangedId = 0;
         }
 
-        if (this._pillModeChangedId) {
-            this._gsettings.disconnect(this._pillModeChangedId);
-            this._pillModeChangedId = 0;
-        }
-        if (this._pillBorderChangedId) {
-            this._gsettings.disconnect(this._pillBorderChangedId);
-            this._pillBorderChangedId = 0;
-        }
         if (this._hideTextChangedId) {
             this._gsettings.disconnect(this._hideTextChangedId);
             this._hideTextChangedId = 0;

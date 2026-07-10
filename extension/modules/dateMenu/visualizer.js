@@ -376,7 +376,6 @@ export const VisualizerWidget = GObject.registerClass(
         x_align: Clutter.ActorAlign.FILL,
         x_expand: true,
         visible: false,
-        style: 'margin-right: 5px;',
       });
       this.layout_manager.orientation = Clutter.Orientation.HORIZONTAL;
       this._mode = 0;

@@ -13,9 +13,10 @@ export class AtAGlanceIndicator {
         this._gsettings = null;
         this._container = null;
         this._clockLabel = null;
-        this._mediaPill = null;
-        this._mediaArt = null;
         this._mediaLabel = null;
+        this._textBox = null;
+        this._mediaArt = null;
+        this._visualizer = null;
         this._originalClockDisplay = null;
         this._timerId = 0;
         this._service = null;
@@ -27,11 +28,14 @@ export class AtAGlanceIndicator {
         this._settingsChangedId = 0;
         this._showArtChangedId = 0;
         this._pauseDebounceId = 0;
-        this._visualizer = null;
         this._vizStyleChangedId = 0;
         this._vizBarsChangedId = 0;
         this._vizHeightChangedId = 0;
-        this._hideTextChangedId = 0;
+        this._mediaLayoutChangedId = 0;
+        this._completeFormatChangedId = 0;
+        this._visEnabledChangedId = 0;
+        this._artPositionChangedId = 0;
+        this._visPositionChangedId = 0;
         this._playerChangedIds = [];
         this._menuOpenId = 0;
     }
@@ -44,6 +48,7 @@ export class AtAGlanceIndicator {
 
         this._originalClockDisplay = dateMenu._clockDisplay;
 
+        // Container: [art(if left), vis(if left), textBox, vis(if right), art(if right)]
         this._container = new St.BoxLayout({
             style_class: 'at-a-glance-indicator',
             vertical: false,
@@ -60,41 +65,42 @@ export class AtAGlanceIndicator {
             return Clutter.EVENT_PROPAGATE;
         });
 
-        this._clockLabel = new St.Label({
-            style_class: 'clock',
-            text: '...',
-        });
-        this._container.add_child(this._clockLabel);
-
-        this._mediaPill = new St.BoxLayout({
-            style_class: 'at-a-glance-media',
-            visible: false,
-            vertical: false,
-            x_align: Clutter.ActorAlign.FILL,
-            x_expand: true,
-            y_align: Clutter.ActorAlign.CENTER,
-            clip_to_allocation: true,
-        });
-
+        // Album art (always outermost, left or right)
         this._mediaArt = new CrossfadeArt(12);
         this._mediaArt.add_style_class_name('at-a-glance-media-art');
         this._mediaArt.set_width(24);
         this._mediaArt.set_height(24);
-        this._mediaPill.add_child(this._mediaArt);
+        this._container.add_child(this._mediaArt);
+
+        // Visualizer (inner, next to textBox)
+        this._visualizer = new VisualizerWidget();
+        this._visualizer.setBarCount(this._gsettings.get_int('dm-visualizer-bars'));
+        this._visualizer.setVisualizerHeight(this._gsettings.get_int('dm-visualizer-height'));
+        this._container.add_child(this._visualizer);
+
+        // Text wrapper: clock + track info
+        this._textBox = new St.BoxLayout({
+            vertical: false,
+            x_align: Clutter.ActorAlign.CENTER,
+            y_align: Clutter.ActorAlign.CENTER,
+        });
+
+        this._clockLabel = new St.Label({
+            style_class: 'clock',
+            text: '...',
+        });
+        this._textBox.add_child(this._clockLabel);
 
         this._mediaLabel = new St.Label({
             style_class: 'at-a-glance-media-label',
             text: '',
             y_align: Clutter.ActorAlign.CENTER,
         });
-        this._mediaPill.add_child(this._mediaLabel);
+        this._textBox.add_child(this._mediaLabel);
 
-        this._visualizer = new VisualizerWidget();
-        this._visualizer.setBarCount(this._gsettings.get_int('dm-visualizer-bars'));
-        this._visualizer.setVisualizerHeight(this._gsettings.get_int('dm-visualizer-height'));
-        this._mediaPill.add_child(this._visualizer);
+        this._container.add_child(this._textBox);
 
-        this._container.add_child(this._mediaPill);
+        this._reorderContainer();
 
         dateMenuButton.insert_child_at_index(this._container, 1);
         if (this._originalClockDisplay.get_parent())
@@ -128,7 +134,20 @@ export class AtAGlanceIndicator {
         this._vizHeightChangedId = this._gsettings.connect('changed::dm-visualizer-height', () => {
             this._visualizer?.setVisualizerHeight(this._gsettings.get_int('dm-visualizer-height'));
         });
-        this._hideTextChangedId = this._gsettings.connect('changed::dm-hide-text', () => {
+        this._mediaLayoutChangedId = this._gsettings.connect('changed::dm-media-layout', () => {
+            this._updateClock();
+            this._updateMediaVisibility();
+        });
+        this._visEnabledChangedId = this._gsettings.connect('changed::dm-visualizer-enabled', () => {
+            this._updateVisualizer();
+        });
+        this._completeFormatChangedId = this._gsettings.connect('changed::dm-complete-format', () => {
+            this._updateClock();
+        });
+        this._artPositionChangedId = this._gsettings.connect('changed::dm-art-position', () => {
+            this._updateMediaVisibility();
+        });
+        this._visPositionChangedId = this._gsettings.connect('changed::dm-visualizer-position', () => {
             this._updateMediaVisibility();
         });
 
@@ -232,7 +251,9 @@ export class AtAGlanceIndicator {
         this._lastMediaText = text;
         this._lastCoverUrl = cover;
 
-        if (textChanged)
+        const mediaLayout = this._gsettings.get_int('dm-media-layout');
+
+        if (textChanged && mediaLayout !== 1)
             this._crossfadeMedia(text, cover);
         else
             this._updateMedia();
@@ -294,43 +315,92 @@ export class AtAGlanceIndicator {
     }
 
     _updateArtVisibility() {
+        const showMedia = this._gsettings.get_boolean('dm-show-media');
+        const isPlaying = this._lastPlayingState;
         const showArt = this._gsettings.get_boolean('dm-show-art');
         const hasCover = !!this._player?.trackCoverUrl;
-        this._mediaArt.visible = showArt && hasCover;
+        this._mediaArt.visible = showMedia && isPlaying && showArt && hasCover;
     }
 
     _updateVisualizer() {
         if (!this._visualizer) return;
+        const showMedia = this._gsettings.get_boolean('dm-show-media');
+        const visEnabled = this._gsettings.get_boolean('dm-visualizer-enabled');
         const style = this._gsettings.get_int('dm-visualizer-style');
-        this._visualizer.setMode(style);
-        this._visualizer.visible = style > 0 && this._lastPlayingState;
-        this._visualizer.setPlaying(style > 0 && this._lastPlayingState);
+        const effectiveMode = visEnabled ? style : 0;
+        const showVis = showMedia && this._lastPlayingState && effectiveMode > 0;
+        this._visualizer.setMode(effectiveMode);
+        this._visualizer.visible = showVis;
+        this._visualizer.setPlaying(showVis);
+    }
+
+    _reorderContainer() {
+        const artPos = this._gsettings.get_int('dm-art-position');
+        const visPos = this._gsettings.get_int('dm-visualizer-position');
+
+        // Layout: [art(if left), vis(if left), textBox, vis(if right), art(if right)]
+        // art is always outermost, vis is between art and text
+        const left = [];
+        const right = [];
+
+        if (artPos === 0) left.push(this._mediaArt);
+        if (visPos === 0) left.push(this._visualizer);
+        if (visPos === 1) right.unshift(this._visualizer);
+        if (artPos === 1) right.unshift(this._mediaArt);
+
+        const desired = [...left, this._textBox, ...right];
+        const current = this._container.get_children();
+
+        for (let i = 0; i < current.length; i++) {
+            if (current[i] !== desired[i]) {
+                for (const child of current)
+                    this._container.remove_child(child);
+                for (const child of desired)
+                    this._container.add_child(child);
+                return;
+            }
+        }
     }
 
     _updateMediaVisibility() {
         const showMedia = this._gsettings.get_boolean('dm-show-media');
-        const hideText = this._gsettings.get_boolean('dm-hide-text');
+        const mediaLayout = this._gsettings.get_int('dm-media-layout');
+        const isPlaying = this._lastPlayingState;
 
-        if (showMedia && this._lastPlayingState) {
-            this._mediaPill.visible = true;
-            if (hideText) {
-                this._clockLabel.visible = true;
-                this._mediaLabel.visible = false;
-            } else {
+        this._reorderContainer();
+
+        if (showMedia && isPlaying) {
+            switch (mediaLayout) {
+            case 0: // Vista multimedia: text only
                 this._clockLabel.visible = false;
                 this._mediaLabel.visible = true;
+                break;
+            case 1: // Vista de reloj: clock + art + vis
+                this._clockLabel.visible = true;
+                this._mediaLabel.visible = false;
+                break;
+            case 2: // Vista completa: clock + text + art + vis
+                this._clockLabel.visible = true;
+                this._mediaLabel.visible = true;
+                break;
             }
         } else {
             this._clockLabel.visible = true;
-            this._mediaPill.visible = false;
+            this._mediaLabel.visible = false;
         }
 
+        this._updateArtVisibility();
         this._updateVisualizer();
     }
 
     _updateClock() {
         const now = GLib.DateTime.new_now_local();
-        const format = this._gsettings.get_string('dm-format');
+        const mediaLayout = this._gsettings.get_int('dm-media-layout');
+        let format = this._gsettings.get_string('dm-format');
+
+        if (mediaLayout === 2)
+            format = this._gsettings.get_string('dm-complete-format');
+
         this._clockLabel.text = now.format(format);
     }
 
@@ -380,9 +450,25 @@ export class AtAGlanceIndicator {
             this._vizHeightChangedId = 0;
         }
 
-        if (this._hideTextChangedId) {
-            this._gsettings.disconnect(this._hideTextChangedId);
-            this._hideTextChangedId = 0;
+        if (this._mediaLayoutChangedId) {
+            this._gsettings.disconnect(this._mediaLayoutChangedId);
+            this._mediaLayoutChangedId = 0;
+        }
+        if (this._visEnabledChangedId) {
+            this._gsettings.disconnect(this._visEnabledChangedId);
+            this._visEnabledChangedId = 0;
+        }
+        if (this._completeFormatChangedId) {
+            this._gsettings.disconnect(this._completeFormatChangedId);
+            this._completeFormatChangedId = 0;
+        }
+        if (this._artPositionChangedId) {
+            this._gsettings.disconnect(this._artPositionChangedId);
+            this._artPositionChangedId = 0;
+        }
+        if (this._visPositionChangedId) {
+            this._gsettings.disconnect(this._visPositionChangedId);
+            this._visPositionChangedId = 0;
         }
 
         if (this._service) {
@@ -407,9 +493,9 @@ export class AtAGlanceIndicator {
             this._container = null;
         }
         this._clockLabel = null;
-        this._mediaPill = null;
-        this._mediaArt = null;
         this._mediaLabel = null;
+        this._textBox = null;
+        this._mediaArt = null;
         this._visualizer = null;
         this._gsettings = null;
     }

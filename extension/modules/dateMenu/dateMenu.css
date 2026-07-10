@@ -1,5 +1,5 @@
 .at-a-glance-indicator {
-    spacing: 0;
+    spacing: 6px;
 }
 
 .at-a-glance-indicator:hover {
@@ -10,10 +10,6 @@
 .at-a-glance-indicator:active {
     background-color: rgb(71, 71, 71);
     border-radius: 16px;
-}
-
-.at-a-glance-media {
-    spacing: 6px;
 }
 
 .at-a-glance-media-art {

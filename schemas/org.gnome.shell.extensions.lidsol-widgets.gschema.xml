@@ -1010,10 +1010,37 @@
       <description>Altura en píxeles del área del visualizador</description>
     </key>
 
-    <key type="b" name="dm-hide-text">
-      <default>false</default>
-      <summary>Modo compacto</summary>
-      <description>Oculta el texto del título y artista. Solo muestra reloj, carátula y visualizador</description>
+    <key type="b" name="dm-visualizer-enabled">
+      <default>true</default>
+      <summary>Activar visualizador</summary>
+      <description>Muestra el visualizador de audio durante la reproducción</description>
+    </key>
+
+    <key type="i" name="dm-media-layout">
+      <default>0</default>
+      <range min="0" max="2"/>
+      <summary>Disposición de la vista multimedia</summary>
+      <description>0=Vista multimedia (solo texto), 1=Vista de reloj (reloj+carátula+visualizador), 2=Vista completa (texto+reloj)</description>
+    </key>
+
+    <key type="s" name="dm-complete-format">
+      <default>"%I:%M %p"</default>
+      <summary>Formato en modo completo</summary>
+      <description>Formato strftime para el reloj cuando se muestra junto a la información multimedia (se activa con disposición Vista completa)</description>
+    </key>
+
+    <key type="i" name="dm-art-position">
+      <default>0</default>
+      <range min="0" max="1"/>
+      <summary>Ubicación de la carátula</summary>
+      <description>0=Izquierda, 1=Derecha</description>
+    </key>
+
+    <key type="i" name="dm-visualizer-position">
+      <default>1</default>
+      <range min="0" max="1"/>
+      <summary>Ubicación del visualizador</summary>
+      <description>0=Izquierda del texto, 1=Derecha del texto</description>
     </key>
 
     <!-- Dashboard -->

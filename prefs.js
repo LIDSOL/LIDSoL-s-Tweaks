@@ -690,67 +690,157 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
 
   _buildDateMenuDialog(page) {
     const s = this._settings;
-    const group = createGroup({
+
+    // ── Formatos ──────────────────────────────────────────────────
+    const formatGroup = createGroup({
       parent: page,
-      title: 'Date Menu',
-      description: 'Reemplaza el reloj del panel por uno con formato personalizado. Cuando hay reproducción multimedia, puede mostrar la información de la canción en lugar del reloj.',
+      title: 'Formatos',
+      description: 'Personaliza el formato del reloj en el panel.',
     });
-    group.add(createEntryRow({
+    formatGroup.add(createEntryRow({
       settings: s,
       bindKey: 'dm-format',
       title: 'Formato de fecha y hora',
       subtitle: 'Ej: %B %d, %I:%M:%S %p',
     }));
-    group.add(createSwitchRow({
+
+    const completeFormatRow = createEntryRow({
+      settings: s,
+      bindKey: 'dm-complete-format',
+      title: 'Multimedia, modo completo',
+      subtitle: 'Formato del reloj cuando se muestra junto al texto (se activa con disposición Vista completa)',
+    });
+
+    const updateCompleteSensitive = () => {
+      completeFormatRow.sensitive = s.get_int('dm-media-layout') === 2;
+    };
+    s.connect('changed::dm-media-layout', updateCompleteSensitive);
+    updateCompleteSensitive();
+    formatGroup.add(completeFormatRow);
+
+    // ── Multimedia ────────────────────────────────────────────────
+    const mediaGroup = createGroup({
+      parent: page,
+      title: 'Multimedia',
+      description: 'Controla cómo se muestra la información de reproducción multimedia en el panel.',
+    });
+
+    const mediaSwitch = createSwitchRow({
       settings: s,
       bindKey: 'dm-show-media',
-      title: 'Mostrar multimedia al reproducir',
-      subtitle: 'Muestra el título y artista en lugar del reloj cuando hay música',
-    }));
-    group.add(createSwitchRow({
+      title: 'Módulo multimedia',
+      subtitle: 'Muestra la información de la pista actual en el panel durante la reproducción',
+    });
+    mediaGroup.add(mediaSwitch);
+
+    const layoutRow = this._createLayoutRow(s);
+    s.bind('dm-show-media', layoutRow, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+    mediaGroup.add(layoutRow);
+
+    const artSwitch = createSwitchRow({
       settings: s,
       bindKey: 'dm-show-art',
       title: 'Mostrar carátula del álbum',
-      subtitle: 'Muestra la carátula del álbum junto a la información de la canción (crossfade)',
-    }));
-    group.add(createSwitchRow({
-      settings: s,
-      bindKey: 'dm-hide-text',
-      title: 'Modo compacto',
-      subtitle: 'Oculta el texto del tema musical; siempre muestra el reloj',
-    }));
-
-    const vizGroup = createGroup({
-      parent: page,
-      title: 'Visualizador',
-      description: 'Animaciones de barras que reaccionan a la reproducción multimedia',
+      subtitle: 'Muestra la carátula del álbum junto a la información de la canción',
     });
-    vizGroup.add(this._createVisualizerStyleRow(s));
-    vizGroup.add(createSpinButtonRow({
+    s.bind('dm-show-media', artSwitch, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+    mediaGroup.add(artSwitch);
+
+    const artPosRow = this._createArtPositionRow(s);
+    s.bind('dm-show-media', artPosRow, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+    mediaGroup.add(artPosRow);
+
+    const visEnabledSwitch = createSwitchRow({
+      settings: s,
+      bindKey: 'dm-visualizer-enabled',
+      title: 'Activar visualizador',
+      subtitle: 'Muestra el visualizador de audio durante la reproducción',
+    });
+    s.bind('dm-show-media', visEnabledSwitch, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+    mediaGroup.add(visEnabledSwitch);
+
+    const visStyleRow = this._createVisualizerStyleRow(s);
+    const updateVisStyleSensitive = () => {
+      visStyleRow.sensitive = s.get_boolean('dm-show-media') && s.get_boolean('dm-visualizer-enabled');
+    };
+    s.connect('changed::dm-show-media', updateVisStyleSensitive);
+    s.connect('changed::dm-visualizer-enabled', updateVisStyleSensitive);
+    updateVisStyleSensitive();
+    mediaGroup.add(visStyleRow);
+
+    const visPosRow = this._createVisPositionRow(s);
+    s.bind('dm-show-media', visPosRow, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+    mediaGroup.add(visPosRow);
+
+    const barsRow = createSpinButtonRow({
       settings: s,
       bindKey: 'dm-visualizer-bars',
       title: 'Barras',
       subtitle: 'Cantidad de barras del visualizador',
       adjProps: { lower: 2, upper: 16 },
-    }));
-    vizGroup.add(createSpinButtonRow({
+    });
+    s.bind('dm-show-media', barsRow, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+    mediaGroup.add(barsRow);
+
+    const heightRow = createSpinButtonRow({
       settings: s,
       bindKey: 'dm-visualizer-height',
       title: 'Altura',
       subtitle: 'Altura en píxeles del visualizador',
       adjProps: { lower: 8, upper: 64 },
-    }));
+    });
+    s.bind('dm-show-media', heightRow, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+    mediaGroup.add(heightRow);
   }
 
-  _createVisualizerStyleRow(settings) {
+  _createLayoutRow(settings) {
     const model = Gio.ListStore.new(DropDownChoice);
-    const options = { '0': 'Off', '1': 'Wave', '2': 'Beat', '3': 'Cava' };
+    const options = {
+      '0': 'Vista multimedia',
+      '1': 'Vista de reloj',
+      '2': 'Vista completa',
+    };
     for (const id in options)
       model.append(new DropDownChoice({ id, title: options[id] }));
 
     const row = new Adw.ComboRow({
-      title: 'Estilo',
-      subtitle: '0=Off, 1=Wave, 2=Beat, 3=Cava (requiere cava)',
+      title: 'Disposición',
+      subtitle: 'Multimedia (solo texto), Reloj (reloj+carátula+visualizador), Completa (texto+reloj)',
+      model,
+      expression: Gtk.PropertyExpression.new(DropDownChoice, null, 'title'),
+    });
+
+    const updateSelected = () => {
+      const current = String(settings.get_int('dm-media-layout'));
+      for (let i = 0; i < model.get_n_items(); i++) {
+        if (model.get_item(i).id === current) {
+          row.selected = i;
+          return;
+        }
+      }
+      row.selected = Gtk.INVALID_LIST_POSITION;
+    };
+    updateSelected();
+
+    row.connect('notify::selected-item', () => {
+      const value = row.selectedItem?.id;
+      if (value !== undefined && value !== null)
+        settings.set_int('dm-media-layout', parseInt(value, 10));
+    });
+    settings.connect('changed::dm-media-layout', updateSelected);
+
+    return row;
+  }
+
+  _createVisualizerStyleRow(settings) {
+    const model = Gio.ListStore.new(DropDownChoice);
+    const options = { '1': 'Wave', '2': 'Beat', '3': 'Cava' };
+    for (const id in options)
+      model.append(new DropDownChoice({ id, title: options[id] }));
+
+    const row = new Adw.ComboRow({
+      title: 'Estilo del visualizador',
+      subtitle: 'Wave (senoidal), Beat (pulso), Cava (FFT, requiere cava)',
       model,
       expression: Gtk.PropertyExpression.new(DropDownChoice, null, 'title'),
     });
@@ -773,6 +863,76 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
         settings.set_int('dm-visualizer-style', parseInt(value, 10));
     });
     settings.connect('changed::dm-visualizer-style', updateSelected);
+
+    return row;
+  }
+
+  _createArtPositionRow(settings) {
+    const model = Gio.ListStore.new(DropDownChoice);
+    const options = { '0': 'Izquierda', '1': 'Derecha' };
+    for (const id in options)
+      model.append(new DropDownChoice({ id, title: options[id] }));
+
+    const row = new Adw.ComboRow({
+      title: 'Ubicación de la carátula',
+      subtitle: 'Coloca la carátula a la izquierda o derecha del texto',
+      model,
+      expression: Gtk.PropertyExpression.new(DropDownChoice, null, 'title'),
+    });
+
+    const updateSelected = () => {
+      const current = String(settings.get_int('dm-art-position'));
+      for (let i = 0; i < model.get_n_items(); i++) {
+        if (model.get_item(i).id === current) {
+          row.selected = i;
+          return;
+        }
+      }
+      row.selected = Gtk.INVALID_LIST_POSITION;
+    };
+    updateSelected();
+
+    row.connect('notify::selected-item', () => {
+      const value = row.selectedItem?.id;
+      if (value !== undefined && value !== null)
+        settings.set_int('dm-art-position', parseInt(value, 10));
+    });
+    settings.connect('changed::dm-art-position', updateSelected);
+
+    return row;
+  }
+
+  _createVisPositionRow(settings) {
+    const model = Gio.ListStore.new(DropDownChoice);
+    const options = { '0': 'Izquierda', '1': 'Derecha' };
+    for (const id in options)
+      model.append(new DropDownChoice({ id, title: options[id] }));
+
+    const row = new Adw.ComboRow({
+      title: 'Ubicación del visualizador',
+      subtitle: 'Coloca el visualizador a la izquierda o derecha del texto',
+      model,
+      expression: Gtk.PropertyExpression.new(DropDownChoice, null, 'title'),
+    });
+
+    const updateSelected = () => {
+      const current = String(settings.get_int('dm-visualizer-position'));
+      for (let i = 0; i < model.get_n_items(); i++) {
+        if (model.get_item(i).id === current) {
+          row.selected = i;
+          return;
+        }
+      }
+      row.selected = Gtk.INVALID_LIST_POSITION;
+    };
+    updateSelected();
+
+    row.connect('notify::selected-item', () => {
+      const value = row.selectedItem?.id;
+      if (value !== undefined && value !== null)
+        settings.set_int('dm-visualizer-position', parseInt(value, 10));
+    });
+    settings.connect('changed::dm-visualizer-position', updateSelected);
 
     return row;
   }

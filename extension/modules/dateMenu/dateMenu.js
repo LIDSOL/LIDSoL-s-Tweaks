@@ -36,8 +36,9 @@ export class AtAGlanceIndicator {
         this._visEnabledChangedId = 0;
         this._artPositionChangedId = 0;
         this._visPositionChangedId = 0;
+        this._titleMaxLenChangedId = 0;
+        this._artistMaxLenChangedId = 0;
         this._playerChangedIds = [];
-        this._menuOpenId = 0;
     }
 
     enable(gsettings) {
@@ -56,14 +57,7 @@ export class AtAGlanceIndicator {
             y_align: Clutter.ActorAlign.CENTER,
             reactive: true,
         });
-        this._container.connect('enter-event', () => {
-            this._container.add_style_pseudo_class('hover');
-            return Clutter.EVENT_PROPAGATE;
-        });
-        this._container.connect('leave-event', () => {
-            this._container.remove_style_pseudo_class('hover');
-            return Clutter.EVENT_PROPAGATE;
-        });
+        // hover/active managed natively by the date menu button
 
         // Album art (always outermost, left or right)
         this._mediaArt = new CrossfadeArt(12);
@@ -150,13 +144,16 @@ export class AtAGlanceIndicator {
         this._visPositionChangedId = this._gsettings.connect('changed::dm-visualizer-position', () => {
             this._updateMediaVisibility();
         });
-
-        this._menuOpenId = dateMenu.menu.connect('open-state-changed', (menu, open) => {
-            if (open)
-                this._container.add_style_pseudo_class('active');
-            else
-                this._container.remove_style_pseudo_class('active');
+        this._titleMaxLenChangedId = this._gsettings.connect('changed::dm-title-max-length', () => {
+            this._updateMedia();
+            this._updateMediaVisibility();
         });
+        this._artistMaxLenChangedId = this._gsettings.connect('changed::dm-artist-max-length', () => {
+            this._updateMedia();
+            this._updateMediaVisibility();
+        });
+
+        // active state managed natively by the date menu button
     }
 
     _connectAllPlayers() {
@@ -214,7 +211,7 @@ export class AtAGlanceIndicator {
         const nowPlaying = this._player.isPlaying();
         const title = this._player.trackTitle || '';
         const artist = this._player.trackArtists ? this._player.trackArtists.join(', ') : '';
-        const text = title + (artist ? ` — ${artist}` : '');
+        const text = this._formatMediaText(title, artist);
         const cover = this._player.trackCoverUrl;
 
         if (nowPlaying) {
@@ -289,7 +286,7 @@ export class AtAGlanceIndicator {
         if (!this._player) return;
         const title = this._player.trackTitle || '';
         const artist = this._player.trackArtists ? this._player.trackArtists.join(', ') : '';
-        this._lastMediaText = title + (artist ? ` — ${artist}` : '');
+        this._lastMediaText = this._formatMediaText(title, artist);
         this._lastCoverUrl = this._player.trackCoverUrl;
         this._lastPlayingState = this._player.isPlaying();
         this._updateMedia();
@@ -304,8 +301,7 @@ export class AtAGlanceIndicator {
 
         const title = this._player.trackTitle || '';
         const artist = this._player.trackArtists ? this._player.trackArtists.join(', ') : '';
-        const text = title + (artist ? ` — ${artist}` : '');
-        this._mediaLabel.text = text;
+        this._mediaLabel.text = this._formatMediaText(title, artist);
 
         const cover = this._player.trackCoverUrl;
         if (cover)
@@ -332,6 +328,14 @@ export class AtAGlanceIndicator {
         this._visualizer.setMode(effectiveMode);
         this._visualizer.visible = showVis;
         this._visualizer.setPlaying(showVis);
+    }
+
+    _formatMediaText(title, artist) {
+        const maxTitle = this._gsettings.get_int('dm-title-max-length');
+        const maxArtist = this._gsettings.get_int('dm-artist-max-length');
+        const t = title.length > maxTitle ? title.substring(0, maxTitle) + '…' : title;
+        const a = artist.length > maxArtist ? artist.substring(0, maxArtist) + '…' : artist;
+        return t + (a ? ` — ${a}` : '');
     }
 
     _reorderContainer() {
@@ -396,9 +400,10 @@ export class AtAGlanceIndicator {
     _updateClock() {
         const now = GLib.DateTime.new_now_local();
         const mediaLayout = this._gsettings.get_int('dm-media-layout');
+        const showMedia = this._gsettings.get_boolean('dm-show-media');
         let format = this._gsettings.get_string('dm-format');
 
-        if (mediaLayout === 2)
+        if (mediaLayout === 2 && showMedia && this._lastPlayingState)
             format = this._gsettings.get_string('dm-complete-format');
 
         this._clockLabel.text = now.format(format);
@@ -408,13 +413,6 @@ export class AtAGlanceIndicator {
         if (this._timerId) {
             GLib.Source.remove(this._timerId);
             this._timerId = 0;
-        }
-
-        if (this._menuOpenId) {
-            const dateMenu = Main.panel.statusArea.dateMenu;
-            if (dateMenu && dateMenu.menu)
-                dateMenu.menu.disconnect(this._menuOpenId);
-            this._menuOpenId = 0;
         }
 
         for (const entry of this._playerChangedIds) {
@@ -469,6 +467,14 @@ export class AtAGlanceIndicator {
         if (this._visPositionChangedId) {
             this._gsettings.disconnect(this._visPositionChangedId);
             this._visPositionChangedId = 0;
+        }
+        if (this._titleMaxLenChangedId) {
+            this._gsettings.disconnect(this._titleMaxLenChangedId);
+            this._titleMaxLenChangedId = 0;
+        }
+        if (this._artistMaxLenChangedId) {
+            this._gsettings.disconnect(this._artistMaxLenChangedId);
+            this._artistMaxLenChangedId = 0;
         }
 
         if (this._service) {

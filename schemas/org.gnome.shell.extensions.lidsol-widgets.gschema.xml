@@ -1029,6 +1029,20 @@
       <description>Formato strftime para el reloj cuando se muestra junto a la información multimedia (se activa con disposición Vista completa)</description>
     </key>
 
+    <key type="i" name="dm-title-max-length">
+      <default>20</default>
+      <range min="5" max="30"/>
+      <summary>Longitud máxima del título</summary>
+      <description>Número máximo de caracteres para el título de la pista</description>
+    </key>
+
+    <key type="i" name="dm-artist-max-length">
+      <default>10</default>
+      <range min="5" max="30"/>
+      <summary>Longitud máxima del artista</summary>
+      <description>Número máximo de caracteres para el nombre del artista</description>
+    </key>
+
     <key type="i" name="dm-art-position">
       <default>0</default>
       <range min="0" max="1"/>

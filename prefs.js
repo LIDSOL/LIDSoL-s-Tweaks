@@ -707,14 +707,17 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     const completeFormatRow = createEntryRow({
       settings: s,
       bindKey: 'dm-complete-format',
-      title: 'Multimedia, modo completo',
-      subtitle: 'Formato del reloj cuando se muestra junto al texto (se activa con disposición Vista completa)',
+      title: 'Date menu + Media',
+      subtitle: 'Formato para el modo Multimedia + Reloj\n(máx 10 caracteres)',
     });
+    completeFormatRow.activatable_widget.max_length = 10;
 
     const updateCompleteSensitive = () => {
-      completeFormatRow.sensitive = s.get_int('dm-media-layout') === 2;
+      const showMedia = s.get_boolean('dm-show-media');
+      completeFormatRow.sensitive = showMedia && s.get_int('dm-media-layout') === 2;
     };
     s.connect('changed::dm-media-layout', updateCompleteSensitive);
+    s.connect('changed::dm-show-media', updateCompleteSensitive);
     updateCompleteSensitive();
     formatGroup.add(completeFormatRow);
 
@@ -725,6 +728,10 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
       description: 'Controla cómo se muestra la información de reproducción multimedia en el panel.',
     });
 
+    function bindMaster(row) {
+      s.bind('dm-show-media', row, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+    }
+
     const mediaSwitch = createSwitchRow({
       settings: s,
       bindKey: 'dm-show-media',
@@ -734,44 +741,61 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     mediaGroup.add(mediaSwitch);
 
     const layoutRow = this._createLayoutRow(s);
-    s.bind('dm-show-media', layoutRow, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+    bindMaster(layoutRow);
     mediaGroup.add(layoutRow);
 
+    // — Longitudes de texto —
+    const titleLenRow = createSpinButtonRow({
+      settings: s,
+      bindKey: 'dm-title-max-length',
+      title: 'Longitud del título',
+      subtitle: 'Máximo de caracteres para el título de la pista (5-30)',
+      adjProps: { lower: 5, upper: 30 },
+    });
+    bindMaster(titleLenRow);
+    mediaGroup.add(titleLenRow);
+
+    const artistLenRow = createSpinButtonRow({
+      settings: s,
+      bindKey: 'dm-artist-max-length',
+      title: 'Longitud del artista',
+      subtitle: 'Máximo de caracteres para el nombre del artista (5-30)',
+      adjProps: { lower: 5, upper: 30 },
+    });
+    bindMaster(artistLenRow);
+    mediaGroup.add(artistLenRow);
+
+    // — Álbum —
     const artSwitch = createSwitchRow({
       settings: s,
       bindKey: 'dm-show-art',
       title: 'Mostrar carátula del álbum',
       subtitle: 'Muestra la carátula del álbum junto a la información de la canción',
     });
-    s.bind('dm-show-media', artSwitch, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+    bindMaster(artSwitch);
     mediaGroup.add(artSwitch);
 
     const artPosRow = this._createArtPositionRow(s);
-    s.bind('dm-show-media', artPosRow, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+    const updateArtPosSensitive = () => {
+      artPosRow.sensitive = s.get_boolean('dm-show-media') && s.get_boolean('dm-show-art');
+    };
+    s.connect('changed::dm-show-media', updateArtPosSensitive);
+    s.connect('changed::dm-show-art', updateArtPosSensitive);
+    updateArtPosSensitive();
     mediaGroup.add(artPosRow);
 
+    // — Visualizador —
     const visEnabledSwitch = createSwitchRow({
       settings: s,
       bindKey: 'dm-visualizer-enabled',
       title: 'Activar visualizador',
       subtitle: 'Muestra el visualizador de audio durante la reproducción',
     });
-    s.bind('dm-show-media', visEnabledSwitch, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+    bindMaster(visEnabledSwitch);
     mediaGroup.add(visEnabledSwitch);
 
     const visStyleRow = this._createVisualizerStyleRow(s);
-    const updateVisStyleSensitive = () => {
-      visStyleRow.sensitive = s.get_boolean('dm-show-media') && s.get_boolean('dm-visualizer-enabled');
-    };
-    s.connect('changed::dm-show-media', updateVisStyleSensitive);
-    s.connect('changed::dm-visualizer-enabled', updateVisStyleSensitive);
-    updateVisStyleSensitive();
-    mediaGroup.add(visStyleRow);
-
     const visPosRow = this._createVisPositionRow(s);
-    s.bind('dm-show-media', visPosRow, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
-    mediaGroup.add(visPosRow);
-
     const barsRow = createSpinButtonRow({
       settings: s,
       bindKey: 'dm-visualizer-bars',
@@ -779,9 +803,6 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
       subtitle: 'Cantidad de barras del visualizador',
       adjProps: { lower: 2, upper: 16 },
     });
-    s.bind('dm-show-media', barsRow, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
-    mediaGroup.add(barsRow);
-
     const heightRow = createSpinButtonRow({
       settings: s,
       bindKey: 'dm-visualizer-height',
@@ -789,7 +810,21 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
       subtitle: 'Altura en píxeles del visualizador',
       adjProps: { lower: 8, upper: 64 },
     });
-    s.bind('dm-show-media', heightRow, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+
+    const updateVisChildrenSensitive = () => {
+      const active = s.get_boolean('dm-show-media') && s.get_boolean('dm-visualizer-enabled');
+      visStyleRow.sensitive = active;
+      visPosRow.sensitive = active;
+      barsRow.sensitive = active;
+      heightRow.sensitive = active;
+    };
+    s.connect('changed::dm-show-media', updateVisChildrenSensitive);
+    s.connect('changed::dm-visualizer-enabled', updateVisChildrenSensitive);
+    updateVisChildrenSensitive();
+
+    mediaGroup.add(visStyleRow);
+    mediaGroup.add(visPosRow);
+    mediaGroup.add(barsRow);
     mediaGroup.add(heightRow);
   }
 
@@ -798,7 +833,7 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     const options = {
       '0': 'Vista multimedia',
       '1': 'Vista de reloj',
-      '2': 'Vista completa',
+      '2': 'Reloj + Multimedia',
     };
     for (const id in options)
       model.append(new DropDownChoice({ id, title: options[id] }));
@@ -824,10 +859,20 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
 
     row.connect('notify::selected-item', () => {
       const value = row.selectedItem?.id;
+      if (value === '1') {
+        const showArt = settings.get_boolean('dm-show-art');
+        const visEnabled = settings.get_boolean('dm-visualizer-enabled');
+        if (!showArt && !visEnabled) {
+          updateSelected();
+          return;
+        }
+      }
       if (value !== undefined && value !== null)
         settings.set_int('dm-media-layout', parseInt(value, 10));
     });
     settings.connect('changed::dm-media-layout', updateSelected);
+    settings.connect('changed::dm-show-art', updateSelected);
+    settings.connect('changed::dm-visualizer-enabled', updateSelected);
 
     return row;
   }

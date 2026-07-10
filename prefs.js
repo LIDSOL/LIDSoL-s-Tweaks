@@ -721,6 +721,20 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     updateCompleteSensitive();
     formatGroup.add(completeFormatRow);
 
+    const swapRow = createSwitchRow({
+      settings: s,
+      bindKey: 'dm-swap-text-order',
+      title: 'Permutar orden',
+      subtitle: 'Muestra primero la información multimedia y luego el reloj (solo Vista completa)',
+    });
+    const updateSwapSensitive = () => {
+      swapRow.sensitive = s.get_boolean('dm-show-media') && s.get_int('dm-media-layout') === 2;
+    };
+    s.connect('changed::dm-show-media', updateSwapSensitive);
+    s.connect('changed::dm-media-layout', updateSwapSensitive);
+    updateSwapSensitive();
+    formatGroup.add(swapRow);
+
     // ── Multimedia ────────────────────────────────────────────────
     const mediaGroup = createGroup({
       parent: page,

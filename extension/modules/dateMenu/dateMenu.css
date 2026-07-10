@@ -2,6 +2,19 @@
     spacing: 6px;
 }
 
+.at-a-glance-indicator:hover {
+    opacity: 0.9;
+}
+
+.at-a-glance-indicator:active {
+    opacity: 0.75;
+}
+
+.at-a-glance-indicator .clock {
+    margin: 0;
+    padding: 0;
+}
+
 .at-a-glance-media-art {
     border-radius: 12px;
     min-width: 24px;

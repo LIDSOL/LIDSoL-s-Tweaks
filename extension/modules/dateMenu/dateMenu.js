@@ -38,6 +38,8 @@ export class AtAGlanceIndicator {
         this._visPositionChangedId = 0;
         this._titleMaxLenChangedId = 0;
         this._artistMaxLenChangedId = 0;
+        this._swapTextOrderChangedId = 0;
+        this._menuOpenId = 0;
         this._playerChangedIds = [];
     }
 
@@ -57,7 +59,14 @@ export class AtAGlanceIndicator {
             y_align: Clutter.ActorAlign.CENTER,
             reactive: true,
         });
-        // hover/active managed natively by the date menu button
+        this._container.connect('enter-event', () => {
+            this._container.add_style_pseudo_class('hover');
+            return Clutter.EVENT_PROPAGATE;
+        });
+        this._container.connect('leave-event', () => {
+            this._container.remove_style_pseudo_class('hover');
+            return Clutter.EVENT_PROPAGATE;
+        });
 
         // Album art (always outermost, left or right)
         this._mediaArt = new CrossfadeArt(12);
@@ -152,8 +161,16 @@ export class AtAGlanceIndicator {
             this._updateMedia();
             this._updateMediaVisibility();
         });
+        this._swapTextOrderChangedId = this._gsettings.connect('changed::dm-swap-text-order', () => {
+            this._reorderTextBox();
+        });
 
-        // active state managed natively by the date menu button
+        this._menuOpenId = dateMenu.menu.connect('open-state-changed', (menu, open) => {
+            if (open)
+                this._container.add_style_pseudo_class('active');
+            else
+                this._container.remove_style_pseudo_class('active');
+        });
     }
 
     _connectAllPlayers() {
@@ -255,6 +272,7 @@ export class AtAGlanceIndicator {
         else
             this._updateMedia();
 
+        this._updateClock();
         this._updateMediaVisibility();
     }
 
@@ -338,6 +356,25 @@ export class AtAGlanceIndicator {
         return t + (a ? ` — ${a}` : '');
     }
 
+    _reorderTextBox() {
+        const swap = this._gsettings.get_boolean('dm-swap-text-order');
+        const clock = this._clockLabel;
+        const media = this._mediaLabel;
+        const children = this._textBox.get_children();
+
+        const desired = swap ? [media, clock] : [clock, media];
+
+        for (let i = 0; i < children.length; i++) {
+            if (children[i] !== desired[i]) {
+                for (const child of children)
+                    this._textBox.remove_child(child);
+                for (const child of desired)
+                    this._textBox.add_child(child);
+                return;
+            }
+        }
+    }
+
     _reorderContainer() {
         const artPos = this._gsettings.get_int('dm-art-position');
         const visPos = this._gsettings.get_int('dm-visualizer-position');
@@ -372,6 +409,7 @@ export class AtAGlanceIndicator {
         const isPlaying = this._lastPlayingState;
 
         this._reorderContainer();
+        this._reorderTextBox();
 
         if (showMedia && isPlaying) {
             switch (mediaLayout) {
@@ -393,6 +431,7 @@ export class AtAGlanceIndicator {
             this._mediaLabel.visible = false;
         }
 
+        this._updateClock();
         this._updateArtVisibility();
         this._updateVisualizer();
     }
@@ -413,6 +452,13 @@ export class AtAGlanceIndicator {
         if (this._timerId) {
             GLib.Source.remove(this._timerId);
             this._timerId = 0;
+        }
+
+        if (this._menuOpenId) {
+            const dateMenu = Main.panel.statusArea.dateMenu;
+            if (dateMenu && dateMenu.menu)
+                dateMenu.menu.disconnect(this._menuOpenId);
+            this._menuOpenId = 0;
         }
 
         for (const entry of this._playerChangedIds) {
@@ -475,6 +521,10 @@ export class AtAGlanceIndicator {
         if (this._artistMaxLenChangedId) {
             this._gsettings.disconnect(this._artistMaxLenChangedId);
             this._artistMaxLenChangedId = 0;
+        }
+        if (this._swapTextOrderChangedId) {
+            this._gsettings.disconnect(this._swapTextOrderChangedId);
+            this._swapTextOrderChangedId = 0;
         }
 
         if (this._service) {

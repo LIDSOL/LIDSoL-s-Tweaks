@@ -1029,6 +1029,12 @@
       <description>Formato strftime para el reloj cuando se muestra junto a la información multimedia (se activa con disposición Vista completa)</description>
     </key>
 
+    <key type="b" name="dm-swap-text-order">
+      <default>false</default>
+      <summary>Permutar orden en Vista completa</summary>
+      <description>Intercambia el orden del reloj y la información multimedia en la disposición Vista completa</description>
+    </key>
+
     <key type="i" name="dm-title-max-length">
       <default>20</default>
       <range min="5" max="30"/>

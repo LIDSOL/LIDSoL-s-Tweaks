@@ -198,20 +198,17 @@ export class AtAGlanceIndicator {
 
         this._connectAllPlayers();
 
-        if (newPlayer) {
-            this._player = newPlayer;
+        const target = newPlayer?.isPlaying() ? newPlayer
+                     : lastActive && this._service.allPlayers.includes(lastActive) ? lastActive
+                     : newPlayer || this._service.allPlayers[0] || null;
+
+        if (target) {
+            this._player = target;
+            if (target.isPlaying())
+                this._lastActivePlayer = target;
             this._lastMediaText = '';
             this._lastCoverUrl = null;
             this._syncPlayerState();
-        } else if (lastActive && this._service.allPlayers.includes(lastActive)) {
-            this._player = lastActive;
-            this._syncPlayerState();
-        } else {
-            const players = this._service.allPlayers;
-            if (players.length > 0)
-                this._player = players[0];
-            this._updateMedia();
-            this._updateMediaVisibility();
         }
     }
 

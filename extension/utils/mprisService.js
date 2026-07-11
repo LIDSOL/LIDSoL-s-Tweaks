@@ -295,7 +295,7 @@ var MprisPlayer = GObject.registerClass({
             console.error(`[MprisService] _update error for ${this._busName}:`, e);
         }
         const nowPlaying = this.playbackStatus === 'Playing';
-        if (nowPlaying && !this._wasPlaying)
+        if (nowPlaying !== this._wasPlaying)
             this._lastPlayingTime = Date.now();
         this._wasPlaying = nowPlaying;
         this.emit('changed');

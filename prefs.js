@@ -758,6 +758,15 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     bindMaster(layoutRow);
     mediaGroup.add(layoutRow);
 
+    const playingOnlyRow = createSwitchRow({
+      settings: s,
+      bindKey: 'dm-show-media-playing-only',
+      title: 'Solo mostrar durante reproducción',
+      subtitle: 'Si está inactivo, la información multimedia se muestra incluso cuando el medio está en pausa',
+    });
+    bindMaster(playingOnlyRow);
+    mediaGroup.add(playingOnlyRow);
+
     // — Longitudes de texto —
     const titleLenRow = createSpinButtonRow({
       settings: s,

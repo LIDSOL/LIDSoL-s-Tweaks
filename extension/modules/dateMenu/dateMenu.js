@@ -39,6 +39,7 @@ export class AtAGlanceIndicator {
         this._titleMaxLenChangedId = 0;
         this._artistMaxLenChangedId = 0;
         this._swapTextOrderChangedId = 0;
+        this._mediaPlayingOnlyChangedId = 0;
         this._menuOpenId = 0;
         this._playerChangedIds = [];
     }
@@ -162,7 +163,10 @@ export class AtAGlanceIndicator {
             this._updateMediaVisibility();
         });
         this._swapTextOrderChangedId = this._gsettings.connect('changed::dm-swap-text-order', () => {
-            this._reorderTextBox();
+            this._updateMediaVisibility();
+        });
+        this._mediaPlayingOnlyChangedId = this._gsettings.connect('changed::dm-show-media-playing-only', () => {
+            this._updateMediaVisibility();
         });
 
         this._menuOpenId = dateMenu.menu.connect('open-state-changed', (menu, open) => {
@@ -330,19 +334,21 @@ export class AtAGlanceIndicator {
 
     _updateArtVisibility() {
         const showMedia = this._gsettings.get_boolean('dm-show-media');
+        const mediaPlayingOnly = this._gsettings.get_boolean('dm-show-media-playing-only');
         const isPlaying = this._lastPlayingState;
         const showArt = this._gsettings.get_boolean('dm-show-art');
         const hasCover = !!this._player?.trackCoverUrl;
-        this._mediaArt.visible = showMedia && isPlaying && showArt && hasCover;
+        this._mediaArt.visible = showMedia && (isPlaying || !mediaPlayingOnly) && showArt && hasCover;
     }
 
     _updateVisualizer() {
         if (!this._visualizer) return;
         const showMedia = this._gsettings.get_boolean('dm-show-media');
+        const mediaPlayingOnly = this._gsettings.get_boolean('dm-show-media-playing-only');
         const visEnabled = this._gsettings.get_boolean('dm-visualizer-enabled');
         const style = this._gsettings.get_int('dm-visualizer-style');
         const effectiveMode = visEnabled ? style : 0;
-        const showVis = showMedia && this._lastPlayingState && effectiveMode > 0;
+        const showVis = showMedia && (this._lastPlayingState || !mediaPlayingOnly) && effectiveMode > 0;
         this._visualizer.setMode(effectiveMode);
         this._visualizer.visible = showVis;
         this._visualizer.setPlaying(showVis);
@@ -406,12 +412,14 @@ export class AtAGlanceIndicator {
     _updateMediaVisibility() {
         const showMedia = this._gsettings.get_boolean('dm-show-media');
         const mediaLayout = this._gsettings.get_int('dm-media-layout');
+        const mediaPlayingOnly = this._gsettings.get_boolean('dm-show-media-playing-only');
         const isPlaying = this._lastPlayingState;
+        const shouldShow = showMedia && (isPlaying || !mediaPlayingOnly);
 
         this._reorderContainer();
         this._reorderTextBox();
 
-        if (showMedia && isPlaying) {
+        if (shouldShow) {
             switch (mediaLayout) {
             case 0: // Vista multimedia: text only
                 this._clockLabel.visible = false;
@@ -525,6 +533,10 @@ export class AtAGlanceIndicator {
         if (this._swapTextOrderChangedId) {
             this._gsettings.disconnect(this._swapTextOrderChangedId);
             this._swapTextOrderChangedId = 0;
+        }
+        if (this._mediaPlayingOnlyChangedId) {
+            this._gsettings.disconnect(this._mediaPlayingOnlyChangedId);
+            this._mediaPlayingOnlyChangedId = 0;
         }
 
         if (this._service) {

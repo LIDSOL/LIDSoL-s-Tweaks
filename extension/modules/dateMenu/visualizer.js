@@ -23,10 +23,13 @@ const CavaEngine = GObject.registerClass(
     }
 
     setBarCount(n) {
+      if (n === this._barCount) return;
       this._barCount = n;
+      this._bins = new Array(n).fill(0);
       if (this._cavaProcess) {
+        const cb = this._onData;
         this.stop();
-        this.start(this._onData);
+        this.start(cb);
       }
     }
 
@@ -106,7 +109,11 @@ const CavaEngine = GObject.registerClass(
         (stream, res) => {
           try {
             let gbytes = stream.read_bytes_finish(res);
-            if (!gbytes) { this._readStdout(); return; }
+            if (!gbytes) {
+              if (this._stdout && this._cancellable && !this._cancellable.is_cancelled())
+                this._readStdout();
+              return;
+            }
 
             let chunk = gbytes.get_data();
             if (!chunk || chunk.length === 0) { this._readStdout(); return; }
@@ -161,7 +168,7 @@ const CavaEngine = GObject.registerClass(
             }
             this._readStdout();
           } catch (e) {
-            this._readStdout();
+            // Error or cancellation — stop reading; start() will restart if needed
           }
         });
     }
@@ -274,7 +281,7 @@ const CavaVisualizer = GObject.registerClass(
       });
       this._barCount = barCount;
       this._barWidth = 3;
-      this._prevHeights = new Array(barCount).fill(1);
+      this._prevHeights = new Array(barCount).fill(4);
       this._peakValues = new Array(barCount).fill(0);
       this._isSilent = true;
 
@@ -284,7 +291,7 @@ const CavaVisualizer = GObject.registerClass(
 
     setBarCount(n) {
       this._barCount = n;
-      this._prevHeights = new Array(n).fill(1);
+      this._prevHeights = new Array(n).fill(4);
       this._peakValues = new Array(n).fill(0);
       this._engine?.setBarCount(n);
     }
@@ -364,7 +371,6 @@ const CavaVisualizer = GObject.registerClass(
           cr.fill();
         }
       }
-      cr.$dispose();
     }
   });
 

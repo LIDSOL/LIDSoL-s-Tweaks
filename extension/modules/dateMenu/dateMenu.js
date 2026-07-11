@@ -22,6 +22,7 @@ export class AtAGlanceIndicator {
         this._service = null;
         this._serviceHandlers = [];
         this._player = null;
+        this._lastActivePlayer = null;
         this._lastMediaText = '';
         this._lastCoverUrl = null;
         this._lastPlayingState = false;
@@ -193,20 +194,22 @@ export class AtAGlanceIndicator {
 
     _onPlayerListChanged() {
         const newPlayer = this._service.getActivePlayer();
+        const lastActive = this._lastActivePlayer;
 
         this._connectAllPlayers();
 
-        this._player = newPlayer;
-        this._lastMediaText = '';
-        this._lastCoverUrl = null;
-
-        if (this._player) {
+        if (newPlayer) {
+            this._player = newPlayer;
+            this._lastMediaText = '';
+            this._lastCoverUrl = null;
+            this._syncPlayerState();
+        } else if (lastActive && this._service.allPlayers.includes(lastActive)) {
+            this._player = lastActive;
             this._syncPlayerState();
         } else {
             const players = this._service.allPlayers;
-            if (players.length > 0) {
+            if (players.length > 0)
                 this._player = players[0];
-            }
             this._updateMedia();
             this._updateMediaVisibility();
         }
@@ -216,7 +219,13 @@ export class AtAGlanceIndicator {
         const activePlayer = this._service.getActivePlayer();
 
         if (activePlayer && activePlayer !== this._player) {
-            this._onPlayerListChanged();
+            if (activePlayer.isPlaying()) {
+                this._onPlayerListChanged();
+            } else if (!this._player || !this._player.isPlaying()) {
+                const playing = this._service.players.find(p => p.isPlaying());
+                if (!playing)
+                    this._onPlayerListChanged();
+            }
             return;
         }
 
@@ -236,6 +245,7 @@ export class AtAGlanceIndicator {
         const cover = this._player.trackCoverUrl;
 
         if (nowPlaying) {
+            this._lastActivePlayer = this._player;
             if (this._pauseDebounceId) {
                 GLib.Source.remove(this._pauseDebounceId);
                 this._pauseDebounceId = 0;

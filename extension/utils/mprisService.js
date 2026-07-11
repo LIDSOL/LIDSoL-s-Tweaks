@@ -40,6 +40,7 @@ var MprisPlayer = GObject.registerClass({
         this._trackCoverUrl = null;
         this._app = null;
         this._lastPlayingTime = 0;
+        this._wasPlaying = false;
 
         this._createProxies();
     }
@@ -293,8 +294,10 @@ var MprisPlayer = GObject.registerClass({
         } catch (e) {
             console.error(`[MprisService] _update error for ${this._busName}:`, e);
         }
-        if (this.playbackStatus === 'Playing')
+        const nowPlaying = this.playbackStatus === 'Playing';
+        if (nowPlaying && !this._wasPlaying)
             this._lastPlayingTime = Date.now();
+        this._wasPlaying = nowPlaying;
         this.emit('changed');
     }
 

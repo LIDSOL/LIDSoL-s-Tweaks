@@ -448,9 +448,10 @@ export class AtAGlanceIndicator {
         const now = GLib.DateTime.new_now_local();
         const mediaLayout = this._gsettings.get_int('dm-media-layout');
         const showMedia = this._gsettings.get_boolean('dm-show-media');
+        const mediaPlayingOnly = this._gsettings.get_boolean('dm-show-media-playing-only');
         let format = this._gsettings.get_string('dm-format');
 
-        if (mediaLayout === 2 && showMedia && this._lastPlayingState)
+        if (mediaLayout === 2 && showMedia && (this._lastPlayingState || !mediaPlayingOnly))
             format = this._gsettings.get_string('dm-complete-format');
 
         this._clockLabel.text = now.format(format);

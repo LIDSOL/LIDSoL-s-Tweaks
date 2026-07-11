@@ -393,6 +393,16 @@ export const VisualizerWidget = GObject.registerClass(
       this._simulated.set_height(this._height);
       this.add_child(this._simulated);
 
+      this._pauseIcon = new St.Icon({
+        icon_name: 'media-playback-pause-symbolic',
+        style_class: 'at-a-glance-pause-icon',
+        y_align: Clutter.ActorAlign.CENTER,
+        x_align: Clutter.ActorAlign.CENTER,
+        icon_size: 12,
+        visible: false,
+      });
+      this.add_child(this._pauseIcon);
+
       this._cava = null;
       this._engine = null;
     }
@@ -431,6 +441,7 @@ export const VisualizerWidget = GObject.registerClass(
         this._simulated.visible = false;
         this._simulated.setPlaying(false);
       }
+      this._syncPauseIcon();
     }
 
     setBarCount(n) {
@@ -455,6 +466,21 @@ export const VisualizerWidget = GObject.registerClass(
       } else if (this._mode > 0) {
         this._simulated.setPlaying(playing);
       }
+      this._syncPauseIcon();
+    }
+
+    setShowPauseIcon(show) {
+      this._showPause = show;
+      this._syncPauseIcon();
+    }
+
+    _syncPauseIcon() {
+      const showing = this._showPause && !this._isPlaying && this._mode > 0;
+      this._pauseIcon.visible = showing;
+      if (this._mode === 3 && this._cava)
+        this._cava.visible = this._isPlaying;
+      else
+        this._simulated.visible = this._isPlaying;
     }
 
     _cleanup() {

@@ -349,9 +349,11 @@ export class AtAGlanceIndicator {
         const style = this._gsettings.get_int('dm-visualizer-style');
         const effectiveMode = visEnabled ? style : 0;
         const showVis = showMedia && (this._lastPlayingState || !mediaPlayingOnly) && effectiveMode > 0;
+
         this._visualizer.setMode(effectiveMode);
+        this._visualizer.setPlaying(this._lastPlayingState);
+        this._visualizer.setShowPauseIcon(showVis && !this._lastPlayingState);
         this._visualizer.visible = showVis;
-        this._visualizer.setPlaying(showVis);
     }
 
     _formatMediaText(title, artist) {

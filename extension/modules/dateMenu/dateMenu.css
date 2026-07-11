@@ -1,13 +1,34 @@
+/* Neutralize native clock-display hover/active to avoid double feedback */
+#panel .panel-button.clock-display:hover,
+#panel .panel-button.clock-display:active,
+#panel .panel-button.clock-display:focus,
+#panel .panel-button.clock-display:checked {
+    box-shadow: none !important;
+    background: none !important;
+}
+#panel .panel-button.clock-display:hover .clock,
+#panel .panel-button.clock-display:active .clock,
+#panel .panel-button.clock-display:focus .clock,
+#panel .panel-button.clock-display:checked .clock {
+    box-shadow: none !important;
+}
+
 .at-a-glance-indicator {
     spacing: 6px;
 }
 
 .at-a-glance-indicator:hover {
-    opacity: 0.9;
+    background-color: rgb(43, 43, 43);
+    border-radius: 16px;
+    padding-left: 7px;
+    padding-right: 7px;
 }
 
 .at-a-glance-indicator:active {
-    opacity: 0.75;
+    background-color: rgb(71, 71, 71);
+    border-radius: 16px;
+    padding-left: 7px;
+    padding-right: 7px;
 }
 
 .at-a-glance-indicator .clock {
@@ -22,5 +43,5 @@
 }
 
 .at-a-glance-media-label {
-    font-size: 9pt;
+    font-size: 10pt;
 }

@@ -989,6 +989,13 @@
       <description>Muestra la carátula del álbum junto a la información de reproducción multimedia</description>
     </key>
 
+    <key type="i" name="dm-art-cache-size">
+      <default>20</default>
+      <range min="1" max="500"/>
+      <summary>Tamaño máximo de caché de carátulas (MB)</summary>
+      <description>Límite de almacenamiento en disco para las carátulas de álbumes descargadas. Las carátulas más antiguas se eliminan cuando se supera este límite.</description>
+    </key>
+
     <key type="i" name="dm-visualizer-style">
       <default>0</default>
       <range min="0" max="3"/>

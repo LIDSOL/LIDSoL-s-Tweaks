@@ -1,0 +1,10 @@
+/* Shared media player styles */
+.media-player-art {
+    border-radius: 6px;
+    background-size: cover;
+    background-position: center;
+}
+
+.media-player-art-fallback {
+    color: rgba(255, 255, 255, 0.5);
+}

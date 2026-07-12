@@ -17,10 +17,10 @@ export const CrossfadeArt = GObject.registerClass(
             this._currentUrl = null;
         }
 
-        setArt(newUrl) {
+        setArt(newUrl, force = false) {
             let children = this.get_children();
 
-            if (children.length > 0 && children[children.length - 1]._bgUrl === newUrl)
+            if (!force && children.length > 0 && children[children.length - 1]._bgUrl === newUrl)
                 return;
 
             this._currentUrl = newUrl;

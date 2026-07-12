@@ -807,6 +807,21 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     updateArtPosSensitive();
     mediaGroup.add(artPosRow);
 
+    const artCacheRow = createSpinButtonRow({
+      settings: s,
+      bindKey: 'dm-art-cache-size',
+      title: 'Tamaño de caché de carátulas',
+      subtitle: 'Límite máximo de almacenamiento en disco (MB). Las carátulas antiguas se eliminan automáticamente.',
+      adjProps: { lower: 1, upper: 500, step: 5 },
+    });
+    const updateArtCacheSensitive = () => {
+      artCacheRow.sensitive = s.get_boolean('dm-show-media') && s.get_boolean('dm-show-art');
+    };
+    s.connect('changed::dm-show-media', updateArtCacheSensitive);
+    s.connect('changed::dm-show-art', updateArtCacheSensitive);
+    updateArtCacheSensitive();
+    mediaGroup.add(artCacheRow);
+
     // — Visualizador —
     const visEnabledSwitch = createSwitchRow({
       settings: s,

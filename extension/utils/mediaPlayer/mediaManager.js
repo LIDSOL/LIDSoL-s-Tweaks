@@ -102,11 +102,25 @@ var MediaPlayerManager = GObject.registerClass({
     }
 
     _onAnyPlayerUpdate(player) {
-        if (player === this._activePlayer || player.isPlaying()) {
-            if (player === this._activePlayer)
+        const wasActive = player === this._activePlayer;
+
+        if (wasActive || player.isPlaying()) {
+            if (wasActive) {
+                // When the active player pauses/stops, immediately check
+                // if another player is still playing and switch to it
+                if (!player.isPlaying()) {
+                    const otherPlaying = this._service.players.find(
+                        p => p !== player && p.isPlaying()
+                    );
+                    if (otherPlaying) {
+                        this._selectActivePlayer();
+                        return;
+                    }
+                }
                 this._emitMediaChanged();
-            else
+            } else {
                 this._selectActivePlayer();
+            }
         }
     }
 

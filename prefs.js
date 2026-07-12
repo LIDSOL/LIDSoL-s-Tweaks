@@ -63,7 +63,7 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
       window.add(page);
     }
 
-    window.set_default_size(500, 500);
+    window.set_default_size(480, 500);
   }
 
   _buildPage(cat) {

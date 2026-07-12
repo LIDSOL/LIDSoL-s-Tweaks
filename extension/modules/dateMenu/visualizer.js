@@ -7,172 +7,205 @@ import GLib from 'gi://GLib';
 import Gio from 'gi://Gio';
 import St from 'gi://St';
 
-const CavaEngine = GObject.registerClass(
-  class CavaEngine extends GObject.Object {
-    _init() {
-      super._init();
-      this._barCount = 16;
-      this._bins = new Array(this._barCount).fill(0);
-      this._cavaProcess = null;
+const CAVA_FIXED_BARS = 64;
+
+let _cavaEngineInstance = null;
+
+class CavaEngine {
+  constructor() {
+    this._subscribers = new Map();
+    this._bins = new Array(CAVA_FIXED_BARS).fill(0);
+    this._silentFrames = 0;
+    this._rollingMax = 2000;
+    this._cavaProcess = null;
+    this._cancellable = null;
+    this._stdout = null;
+    this._tmpConfigPath = null;
+    this._bufferUsed = 0;
+    this._rawBuffer = new Uint8Array(0);
+  }
+
+  subscribe(callback) {
+    if (!this._subscribers.has(callback))
+      this._subscribers.set(callback, false);
+    this._evaluatePlayback();
+  }
+
+  unsubscribe(callback) {
+    this._subscribers.delete(callback);
+    this._evaluatePlayback();
+  }
+
+  setPlaying(callback, playing) {
+    if (this._subscribers.has(callback)) {
+      this._subscribers.set(callback, playing);
+      this._evaluatePlayback();
+    }
+  }
+
+  _evaluatePlayback() {
+    let anyPlaying = false;
+    for (let isPlaying of this._subscribers.values()) {
+      if (isPlaying) { anyPlaying = true; break; }
+    }
+
+    if (anyPlaying)
+      this._startCava();
+    else
+      this._stopCava();
+    if (!anyPlaying)
+      this._broadcast(new Array(CAVA_FIXED_BARS).fill(0), true);
+  }
+
+  _startCava() {
+    if (this._cavaProcess) return;
+    if (!GLib.find_program_in_path('cava')) return;
+
+    let tmpPath = `${GLib.get_tmp_dir()}/lidsol-cava-${GLib.get_monotonic_time()}`;
+    let cfg =
+      `[general]\nbars = ${CAVA_FIXED_BARS}\nframerate = 60\nautosens = 1\n` +
+      `[smoothing]\nmonstercat = 1.5\nnoise_reduction = 60\ngravity = 140\n` +
+      `[input]\nmethod = pulse\nsource = auto\n` +
+      `[output]\nmethod = raw\nbit_format = 16bit\nchannels = mono\nraw_target = /dev/stdout\n`;
+
+    try {
+      GLib.file_set_contents(tmpPath, new TextEncoder().encode(cfg));
+      this._tmpConfigPath = tmpPath;
+    } catch (e) {
+      return;
+    }
+
+    try {
+      let launcher = new Gio.SubprocessLauncher({
+        flags: Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE,
+      });
+      this._process = launcher.spawnv(['cava', '-p', tmpPath]);
+      this._stdout = this._process.get_stdout_pipe();
+      this._cancellable = new Gio.Cancellable();
+      this._bufferUsed = 0;
+      this._rawBuffer = new Uint8Array(8192);
+      this._cavaProcess = true;
+      this._readStdout();
+    } catch (e) {
+      this._stopCava();
+    }
+  }
+
+  _stopCava() {
+    if (this._cancellable) {
+      this._cancellable.cancel();
       this._cancellable = null;
+    }
+    if (this._process) {
+      try { this._process.force_exit(); } catch (e) { }
+      this._process = null;
+    }
+    if (this._stdout) {
+      try { this._stdout.close(null); } catch (e) { }
       this._stdout = null;
+    }
+    if (this._tmpConfigPath) {
+      try {
+        let file = Gio.File.new_for_path(this._tmpConfigPath);
+        if (file.query_exists(null)) file.delete(null);
+      } catch (e) { }
       this._tmpConfigPath = null;
-      this._rollingMax = 2000;
-      this._silentFrames = 0;
-      this._onData = null;
     }
+    this._cavaProcess = false;
+    this._silentFrames = 30;
+    this._bins.fill(0);
+  }
 
-    setBarCount(n) {
-      if (n === this._barCount) return;
-      this._barCount = n;
-      this._bins = new Array(n).fill(0);
-      if (this._cavaProcess) {
-        const cb = this._onData;
-        this.stop();
-        this.start(cb);
-      }
-    }
+  _readStdout() {
+    if (!this._stdout || !this._cancellable || this._cancellable.is_cancelled()) return;
 
-    start(onData) {
-      this._onData = onData;
-      if (this._cavaProcess) return;
-
-      if (!GLib.find_program_in_path('cava'))
-        return;
-
-      let count = this._barCount;
-      let tmpPath = `${GLib.get_tmp_dir()}/lidsol-cava-${GLib.get_monotonic_time()}`;
-      let cfg =
-        `[general]\nbars = ${count}\nframerate = 60\nautosens = 1\n` +
-        `[smoothing]\nmonstercat = 1.5\nnoise_reduction = 60\ngravity = 140\n` +
-        `[input]\nmethod = pulse\nsource = auto\n` +
-        `[output]\nmethod = raw\nbit_format = 16bit\nchannels = mono\nraw_target = /dev/stdout\n`;
-
-      try {
-        GLib.file_set_contents(tmpPath, new TextEncoder().encode(cfg));
-        this._tmpConfigPath = tmpPath;
-      } catch (e) {
-        return;
-      }
-
-      try {
-        let launcher = new Gio.SubprocessLauncher({
-          flags: Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE,
-        });
-        this._process = launcher.spawnv(['cava', '-p', tmpPath]);
-        this._stdout = this._process.get_stdout_pipe();
-        this._cancellable = new Gio.Cancellable();
-        this._cavaProcess = true;
-        this._bufferUsed = 0;
-        this._rawBuffer = new Uint8Array(8192);
-        this._readStdout();
-      } catch (e) {
-        this._cleanupProcess();
-      }
-    }
-
-    stop() {
-      this._onData = null;
-      this._cleanupProcess();
-    }
-
-    _cleanupProcess() {
-      if (this._cancellable) {
-        this._cancellable.cancel();
-        this._cancellable = null;
-      }
-      if (this._process) {
-        try { this._process.force_exit(); } catch (e) { }
-        this._process = null;
-      }
-      if (this._stdout) {
-        try { this._stdout.close(null); } catch (e) { }
-        this._stdout = null;
-      }
-      if (this._tmpConfigPath) {
+    let readSize = Math.max(4096, CAVA_FIXED_BARS * 4);
+    this._stdout.read_bytes_async(readSize, GLib.PRIORITY_DEFAULT, this._cancellable,
+      (stream, res) => {
         try {
-          let file = Gio.File.new_for_path(this._tmpConfigPath);
-          if (file.query_exists(null)) file.delete(null);
-        } catch (e) { }
-        this._tmpConfigPath = null;
-      }
-      this._cavaProcess = false;
-      this._silentFrames = 30;
-      this._bins.fill(0);
-    }
-
-    _readStdout() {
-      if (!this._stdout || !this._cancellable || this._cancellable.is_cancelled()) return;
-
-      let readSize = Math.max(4096, this._barCount * 4);
-      this._stdout.read_bytes_async(readSize, GLib.PRIORITY_DEFAULT, this._cancellable,
-        (stream, res) => {
-          try {
-            let gbytes = stream.read_bytes_finish(res);
-            if (!gbytes) {
-              if (this._stdout && this._cancellable && !this._cancellable.is_cancelled())
-                this._readStdout();
-              return;
-            }
-
-            let chunk = gbytes.get_data();
-            if (!chunk || chunk.length === 0) { this._readStdout(); return; }
-
-            let needed = this._bufferUsed + chunk.length;
-            if (needed > this._rawBuffer.length) {
-              let nb = new Uint8Array(Math.max(needed, this._rawBuffer.length * 2));
-              nb.set(this._rawBuffer.subarray(0, this._bufferUsed));
-              this._rawBuffer = nb;
-            }
-            this._rawBuffer.set(chunk, this._bufferUsed);
-            this._bufferUsed += chunk.length;
-
-            let frameSize = this._barCount * 2;
-            let totalFrames = Math.floor(this._bufferUsed / frameSize);
-
-            if (totalFrames > 0) {
-              let lastOffset = (totalFrames - 1) * frameSize;
-              let dv = new DataView(this._rawBuffer.buffer,
-                this._rawBuffer.byteOffset + lastOffset, frameSize);
-
-              let frameMax = 1;
-              for (let i = 0; i < this._barCount; i++) {
-                let v = dv.getUint16(i * 2, true);
-                this._bins[i] = v;
-                if (v > frameMax) frameMax = v;
-              }
-
-              if (frameMax < 100)
-                this._silentFrames++;
-              else
-                this._silentFrames = 0;
-
-              let norm = new Array(this._barCount).fill(0);
-
-              if (this._silentFrames < 30) {
-                if (frameMax > this._rollingMax)
-                  this._rollingMax = frameMax;
-                else
-                  this._rollingMax = this._rollingMax * 0.98 + frameMax * 0.02;
-
-                let invMax = 1 / Math.max(this._rollingMax, 5000);
-                for (let i = 0; i < this._barCount; i++)
-                  norm[i] = Math.min(1.0, this._bins[i] * invMax);
-              }
-
-              if (this._onData)
-                this._onData(norm, this._silentFrames >= 30);
-
-              this._rawBuffer.copyWithin(0, totalFrames * frameSize, this._bufferUsed);
-              this._bufferUsed -= totalFrames * frameSize;
-            }
-            this._readStdout();
-          } catch (e) {
-            // Error or cancellation — stop reading; start() will restart if needed
+          let gbytes = stream.read_bytes_finish(res);
+          if (!gbytes) {
+            if (this._stdout && this._cancellable && !this._cancellable.is_cancelled())
+              this._readStdout();
+            return;
           }
-        });
-    }
-  });
+
+          let chunk = gbytes.get_data();
+          if (!chunk || chunk.length === 0) { this._readStdout(); return; }
+
+          let needed = this._bufferUsed + chunk.length;
+          if (needed > this._rawBuffer.length) {
+            let nb = new Uint8Array(Math.max(needed, this._rawBuffer.length * 2));
+            nb.set(this._rawBuffer.subarray(0, this._bufferUsed));
+            this._rawBuffer = nb;
+          }
+          this._rawBuffer.set(chunk, this._bufferUsed);
+          this._bufferUsed += chunk.length;
+
+          let frameSize = CAVA_FIXED_BARS * 2;
+          let totalFrames = Math.floor(this._bufferUsed / frameSize);
+
+          if (totalFrames > 0) {
+            let lastOffset = (totalFrames - 1) * frameSize;
+            let dv = new DataView(this._rawBuffer.buffer,
+              this._rawBuffer.byteOffset + lastOffset, frameSize);
+
+            let frameMax = 1;
+            for (let i = 0; i < CAVA_FIXED_BARS; i++) {
+              let v = dv.getUint16(i * 2, true);
+              this._bins[i] = v;
+              if (v > frameMax) frameMax = v;
+            }
+
+            if (frameMax < 100)
+              this._silentFrames++;
+            else
+              this._silentFrames = 0;
+
+            let isSilent = this._silentFrames >= 30;
+            let normalizedArray = new Array(CAVA_FIXED_BARS).fill(0);
+
+            if (isSilent) {
+              this._rollingMax = 2000;
+            } else {
+              if (frameMax > this._rollingMax)
+                this._rollingMax = frameMax;
+              else
+                this._rollingMax = this._rollingMax * 0.98 + frameMax * 0.02;
+
+              let invMax = 1 / Math.max(this._rollingMax, 5000);
+              for (let i = 0; i < CAVA_FIXED_BARS; i++)
+                normalizedArray[i] = Math.min(1.0, this._bins[i] * invMax);
+            }
+
+            this._broadcast(normalizedArray, isSilent);
+
+            this._rawBuffer.copyWithin(0, totalFrames * frameSize, this._bufferUsed);
+            this._bufferUsed -= totalFrames * frameSize;
+          }
+          this._readStdout();
+        } catch (e) { }
+      });
+  }
+
+  _broadcast(normalizedBars, isSilent) {
+    for (let cb of this._subscribers.keys())
+      cb(normalizedBars, isSilent);
+  }
+}
+
+function getCavaEngine() {
+  if (!_cavaEngineInstance)
+    _cavaEngineInstance = new CavaEngine();
+  return _cavaEngineInstance;
+}
+
+function destroyCavaEngine() {
+  if (_cavaEngineInstance) {
+    _cavaEngineInstance._stopCava();
+    _cavaEngineInstance = null;
+  }
+}
 
 const SimulatedVisualizer = GObject.registerClass(
   class SimulatedVisualizer extends St.BoxLayout {
@@ -275,50 +308,83 @@ const CavaVisualizer = GObject.registerClass(
     _init(barCount) {
       super._init({
         y_expand: true,
-        x_expand: true,
-        x_align: Clutter.ActorAlign.FILL,
         y_align: Clutter.ActorAlign.FILL,
       });
-      this._barCount = barCount;
+      this._barCount = barCount || 16;
       this._barWidth = 3;
-      this._prevHeights = new Array(barCount).fill(4);
-      this._peakValues = new Array(barCount).fill(0);
+      this._gap = 2;
+      this._prevHeights = new Array(this._barCount).fill(1);
+      this._peakValues = new Array(this._barCount).fill(0);
       this._isSilent = true;
 
+      this._engine = getCavaEngine();
+      this._engineCallback = this._onEngineUpdate.bind(this);
+      this._engine.subscribe(this._engineCallback);
+
       this.connect('repaint', this._onRepaint.bind(this));
-      this.connect('destroy', () => this._engine?.stop());
+      this.connect('destroy', () => {
+        this._engine.unsubscribe(this._engineCallback);
+      });
+
+      this._updateWidth();
+    }
+
+    _updateWidth() {
+      let w = this._barCount * (this._barWidth + this._gap) - this._gap;
+      this.set_width(Math.max(0, w));
     }
 
     setBarCount(n) {
+      if (n === this._barCount) return;
       this._barCount = n;
-      this._prevHeights = new Array(n).fill(4);
+      this._prevHeights = new Array(n).fill(1);
       this._peakValues = new Array(n).fill(0);
-      this._engine?.setBarCount(n);
+      this._updateWidth();
     }
 
-    startEngine() {
-      if (!this._engine) {
-        this._engine = new CavaEngine();
-        this._engine.setBarCount(this._barCount);
+    setHeight(h) {
+      this.set_height(h);
+    }
+
+    setPlaying(playing) {
+      this._engine.setPlaying(this._engineCallback, playing);
+      if (!playing) {
+        this._prevHeights.fill(1);
+        this._peakValues.fill(0);
+        this._isSilent = true;
+        this.queue_repaint();
       }
-      this._engine.start((data, silent) => {
-        this._onEngineData(data, silent);
-      });
     }
 
-    stopEngine() {
-      this._engine?.stop();
+    _resampleBars(rawData, targetCount) {
+      let srcCount = rawData.length;
+      if (srcCount === targetCount) return rawData;
+      let result = new Array(targetCount).fill(0);
+      let ratio = srcCount / targetCount;
+      for (let i = 0; i < targetCount; i++) {
+        let start = Math.floor(i * ratio);
+        let end = Math.floor((i + 1) * ratio);
+        let sum = 0, count = 0;
+        for (let j = start; j < end && j < srcCount; j++) {
+          sum += rawData[j];
+          count++;
+        }
+        result[i] = count > 0 ? (sum / count) : 0;
+      }
+      return result;
     }
 
-    _onEngineData(normalizedBars, isSilent) {
-      if (!this || this.is_finalized?.() || !this.mapped) return;
+    _onEngineUpdate(normalizedBars, isSilent) {
+      if (!this || (this.is_finalized && this.is_finalized()) || !this.mapped) return;
 
       this._isSilent = isSilent;
+      let myBars = this._resampleBars(normalizedBars, this._barCount);
+
       let totalHeight = this.get_height() || 24;
       let maxHalfHeight = totalHeight / 2;
 
       for (let i = 0; i < this._barCount; i++) {
-        let norm = normalizedBars[i] ?? 0;
+        let norm = myBars[i];
         let visualCurve = Math.pow(norm, 0.8);
         let target = Math.max(1, Math.round(visualCurve * maxHalfHeight));
 
@@ -341,20 +407,23 @@ const CavaVisualizer = GObject.registerClass(
       let cr = this.get_context();
       let width = this.get_width();
       let height = this.get_height();
-      if (width <= 0 || height <= 0) return;
+      if (width <= 0 || height <= 0) { cr.$dispose(); return; }
 
       cr.setOperator(Cairo.Operator.CLEAR);
       cr.paint();
       cr.setOperator(Cairo.Operator.OVER);
 
-      let gap = 2;
       let centerY = Math.floor(height / 2);
       let barCount = this._barCount;
       let barWidth = this._barWidth;
+      let gap = this._gap;
+
+      let totalContent = barCount * (barWidth + gap) - gap;
+      let offsetX = Math.max(0, Math.floor((width - totalContent) / 2));
 
       for (let i = 0; i < barCount; i++) {
         let halfHeight = Math.max(1, this._prevHeights[i]);
-        let x = i * (barWidth + gap);
+        let x = offsetX + i * (barWidth + gap);
         let edgeFade = 1 - Math.abs(i - (barCount - 1) / 2) / ((barCount - 1) / 2) * 0.35;
         let alpha = this._isSilent ? 0.3 * edgeFade : 1.0 * edgeFade;
 
@@ -371,9 +440,11 @@ const CavaVisualizer = GObject.registerClass(
           cr.fill();
         }
       }
+      cr.$dispose();
     }
   });
 
+export { destroyCavaEngine };
 export const VisualizerWidget = GObject.registerClass(
   class VisualizerWidget extends St.BoxLayout {
     _init() {
@@ -404,7 +475,6 @@ export const VisualizerWidget = GObject.registerClass(
       this.add_child(this._pauseIcon);
 
       this._cava = null;
-      this._engine = null;
     }
 
     setMode(mode) {
@@ -423,11 +493,10 @@ export const VisualizerWidget = GObject.registerClass(
         this._cava.visible = true;
         if (!this._cava.get_parent())
           this.add_child(this._cava);
-        if (this._isPlaying)
-          this._cava.startEngine();
+        this._cava.setPlaying(this._isPlaying);
       } else if (mode > 0) {
         if (this._cava) {
-          this._cava.stopEngine();
+          this._cava.setPlaying(false);
           this._cava.visible = false;
         }
         this._simulated.visible = true;
@@ -435,7 +504,7 @@ export const VisualizerWidget = GObject.registerClass(
         this._simulated.setPlaying(this._isPlaying);
       } else {
         if (this._cava) {
-          this._cava.stopEngine();
+          this._cava.setPlaying(false);
           this._cava.visible = false;
         }
         this._simulated.visible = false;
@@ -460,12 +529,10 @@ export const VisualizerWidget = GObject.registerClass(
 
     setPlaying(playing) {
       this._isPlaying = playing;
-      if (this._mode === 3 && this._cava) {
-        if (playing) this._cava.startEngine();
-        else this._cava.stopEngine();
-      } else if (this._mode > 0) {
+      if (this._mode === 3 && this._cava)
+        this._cava.setPlaying(playing);
+      else if (this._mode > 0)
         this._simulated.setPlaying(playing);
-      }
       this._syncPauseIcon();
     }
 
@@ -485,7 +552,7 @@ export const VisualizerWidget = GObject.registerClass(
 
     _cleanup() {
       if (this._cava) {
-        this._cava.stopEngine();
+        this._cava.setPlaying(false);
         this._cava.destroy();
         this._cava = null;
       }

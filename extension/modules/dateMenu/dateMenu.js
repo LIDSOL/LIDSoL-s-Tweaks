@@ -70,10 +70,10 @@ export class AtAGlanceIndicator {
         });
 
         // Album art (always outermost, left or right)
-        this._mediaArt = new CrossfadeArt(12);
+        this._mediaArt = new CrossfadeArt(11);
         this._mediaArt.add_style_class_name('at-a-glance-media-art');
-        this._mediaArt.set_width(24);
-        this._mediaArt.set_height(24);
+        this._mediaArt.set_width(22);
+        this._mediaArt.set_height(22);
         this._container.add_child(this._mediaArt);
 
         // Visualizer (inner, next to textBox)

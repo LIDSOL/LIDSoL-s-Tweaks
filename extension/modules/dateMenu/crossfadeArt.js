@@ -8,6 +8,8 @@ import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 
+const LOAD_SIZE = 128;
+
 export const CrossfadeArt = GObject.registerClass(
     class CrossfadeArt extends St.Widget {
         _init(radius = 12) {
@@ -18,6 +20,7 @@ export const CrossfadeArt = GObject.registerClass(
                 y_expand: false,
             });
             this._radius = radius;
+            this._size = radius * 2;
             this._currentUrl = null;
             this._pixbuf = null;
 
@@ -31,148 +34,92 @@ export const CrossfadeArt = GObject.registerClass(
             this.add_child(this._canvasArea);
         }
 
+        _pixbufFromUrl(url) {
+            if (!url) return null;
+            try {
+                let path;
+                if (url.startsWith('file://'))
+                    path = Gio.File.new_for_uri(url).get_path();
+                else
+                    path = url;
+
+                if (!path || !GLib.file_test(path, GLib.FileTest.EXISTS))
+                    return null;
+                return GdkPixbuf.Pixbuf.new_from_file_at_size(path, LOAD_SIZE, LOAD_SIZE);
+            } catch (e) {
+                logError(e, '[CrossfadeArt] _pixbufFromUrl');
+                return null;
+            }
+        }
+
         _onRepaint() {
             let cr = this._canvasArea.get_context();
             let w = this._canvasArea.get_width();
             let h = this._canvasArea.get_height();
 
-            if (!this._pixbuf || w < 1 || h < 1) {
+            if (w < 1 || h < 1 || !this._pixbuf) {
                 cr.$dispose();
                 return;
             }
 
-            try {
-                let r = Math.min(w, h) / 2;
-                let cx = w / 2;
-                let cy = h / 2;
-                cr.arc(cx, cy, r, 0, 2 * Math.PI);
-                cr.clip();
+            let r = Math.min(w, h) / 2;
+            cr.arc(w / 2, h / 2, r, 0, 2 * Math.PI);
+            cr.clip();
 
-                let scaleX = w / this._pixbuf.get_width();
-                let scaleY = h / this._pixbuf.get_height();
-                let s = Math.max(scaleX, scaleY);
-                let offsetX = (w - this._pixbuf.get_width() * s) / 2;
-                let offsetY = (h - this._pixbuf.get_height() * s) / 2;
+            let scaleX = w / this._pixbuf.get_width();
+            let scaleY = h / this._pixbuf.get_height();
+            let s = Math.max(scaleX, scaleY);
+            let ox = (w - this._pixbuf.get_width() * s) / 2;
+            let oy = (h - this._pixbuf.get_height() * s) / 2;
 
-                cr.save();
-                cr.translate(offsetX, offsetY);
-                cr.scale(s, s);
-                Gdk.cairo_set_source_pixbuf(cr, this._pixbuf, 0, 0);
-                cr.paint();
-                cr.restore();
-            } catch (e) {
-                logError(e, '[CrossfadeArt] repaint error');
-            }
-
+            cr.save();
+            cr.translate(ox, oy);
+            cr.scale(s, s);
+            Gdk.cairo_set_source_pixbuf(cr, this._pixbuf, 0, 0);
+            cr.paint();
+            cr.restore();
             cr.$dispose();
         }
 
-        _loadPixbufForCanvas() {
-            this._pixbuf = null;
-
-            let url = this._currentUrl;
-            if (!url) {
-                this._canvasArea.queue_repaint();
-                return;
-            }
-
-            try {
-                let file = Gio.File.new_for_uri(url);
-                let path = file.get_path();
-                if (!path || !GLib.file_test(path, GLib.FileTest.EXISTS)) {
-                    this._canvasArea.queue_repaint();
-                    return;
-                }
-
-                let size = Math.max(this.get_width(), this.get_height(), 24);
-                this._pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(path, size, size);
-            } catch (e) {
-                this._pixbuf = null;
-            }
-
-            this._canvasArea.queue_repaint();
-        }
-
         setArt(newUrl, force = false) {
-            let children = this.get_children();
-            let cssChildren = children.slice(1);
-
-            if (!force && cssChildren.length > 0 && cssChildren[cssChildren.length - 1]._bgUrl === newUrl)
+            if (!force && this._currentUrl === newUrl)
                 return;
 
             this._currentUrl = newUrl;
             this._updateContainerStyle();
-            this._loadPixbufForCanvas();
 
-            cssChildren.forEach(c => { c.remove_all_transitions(); c.destroy(); });
+            if (!newUrl) {
+                this._pixbuf = null;
+                this._canvasArea.queue_repaint();
+                return;
+            }
 
-            let newLayer = new St.Widget({
-                x_expand: true,
-                y_expand: true,
-                opacity: 0,
-            });
-            newLayer._bgUrl = newUrl;
-
-            this.add_child(newLayer);
-            this._refreshLayerStyle(newLayer);
-
-            newLayer.ease({
-                opacity: 255,
-                duration: 1800,
-                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-                onStopped: (isFinished) => {
-                    if (!isFinished) return;
-
-                    newLayer.opacity = 255;
-
-                    let curChildren = this.get_children();
-                    let myIndex = curChildren.indexOf(newLayer);
-                    for (let i = 1; i < myIndex; i++) {
-                        let oldLayer = curChildren[i];
-                        oldLayer.ease({
-                            opacity: 0,
-                            duration: 300,
-                            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-                            onStopped: () => oldLayer.destroy(),
-                        });
-                    }
-                },
-            });
+            let newPixbuf = this._pixbufFromUrl(newUrl);
+            if (newPixbuf) {
+                this._pixbuf = newPixbuf;
+            }
+            this._canvasArea.queue_repaint();
         }
 
         _updateContainerStyle() {
-            this.set_style(`border-radius: ${this._radius}px; background-color: transparent;`);
-        }
-
-        _refreshLayerStyle(layer) {
-            if (!layer || !layer.get_parent()) return;
-            let url = layer._bgUrl;
-            let bgPart = url ? `background-image: url("${url}");` : '';
-            let css = `border-radius: ${this._radius}px; background-size: cover; background-position: center; ${bgPart}`;
-            if (layer._lastCss === css) return;
-            layer._lastCss = css;
-
-            if (layer.get_parent())
-                layer.set_style(css);
+            this.set_style(`border-radius: ${this._radius}px; width: ${this._size}px; height: ${this._size}px; background-color: transparent;`);
         }
 
         refreshStyle() {
-            let children = this.get_children();
-            for (let i = children.length - 1; i >= 1; i--)
-                children[i].destroy();
-            this.set_style(`border-radius: ${this._radius}px; background-color: transparent;`);
-            this._loadPixbufForCanvas();
+            this.set_style(`border-radius: ${this._radius}px; width: ${this._size}px; height: ${this._size}px; background-color: transparent;`);
+            this._pixbuf = this._pixbufFromUrl(this._currentUrl);
+            this._canvasArea.queue_repaint();
         }
 
         vfunc_get_preferred_width(forHeight) {
             let w = this.get_width();
             if (w > 0) return [w, w];
-            return [24, 24];
+            return [this._size, this._size];
         }
 
         vfunc_get_preferred_height(forWidth) {
             let h = this.get_height();
             if (h > 0) return [h, h];
-            return [24, 24];
+            return [this._size, this._size];
         }
     });

@@ -632,34 +632,8 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
 
   _buildNotificationMediaDialog(page) {
     const s = this._settings;
-    const mainGroup = createGroup({ parent: page, title: 'Notification Media', description: 'Controles multimedia agrupados en el centro de notificaciones, reemplazando los controles nativos.' });
-    mainGroup.add(createSwitchRow({ settings: s, bindKey: 'nm-enabled', title: 'Activar Notification Media' }));
-
-    const appearGroup = createGroup({ parent: page, title: 'Apariencia' });
-    appearGroup.add(createSwitchRow({ settings: s, bindKey: 'nm-compact', title: 'Modo compacto', subtitle: 'Reduce el tamaño del widget para que se integre con las notificaciones' }));
-    appearGroup.add(createSpinButtonRow({ settings: s, bindKey: 'nm-control-opacity', title: 'Opacidad de controles', subtitle: '0-255, 255 = totalmente visible', adjProps: { lower: 0, upper: 255 } }));
-
-    const btnGroup = createGroup({ parent: page, title: 'Botones' });
-    btnGroup.add(createSwitchRow({ settings: s, bindKey: 'nm-show-prev', title: 'Mostrar botón anterior' }));
-    btnGroup.add(createSwitchRow({ settings: s, bindKey: 'nm-show-pause', title: 'Mostrar botón de pausa/reproducción' }));
-    btnGroup.add(createSwitchRow({ settings: s, bindKey: 'nm-show-next', title: 'Mostrar botón siguiente' }));
-
-    const progGroup = createGroup({ parent: page, title: 'Barra de progreso' });
-    progGroup.add(createSwitchRow({ settings: s, bindKey: 'nm-progress-enabled', title: 'Mostrar barra de progreso' }));
-    progGroup.add(createComboRow({
-      settings: s,
-      bindKey: 'nm-progress-style',
-      title: 'Estilo de la barra',
-      subtitle: 'Slim = sin control deslizante, Default = con control redondo',
-      options: {
-        slim: 'Slim (delgada)',
-        default: 'Default (gruesa)',
-      },
-    }));
-
-    const advGroup = createGroup({ parent: page, title: 'Avanzado' });
-    advGroup.add(createSwitchRow({ settings: s, bindKey: 'nm-round-clip-enabled', title: 'Clip redondeado', subtitle: 'Aplica esquinas redondeadas al contenedor multimedia' }));
-    advGroup.add(createSpinButtonRow({ settings: s, bindKey: 'nm-smooth-scroll-speed', title: 'Velocidad de scroll suave', subtitle: 'Multiplicador del desplazamiento táctil entre reproductores', adjProps: { lower: -2048, upper: 2048, step: 1 } }));
+    const mainGroup = createGroup({ parent: page, title: 'Notification Media', description: 'Oculta los indicadores multimedia nativos de las notificaciones del centro de notificaciones.' });
+    mainGroup.add(createSwitchRow({ settings: s, bindKey: 'nm-enabled', title: 'Ocultar indicadores multimedia nativos' }));
   }
 
   _buildUserAvatarDialog(page) {

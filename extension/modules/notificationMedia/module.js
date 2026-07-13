@@ -1,16 +1,10 @@
 'use strict';
 
-import Gio from 'gi://Gio';
-import GLib from 'gi://GLib';
-import St from 'gi://St';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as Mpris from 'resource:///org/gnome/shell/ui/mpris.js';
-import { MediaNotificationWidget } from './notificationMedia.js';
 
 export class NotificationMediaModule {
     constructor() {
-        this._widget = null;
-        this._stylesheetFile = null;
         this._settings = null;
         this._extension = null;
         this._origAddPlayer = null;
@@ -21,33 +15,14 @@ export class NotificationMediaModule {
             this._settings = gsettings;
             this._extension = extension;
 
-            this._loadStylesheet();
-
-            // Hide native media: patch MprisSource._addPlayer (like Dynamic Music Pill)
+            // Hide native media: patch MprisSource._addPlayer
             this._origAddPlayer = Mpris.MprisSource.prototype._addPlayer;
             Mpris.MprisSource.prototype._addPlayer = function () {};
 
             // Remove already-discovered players so their MediaMessages disappear
             this._removeExistingMediaPlayers();
 
-            this._widget = new MediaNotificationWidget({ settings: this._settings });
-
-            GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
-                try {
-                    let ml = Main.panel.statusArea.dateMenu?._messageList;
-                    if (!ml) {
-                        console.warn('[NotificationMedia] no dateMenu._messageList');
-                        return GLib.SOURCE_REMOVE;
-                    }
-                    ml.insert_child_at_index(this._widget, 0);
-                    // One more pass to catch any players that snuck in
-                    this._removeExistingMediaPlayers();
-                    console.log('[NotificationMedia] widget inserted');
-                } catch (e) {
-                    console.error('[NotificationMedia] idle insert error:', e);
-                }
-                return GLib.SOURCE_REMOVE;
-            });
+            console.log('[NotificationMedia] Native media indicators hidden');
         } catch (e) {
             console.error('[NotificationMedia] enable error:', e);
         }
@@ -55,7 +30,6 @@ export class NotificationMediaModule {
 
     _removeExistingMediaPlayers() {
         try {
-            // Notification center media source
             let mv = Main.panel.statusArea.dateMenu?._messageList?._messageView;
             let source = mv?._mediaSource;
             if (source && source._players) {
@@ -64,7 +38,6 @@ export class NotificationMediaModule {
                 }
             }
 
-            // Also directly remove any MediaMessage actors still in the list
             if (mv && mv._playerToMessage) {
                 for (const [player, message] of mv._playerToMessage) {
                     try {
@@ -81,13 +54,7 @@ export class NotificationMediaModule {
         }
     }
 
-    _loadStylesheet() {
-        const themeContext = St.ThemeContext.get_for_stage(global.stage);
-        this._stylesheetFile = Gio.File.new_for_path(
-            this._extension.path + '/extension/modules/notificationMedia/notificationMedia.css'
-        );
-        themeContext.get_theme().load_stylesheet(this._stylesheetFile);
-    }
+    _reloadSettings() {}
 
     disable() {
         try {
@@ -103,21 +70,10 @@ export class NotificationMediaModule {
                     source._onProxyReady();
             }
 
-            if (this._widget) {
-                if (this._widget.get_parent())
-                    this._widget.get_parent().remove_child(this._widget);
-                this._widget.destroy();
-                this._widget = null;
-            }
-
-            if (this._stylesheetFile) {
-                const themeContext = St.ThemeContext.get_for_stage(global.stage);
-                themeContext.get_theme().unload_stylesheet(this._stylesheetFile);
-                this._stylesheetFile = null;
-            }
-
             this._settings = null;
             this._extension = null;
+
+            console.log('[NotificationMedia] Native media indicators restored');
         } catch (e) {
             console.error('[NotificationMedia] disable error:', e);
         }

@@ -130,17 +130,33 @@ export class AtAGlanceIndicator {
                 this._onManagerMediaUpdate();
             }),
             this._manager.connect('screen-unlocked', () => {
+                // CSS background-image is broken after unlock — use Canvas-based rendering
                 this._lastMediaText = '';
                 this._lastCoverUrl = null;
                 if (this._player) {
                     const meta = this._manager.getActivePlayerMeta();
-                    if (meta) {
-                        let cachedCover = meta.coverUrl ? this._manager.getArtUrl(meta.coverUrl) : null;
+
+                    // Layer 1: direct meta from D-Bus
+                    if (meta && meta.coverUrl) {
+                        let cachedCover = this._manager.getArtUrl(meta.coverUrl);
                         this._lastCoverUrl = cachedCover || meta.coverUrl;
                         this._lastMediaText = this._formatMediaText(meta.title, meta.artist);
                         this._lastPlayingState = meta.isPlaying;
-                        this._updateMedia({ forceArt: true });
+                        this._mediaArt._currentUrl = this._lastCoverUrl;
+                        this._mediaArt.refreshStyle();
+                    // Layer 2: fallback to last known cover
+                    } else if (this._manager.getLastKnownCover()) {
+                        let fallback = this._manager.getLastKnownCover();
+                        this._lastCoverUrl = fallback;
+                        this._lastPlayingState = true;
+                        this._mediaArt._currentUrl = fallback;
+                        this._mediaArt.refreshStyle();
                     }
+
+                    this._mediaLabel.text = this._lastMediaText;
+                    this._updateClock();
+                    this._updateArtVisibility();
+                    this._updateMediaVisibility();
                 }
             }),
         ];

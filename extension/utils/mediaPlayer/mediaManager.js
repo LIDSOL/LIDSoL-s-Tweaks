@@ -39,6 +39,7 @@ var MediaPlayerManager = GObject.registerClass({
         GLib.mkdir_with_parents(this._cacheDir, 0o755);
         this._started = false;
         this._screenSaverSubId = 0;
+        this._lastKnownCover = null;
     }
 
     _initManager() {
@@ -157,6 +158,10 @@ var MediaPlayerManager = GObject.registerClass({
         return this._activePlayer;
     }
 
+    getLastKnownCover() {
+        return this._lastKnownCover;
+    }
+
     getActivePlayerMeta() {
         if (!this._activePlayer) return null;
         const p = this._activePlayer;
@@ -187,7 +192,10 @@ var MediaPlayerManager = GObject.registerClass({
         if (!artUrl) return null;
 
         let cached = this._artCache.get(artUrl);
-        if (cached) return cached;
+        if (cached) {
+            this._lastKnownCover = cached;
+            return cached;
+        }
 
         let cacheKey = this._hashUrl(artUrl);
         let cachedPath = GLib.build_filenamev([this._cacheDir, cacheKey + '.jpg']);
@@ -195,6 +203,7 @@ var MediaPlayerManager = GObject.registerClass({
         if (GLib.file_test(cachedPath, GLib.FileTest.EXISTS)) {
             let uri = 'file://' + cachedPath;
             this._artCache.set(artUrl, uri);
+            this._lastKnownCover = uri;
             return uri;
         }
 
@@ -209,6 +218,7 @@ var MediaPlayerManager = GObject.registerClass({
                     );
                     let uri = 'file://' + cachedPath;
                     this._artCache.set(artUrl, uri);
+                    this._lastKnownCover = uri;
                     return uri;
                 } catch (e) { /* ignore */ }
             }
@@ -233,6 +243,7 @@ var MediaPlayerManager = GObject.registerClass({
                 out.close(null);
                 let uri = 'file://' + targetPath;
                 this._artCache.set(artUrl, uri);
+                this._lastKnownCover = uri;
             } catch (e) { /* ignore */ }
             return;
         }
@@ -259,6 +270,7 @@ var MediaPlayerManager = GObject.registerClass({
                                 file.replace_contents_finish(result);
                                 let uri = 'file://' + targetPath;
                                 this._artCache.set(artUrl, uri);
+                                this._lastKnownCover = uri;
                                 this._trimDiskCache();
                             } catch (e) { /* ignore */ }
                         }

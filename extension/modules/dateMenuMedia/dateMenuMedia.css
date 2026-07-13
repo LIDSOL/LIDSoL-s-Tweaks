@@ -1,0 +1,95 @@
+.dmm-widget {
+    padding: 6px;
+    spacing: 4px;
+}
+
+.dmm-widget.dmm-compact {
+    padding: 3px;
+    spacing: 2px;
+}
+
+.dmm-widget.dmm-compact .dmm-title {
+    font-size: 0.92em;
+}
+
+.dmm-widget.dmm-compact .dmm-artist {
+    font-size: 0.85em;
+}
+
+.dmm-widget.dmm-compact .dmm-control-btn StIcon {
+    icon-size: 18px;
+}
+
+.dmm-header {
+    spacing: 6px;
+    padding-bottom: 2px;
+}
+
+.dmm-body {
+    spacing: 8px;
+}
+
+.dmm-info {
+    spacing: 2px;
+    padding: 0 4px;
+}
+
+.dmm-title {
+    font-weight: bold;
+    font-size: 1em;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.dmm-artist {
+    font-size: 0.92em;
+    opacity: 0.8;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.dmm-progress {
+    spacing: 6px;
+    padding: 2px 6px;
+}
+
+.dmm-progress.dmm-progress-default {
+    padding: 4px 6px;
+}
+
+.dmm-time,
+.dmm-duration {
+    font-size: 0.85em;
+    opacity: 0.7;
+    min-width: 32px;
+}
+
+.dmm-slider-bin {
+    min-height: 6px;
+    border-radius: 3px;
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+.dmm-slider-fill {
+    min-height: 6px;
+    border-radius: 3px;
+    background-color: rgba(255, 255, 255, 0.6);
+}
+
+.dmm-controls {
+    spacing: 6px;
+    padding: 2px 0;
+}
+
+.dmm-control-btn {
+    padding: 4px;
+    border: none;
+    border-radius: 20px;
+    background-color: transparent;
+}
+
+.dmm-control-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dmm-control-btn:active {
+    background-color: rgba(255, 255, 255, 0.2);
+}

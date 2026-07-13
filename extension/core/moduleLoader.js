@@ -11,6 +11,8 @@ import { TopBarOrganizerModule } from '../modules/topBarOrganizer/module.js';
 import { DateMenuModule } from '../modules/dateMenu/module.js';
 import { DashboardModule } from '../modules/dashboard/module.js';
 import { NotificationMediaModule } from '../modules/notificationMedia/module.js';
+import { UserAvatarDateMenuModule } from '../modules/userAvatarDateMenu/module.js';
+import { DateMenuMediaModule } from '../modules/dateMenuMedia/module.js';
 
 const REGISTERED_MODULES = [
     {
@@ -78,6 +80,18 @@ const REGISTERED_MODULES = [
         name: 'Notification Media',
         enabledKey: 'nm-enabled',
         moduleClass: NotificationMediaModule
+    },
+    {
+        id: 'userAvatarDateMenu',
+        name: 'User Avatar (Date Menu)',
+        enabledKey: 'uadm-enabled',
+        moduleClass: UserAvatarDateMenuModule
+    },
+    {
+        id: 'dateMenuMedia',
+        name: 'Date Menu Media',
+        enabledKey: 'dmm-enabled',
+        moduleClass: DateMenuMediaModule
     }
 ];
 

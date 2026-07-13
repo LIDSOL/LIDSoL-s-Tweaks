@@ -172,8 +172,22 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
       settings: this._settings,
       bindKey: 'nm-enabled',
       title: 'Notification Media',
-      subtitle: 'Controles multimedia en el centro de notificaciones',
+      subtitle: 'Oculta los indicadores multimedia nativos de las notificaciones',
       onDetailed: () => this._openDialog('Notification Media', p => this._buildNotificationMediaDialog(p)),
+    }));
+    group.add(createModuleRow({
+      settings: this._settings,
+      bindKey: 'uadm-enabled',
+      title: 'User Avatar (Date Menu)',
+      subtitle: 'Avatar de usuario en el menú de fecha, sobre el calendario',
+      onDetailed: () => this._openDialog('User Avatar (Date Menu)', p => this._buildUserAvatarDateMenuDialog(p)),
+    }));
+    group.add(createModuleRow({
+      settings: this._settings,
+      bindKey: 'dmm-enabled',
+      title: 'Date Menu Media',
+      subtitle: 'Control multimedia en el menú de fecha, sobre el calendario',
+      onDetailed: () => this._openDialog('Date Menu Media', p => this._buildDateMenuMediaDialog(p)),
     }));
     page.add(group);
   }
@@ -634,6 +648,38 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     const s = this._settings;
     const mainGroup = createGroup({ parent: page, title: 'Notification Media', description: 'Oculta los indicadores multimedia nativos de las notificaciones del centro de notificaciones.' });
     mainGroup.add(createSwitchRow({ settings: s, bindKey: 'nm-enabled', title: 'Ocultar indicadores multimedia nativos' }));
+  }
+
+  _buildUserAvatarDateMenuDialog(page) {
+    const s = this._settings;
+    const mainGroup = createGroup({ parent: page, title: 'User Avatar (Date Menu)', description: 'Muestra avatar y nombre de usuario en el menú de fecha, sobre el calendario.' });
+    mainGroup.add(createSwitchRow({ settings: s, bindKey: 'uadm-enabled', title: 'Habilitar avatar en el menú de fecha' }));
+    mainGroup.add(createSwitchRow({ settings: s, bindKey: 'uadm-show-realname', title: 'Mostrar nombre real' }));
+    mainGroup.add(createSwitchRow({ settings: s, bindKey: 'uadm-show-username', title: 'Mostrar nombre de usuario' }));
+  }
+
+  _buildDateMenuMediaDialog(page) {
+    const s = this._settings;
+    const mainGroup = createGroup({ parent: page, title: 'Date Menu Media', description: 'Widget de control multimedia en el menú de fecha, sobre el calendario.' });
+    mainGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-enabled', title: 'Habilitar widget multimedia' }));
+    mainGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-show-art', title: 'Mostrar carátula del álbum' }));
+    mainGroup.add(createSpinButtonRow({ settings: s, bindKey: 'dmm-art-size', title: 'Tamaño de carátula', adjProps: { lower: 32, upper: 200, step: 4 } }));
+    mainGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-compact', title: 'Modo compacto', subtitle: 'Reduce el espacio del widget' }));
+
+    const controlsGroup = createGroup({ parent: page, title: 'Controles', description: 'Visibilidad y apariencia de los botones de control multimedia.' });
+    controlsGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-show-prev', title: 'Mostrar botón anterior' }));
+    controlsGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-show-pause', title: 'Mostrar botón pausa/reproducir' }));
+    controlsGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-show-next', title: 'Mostrar botón siguiente' }));
+    controlsGroup.add(createSpinButtonRow({ settings: s, bindKey: 'dmm-control-opacity', title: 'Opacidad de controles', adjProps: { lower: 0, upper: 255, step: 5 } }));
+
+    const progressGroup = createGroup({ parent: page, title: 'Barra de progreso', description: 'Configuración de la barra de progreso con tiempo transcurrido.' });
+    progressGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-progress-enabled', title: 'Mostrar barra de progreso' }));
+    const styleModel = new Gtk.StringList({ strings: ['slim', 'default'] });
+    const styleRow = new Adw.ComboRow({ title: 'Estilo', subtitle: 'Estilo de la barra de progreso', model: styleModel, selected: s.get_string('dmm-progress-style') === 'default' ? 1 : 0 });
+    styleRow.connect('notify::selected', () => {
+      s.set_string('dmm-progress-style', styleRow.selected === 1 ? 'default' : 'slim');
+    });
+    progressGroup.add(styleRow);
   }
 
   _buildUserAvatarDialog(page) {

@@ -1134,6 +1134,88 @@
       <description>Multiplicador para la velocidad de desplazamiento entre reproductores con el touchpad.</description>
     </key>
 
+    <!-- User Avatar Date Menu -->
+    <key type="b" name="uadm-enabled">
+      <default>false</default>
+      <summary>Habilitar avatar de usuario en el menú de fecha</summary>
+      <description>Muestra el avatar y nombre del usuario en el menú de fecha, sobre el calendario.</description>
+    </key>
+
+    <key type="b" name="uadm-show-realname">
+      <default>true</default>
+      <summary>Mostrar nombre real</summary>
+      <description>Muestra el nombre real del usuario en el menú de fecha.</description>
+    </key>
+
+    <key type="b" name="uadm-show-username">
+      <default>false</default>
+      <summary>Mostrar nombre de usuario</summary>
+      <description>Muestra el nombre de usuario UNIX en el menú de fecha.</description>
+    </key>
+
+    <!-- Date Menu Media -->
+    <key type="b" name="dmm-enabled">
+      <default>false</default>
+      <summary>Habilitar widget multimedia en el menú de fecha</summary>
+      <description>Muestra un widget de control multimedia en el menú de fecha, sobre el calendario.</description>
+    </key>
+
+    <key type="b" name="dmm-show-prev">
+      <default>true</default>
+      <summary>Mostrar botón anterior</summary>
+      <description>Muestra el botón de canción anterior en los controles multimedia.</description>
+    </key>
+
+    <key type="b" name="dmm-show-pause">
+      <default>true</default>
+      <summary>Mostrar botón pausa/reproducir</summary>
+      <description>Muestra el botón de pausa/reproducir en los controles multimedia.</description>
+    </key>
+
+    <key type="b" name="dmm-show-next">
+      <default>true</default>
+      <summary>Mostrar botón siguiente</summary>
+      <description>Muestra el botón de canción siguiente en los controles multimedia.</description>
+    </key>
+
+    <key type="i" name="dmm-control-opacity">
+      <default>200</default>
+      <range min="0" max="255"/>
+      <summary>Opacidad de los botones de control</summary>
+      <description>Opacidad de los botones de control multimedia (0-255).</description>
+    </key>
+
+    <key type="b" name="dmm-compact">
+      <default>true</default>
+      <summary>Modo compacto</summary>
+      <description>Reduce el espacio del widget multimedia.</description>
+    </key>
+
+    <key type="b" name="dmm-progress-enabled">
+      <default>true</default>
+      <summary>Mostrar barra de progreso</summary>
+      <description>Muestra la barra de progreso con tiempo transcurrido y duración total.</description>
+    </key>
+
+    <key type="s" name="dmm-progress-style">
+      <default>"slim"</default>
+      <summary>Estilo de la barra de progreso</summary>
+      <description>'slim' o 'default'.</description>
+    </key>
+
+    <key type="b" name="dmm-show-art">
+      <default>true</default>
+      <summary>Mostrar carátula del álbum</summary>
+      <description>Muestra la imagen de la carátula del álbum junto a los controles.</description>
+    </key>
+
+    <key type="i" name="dmm-art-size">
+      <default>64</default>
+      <range min="32" max="200"/>
+      <summary>Tamaño de la carátula</summary>
+      <description>Tamaño en píxeles del arte del álbum (ancho y alto).</description>
+    </key>
+
     <!-- Dashboard -->
     <key type="b" name="dashboard-enabled">
       <default>false</default>

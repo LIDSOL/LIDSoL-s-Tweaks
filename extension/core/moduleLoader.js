@@ -10,6 +10,7 @@ import { SystemItemsModule } from '../modules/systemItems/module.js';
 import { TopBarOrganizerModule } from '../modules/topBarOrganizer/module.js';
 import { DateMenuModule } from '../modules/dateMenu/module.js';
 import { DashboardModule } from '../modules/dashboard/module.js';
+import { NotificationMediaModule } from '../modules/notificationMedia/module.js';
 
 const REGISTERED_MODULES = [
     {
@@ -71,6 +72,12 @@ const REGISTERED_MODULES = [
         name: 'Dashboard',
         enabledKey: 'dashboard-enabled',
         moduleClass: DashboardModule
+    },
+    {
+        id: 'notificationMedia',
+        name: 'Notification Media',
+        enabledKey: 'nm-enabled',
+        moduleClass: NotificationMediaModule
     }
 ];
 

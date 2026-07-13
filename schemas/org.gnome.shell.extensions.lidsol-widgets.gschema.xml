@@ -1076,6 +1076,64 @@
       <description>0=Izquierda del texto, 1=Derecha del texto</description>
     </key>
 
+    <!-- Notification Media -->
+    <key type="b" name="nm-enabled">
+      <default>false</default>
+      <summary>Habilitar notificación multimedia</summary>
+      <description>Muestra controles multimedia en el centro de notificaciones</description>
+    </key>
+    <key type="b" name="nm-compact">
+      <default>false</default>
+      <summary>Modo compacto</summary>
+      <description>Muestra el widget en un tamaño compacto, similar al de las notificaciones.</description>
+    </key>
+    <key type="i" name="nm-control-opacity">
+      <default>230</default>
+      <range min="0" max="255"/>
+      <summary>Opacidad de botones de control</summary>
+      <description>Opacidad de los botones de reproducción (anterior, pausa, siguiente). 0 = transparente, 255 = opaco.</description>
+    </key>
+    <key type="b" name="nm-show-next">
+      <default>true</default>
+      <summary>Mostrar botón siguiente</summary>
+      <description>Muestra el botón para saltar a la siguiente pista.</description>
+    </key>
+    <key type="b" name="nm-show-prev">
+      <default>true</default>
+      <summary>Mostrar botón anterior</summary>
+      <description>Muestra el botón para volver a la pista anterior.</description>
+    </key>
+    <key type="b" name="nm-show-pause">
+      <default>true</default>
+      <summary>Mostrar botón de pausa</summary>
+      <description>Muestra el botón de pausa/reproducción.</description>
+    </key>
+    <key type="b" name="nm-progress-enabled">
+      <default>true</default>
+      <summary>Barra de progreso</summary>
+      <description>Muestra la barra de progreso con el tiempo transcurrido y duración total.</description>
+    </key>
+    <key type="s" name="nm-progress-style">
+      <choices>
+        <choice value='slim'/>
+        <choice value='default'/>
+      </choices>
+      <default>'slim'</default>
+      <summary>Estilo de la barra de progreso</summary>
+      <description>'slim' oculta el control deslizante; 'default' muestra el control redondo estándar.</description>
+    </key>
+    <key type="b" name="nm-round-clip-enabled">
+      <default>true</default>
+      <summary>Clip redondeado</summary>
+      <description>Habilita el efecto de esquinas redondeadas en el contenedor multimedia.</description>
+    </key>
+    <key type="i" name="nm-smooth-scroll-speed">
+      <default>16</default>
+      <range min="-2048" max="2048"/>
+      <summary>Velocidad de scroll suave</summary>
+      <description>Multiplicador para la velocidad de desplazamiento entre reproductores con el touchpad.</description>
+    </key>
+
     <!-- Dashboard -->
     <key type="b" name="dashboard-enabled">
       <default>false</default>

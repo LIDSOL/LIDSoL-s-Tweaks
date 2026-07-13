@@ -63,7 +63,7 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
       window.add(page);
     }
 
-    window.set_default_size(480, 500);
+    window.set_default_size(550, 550);
   }
 
   _buildPage(cat) {
@@ -167,6 +167,13 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
       subtitle: 'Reloj superpuesto en el escritorio',
       onDetailed: () => this._openDialog('Background Clock', p => this._buildBackgroundClockDialog(p)),
       sensitiveBind: 'background-widgets-enabled',
+    }));
+    group.add(createModuleRow({
+      settings: this._settings,
+      bindKey: 'nm-enabled',
+      title: 'Notification Media',
+      subtitle: 'Controles multimedia en el centro de notificaciones',
+      onDetailed: () => this._openDialog('Notification Media', p => this._buildNotificationMediaDialog(p)),
     }));
     page.add(group);
   }
@@ -621,6 +628,38 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
       exp.add_row(layoutRow);
       exp.add_row(_makeSpinRow('Icon Size', 'dashboard-system-icon-size', 4, 100, 2));
     }));
+  }
+
+  _buildNotificationMediaDialog(page) {
+    const s = this._settings;
+    const mainGroup = createGroup({ parent: page, title: 'Notification Media', description: 'Controles multimedia agrupados en el centro de notificaciones, reemplazando los controles nativos.' });
+    mainGroup.add(createSwitchRow({ settings: s, bindKey: 'nm-enabled', title: 'Activar Notification Media' }));
+
+    const appearGroup = createGroup({ parent: page, title: 'Apariencia' });
+    appearGroup.add(createSwitchRow({ settings: s, bindKey: 'nm-compact', title: 'Modo compacto', subtitle: 'Reduce el tamaño del widget para que se integre con las notificaciones' }));
+    appearGroup.add(createSpinButtonRow({ settings: s, bindKey: 'nm-control-opacity', title: 'Opacidad de controles', subtitle: '0-255, 255 = totalmente visible', adjProps: { lower: 0, upper: 255 } }));
+
+    const btnGroup = createGroup({ parent: page, title: 'Botones' });
+    btnGroup.add(createSwitchRow({ settings: s, bindKey: 'nm-show-prev', title: 'Mostrar botón anterior' }));
+    btnGroup.add(createSwitchRow({ settings: s, bindKey: 'nm-show-pause', title: 'Mostrar botón de pausa/reproducción' }));
+    btnGroup.add(createSwitchRow({ settings: s, bindKey: 'nm-show-next', title: 'Mostrar botón siguiente' }));
+
+    const progGroup = createGroup({ parent: page, title: 'Barra de progreso' });
+    progGroup.add(createSwitchRow({ settings: s, bindKey: 'nm-progress-enabled', title: 'Mostrar barra de progreso' }));
+    progGroup.add(createComboRow({
+      settings: s,
+      bindKey: 'nm-progress-style',
+      title: 'Estilo de la barra',
+      subtitle: 'Slim = sin control deslizante, Default = con control redondo',
+      options: {
+        slim: 'Slim (delgada)',
+        default: 'Default (gruesa)',
+      },
+    }));
+
+    const advGroup = createGroup({ parent: page, title: 'Avanzado' });
+    advGroup.add(createSwitchRow({ settings: s, bindKey: 'nm-round-clip-enabled', title: 'Clip redondeado', subtitle: 'Aplica esquinas redondeadas al contenedor multimedia' }));
+    advGroup.add(createSpinButtonRow({ settings: s, bindKey: 'nm-smooth-scroll-speed', title: 'Velocidad de scroll suave', subtitle: 'Multiplicador del desplazamiento táctil entre reproductores', adjProps: { lower: -2048, upper: 2048, step: 1 } }));
   }
 
   _buildUserAvatarDialog(page) {

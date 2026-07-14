@@ -26,7 +26,7 @@ export class DateMenuMediaModule {
         this._mpris = null;
         this._handlerIds = [];
         this._stylesheetFile = null;
-        this._containerBox = null;
+        this._messageView = null;
         this._playerChangedIds = new Map();
     }
 
@@ -41,15 +41,13 @@ export class DateMenuMediaModule {
             if (!dateMenu)
                 return;
 
-            const wrapper = dateMenu.menu.box.get_first_child();
-            if (!wrapper)
+            const msgList = dateMenu._messageList;
+            if (!msgList)
                 return;
 
-            const menuContent = wrapper.get_first_child();
-            if (!menuContent)
+            this._messageView = msgList._messageView;
+            if (!this._messageView)
                 return;
-
-            this._containerBox = menuContent.get_last_child();
 
             this._initMpris();
             this._buildWidget();
@@ -96,10 +94,27 @@ export class DateMenuMediaModule {
     }
 
     _injectWidget() {
-        if (!this._containerBox || !this._widget)
+        if (!this._messageView || !this._widget)
             return;
 
-        this._containerBox.insert_child_at_index(this._widget, 0);
+        // Provide methods that MessageView expects on messages[]
+        this._widget.canClose = () => false;
+        this._widget.unexpand = () => {};
+
+        // Wrap in St.Bin like native _addMessageAtIndex
+        const item = new St.Bin({
+            child: this._widget,
+            canFocus: false,
+        });
+
+        // Insert into MessageView at index 0 (top, same as native MediaMessage)
+        this._messageView.add_child(item);
+        this._messageView.messages.unshift(this._widget);
+
+        // Notify message list that emptiness may have changed
+        if (this._messageView._messagesChanged)
+            this._messageView._messagesChanged();
+
         this._sync();
     }
 
@@ -147,12 +162,21 @@ export class DateMenuMediaModule {
             }
 
             if (this._widget) {
-                if (this._widget.get_parent())
-                    this._widget.get_parent().remove_child(this._widget);
+                const bin = this._widget.get_parent();
+                if (bin && this._messageView) {
+                    // Remove from messages array
+                    const idx = this._messageView.messages.indexOf(this._widget);
+                    if (idx >= 0)
+                        this._messageView.messages.splice(idx, 1);
+
+                    // Remove bin from MessageView
+                    this._messageView.remove_child(bin);
+                    bin.destroy();
+                }
                 this._widget.destroy();
                 this._widget = null;
             }
-            this._containerBox = null;
+            this._messageView = null;
 
             if (this._stylesheetFile) {
                 const themeContext = St.ThemeContext.get_for_stage(global.stage);

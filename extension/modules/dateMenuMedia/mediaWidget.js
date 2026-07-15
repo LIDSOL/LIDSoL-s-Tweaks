@@ -7,6 +7,7 @@ import GdkPixbuf from 'gi://GdkPixbuf';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 import { Slider } from 'resource:///org/gnome/shell/ui/slider.js';
+import { PageIndicators } from 'resource:///org/gnome/shell/ui/pageIndicators.js';
 
 import { CrossfadeArt } from '../dateMenu/crossfadeArt.js';
 
@@ -48,17 +49,45 @@ export const MediaWidget = GObject.registerClass(
             this._slider = null;
             this._gradientStyle = '';
             this._roundClipRadius = 0;
+            this._players = [];
+            this._currentIndex = -1;
 
             this._buildUI();
             this._applySettings();
         }
 
         _buildUI() {
-            // Header row: page indicators
+            // Header row: app icon + player name + page indicators
             this._header = new St.BoxLayout({
                 style_class: 'dmm-header',
                 x_align: Clutter.ActorAlign.FILL,
             });
+
+            this._appIcon = new St.Icon({
+                icon_name: 'application-x-executable-symbolic',
+                icon_size: 16,
+                y_align: Clutter.ActorAlign.CENTER,
+                style_class: 'dmm-app-icon',
+            });
+            this._header.add_child(this._appIcon);
+
+            this._playerName = new St.Label({
+                style_class: 'dmm-player-name',
+                text: '',
+                x_expand: true,
+                x_align: Clutter.ActorAlign.START,
+                y_align: Clutter.ActorAlign.CENTER,
+            });
+            this._header.add_child(this._playerName);
+
+            this._pageIndicator = new PageIndicators(Clutter.Orientation.HORIZONTAL);
+            this._pageIndicator.x_align = Clutter.ActorAlign.END;
+            this._pageIndicator.y_align = Clutter.ActorAlign.CENTER;
+            this._pageIndicator.connectObject(
+                'page-activated', (_ind, page) => this._setCurrentPlayer(page),
+                this
+            );
+            this._header.add_child(this._pageIndicator);
             this.add_child(this._header);
 
             // Art + Info row
@@ -191,14 +220,79 @@ export const MediaWidget = GObject.registerClass(
             return btn;
         }
 
-        sync(player) {
-            this._player = player;
+        // #region Multi-Player Management
 
+        setPlayers(players) {
+            this._players = players || [];
+            this._updatePageIndicator();
+            if (this._currentIndex < 0 || this._currentIndex >= this._players.length)
+                this._showFirstPlaying();
+            else
+                this._updateHeader();
+        }
+
+        onPlayerDataChanged(player) {
+            if (player === this._player)
+                this.sync(this._player);
+        }
+
+        _showFirstPlaying() {
+            if (this._players.length === 0) {
+                this._currentIndex = -1;
+                this.sync(null);
+                return;
+            }
+            const idx = this._players.findIndex(p => p.isPlaying());
+            this._setCurrentPlayer(idx >= 0 ? idx : 0);
+        }
+
+        _setCurrentPlayer(index) {
+            if (index < 0 || index >= this._players.length)
+                return;
+            if (this._currentIndex === index && this._player === this._players[index])
+                return;
+            this._currentIndex = index;
+            this._player = this._players[index];
+            this._pageIndicator.setCurrentPosition(index);
+            this._updateHeader();
+            this.sync(this._player);
+        }
+
+        _updatePageIndicator() {
+            const n = this._players.length;
+            this._pageIndicator.setNPages(n);
+            this._pageIndicator.visible = n > 1;
+        }
+
+        _updateHeader() {
+            const player = this._player;
+            if (!player) {
+                this._playerName.text = '';
+                this._appIcon.icon_name = 'application-x-executable-symbolic';
+                return;
+            }
+            const app = player.app;
+            if (app && app.get_icon()) {
+                this._appIcon.gicon = app.get_icon();
+                this._appIcon.icon_name = '';
+            } else {
+                this._appIcon.icon_name = 'audio-x-generic-symbolic';
+            }
+            const appName = app ? app.get_name() : null;
+            this._playerName.text = appName || player.busName.replace('org.mpris.MediaPlayer2.', '');
+        }
+
+        // #endregion
+
+        sync(player) {
             if (!player) {
                 this.visible = false;
                 this._stopPositionTimer();
                 return;
             }
+
+            if (player !== this._player)
+                return;
 
             this.visible = true;
 

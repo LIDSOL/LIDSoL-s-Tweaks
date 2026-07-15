@@ -94,8 +94,7 @@ export class DateMenuMediaModule {
         if (this._playerChangedIds.has(player))
             return;
         const id = player.connect('changed', () => {
-            if (this._mpris?.getActivePlayer() === player)
-                this._widget?.sync(player);
+            this._widget?.onPlayerDataChanged(player);
         });
         this._playerChangedIds.set(player, id);
     }
@@ -133,8 +132,7 @@ export class DateMenuMediaModule {
         if (!this._widget || !this._mpris)
             return;
 
-        const player = this._mpris.getActivePlayer();
-        this._widget.sync(player);
+        this._widget.setPlayers(this._mpris.players);
     }
 
     _connectSettings() {

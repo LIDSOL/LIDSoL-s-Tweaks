@@ -29,6 +29,15 @@
     padding-bottom: 2px;
 }
 
+.dmm-app-icon {
+    margin-right: 4px;
+}
+
+.dmm-player-name {
+    font-weight: bold;
+    font-size: 0.9em;
+}
+
 .dmm-body {
     spacing: 8px;
 }

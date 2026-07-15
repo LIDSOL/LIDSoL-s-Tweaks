@@ -111,6 +111,10 @@ export const CrossfadeArt = GObject.registerClass(
             this._canvasArea.queue_repaint();
         }
 
+        queuePaint() {
+            this._canvasArea.queue_repaint();
+        }
+
         vfunc_get_preferred_width(forHeight) {
             let w = this.get_width();
             if (w > 0) return [w, w];

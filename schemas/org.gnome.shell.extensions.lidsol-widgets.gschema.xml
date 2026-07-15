@@ -1222,6 +1222,12 @@
       <description>Tamaño en píxeles del arte del álbum (ancho y alto).</description>
     </key>
 
+    <key type="b" name="dmm-collasped">
+      <default>false</default>
+      <summary>Colapsar widget multimedia</summary>
+      <description>Si está activo, el widget multimedia se muestra en modo colapsado, ocultando la carátula y la barra de progreso.</description>
+    </key>
+
     <key type="b" name="dmm-gradient-enabled">
       <default>true</default>
       <summary>Gradiente desde la carátula</summary>

@@ -39,6 +39,7 @@ export const MediaWidget = GObject.registerClass(
             this._settings = settings;
             this._mpris = mpris;
             this._player = null;
+            this._collapsed = false;
             this._lastTitle = '';
             this._lastArtist = '';
             this._lastCoverUrl = '';
@@ -93,9 +94,25 @@ export const MediaWidget = GObject.registerClass(
                 this
             );
             this._header.add_child(this._pageIndicator);
+
+            this._collapseButton = new St.Button({
+                style_class: 'dmm-expand-button',
+                child: new St.Icon({
+                    icon_name: 'pan-down-symbolic',
+                    icon_size: 12,
+                    style_class: 'dmm-expand-icon',
+                }),
+                x_align: Clutter.ActorAlign.END,
+                y_align: Clutter.ActorAlign.CENTER,
+            });
+            this._collapseButton.connect('clicked', () => {
+                this._toggleCollapsed();
+            });
+            this._header.add_child(this._collapseButton);
+
             this.add_child(this._header);
 
-            // Art + Info row
+            // Art + Info row (title/artist always visible)
             const bodyRow = new St.BoxLayout({
                 style_class: 'dmm-body',
                 x_align: Clutter.ActorAlign.FILL,
@@ -208,6 +225,108 @@ export const MediaWidget = GObject.registerClass(
             });
             this._controls.add_child(this._nextBtn);
         }
+
+        // #region Expand/Collapse
+
+        _toggleCollapsed() {
+            this._collapsed = !this._collapsed;
+            this._settings.set_boolean('dmm-collasped', this._collapsed);
+            if (this._collapsed)
+                this._animateCollapse();
+            else
+                this._animateExpand();
+        }
+
+        _animateCollapse() {
+            // Animate art height to 0
+            let natArtH = this._artSize;
+            if (this._art.visible && natArtH > 0) {
+                this._art.height = natArtH;
+                this._art.ease({
+                    height: 0,
+                    duration: 200,
+                    mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                    onComplete: () => {
+                        this._art.visible = false;
+                    }
+                });
+            } else {
+                this._art.visible = false;
+            }
+
+            // Animate progress height to 0
+            if (this._progress.visible) {
+                let [minPH, natPH] = this._progress.get_preferred_height(-1);
+                if (natPH > 0) {
+                    this._progress.height = natPH;
+                    this._progress.ease({
+                        height: 0,
+                        duration: 200,
+                        mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                        onComplete: () => {
+                            this._progress.visible = false;
+                        }
+                    });
+                } else {
+                    this._progress.visible = false;
+                }
+            }
+
+            this._collapseButton.ease({
+                rotation_angle_z: 0,
+                duration: 200,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            });
+        }
+
+        _animateExpand() {
+            // Restore art
+            if (this._settings.get_boolean('dmm-show-art') && this._lastCoverUrl) {
+                this._art.setArt(this._lastCoverUrl, true);
+                this._art.visible = true;
+                this._art.remove_all_transitions();
+                this._art.height = 0;
+                this._art.ease({
+                    height: this._artSize,
+                    duration: 200,
+                    mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                    onComplete: () => {
+                        this._art.height = -1;
+                        this._art.queuePaint();
+                    }
+                });
+            }
+
+            // Restore progress
+            this._progress.visible = true;
+            this._updateProgressDisplay(
+                this._lastKnownPosition || 0,
+                this._player?._length || 0
+            );
+            if (this._progress.visible) {
+                this._progress.remove_all_transitions();
+                let [minPH, natPH] = this._progress.get_preferred_height(-1);
+                if (natPH > 0) {
+                    this._progress.height = 0;
+                    this._progress.ease({
+                        height: natPH,
+                        duration: 200,
+                        mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                        onComplete: () => {
+                            this._progress.height = -1;
+                        }
+                    });
+                }
+            }
+
+            this._collapseButton.ease({
+                rotation_angle_z: 180,
+                duration: 200,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            });
+        }
+
+        // #endregion
 
         _makeControlButton(iconName, callback) {
             const btn = new St.Button({
@@ -405,7 +524,7 @@ export const MediaWidget = GObject.registerClass(
 
             if (coverUrl !== this._lastCoverUrl) {
                 this._lastCoverUrl = coverUrl;
-                if (this._settings.get_boolean('dmm-show-art')) {
+                if (this._settings.get_boolean('dmm-show-art') && !this._collapsed) {
                     if (coverUrl) {
                         const cachedUrl = this._mpris?.getCachedArtUrl
                             ? this._mpris.getCachedArtUrl(coverUrl)
@@ -482,7 +601,7 @@ export const MediaWidget = GObject.registerClass(
 
         _updateProgressDisplay(pos, length) {
             const showProgress = this._settings.get_boolean('dmm-progress-enabled');
-            this._progress.visible = showProgress && length > 0;
+            this._progress.visible = showProgress && length > 0 && !this._collapsed;
 
             if (!showProgress || length <= 0)
                 return;
@@ -614,6 +733,22 @@ export const MediaWidget = GObject.registerClass(
             const compact = this._settings.get_boolean('dmm-compact');
             this.set_style_class_name(compact ? 'dmm-widget dmm-compact' : 'dmm-widget');
 
+            const shouldCollapse = this._settings.get_boolean('dmm-collasped');
+            if (shouldCollapse !== this._collapsed) {
+                this._collapsed = shouldCollapse;
+                if (this.mapped) {
+                    if (shouldCollapse)
+                        this._animateCollapse();
+                    else
+                        this._animateExpand();
+                } else {
+                    // Initial load: no animation
+                    this._art.visible = !shouldCollapse && this._lastCoverUrl && this._settings.get_boolean('dmm-show-art');
+                    this._progress.visible = !shouldCollapse && this._settings.get_boolean('dmm-progress-enabled');
+                    this._collapseButton.rotation_angle_z = shouldCollapse ? 0 : 180;
+                }
+            }
+
             const opacity = this._settings.get_int('dmm-control-opacity');
             const alpha = Math.max(0, Math.min(255, opacity));
             this._prevBtn.opacity = alpha;
@@ -635,7 +770,7 @@ export const MediaWidget = GObject.registerClass(
                 this._art._size = artSize;
                 this._art.refreshStyle();
             }
-            if (!showArt)
+            if (!showArt || this._collapsed)
                 this._art.visible = false;
             else if (this._lastCoverUrl)
                 this._art.visible = true;

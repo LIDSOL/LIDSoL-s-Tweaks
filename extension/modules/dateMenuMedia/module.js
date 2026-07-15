@@ -12,6 +12,7 @@ const SETTINGS = [
     'dmm-auto-switch',
     'dmm-show-art',
     'dmm-art-size',
+    'dmm-collasped',
     'dmm-show-prev',
     'dmm-show-pause',
     'dmm-show-next',

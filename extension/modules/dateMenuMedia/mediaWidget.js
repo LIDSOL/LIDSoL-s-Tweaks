@@ -51,6 +51,7 @@ export const MediaWidget = GObject.registerClass(
             this._roundClipRadius = 0;
             this._players = [];
             this._currentIndex = -1;
+            this._userSelected = false;
 
             this._buildUI();
             this._applySettings();
@@ -84,7 +85,10 @@ export const MediaWidget = GObject.registerClass(
             this._pageIndicator.x_align = Clutter.ActorAlign.END;
             this._pageIndicator.y_align = Clutter.ActorAlign.CENTER;
             this._pageIndicator.connectObject(
-                'page-activated', (_ind, page) => this._setCurrentPlayer(page),
+                'page-activated', (_ind, page) => {
+                    this._userSelected = true;
+                    this._setCurrentPlayer(page);
+                },
                 this
             );
             this._header.add_child(this._pageIndicator);
@@ -225,28 +229,73 @@ export const MediaWidget = GObject.registerClass(
         setPlayers(players) {
             this._players = players || [];
             this._updatePageIndicator();
-            if (this._currentIndex < 0 || this._currentIndex >= this._players.length)
-                this._showFirstPlaying();
-            else
+            if (this._currentIndex < 0 || this._currentIndex >= this._players.length) {
+                this._userSelected = false;
+                this._showLastActive();
+            } else {
                 this._updateHeader();
+            }
         }
 
         onPlayerDataChanged(player) {
-            if (player === this._player)
+            if (player === this._player) {
                 this.sync(this._player);
+            } else if (!this._userSelected) {
+                const currentScore = this._scorePlayer(this._player);
+                const changedScore = this._scorePlayer(player);
+                if (changedScore > currentScore) {
+                    const idx = this._players.indexOf(player);
+                    if (idx >= 0)
+                        this._setCurrentPlayer(idx, true);
+                }
+            }
         }
 
-        _showFirstPlaying() {
+        _scorePlayer(p) {
+            if (!p) return -1;
+            const hasTitle = !!p.trackTitle && p.trackTitle !== 'Unknown title';
+            if (p.isPlaying() && hasTitle) return 500;
+            if (p.playbackStatus === 'Paused' && hasTitle) return 100;
+            return 0;
+        }
+
+        _findLastActiveIndex() {
+            if (this._players.length === 0)
+                return -1;
+            let bestIdx = 0;
+            let bestScore = -1;
+            let bestTime = 0;
+            for (let i = 0; i < this._players.length; i++) {
+                const p = this._players[i];
+                const score = this._scorePlayer(p);
+                const time = p.lastPlayingTime || 0;
+                if (score > bestScore || (score === bestScore && time > bestTime)) {
+                    bestScore = score;
+                    bestTime = time;
+                    bestIdx = i;
+                }
+            }
+            // Prefer currently playing over paused/stopped with older timestamp
+            if (this._players[bestIdx].playbackStatus !== 'Playing') {
+                const playingIdx = this._players.findIndex(
+                    p => p.isPlaying() && !!p.trackTitle && p.trackTitle !== 'Unknown title'
+                );
+                if (playingIdx >= 0)
+                    return playingIdx;
+            }
+            return bestScore > 0 ? bestIdx : 0;
+        }
+
+        _showLastActive() {
             if (this._players.length === 0) {
                 this._currentIndex = -1;
                 this.sync(null);
                 return;
             }
-            const idx = this._players.findIndex(p => p.isPlaying());
-            this._setCurrentPlayer(idx >= 0 ? idx : 0);
+            this._setCurrentPlayer(this._findLastActiveIndex(), true);
         }
 
-        _setCurrentPlayer(index) {
+        _setCurrentPlayer(index, auto = false) {
             if (index < 0 || index >= this._players.length)
                 return;
             if (this._currentIndex === index && this._player === this._players[index])
@@ -256,6 +305,8 @@ export const MediaWidget = GObject.registerClass(
             this._pageIndicator.setCurrentPosition(index);
             this._updateHeader();
             this.sync(this._player);
+            if (!auto)
+                this._userSelected = true;
         }
 
         _updatePageIndicator() {

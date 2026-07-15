@@ -1,6 +1,7 @@
 'use strict';
 
 import Clutter from 'gi://Clutter';
+import Graphene from 'gi://Graphene';
 import GLib from 'gi://GLib';
 import Gio from 'gi://Gio';
 import GdkPixbuf from 'gi://GdkPixbuf';
@@ -95,20 +96,25 @@ export const MediaWidget = GObject.registerClass(
             );
             this._header.add_child(this._pageIndicator);
 
-            this._collapseButton = new St.Button({
-                style_class: 'dmm-expand-button',
-                child: new St.Icon({
-                    icon_name: 'pan-up-symbolic',
-                    icon_size: 12,
-                    style_class: 'dmm-expand-icon',
-                }),
-                x_align: Clutter.ActorAlign.END,
+            // Expand button — exact GNOME Shell pattern
+            this._expandIcon = new St.Icon({
+                icon_name: 'notification-expand-symbolic',
+                icon_size: 16,
+            });
+            // Set pivot_point after construction to ensure it takes effect
+            this._expandIcon.pivot_point = new Graphene.Point();
+            this._expandIcon.pivot_point.x = 0.5;
+            this._expandIcon.pivot_point.y = 0.5;
+
+            this._expandButton = new St.Button({
+                style_class: 'message-expand-button',
+                child: this._expandIcon,
                 y_align: Clutter.ActorAlign.CENTER,
+                y_expand: false,
+                x_expand: false,
             });
-            this._collapseButton.connect('clicked', () => {
-                this._toggleCollapsed();
-            });
-            this._header.add_child(this._collapseButton);
+            this._expandButton.connect('clicked', () => this._toggleCollapsed());
+            this._header.add_child(this._expandButton);
 
             this.add_child(this._header);
 
@@ -136,7 +142,6 @@ export const MediaWidget = GObject.registerClass(
             });
             bodyRow.add_child(infoCol);
 
-            // Title + Artist
             this._titleLabel = new St.Label({
                 style_class: 'dmm-title',
                 text: '',
@@ -155,7 +160,7 @@ export const MediaWidget = GObject.registerClass(
             });
             infoCol.add_child(this._artistLabel);
 
-            // Progress bar (hidden initially)
+            // Progress bar
             this._progress = new St.BoxLayout({
                 style_class: 'dmm-progress',
                 visible: false,
@@ -230,18 +235,25 @@ export const MediaWidget = GObject.registerClass(
 
         _toggleCollapsed() {
             this._collapsed = !this._collapsed;
+
+            // Animate expand icon rotation (on the St.Icon directly)
+            this._expandIcon.remove_all_transitions();
+            this._expandIcon.ease({
+                rotation_angle_z: this._collapsed ? 0 : 180,
+                duration: 200,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            });
+
             if (this._collapsed)
                 this._animateCollapse();
             else
                 this._animateExpand();
+
             this._settings.set_boolean('dmm-collasped', this._collapsed);
         }
 
         _animateCollapse() {
-            // Animate art height to 0
-            let natArtH = this._artSize;
-            if (this._art.visible && natArtH > 0) {
-                this._art.height = natArtH;
+            if (this._art.visible) {
                 this._art.ease({
                     height: 0,
                     duration: 200,
@@ -254,11 +266,9 @@ export const MediaWidget = GObject.registerClass(
                 this._art.visible = false;
             }
 
-            // Animate progress height to 0
             if (this._progress.visible) {
                 let [minPH, natPH] = this._progress.get_preferred_height(-1);
                 if (natPH > 0) {
-                    this._progress.height = natPH;
                     this._progress.ease({
                         height: 0,
                         duration: 200,
@@ -271,13 +281,9 @@ export const MediaWidget = GObject.registerClass(
                     this._progress.visible = false;
                 }
             }
-
-            const icon = this._collapseButton.get_child();
-            icon.icon_name = 'pan-down-symbolic';
         }
 
         _animateExpand() {
-            // Restore art
             if (this._settings.get_boolean('dmm-show-art') && this._lastCoverUrl) {
                 this._art.setArt(this._lastCoverUrl, true);
                 this._art.visible = true;
@@ -294,12 +300,13 @@ export const MediaWidget = GObject.registerClass(
                 });
             }
 
-            // Restore progress
             this._progress.visible = true;
-            this._updateProgressDisplay(
-                this._lastKnownPosition || 0,
-                this._player?._length || 0
-            );
+            const length = this._player?._length || 0;
+            if (length > 0) {
+                this._updateProgressDisplay(this._lastKnownPosition || 0, length);
+            } else {
+                this._progress.visible = true;
+            }
             if (this._progress.visible) {
                 this._progress.remove_all_transitions();
                 let [minPH, natPH] = this._progress.get_preferred_height(-1);
@@ -315,9 +322,6 @@ export const MediaWidget = GObject.registerClass(
                     });
                 }
             }
-
-            const icon = this._collapseButton.get_child();
-            icon.icon_name = 'pan-up-symbolic';
         }
 
         // #endregion
@@ -344,7 +348,6 @@ export const MediaWidget = GObject.registerClass(
             const oldCount = this._players.length;
             this._players = players || [];
 
-            // Clean up status tracking for removed players
             for (const player of this._prevStatuses.keys()) {
                 if (!this._players.includes(player))
                     this._prevStatuses.delete(player);
@@ -356,7 +359,6 @@ export const MediaWidget = GObject.registerClass(
                 this._showLastActive();
             } else {
                 this._updateHeader();
-                // New player added and auto-switch enabled → switch to best
                 if (this._players.length > oldCount) {
                     const autoSwitch = this._settings?.get_boolean('dmm-auto-switch') !== false;
                     if (autoSwitch) {
@@ -392,14 +394,12 @@ export const MediaWidget = GObject.registerClass(
             if (this._userSelected) {
                 if (!startedPlaying || !hasRealTitle)
                     return;
-                // User selected: switch only if this player just started playing
                 const idx = this._players.indexOf(player);
                 if (idx >= 0)
                     this._setCurrentPlayer(idx, true);
                 return;
             }
 
-            // No user selection: follow best player (like dateMenu)
             const changedScore = this._scorePlayer(player);
             const currentScore = this._scorePlayer(this._player);
             if (changedScore > currentScore) {
@@ -433,7 +433,6 @@ export const MediaWidget = GObject.registerClass(
                     bestIdx = i;
                 }
             }
-            // Prefer currently playing over paused/stopped with older timestamp
             if (this._players[bestIdx].playbackStatus !== 'Playing') {
                 const playingIdx = this._players.findIndex(
                     p => p.isPlaying() && !!p.trackTitle && p.trackTitle !== 'Unknown title'
@@ -556,7 +555,6 @@ export const MediaWidget = GObject.registerClass(
                 }
             }
 
-            // Update gradient + inline styles
             this._updateGradient();
         }
 
@@ -689,7 +687,7 @@ export const MediaWidget = GObject.registerClass(
                 resolve([
                     Math.round(rSum / count),
                     Math.round(gSum / count),
-                    Math.round(bSum / count),
+                    Math.round(gSum / count),
                 ]);
             });
         }
@@ -736,12 +734,12 @@ export const MediaWidget = GObject.registerClass(
                     else
                         this._animateExpand();
                 } else {
-                    // Initial load: no animation
                     this._art.visible = !shouldCollapse && this._lastCoverUrl && this._settings.get_boolean('dmm-show-art');
                     this._progress.visible = !shouldCollapse && this._settings.get_boolean('dmm-progress-enabled');
-                    const icon = this._collapseButton.get_child();
-                    icon.icon_name = shouldCollapse ? 'pan-down-symbolic' : 'pan-up-symbolic';
                 }
+                this._expandIcon.rotation_angle_z = shouldCollapse ? 0 : 180;
+            } else if (!this.mapped) {
+                this._expandIcon.rotation_angle_z = shouldCollapse ? 0 : 180;
             }
 
             const opacity = this._settings.get_int('dmm-control-opacity');

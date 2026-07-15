@@ -69,7 +69,7 @@ export const MediaWidget = GObject.registerClass(
             });
 
             this._appIcon = new St.Icon({
-                icon_name: 'application-x-executable-symbolic',
+                icon_name: 'audio-x-generic-symbolic',
                 icon_size: 16,
                 y_align: Clutter.ActorAlign.CENTER,
                 style_class: 'dmm-app-icon',
@@ -97,18 +97,17 @@ export const MediaWidget = GObject.registerClass(
             );
             this._header.add_child(this._pageIndicator);
 
-            // Expand button — exact GNOME Shell pattern
+            // Expand button with centered pivot for safe scale flip
             this._expandIcon = new St.Icon({
                 icon_name: 'notification-expand-symbolic',
                 icon_size: 16,
+                pivot_point: new Graphene.Point({ x: 0.5, y: 0.5 }),
+                x_expand: false,
+                y_expand: false,
             });
-            // Set pivot_point after construction to ensure it takes effect
-            this._expandIcon.pivot_point = new Graphene.Point();
-            this._expandIcon.pivot_point.x = 0.5;
-            this._expandIcon.pivot_point.y = 0.5;
 
             this._expandButton = new St.Button({
-                style_class: 'message-expand-button',
+                style_class: 'dmm-expand-button',
                 child: this._expandIcon,
                 y_align: Clutter.ActorAlign.CENTER,
                 y_expand: false,
@@ -238,10 +237,10 @@ export const MediaWidget = GObject.registerClass(
         _toggleCollapsed() {
             this._collapsed = !this._collapsed;
 
-            // Animate expand icon rotation (on the St.Icon directly)
+            // Animate expand icon flip (scale_y mirror, no rotation overflow)
             this._expandIcon.remove_all_transitions();
             this._expandIcon.ease({
-                rotation_angle_z: this._collapsed ? 0 : 180,
+                scale_y: this._collapsed ? 1 : -1,
                 duration: 200,
                 mode: Clutter.AnimationMode.EASE_OUT_QUAD,
             });
@@ -449,18 +448,16 @@ export const MediaWidget = GObject.registerClass(
             const player = this._player;
             if (!player) {
                 this._playerName.text = '';
-                this._appIcon.icon_name = 'application-x-executable-symbolic';
+                this._appIcon.icon_name = 'audio-x-generic-symbolic';
                 return;
             }
-            const app = player.app;
-            if (app && app.get_icon()) {
-                this._appIcon.gicon = app.get_icon();
-                this._appIcon.icon_name = '';
-            } else {
+            // Aylur pattern: use DesktopEntry as icon name, fallback to audio icon
+            const entry = player.entry;
+            if (entry)
+                this._appIcon.icon_name = entry + '-symbolic';
+            else
                 this._appIcon.icon_name = 'audio-x-generic-symbolic';
-            }
-            const appName = app ? app.get_name() : null;
-            this._playerName.text = appName || player.busName.replace('org.mpris.MediaPlayer2.', '');
+            this._playerName.text = player.identity || player.busName.replace('org.mpris.MediaPlayer2.', '');
         }
 
         // #endregion
@@ -710,9 +707,9 @@ export const MediaWidget = GObject.registerClass(
                     this._art.visible = this._lastCoverUrl && this._settings.get_boolean('dmm-show-art');
                     this._progress.visible = !shouldCollapse && this._settings.get_boolean('dmm-progress-enabled');
                 }
-                this._expandIcon.rotation_angle_z = shouldCollapse ? 0 : 180;
+                this._expandIcon.scale_y = shouldCollapse ? 1 : -1;
             } else if (!this.mapped) {
-                this._expandIcon.rotation_angle_z = shouldCollapse ? 0 : 180;
+                this._expandIcon.scale_y = shouldCollapse ? 1 : -1;
             }
 
             const opacity = this._settings.get_int('dmm-control-opacity');

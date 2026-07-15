@@ -191,6 +191,12 @@ var MprisPlayer = GObject.registerClass({
     get app() {
         return this._app;
     }
+    get entry() {
+        return this._mprisProxy?.DesktopEntry ?? '';
+    }
+    get identity() {
+        return this._mprisProxy?.Identity ?? '';
+    }
     get canGoNext() {
         return this._playerProxy?.CanGoNext ?? false;
     }

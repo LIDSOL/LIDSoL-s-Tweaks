@@ -1,5 +1,6 @@
 'use strict';
 
+import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
 import St from 'gi://St';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
@@ -117,6 +118,8 @@ export class DateMenuMediaModule {
         const item = new St.Bin({
             child: this._widget,
             canFocus: false,
+            x_align: Clutter.ActorAlign.FILL,
+            x_expand: true,
         });
 
         // Insert into MessageView at index 0 (top, same as native MediaMessage)

@@ -34,6 +34,7 @@ export const MediaWidget = GObject.registerClass(
             super._init({
                 vertical: true,
                 style_class: 'dmm-widget',
+                x_expand: true,
                 visible: true,
             });
 

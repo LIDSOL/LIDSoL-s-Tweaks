@@ -1203,6 +1203,12 @@
       <description>'slim' o 'default'.</description>
     </key>
 
+    <key type="b" name="dmm-auto-switch">
+      <default>true</default>
+      <summary>Cambiar automáticamente al último medio reproduciéndose</summary>
+      <description>Si está activo, el widget siempre muestra el último medio que se está reproduciendo, incluso si el usuario había seleccionado otro manualmente. Similar al comportamiento nativo del DateMenu.</description>
+    </key>
+
     <key type="b" name="dmm-show-art">
       <default>true</default>
       <summary>Mostrar carátula del álbum</summary>

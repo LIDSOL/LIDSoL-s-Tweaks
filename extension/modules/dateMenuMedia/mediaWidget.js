@@ -52,6 +52,7 @@ export const MediaWidget = GObject.registerClass(
             this._players = [];
             this._currentIndex = -1;
             this._userSelected = false;
+            this._prevStatuses = new Map();
 
             this._buildUI();
             this._applySettings();
@@ -227,27 +228,71 @@ export const MediaWidget = GObject.registerClass(
         // #region Multi-Player Management
 
         setPlayers(players) {
+            const oldCount = this._players.length;
             this._players = players || [];
+
+            // Clean up status tracking for removed players
+            for (const player of this._prevStatuses.keys()) {
+                if (!this._players.includes(player))
+                    this._prevStatuses.delete(player);
+            }
+
             this._updatePageIndicator();
             if (this._currentIndex < 0 || this._currentIndex >= this._players.length) {
                 this._userSelected = false;
                 this._showLastActive();
             } else {
                 this._updateHeader();
+                // New player added and auto-switch enabled → switch to best
+                if (this._players.length > oldCount) {
+                    const autoSwitch = this._settings?.get_boolean('dmm-auto-switch') !== false;
+                    if (autoSwitch) {
+                        const best = this._findLastActiveIndex();
+                        if (best >= 0 && best !== this._currentIndex) {
+                            const bestScore = this._scorePlayer(this._players[best]);
+                            const curScore = this._scorePlayer(this._player);
+                            if (bestScore > curScore)
+                                this._setCurrentPlayer(best, true);
+                        }
+                    }
+                }
             }
         }
 
         onPlayerDataChanged(player) {
+            const prevStatus = this._prevStatuses.get(player);
+            const currStatus = player.playbackStatus;
+            this._prevStatuses.set(player, currStatus);
+
             if (player === this._player) {
                 this.sync(this._player);
-            } else if (!this._userSelected) {
-                const currentScore = this._scorePlayer(this._player);
-                const changedScore = this._scorePlayer(player);
-                if (changedScore > currentScore) {
-                    const idx = this._players.indexOf(player);
-                    if (idx >= 0)
-                        this._setCurrentPlayer(idx, true);
-                }
+                return;
+            }
+
+            const autoSwitch = this._settings?.get_boolean('dmm-auto-switch') !== false;
+            if (!autoSwitch)
+                return;
+
+            const startedPlaying = currStatus === 'Playing' && prevStatus !== 'Playing';
+            const hasRealTitle = !!player.trackTitle && player.trackTitle !== 'Unknown title';
+
+            if (this._userSelected) {
+                if (!startedPlaying || !hasRealTitle)
+                    return;
+                // User selected: switch only if this player just started playing
+                const idx = this._players.indexOf(player);
+                if (idx >= 0)
+                    this._setCurrentPlayer(idx, true);
+                return;
+            }
+
+            // No user selection: follow best player (like dateMenu)
+            const changedScore = this._scorePlayer(player);
+            const currentScore = this._scorePlayer(this._player);
+            if (changedScore > currentScore) {
+                const idx = this._players.indexOf(player);
+                if (idx >= 0)
+                    this._setCurrentPlayer(idx, true);
             }
         }
 

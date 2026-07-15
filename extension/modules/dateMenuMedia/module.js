@@ -9,6 +9,7 @@ import { MediaWidget } from './mediaWidget.js';
 
 const SETTINGS = [
     'dmm-compact',
+    'dmm-auto-switch',
     'dmm-show-art',
     'dmm-art-size',
     'dmm-show-prev',

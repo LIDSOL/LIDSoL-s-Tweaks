@@ -662,6 +662,7 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     const s = this._settings;
     const mainGroup = createGroup({ parent: page, title: 'Date Menu Media', description: 'Widget de control multimedia en el menú de fecha, sobre el calendario.' });
     mainGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-enabled', title: 'Habilitar widget multimedia' }));
+    mainGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-auto-switch', title: 'Cambiar automáticamente al último medio reproduciéndose', subtitle: 'Siempre muestra el medio activo, incluso por sobre la selección manual' }));
     mainGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-show-art', title: 'Mostrar carátula del álbum' }));
     mainGroup.add(createSpinButtonRow({ settings: s, bindKey: 'dmm-art-size', title: 'Tamaño de carátula', adjProps: { lower: 32, upper: 200, step: 4 } }));
     mainGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-compact', title: 'Modo compacto', subtitle: 'Reduce el espacio del widget' }));

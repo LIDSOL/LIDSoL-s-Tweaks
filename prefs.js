@@ -680,6 +680,21 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
       s.set_string('dmm-progress-style', styleRow.selected === 1 ? 'default' : 'slim');
     });
     progressGroup.add(styleRow);
+    progressGroup.add(createSpinButtonRow({ settings: s, bindKey: 'dmm-slider-handle-radius', title: 'Radio del asa', subtitle: '0 = ocultar asa', adjProps: { lower: 0, upper: 20, step: 1 } }));
+    progressGroup.add(createSpinButtonRow({ settings: s, bindKey: 'dmm-slider-bar-height', title: 'Altura de la barra', adjProps: { lower: 2, upper: 20, step: 1 } }));
+    progressGroup.add(createEntryRow({ settings: s, bindKey: 'dmm-slider-active-color', title: 'Color activo', subtitle: 'Color CSS o vacío para usar el acento del tema' }));
+    progressGroup.add(createEntryRow({ settings: s, bindKey: 'dmm-slider-background-color', title: 'Color de fondo', subtitle: 'Color CSS de la parte inactiva' }));
+
+    const gradientGroup = createGroup({ parent: page, title: 'Gradiente desde carátula', description: 'Extrae el color dominante de la carátula y lo aplica como fondo gradiente.' });
+    gradientGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-gradient-enabled', title: 'Habilitar gradiente' }));
+    gradientGroup.add(createSpinButtonRow({ settings: s, bindKey: 'dmm-gradient-start-opaque', title: 'Opacidad inicial', adjProps: { lower: 0, upper: 1000, step: 50 } }));
+    gradientGroup.add(createSpinButtonRow({ settings: s, bindKey: 'dmm-gradient-start-mix', title: 'Mezcla inicial', subtitle: 'Qué tanto del color extraído se mezcla al inicio (0-1000)', adjProps: { lower: 0, upper: 1000, step: 50 } }));
+    gradientGroup.add(createSpinButtonRow({ settings: s, bindKey: 'dmm-gradient-end-opaque', title: 'Opacidad final', adjProps: { lower: 0, upper: 1000, step: 50 } }));
+    gradientGroup.add(createSpinButtonRow({ settings: s, bindKey: 'dmm-gradient-end-mix', title: 'Mezcla final', subtitle: 'Qué tanto del color extraído se mezcla al final (0-1000)', adjProps: { lower: 0, upper: 1000, step: 50 } }));
+
+    const roundGroup = createGroup({ parent: page, title: 'Clip redondeado', description: 'Recorta las esquinas del widget multimedia.' });
+    roundGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-round-clip-enabled', title: 'Habilitar clip redondeado' }));
+    roundGroup.add(createSpinButtonRow({ settings: s, bindKey: 'dmm-round-clip-radius', title: 'Radio de esquina', adjProps: { lower: 0, upper: 48, step: 1 } }));
   }
 
   _buildUserAvatarDialog(page) {

@@ -2,8 +2,11 @@
 
 import Clutter from 'gi://Clutter';
 import GLib from 'gi://GLib';
+import Gio from 'gi://Gio';
+import GdkPixbuf from 'gi://GdkPixbuf';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
+import { Slider } from 'resource:///org/gnome/shell/ui/slider.js';
 
 import { CrossfadeArt } from '../dateMenu/crossfadeArt.js';
 
@@ -39,6 +42,12 @@ export const MediaWidget = GObject.registerClass(
             this._lastArtist = '';
             this._lastCoverUrl = '';
             this._positionTimer = null;
+            this._isDragging = false;
+            this._cachedColors = new Map();
+
+            this._slider = null;
+            this._gradientStyle = '';
+            this._roundClipRadius = 0;
 
             this._buildUI();
             this._applySettings();
@@ -108,37 +117,39 @@ export const MediaWidget = GObject.registerClass(
             });
             this._progress.add_child(this._timeLabel);
 
-            this._sliderBin = new St.Widget({
-                layout_manager: new Clutter.BinLayout(),
-                x_expand: true,
-                y_expand: true,
-                reactive: true,
-                style_class: 'dmm-slider-bin',
-            });
-            this._progress.add_child(this._sliderBin);
+            this._slider = new Slider(0);
+            this._slider.x_expand = true;
+            this._slider.reactive = true;
+            this._progress.add_child(this._slider);
 
-            this._sliderFill = new St.Widget({
-                style_class: 'dmm-slider-fill',
-                x_align: Clutter.ActorAlign.START,
-                y_expand: true,
-            });
-            this._sliderBin.add_child(this._sliderFill);
+            this._slider.connectObject(
+                'drag-begin', () => {
+                    this._isDragging = true;
+                    return Clutter.EVENT_PROPAGATE;
+                },
+                'drag-end', () => {
+                    if (this._player) {
+                        const pos = Math.floor(this._slider.value) * 1000000;
+                        this._player.position = pos;
+                    }
+                    this._isDragging = false;
+                    return Clutter.EVENT_PROPAGATE;
+                },
+                'notify::value', () => {
+                    if (this._isDragging) {
+                        const pos = Math.floor(this._slider.value) * 1000000;
+                        this._timeLabel.text = formatTime(pos);
+                    }
+                },
+                'scroll-event', () => Clutter.EVENT_STOP,
+                this
+            );
 
             this._durationLabel = new St.Label({
                 style_class: 'dmm-duration',
                 text: '0:00',
             });
             this._progress.add_child(this._durationLabel);
-
-            this._sliderBin.connect('button-press-event', (actor, event) => {
-                return this._onSliderDown(actor, event);
-            });
-            this._sliderBin.connect('motion-event', (actor, event) => {
-                return this._onSliderMotion(actor, event);
-            });
-            this._sliderBin.connect('button-release-event', (actor, event) => {
-                return this._onSliderUp(actor, event);
-            });
 
             // Controls row
             this._controls = new St.BoxLayout({
@@ -241,6 +252,9 @@ export const MediaWidget = GObject.registerClass(
                     this._updateProgressDisplay(this._lastKnownPosition || 0, player._length);
                 }
             }
+
+            // Update gradient + inline styles
+            this._updateGradient();
         }
 
         _startPositionTimer() {
@@ -270,7 +284,7 @@ export const MediaWidget = GObject.registerClass(
                 return;
 
             const pos = await this._player.position;
-            if (pos !== null) {
+            if (pos !== null && !this._isDragging) {
                 this._lastKnownPosition = pos;
                 this._updateProgressDisplay(pos, this._player._length || 0);
             }
@@ -286,52 +300,124 @@ export const MediaWidget = GObject.registerClass(
             this._timeLabel.text = formatTime(pos);
             this._durationLabel.text = formatTime(length);
 
-            const pct = Math.min(1, Math.max(0, pos / length));
-            const binWidth = this._sliderBin.get_width();
-            if (binWidth > 0) {
-                this._sliderFill.set_style(`width: ${Math.round(pct * binWidth)}px;`);
-            }
+            const currentSec = pos / 1000000;
+            const lengthSec = length / 1000000;
+            this._slider.overdriveStart = lengthSec;
+            this._slider.maximumValue = lengthSec;
+            this._slider.value = currentSec;
         }
 
-        _onSliderDown(actor, event) {
-            this._isDragging = true;
-            this._seekToEvent(actor, event);
-            return Clutter.EVENT_STOP;
+        _updateGradient() {
+            this._gradientStyle = '';
+            if (!this._settings.get_boolean('dmm-gradient-enabled')) {
+                this._applyInlineStyles();
+                return;
+            }
+
+            const coverUrl = this._player?.trackCoverUrl;
+            if (!coverUrl || coverUrl.endsWith('.svg')) {
+                this._applyInlineStyles();
+                return;
+            }
+
+            if (!coverUrl.startsWith('file://')) {
+                this._applyInlineStyles();
+                return;
+            }
+
+            const path = decodeURIComponent(coverUrl.replace(/^file:\/\//, ''));
+            let colorTask = this._cachedColors.get(path);
+            if (!colorTask) {
+                try {
+                    const pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(path, 128, 128);
+                    colorTask = this._getMeanColor(pixbuf);
+                    this._cachedColors.set(path, colorTask);
+                } catch (_) {
+                    this._applyInlineStyles();
+                    return;
+                }
+            }
+
+            colorTask.then(color => {
+                if (!color || !this._cachedColors)
+                    return;
+                const [r, g, b] = color;
+                const startOpa = this._settings.get_int('dmm-gradient-start-opaque') / 1000;
+                const endOpa = this._settings.get_int('dmm-gradient-end-opaque') / 1000;
+                const startMix = this._settings.get_int('dmm-gradient-start-mix') / 1000;
+                const endMix = this._settings.get_int('dmm-gradient-end-mix') / 1000;
+
+                const bgR = 30, bgG = 30, bgB = 30;
+
+                this._gradientStyle = ''
+                    + `background-gradient-direction:horizontal;`
+                    + `background-gradient-start:rgba(${Math.round(bgR + (r - bgR) * startMix)},${Math.round(bgG + (g - bgG) * startMix)},${Math.round(bgB + (b - bgB) * startMix)},${startOpa});`
+                    + `background-gradient-end:rgba(${Math.round(bgR + (r - bgR) * endMix)},${Math.round(bgG + (g - bgG) * endMix)},${Math.round(bgB + (b - bgB) * endMix)},${endOpa});`;
+                this._applyInlineStyles();
+            }).catch(() => {});
         }
 
-        _onSliderMotion(actor, event) {
-            if (this._isDragging) {
-                this._seekToEvent(actor, event);
-            }
-            return Clutter.EVENT_STOP;
+        _getMeanColor(pixbuf) {
+            return new Promise(resolve => {
+                const w = pixbuf.get_width();
+                const h = pixbuf.get_height();
+                const pixels = pixbuf.get_pixels();
+                const rowstride = pixbuf.get_rowstride();
+                const nChannels = pixbuf.get_n_channels();
+
+                let rSum = 0, gSum = 0, bSum = 0, count = 0;
+                const skip = 4;
+
+                for (let y = 0; y < h; y += skip) {
+                    for (let x = 0; x < w; x += skip) {
+                        const idx = y * rowstride + x * nChannels;
+                        rSum += pixels[idx];
+                        gSum += pixels[idx + 1];
+                        bSum += pixels[idx + 2];
+                        count++;
+                    }
+                }
+
+                if (count === 0) {
+                    resolve(null);
+                    return;
+                }
+
+                resolve([
+                    Math.round(rSum / count),
+                    Math.round(gSum / count),
+                    Math.round(bSum / count),
+                ]);
+            });
         }
 
-        _onSliderUp(actor, event) {
-            if (this._isDragging) {
-                this._seekToEvent(actor, event, true);
-                this._isDragging = false;
-            }
-            return Clutter.EVENT_STOP;
-        }
+        _updateSliderStyle() {
+            const style = this._settings.get_string('dmm-progress-style');
+            const isSlim = style === 'slim';
+            const handleRadius = this._settings.get_int('dmm-slider-handle-radius');
+            const barHeight = this._settings.get_int('dmm-slider-bar-height');
+            const activeColor = this._settings.get_string('dmm-slider-active-color');
+            const bgColor = this._settings.get_string('dmm-slider-background-color');
 
-        _seekToEvent(actor, event, commit = false) {
-            const [bx, by] = actor.get_transformed_position();
-            const [bw] = actor.get_size();
-            const [, stageX] = event.get_coords();
-            const pct = Math.max(0, Math.min(1, (stageX - bx) / bw));
+            let css = '';
 
-            const length = this._player?._length || 0;
-            const seekPos = Math.round(pct * length);
-
-            if (commit && this._player) {
-                this._player.position = seekPos;
+            if (isSlim) {
+                css += '-slider-handle-radius:0px;';
+                css += `color:${activeColor || '-st-accent-color'};`;
+            } else {
+                css += `-slider-handle-radius:${handleRadius}px;`;
+                if (activeColor)
+                    css += `color:${activeColor};`;
             }
 
-            const binWidth = actor.get_width();
-            if (binWidth > 0) {
-                this._sliderFill.set_style(`width: ${Math.round(pct * binWidth)}px;`);
-            }
-            this._timeLabel.text = formatTime(seekPos);
+            css += `-barlevel-height:${barHeight}px;`;
+
+            if (activeColor && isSlim)
+                css += `-barlevel-active-background-color:${activeColor};`;
+            if (bgColor)
+                css += `-barlevel-background-color:${bgColor};`;
+
+            this._slider.style = css;
         }
 
         _applySettings() {
@@ -368,9 +454,28 @@ export const MediaWidget = GObject.registerClass(
             this._progress.style_class = progStyle === 'default'
                 ? 'dmm-progress dmm-progress-default'
                 : 'dmm-progress';
+
+            this._updateSliderStyle();
+            this._updateRoundClip();
+            this._updateGradient();
+            this._applyInlineStyles();
+        }
+
+        _updateRoundClip() {
+            const enabled = this._settings.get_boolean('dmm-round-clip-enabled');
+            this._roundClipRadius = enabled ? this._settings.get_int('dmm-round-clip-radius') : 0;
+        }
+
+        _applyInlineStyles() {
+            let css = '';
+            if (this._roundClipRadius > 0)
+                css += `border-radius:${this._roundClipRadius}px;`;
+            css += this._gradientStyle || '';
+            this.style = css;
         }
 
         updateSettings(settings) {
+            this._cachedColors.clear();
             this._settings = settings;
             this._applySettings();
             this.sync(this._player);
@@ -378,6 +483,8 @@ export const MediaWidget = GObject.registerClass(
 
         destroy() {
             this._stopPositionTimer();
+            if (this._slider)
+                this._slider.disconnectObject(this);
             super.destroy();
         }
     }

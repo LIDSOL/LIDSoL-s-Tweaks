@@ -17,6 +17,17 @@ const SETTINGS = [
     'dmm-control-opacity',
     'dmm-progress-enabled',
     'dmm-progress-style',
+    'dmm-gradient-enabled',
+    'dmm-gradient-start-opaque',
+    'dmm-gradient-start-mix',
+    'dmm-gradient-end-opaque',
+    'dmm-gradient-end-mix',
+    'dmm-slider-handle-radius',
+    'dmm-slider-bar-height',
+    'dmm-slider-active-color',
+    'dmm-slider-background-color',
+    'dmm-round-clip-enabled',
+    'dmm-round-clip-radius',
 ];
 
 export class DateMenuMediaModule {

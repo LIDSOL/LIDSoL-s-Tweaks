@@ -1216,6 +1216,79 @@
       <description>Tamaño en píxeles del arte del álbum (ancho y alto).</description>
     </key>
 
+    <key type="b" name="dmm-gradient-enabled">
+      <default>true</default>
+      <summary>Gradiente desde la carátula</summary>
+      <description>Extrae el color dominante de la carátula y lo usa como fondo gradiente.</description>
+    </key>
+
+    <key type="i" name="dmm-gradient-start-opaque">
+      <default>200</default>
+      <range min="0" max="1000"/>
+      <summary>Opacidad inicial del gradiente</summary>
+      <description>Opacidad del color al inicio del gradiente (0-1000).</description>
+    </key>
+
+    <key type="i" name="dmm-gradient-start-mix">
+      <default>800</default>
+      <range min="0" max="1000"/>
+      <summary>Mezcla inicial del gradiente</summary>
+      <description>Qué tanto del color extraído se mezcla al inicio (0-1000).</description>
+    </key>
+
+    <key type="i" name="dmm-gradient-end-opaque">
+      <default>200</default>
+      <range min="0" max="1000"/>
+      <summary>Opacidad final del gradiente</summary>
+      <description>Opacidad del color al final del gradiente (0-1000).</description>
+    </key>
+
+    <key type="i" name="dmm-gradient-end-mix">
+      <default>600</default>
+      <range min="0" max="1000"/>
+      <summary>Mezcla final del gradiente</summary>
+      <description>Qué tanto del color extraído se mezcla al final (0-1000).</description>
+    </key>
+
+    <key type="i" name="dmm-slider-handle-radius">
+      <default>10</default>
+      <range min="0" max="20"/>
+      <summary>Radio del control deslizante</summary>
+      <description>Radio en píxeles del control deslizante de la barra de progreso (0 = sin asa).</description>
+    </key>
+
+    <key type="i" name="dmm-slider-bar-height">
+      <default>6</default>
+      <range min="2" max="20"/>
+      <summary>Altura de la barra de progreso</summary>
+      <description>Altura en píxeles de la barra de progreso.</description>
+    </key>
+
+    <key type="s" name="dmm-slider-active-color">
+      <default>""</default>
+      <summary>Color activo del slider</summary>
+      <description>Color CSS para la parte activa (progreso completado) del slider. Vacío usa el color de acento del tema.</description>
+    </key>
+
+    <key type="s" name="dmm-slider-background-color">
+      <default>""</default>
+      <summary>Color de fondo del slider</summary>
+      <description>Color CSS para la parte inactiva del slider. Vacío usa el valor por defecto del tema.</description>
+    </key>
+
+    <key type="b" name="dmm-round-clip-enabled">
+      <default>true</default>
+      <summary>Clip redondeado</summary>
+      <description>Recorta las esquinas del widget multimedia con bordes redondeados.</description>
+    </key>
+
+    <key type="i" name="dmm-round-clip-radius">
+      <default>10</default>
+      <range min="0" max="48"/>
+      <summary>Radio de borde redondeado</summary>
+      <description>Radio en píxeles de las esquinas redondeadas del widget.</description>
+    </key>
+
     <!-- Dashboard -->
     <key type="b" name="dashboard-enabled">
       <default>false</default>

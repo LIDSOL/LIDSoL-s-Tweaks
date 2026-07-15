@@ -119,11 +119,31 @@ export const MediaWidget = GObject.registerClass(
 
             this.add_child(this._header);
 
-            // Art + Info row (title/artist always visible)
+            // Controls (created early, placed at far right of bodyRow)
+            this._controls = new St.BoxLayout({
+                style_class: 'dmm-controls',
+                x_align: Clutter.ActorAlign.END,
+                y_align: Clutter.ActorAlign.CENTER,
+            });
+
+            this._prevBtn = this._makeControlButton('media-skip-backward-symbolic', () => {
+                this._player?.prev();
+            });
+            this._controls.add_child(this._prevBtn);
+
+            this._pauseBtn = this._makeControlButton('media-playback-start-symbolic', () => {
+                this._player?.playPause();
+            });
+            this._controls.add_child(this._pauseBtn);
+
+            this._nextBtn = this._makeControlButton('media-skip-forward-symbolic', () => {
+                this._player?.next();
+            });
+            this._controls.add_child(this._nextBtn);
+
             const bodyRow = new St.BoxLayout({
                 style_class: 'dmm-body',
                 x_align: Clutter.ActorAlign.FILL,
-                y_align: Clutter.ActorAlign.START,
             });
             this.add_child(bodyRow);
 
@@ -134,11 +154,10 @@ export const MediaWidget = GObject.registerClass(
             this._art.visible = false;
             bodyRow.add_child(this._art);
 
-            // Info column
+            // Text column: title (top) + artist (bottom), both expand
             const infoCol = new St.BoxLayout({
                 vertical: true,
                 style_class: 'dmm-info',
-                y_expand: true,
                 x_expand: true,
             });
             bodyRow.add_child(infoCol);
@@ -149,6 +168,7 @@ export const MediaWidget = GObject.registerClass(
                 x_expand: true,
                 x_align: Clutter.ActorAlign.START,
                 y_align: Clutter.ActorAlign.START,
+                y_expand: true,
             });
             infoCol.add_child(this._titleLabel);
 
@@ -158,8 +178,12 @@ export const MediaWidget = GObject.registerClass(
                 x_expand: true,
                 x_align: Clutter.ActorAlign.START,
                 y_align: Clutter.ActorAlign.START,
+                y_expand: true,
             });
             infoCol.add_child(this._artistLabel);
+
+            // Controls at far right, vertically centered between title/artist
+            bodyRow.add_child(this._controls);
 
             // Progress bar
             this._progress = new St.BoxLayout({
@@ -207,29 +231,6 @@ export const MediaWidget = GObject.registerClass(
                 text: '0:00',
             });
             this._progress.add_child(this._durationLabel);
-
-            // Controls row
-            this._controls = new St.BoxLayout({
-                style_class: 'dmm-controls',
-                x_align: Clutter.ActorAlign.CENTER,
-                y_align: Clutter.ActorAlign.CENTER,
-            });
-            this.add_child(this._controls);
-
-            this._prevBtn = this._makeControlButton('media-skip-backward-symbolic', () => {
-                this._player?.prev();
-            });
-            this._controls.add_child(this._prevBtn);
-
-            this._pauseBtn = this._makeControlButton('media-playback-start-symbolic', () => {
-                this._player?.playPause();
-            });
-            this._controls.add_child(this._pauseBtn);
-
-            this._nextBtn = this._makeControlButton('media-skip-forward-symbolic', () => {
-                this._player?.next();
-            });
-            this._controls.add_child(this._nextBtn);
         }
 
         // #region Expand/Collapse
@@ -254,19 +255,6 @@ export const MediaWidget = GObject.registerClass(
         }
 
         _animateCollapse() {
-            if (this._art.visible) {
-                this._art.ease({
-                    height: 0,
-                    duration: 200,
-                    mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-                    onComplete: () => {
-                        this._art.visible = false;
-                    }
-                });
-            } else {
-                this._art.visible = false;
-            }
-
             if (this._progress.visible) {
                 let [minPH, natPH] = this._progress.get_preferred_height(-1);
                 if (natPH > 0) {
@@ -285,22 +273,6 @@ export const MediaWidget = GObject.registerClass(
         }
 
         _animateExpand() {
-            if (this._settings.get_boolean('dmm-show-art') && this._lastCoverUrl) {
-                this._art.setArt(this._lastCoverUrl, true);
-                this._art.visible = true;
-                this._art.remove_all_transitions();
-                this._art.height = 0;
-                this._art.ease({
-                    height: this._artSize,
-                    duration: 200,
-                    mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-                    onComplete: () => {
-                        this._art.height = -1;
-                        this._art.queuePaint();
-                    }
-                });
-            }
-
             this._progress.visible = true;
             const length = this._player?._length || 0;
             if (length > 0) {
@@ -330,7 +302,7 @@ export const MediaWidget = GObject.registerClass(
         _makeControlButton(iconName, callback) {
             const btn = new St.Button({
                 style_class: 'dmm-control-btn message-media-control',
-                child: new St.Icon({ icon_name: iconName, icon_size: 20 }),
+                child: new St.Icon({ icon_name: iconName, icon_size: 14 }),
                 reactive: true,
                 can_focus: true,
                 track_hover: true,
@@ -518,7 +490,7 @@ export const MediaWidget = GObject.registerClass(
 
             if (coverUrl !== this._lastCoverUrl) {
                 this._lastCoverUrl = coverUrl;
-                if (this._settings.get_boolean('dmm-show-art') && !this._collapsed) {
+                if (this._settings.get_boolean('dmm-show-art')) {
                     if (coverUrl) {
                         const cachedUrl = this._mpris?.getCachedArtUrl
                             ? this._mpris.getCachedArtUrl(coverUrl)
@@ -529,7 +501,7 @@ export const MediaWidget = GObject.registerClass(
                         this._art.setArt(null);
                         this._art.visible = false;
                     }
-                } else if (!this._collapsed) {
+                } else {
                     this._art.visible = false;
                 }
             }
@@ -735,7 +707,7 @@ export const MediaWidget = GObject.registerClass(
                     else
                         this._animateExpand();
                 } else {
-                    this._art.visible = !shouldCollapse && this._lastCoverUrl && this._settings.get_boolean('dmm-show-art');
+                    this._art.visible = this._lastCoverUrl && this._settings.get_boolean('dmm-show-art');
                     this._progress.visible = !shouldCollapse && this._settings.get_boolean('dmm-progress-enabled');
                 }
                 this._expandIcon.rotation_angle_z = shouldCollapse ? 0 : 180;

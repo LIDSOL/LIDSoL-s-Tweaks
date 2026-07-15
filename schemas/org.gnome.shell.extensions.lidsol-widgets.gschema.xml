@@ -1179,7 +1179,7 @@
     </key>
 
     <key type="i" name="dmm-control-opacity">
-      <default>200</default>
+      <default>250</default>
       <range min="0" max="255"/>
       <summary>Opacidad de los botones de control</summary>
       <description>Opacidad de los botones de control multimedia (0-255).</description>

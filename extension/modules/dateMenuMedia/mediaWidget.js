@@ -98,7 +98,7 @@ export const MediaWidget = GObject.registerClass(
             this._collapseButton = new St.Button({
                 style_class: 'dmm-expand-button',
                 child: new St.Icon({
-                    icon_name: 'pan-down-symbolic',
+                    icon_name: 'pan-up-symbolic',
                     icon_size: 12,
                     style_class: 'dmm-expand-icon',
                 }),
@@ -230,11 +230,11 @@ export const MediaWidget = GObject.registerClass(
 
         _toggleCollapsed() {
             this._collapsed = !this._collapsed;
-            this._settings.set_boolean('dmm-collasped', this._collapsed);
             if (this._collapsed)
                 this._animateCollapse();
             else
                 this._animateExpand();
+            this._settings.set_boolean('dmm-collasped', this._collapsed);
         }
 
         _animateCollapse() {
@@ -272,11 +272,8 @@ export const MediaWidget = GObject.registerClass(
                 }
             }
 
-            this._collapseButton.ease({
-                rotation_angle_z: 0,
-                duration: 200,
-                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-            });
+            const icon = this._collapseButton.get_child();
+            icon.icon_name = 'pan-down-symbolic';
         }
 
         _animateExpand() {
@@ -319,11 +316,8 @@ export const MediaWidget = GObject.registerClass(
                 }
             }
 
-            this._collapseButton.ease({
-                rotation_angle_z: 180,
-                duration: 200,
-                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-            });
+            const icon = this._collapseButton.get_child();
+            icon.icon_name = 'pan-up-symbolic';
         }
 
         // #endregion
@@ -535,7 +529,7 @@ export const MediaWidget = GObject.registerClass(
                         this._art.setArt(null);
                         this._art.visible = false;
                     }
-                } else {
+                } else if (!this._collapsed) {
                     this._art.visible = false;
                 }
             }
@@ -601,7 +595,7 @@ export const MediaWidget = GObject.registerClass(
 
         _updateProgressDisplay(pos, length) {
             const showProgress = this._settings.get_boolean('dmm-progress-enabled');
-            this._progress.visible = showProgress && length > 0 && !this._collapsed;
+            this._progress.visible = showProgress && length > 0;
 
             if (!showProgress || length <= 0)
                 return;
@@ -745,7 +739,8 @@ export const MediaWidget = GObject.registerClass(
                     // Initial load: no animation
                     this._art.visible = !shouldCollapse && this._lastCoverUrl && this._settings.get_boolean('dmm-show-art');
                     this._progress.visible = !shouldCollapse && this._settings.get_boolean('dmm-progress-enabled');
-                    this._collapseButton.rotation_angle_z = shouldCollapse ? 0 : 180;
+                    const icon = this._collapseButton.get_child();
+                    icon.icon_name = shouldCollapse ? 'pan-down-symbolic' : 'pan-up-symbolic';
                 }
             }
 
@@ -770,7 +765,7 @@ export const MediaWidget = GObject.registerClass(
                 this._art._size = artSize;
                 this._art.refreshStyle();
             }
-            if (!showArt || this._collapsed)
+            if (!showArt)
                 this._art.visible = false;
             else if (this._lastCoverUrl)
                 this._art.visible = true;

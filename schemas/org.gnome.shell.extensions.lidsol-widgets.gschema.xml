@@ -1216,12 +1216,17 @@
     </key>
 
     <key type="i" name="dmm-art-size">
-      <default>64</default>
-      <range min="32" max="200"/>
+      <default>50</default>
+      <range min="31" max="110"/>
       <summary>Tamaño de la carátula</summary>
       <description>Tamaño en píxeles del arte del álbum (ancho y alto).</description>
     </key>
-
+    <key type="i" name="dmm-album-roundness">
+      <default>10</default>
+      <range min="1" max="99"/>
+      <summary>Redondeo de carátula</summary>
+      <description>Radio de borde redondeado de la carátula del álbum en píxeles (1-99).</description>
+    </key>
     <key type="b" name="dmm-collasped">
       <default>false</default>
       <summary>Colapsar widget multimedia</summary>

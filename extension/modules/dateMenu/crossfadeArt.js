@@ -20,6 +20,7 @@ export const CrossfadeArt = GObject.registerClass(
                 y_expand: false,
             });
             this._radius = radius;
+            this._roundness = null;
             this._size = radius * 2;
             this._currentUrl = null;
             this._pixbuf = null;
@@ -62,8 +63,25 @@ export const CrossfadeArt = GObject.registerClass(
                 return;
             }
 
-            let r = Math.min(w, h) / 2;
-            cr.arc(w / 2, h / 2, r, 0, 2 * Math.PI);
+            let cornerRadius = this._roundness ?? this._radius;
+            let maxR = Math.min(w, h) / 2;
+            let r = Math.min(cornerRadius, maxR);
+
+            if (r >= maxR) {
+                cr.arc(w / 2, h / 2, maxR, 0, 2 * Math.PI);
+            } else {
+                const d = Math.PI / 180;
+                cr.moveTo(r, 0);
+                cr.lineTo(w - r, 0);
+                cr.arc(w - r, r, r, -90 * d, 0);
+                cr.lineTo(w, h - r);
+                cr.arc(w - r, h - r, r, 0, 90 * d);
+                cr.lineTo(r, h);
+                cr.arc(r, h - r, r, 90 * d, 180 * d);
+                cr.lineTo(0, r);
+                cr.arc(r, r, r, 180 * d, 270 * d);
+            }
+            cr.closePath();
             cr.clip();
 
             let scaleX = w / this._pixbuf.get_width();
@@ -102,11 +120,13 @@ export const CrossfadeArt = GObject.registerClass(
         }
 
         _updateContainerStyle() {
-            this.set_style(`border-radius: ${this._radius}px; width: ${this._size}px; height: ${this._size}px; background-color: transparent;`);
+            const br = this._roundness ?? this._radius;
+            this.set_style(`border-radius: ${br}px; width: ${this._size}px; height: ${this._size}px; background-color: transparent;`);
         }
 
         refreshStyle() {
-            this.set_style(`border-radius: ${this._radius}px; width: ${this._size}px; height: ${this._size}px; background-color: transparent;`);
+            const br = this._roundness ?? this._radius;
+            this.set_style(`border-radius: ${br}px; width: ${this._size}px; height: ${this._size}px; background-color: transparent;`);
             this._pixbuf = this._pixbufFromUrl(this._currentUrl);
             this._canvasArea.queue_repaint();
         }

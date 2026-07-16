@@ -29,9 +29,11 @@
 .dmm-header {
     spacing: 6px;
     padding-bottom: 2px;
+    opacity: 0.6;
 }
 
 .dmm-app-icon {
+    margin-left: 4px;
     margin-right: 4px;
 }
 

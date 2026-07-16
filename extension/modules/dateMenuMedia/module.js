@@ -13,6 +13,7 @@ const SETTINGS = [
     'dmm-auto-switch',
     'dmm-show-art',
     'dmm-art-size',
+    'dmm-album-roundness',
     'dmm-collasped',
     'dmm-show-prev',
     'dmm-show-pause',

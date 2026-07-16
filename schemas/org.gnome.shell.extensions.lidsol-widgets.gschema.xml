@@ -1227,12 +1227,6 @@
       <summary>Redondeo de carátula</summary>
       <description>Radio de borde redondeado de la carátula del álbum en píxeles (1-99).</description>
     </key>
-    <key type="b" name="dmm-collasped">
-      <default>false</default>
-      <summary>Colapsar widget multimedia</summary>
-      <description>Si está activo, el widget multimedia se muestra en modo colapsado, ocultando la carátula y la barra de progreso.</description>
-    </key>
-
     <key type="b" name="dmm-gradient-enabled">
       <default>true</default>
       <summary>Gradiente desde la carátula</summary>

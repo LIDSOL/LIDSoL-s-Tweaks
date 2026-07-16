@@ -1,7 +1,6 @@
 'use strict';
 
 import Clutter from 'gi://Clutter';
-import Graphene from 'gi://Graphene';
 import GLib from 'gi://GLib';
 import Gio from 'gi://Gio';
 import GdkPixbuf from 'gi://GdkPixbuf';
@@ -41,7 +40,6 @@ export const MediaWidget = GObject.registerClass(
       this._settings = settings;
       this._mpris = mpris;
       this._player = null;
-      this._collapsed = false;
       this._lastTitle = '';
       this._lastArtist = '';
       this._lastCoverUrl = '';
@@ -98,25 +96,6 @@ export const MediaWidget = GObject.registerClass(
         this
       );
       this._header.add_child(this._pageIndicator);
-
-      // Expand button with centered pivot for safe scale flip
-      this._expandIcon = new St.Icon({
-        icon_name: 'notification-expand-symbolic',
-        icon_size: 16,
-        pivot_point: new Graphene.Point({ x: 0.5, y: 0.5 }),
-        x_expand: false,
-        y_expand: false,
-      });
-
-      this._expandButton = new St.Button({
-        style_class: 'dmm-expand-button',
-        child: this._expandIcon,
-        y_align: Clutter.ActorAlign.CENTER,
-        y_expand: false,
-        x_expand: false,
-      });
-      this._expandButton.connect('clicked', () => this._toggleCollapsed());
-      this._header.add_child(this._expandButton);
 
       this.add_child(this._header);
 
@@ -211,16 +190,18 @@ export const MediaWidget = GObject.registerClass(
           return Clutter.EVENT_PROPAGATE;
         },
         'drag-end', () => {
-          if (this._player) {
-            const pos = Math.floor(this._slider.value) * 1000000;
+          if (this._player && this._player._length) {
+            const lengthSec = this._player._length / 1000000;
+            const pos = Math.floor(this._slider.value * lengthSec) * 1000000;
             this._player.position = pos;
           }
           this._isDragging = false;
           return Clutter.EVENT_PROPAGATE;
         },
         'notify::value', () => {
-          if (this._isDragging) {
-            const pos = Math.floor(this._slider.value) * 1000000;
+          if (this._isDragging && this._player?._length) {
+            const lengthSec = this._player._length / 1000000;
+            const pos = Math.floor(this._slider.value * lengthSec) * 1000000;
             this._timeLabel.text = formatTime(pos);
           }
         },
@@ -234,72 +215,6 @@ export const MediaWidget = GObject.registerClass(
       });
       this._progress.add_child(this._durationLabel);
     }
-
-    // #region Expand/Collapse
-
-    _toggleCollapsed() {
-      this._collapsed = !this._collapsed;
-
-      // Animate expand icon flip (scale_y mirror, no rotation overflow)
-      this._expandIcon.remove_all_transitions();
-      this._expandIcon.ease({
-        scale_y: this._collapsed ? 1 : -1,
-        duration: 200,
-        mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-      });
-
-      if (this._collapsed)
-        this._animateCollapse();
-      else
-        this._animateExpand();
-
-      this._settings.set_boolean('dmm-collasped', this._collapsed);
-    }
-
-    _animateCollapse() {
-      if (this._progress.visible) {
-        let [minPH, natPH] = this._progress.get_preferred_height(-1);
-        if (natPH > 0) {
-          this._progress.ease({
-            height: 0,
-            duration: 200,
-            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-            onComplete: () => {
-              this._progress.visible = false;
-            }
-          });
-        } else {
-          this._progress.visible = false;
-        }
-      }
-    }
-
-    _animateExpand() {
-      this._progress.visible = true;
-      const length = this._player?._length || 0;
-      if (length > 0) {
-        this._updateProgressDisplay(this._lastKnownPosition || 0, length);
-      } else {
-        this._progress.visible = true;
-      }
-      if (this._progress.visible) {
-        this._progress.remove_all_transitions();
-        let [minPH, natPH] = this._progress.get_preferred_height(-1);
-        if (natPH > 0) {
-          this._progress.height = 0;
-          this._progress.ease({
-            height: natPH,
-            duration: 200,
-            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-            onComplete: () => {
-              this._progress.height = -1;
-            }
-          });
-        }
-      }
-    }
-
-    // #endregion
 
     _makeControlButton(iconName, callback) {
       const btn = new St.Button({
@@ -518,14 +433,14 @@ export const MediaWidget = GObject.registerClass(
       this._prevBtn.reactive = !!player.canGoPrevious;
       this._nextBtn.reactive = !!player.canGoNext;
 
-      // Position timer
+      // Position timer — always show progress immediately when there's a length
+      if (player._length) {
+        this._updateProgressDisplay(this._lastKnownPosition || 0, player._length);
+      }
       if (this._settings.get_boolean('dmm-progress-enabled') && player.playbackStatus === 'Playing') {
         this._startPositionTimer();
       } else {
         this._stopPositionTimer();
-        if (player._length) {
-          this._updateProgressDisplay(this._lastKnownPosition || 0, player._length);
-        }
       }
 
       this._updateGradient();
@@ -566,19 +481,22 @@ export const MediaWidget = GObject.registerClass(
 
     _updateProgressDisplay(pos, length) {
       const showProgress = this._settings.get_boolean('dmm-progress-enabled');
-      this._progress.visible = showProgress && length > 0;
+      const shouldShow = showProgress && length > 0;
 
-      if (!showProgress || length <= 0)
+      if (!shouldShow) {
+        this._progress.visible = false;
         return;
+      }
 
       this._timeLabel.text = formatTime(pos);
       this._durationLabel.text = formatTime(length);
 
       const currentSec = pos / 1000000;
       const lengthSec = length / 1000000;
-      this._slider.overdriveStart = lengthSec;
-      this._slider.maximumValue = lengthSec;
-      this._slider.value = currentSec;
+      const ratio = lengthSec > 0 ? Math.min(currentSec / lengthSec, 1) : 0;
+      this._slider.value = ratio;
+
+      this._progress.visible = true;
     }
 
     _updateGradient() {
@@ -697,23 +615,6 @@ export const MediaWidget = GObject.registerClass(
     _applySettings() {
       const compact = this._settings.get_boolean('dmm-compact');
       this.set_style_class_name(compact ? 'dmm-widget dmm-compact' : 'dmm-widget');
-
-      const shouldCollapse = this._settings.get_boolean('dmm-collasped');
-      if (shouldCollapse !== this._collapsed) {
-        this._collapsed = shouldCollapse;
-        if (this.mapped) {
-          if (shouldCollapse)
-            this._animateCollapse();
-          else
-            this._animateExpand();
-        } else {
-          this._art.visible = this._lastCoverUrl && this._settings.get_boolean('dmm-show-art');
-          this._progress.visible = !shouldCollapse && this._settings.get_boolean('dmm-progress-enabled');
-        }
-        this._expandIcon.scale_y = shouldCollapse ? 1 : -1;
-      } else if (!this.mapped) {
-        this._expandIcon.scale_y = shouldCollapse ? 1 : -1;
-      }
 
       const opacity = this._settings.get_int('dmm-control-opacity');
       const alpha = Math.max(0, Math.min(255, opacity));

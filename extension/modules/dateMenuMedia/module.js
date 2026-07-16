@@ -14,7 +14,6 @@ const SETTINGS = [
     'dmm-show-art',
     'dmm-art-size',
     'dmm-album-roundness',
-    'dmm-collasped',
     'dmm-show-prev',
     'dmm-show-pause',
     'dmm-show-next',
@@ -113,7 +112,6 @@ export class DateMenuMediaModule {
 
         // Provide methods that MessageView expects on messages[]
         this._widget.canClose = () => false;
-        this._widget.unexpand = () => {};
 
         // Wrap in St.Bin like native _addMessageAtIndex
         const item = new St.Bin({

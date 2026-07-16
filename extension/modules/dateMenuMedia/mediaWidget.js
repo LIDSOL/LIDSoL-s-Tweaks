@@ -714,9 +714,11 @@ export const MediaWidget = GObject.registerClass(
 
             const opacity = this._settings.get_int('dmm-control-opacity');
             const alpha = Math.max(0, Math.min(255, opacity));
-            this._prevBtn.opacity = alpha;
-            this._pauseBtn.opacity = alpha;
-            this._nextBtn.opacity = alpha;
+            for (const btn of [this._prevBtn, this._pauseBtn, this._nextBtn]) {
+                const icon = btn.get_child();
+                if (icon)
+                    icon.opacity = alpha;
+            }
 
             const showPrev = this._settings.get_boolean('dmm-show-prev');
             const showPause = this._settings.get_boolean('dmm-show-pause');

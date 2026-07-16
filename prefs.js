@@ -170,13 +170,6 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     }));
     group.add(createModuleRow({
       settings: this._settings,
-      bindKey: 'nm-enabled',
-      title: 'Notification Media',
-      subtitle: 'Oculta los indicadores multimedia nativos de las notificaciones',
-      onDetailed: () => this._openDialog('Notification Media', p => this._buildNotificationMediaDialog(p)),
-    }));
-    group.add(createModuleRow({
-      settings: this._settings,
       bindKey: 'uadm-enabled',
       title: 'User Avatar (Date Menu)',
       subtitle: 'Avatar de usuario en el menú de fecha, sobre el calendario',
@@ -644,12 +637,6 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     }));
   }
 
-  _buildNotificationMediaDialog(page) {
-    const s = this._settings;
-    const mainGroup = createGroup({ parent: page, title: 'Notification Media', description: 'Oculta los indicadores multimedia nativos de las notificaciones del centro de notificaciones.' });
-    mainGroup.add(createSwitchRow({ settings: s, bindKey: 'nm-enabled', title: 'Ocultar indicadores multimedia nativos' }));
-  }
-
   _buildUserAvatarDateMenuDialog(page) {
     const s = this._settings;
     const mainGroup = createGroup({ parent: page, title: 'User Avatar (Date Menu)', description: 'Muestra avatar y nombre de usuario en el menú de fecha, sobre el calendario.' });
@@ -662,6 +649,7 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     const s = this._settings;
     const mainGroup = createGroup({ parent: page, title: 'Date Menu Media', description: 'Widget de control multimedia en el menú de fecha, sobre el calendario.' });
     mainGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-enabled', title: 'Habilitar widget multimedia' }));
+    mainGroup.add(createSwitchRow({ settings: s, bindKey: 'nm-enabled', title: 'Ocultar indicadores multimedia nativos', subtitle: 'Oculta los controles multimedia nativos de las notificaciones, dentro del menú de fecha' }));
     mainGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-auto-switch', title: 'Cambiar automáticamente al último medio reproduciéndose', subtitle: 'Siempre muestra el medio activo, incluso por sobre la selección manual' }));
     mainGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-show-art', title: 'Mostrar carátula del álbum' }));
     mainGroup.add(createSpinButtonRow({ settings: s, bindKey: 'dmm-art-size', title: 'Tamaño de carátula', adjProps: { lower: 31, upper: 110, step: 1 } }));

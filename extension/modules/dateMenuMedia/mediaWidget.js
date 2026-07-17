@@ -46,6 +46,7 @@ export const MediaWidget = GObject.registerClass(
       this._positionTimer = null;
       this._isDragging = false;
       this._cachedColors = new Map();
+      this._playerProgress = new Map(); // player → {position, length}
 
       this._slider = null;
       this._gradientStyle = '';
@@ -194,6 +195,10 @@ export const MediaWidget = GObject.registerClass(
             const lengthSec = this._player._length / 1000000;
             const pos = Math.floor(this._slider.value * lengthSec) * 1000000;
             this._player.position = pos;
+            this._playerProgress.set(this._player, {
+              position: pos,
+              length: this._player._length,
+            });
           }
           this._isDragging = false;
           return Clutter.EVENT_PROPAGATE;
@@ -239,8 +244,10 @@ export const MediaWidget = GObject.registerClass(
       this._players = players || [];
 
       for (const player of this._prevStatuses.keys()) {
-        if (!this._players.includes(player))
+        if (!this._players.includes(player)) {
           this._prevStatuses.delete(player);
+          this._playerProgress.delete(player);
+        }
       }
 
       this._updatePageIndicator();
@@ -347,6 +354,10 @@ export const MediaWidget = GObject.registerClass(
         return;
       if (this._currentIndex === index && this._player === this._players[index])
         return;
+
+      // Save outgoing player's position
+      this._saveCurrentProgress();
+
       this._currentIndex = index;
       this._player = this._players[index];
       this._pageIndicator.setCurrentPosition(index);
@@ -354,6 +365,17 @@ export const MediaWidget = GObject.registerClass(
       this.sync(this._player);
       if (!auto)
         this._userSelected = true;
+    }
+
+    _saveCurrentProgress() {
+      if (!this._player)
+        return;
+      const saved = this._playerProgress.get(this._player);
+      const pos = saved ? saved.position : 0;
+      this._playerProgress.set(this._player, {
+        position: pos,
+        length: this._player._length || 0,
+      });
     }
 
     _updatePageIndicator() {
@@ -401,6 +423,12 @@ export const MediaWidget = GObject.registerClass(
         this._lastArtist = artist;
         this._titleLabel.text = title;
         this._artistLabel.text = artist;
+        // Track changed → reset saved position for this player
+        const saved = this._playerProgress.get(player);
+        if (saved) {
+          saved.position = 0;
+          saved.length = player._length || 0;
+        }
       }
 
       if (coverUrl !== this._lastCoverUrl) {
@@ -433,11 +461,17 @@ export const MediaWidget = GObject.registerClass(
       this._prevBtn.reactive = !!player.canGoPrevious;
       this._nextBtn.reactive = !!player.canGoNext;
 
-      // Position timer — always show progress immediately when there's a length
-      if (player._length) {
-        this._updateProgressDisplay(this._lastKnownPosition || 0, player._length);
-      }
-      if (this._settings.get_boolean('dmm-progress-enabled') && player.playbackStatus === 'Playing') {
+      // Per-player progress tracking
+      const saved = this._playerProgress.get(player);
+      const length = player._length || 0;
+      const position = saved ? saved.position : 0;
+
+      // Show progress immediately from saved state (no async flicker)
+      this._updateProgressDisplay(position, length);
+
+      // Keep timer running for any player with length (even paused),
+      // so position stays fresh when switching back
+      if (this._settings.get_boolean('dmm-progress-enabled') && length > 0) {
         this._startPositionTimer();
       } else {
         this._stopPositionTimer();
@@ -474,20 +508,23 @@ export const MediaWidget = GObject.registerClass(
 
       const pos = await this._player.position;
       if (pos !== null && !this._isDragging) {
-        this._lastKnownPosition = pos;
+        this._playerProgress.set(this._player, {
+          position: pos,
+          length: this._player._length || 0,
+        });
         this._updateProgressDisplay(pos, this._player._length || 0);
       }
     }
 
     _updateProgressDisplay(pos, length) {
       const showProgress = this._settings.get_boolean('dmm-progress-enabled');
-      const shouldShow = showProgress && length > 0;
 
-      if (!shouldShow) {
+      if (!showProgress) {
         this._progress.visible = false;
         return;
       }
 
+      // Empty bar when no length info → show 0:00 / 0:00
       this._timeLabel.text = formatTime(pos);
       this._durationLabel.text = formatTime(length);
 
@@ -683,6 +720,7 @@ export const MediaWidget = GObject.registerClass(
 
     destroy() {
       this._stopPositionTimer();
+      this._playerProgress.clear();
       if (this._slider)
         this._slider.disconnectObject(this);
       super.destroy();

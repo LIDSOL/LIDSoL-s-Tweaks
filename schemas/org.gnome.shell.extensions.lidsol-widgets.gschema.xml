@@ -1294,7 +1294,7 @@
     </key>
 
     <key type="i" name="dmm-round-clip-radius">
-      <default>10</default>
+      <default>16</default>
       <range min="0" max="48"/>
       <summary>Radio de borde redondeado</summary>
       <description>Radio en píxeles de las esquinas redondeadas del widget.</description>

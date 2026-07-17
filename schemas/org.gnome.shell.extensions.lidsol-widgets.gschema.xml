@@ -1234,28 +1234,28 @@
     </key>
 
     <key type="i" name="dmm-gradient-start-opaque">
-      <default>200</default>
+      <default>1000</default>
       <range min="0" max="1000"/>
       <summary>Opacidad inicial del gradiente</summary>
       <description>Opacidad del color al inicio del gradiente (0-1000).</description>
     </key>
 
     <key type="i" name="dmm-gradient-start-mix">
-      <default>800</default>
+      <default>600</default>
       <range min="0" max="1000"/>
       <summary>Mezcla inicial del gradiente</summary>
       <description>Qué tanto del color extraído se mezcla al inicio (0-1000).</description>
     </key>
 
     <key type="i" name="dmm-gradient-end-opaque">
-      <default>200</default>
+      <default>1000</default>
       <range min="0" max="1000"/>
       <summary>Opacidad final del gradiente</summary>
       <description>Opacidad del color al final del gradiente (0-1000).</description>
     </key>
 
     <key type="i" name="dmm-gradient-end-mix">
-      <default>600</default>
+      <default>800</default>
       <range min="0" max="1000"/>
       <summary>Mezcla final del gradiente</summary>
       <description>Qué tanto del color extraído se mezcla al final (0-1000).</description>

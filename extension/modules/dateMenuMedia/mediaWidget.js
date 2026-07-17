@@ -664,9 +664,13 @@ export const MediaWidget = GObject.registerClass(
 
     _applyInlineStyles() {
       let css = '';
+      if (this._gradientStyle) {
+        css += this._gradientStyle;
+      } else {
+        css += 'background-color:#54545A;';
+      }
       if (this._roundClipRadius > 0)
         css += `border-radius:${this._roundClipRadius}px;`;
-      css += this._gradientStyle || '';
       this.style = css;
     }
 

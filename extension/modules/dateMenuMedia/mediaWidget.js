@@ -503,17 +503,21 @@ export const MediaWidget = GObject.registerClass(
     }
 
     async _updatePosition() {
-      if (!this._player)
-        return;
-
-      const pos = await this._player.position;
-      if (pos !== null && !this._isDragging) {
-        this._playerProgress.set(this._player, {
-          position: pos,
-          length: this._player._length || 0,
-        });
-        this._updateProgressDisplay(pos, this._player._length || 0);
-      }
+      // Fetch and cache positions for ALL players so switching is instant
+      const promises = this._players.map(async (p) => {
+        try {
+          const pos = await p.position;
+          if (pos !== null && !this._isDragging) {
+            this._playerProgress.set(p, {
+              position: pos,
+              length: p._length || 0,
+            });
+            if (p === this._player)
+              this._updateProgressDisplay(pos, p._length || 0);
+          }
+        } catch (_) { /* player may no longer be available */ }
+      });
+      await Promise.all(promises);
     }
 
     _updateProgressDisplay(pos, length) {

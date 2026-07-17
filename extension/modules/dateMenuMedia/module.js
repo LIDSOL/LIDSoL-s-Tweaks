@@ -2,6 +2,7 @@
 
 import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
 import St from 'gi://St';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
@@ -39,6 +40,7 @@ export class DateMenuMediaModule {
         this._widget = null;
         this._mpris = null;
         this._handlerIds = [];
+        this._nmHandlerId = 0;
         this._stylesheetFile = null;
         this._messageView = null;
         this._playerChangedIds = new Map();
@@ -67,6 +69,7 @@ export class DateMenuMediaModule {
             this._buildWidget();
             this._injectWidget();
             this._connectSettings();
+            this._connectNmWatch();
         } catch (e) {
             console.error('[DateMenuMedia] enable error:', e);
         }
@@ -129,6 +132,14 @@ export class DateMenuMediaModule {
         if (this._messageView._messagesChanged)
             this._messageView._messagesChanged();
 
+        // Ensure notifications are added/moved after our widget.
+        // GNOME Shell's _addNotificationSource uses _playerToMessage.size to calculate
+        // the insertion index. Since notificationMedia clears _playerToMessage (size=0),
+        // notifications go to index 0 and push our widget down. A dummy entry makes
+        // _playerToMessage.size = 1, so notifications start at index ≥ 1.
+        this._messageView._playerToMessage.set(this._widget, 'dmm-dummy');
+        console.log('[DMM] _playerToMessage size after dummy:', this._messageView._playerToMessage.size);
+
         this._sync();
     }
 
@@ -136,6 +147,7 @@ export class DateMenuMediaModule {
         if (!this._widget || !this._mpris)
             return;
 
+        this._ensureDummyInPlayerToMessage();
         this._widget.setPlayers(this._mpris.players);
     }
 
@@ -145,6 +157,26 @@ export class DateMenuMediaModule {
                 this._widget?.updateSettings(this._settings);
             })
         );
+    }
+
+    _connectNmWatch() {
+        if (!this._settings || this._nmHandlerId)
+            return;
+        this._nmHandlerId = this._settings.connect('changed::nm-enabled', () => {
+            GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+                this._ensureDummyInPlayerToMessage();
+                return GLib.SOURCE_REMOVE;
+            });
+        });
+    }
+
+    _ensureDummyInPlayerToMessage() {
+        if (this._messageView &&
+            this._widget &&
+            !this._messageView._playerToMessage.has(this._widget)) {
+            this._messageView._playerToMessage.set(this._widget, 'dmm-dummy');
+            console.log('[DMM] Re-added dummy to _playerToMessage after nm-enabled toggle');
+        }
     }
 
     _loadStylesheet() {
@@ -165,6 +197,11 @@ export class DateMenuMediaModule {
             });
             this._handlerIds = [];
 
+            if (this._settings && this._nmHandlerId) {
+                this._settings.disconnect(this._nmHandlerId);
+                this._nmHandlerId = 0;
+            }
+
             if (this._mpris) {
                 this._mpris.disconnectObject(this);
                 for (const [player, id] of this._playerChangedIds) {
@@ -177,6 +214,9 @@ export class DateMenuMediaModule {
             if (this._widget) {
                 const bin = this._widget.get_parent();
                 if (bin && this._messageView) {
+                    // Remove dummy entry from _playerToMessage
+                    this._messageView._playerToMessage.delete(this._widget);
+
                     // Remove from messages array
                     const idx = this._messageView.messages.indexOf(this._widget);
                     if (idx >= 0)

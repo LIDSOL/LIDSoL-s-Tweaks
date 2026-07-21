@@ -144,7 +144,7 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
 
   _addWidgetsModuleGroup(page) {
     const group = new Adw.PreferencesGroup({
-      description: 'Activa o desactiva todos los widgets de escritorio.',
+      description: 'Activa o desactiva todos los widgets de escritorio. (testing)',
     });
     group.add(createSwitchRow({
       settings: this._settings,

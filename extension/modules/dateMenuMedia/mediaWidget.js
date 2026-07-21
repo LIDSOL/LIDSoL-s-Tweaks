@@ -1,733 +1,285 @@
 'use strict';
 
 import Clutter from 'gi://Clutter';
-import GLib from 'gi://GLib';
-import Gio from 'gi://Gio';
 import GdkPixbuf from 'gi://GdkPixbuf';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
-import { Slider } from 'resource:///org/gnome/shell/ui/slider.js';
-import { PageIndicators } from 'resource:///org/gnome/shell/ui/pageIndicators.js';
 
 import { CrossfadeArt } from '../dateMenu/crossfadeArt.js';
-
-const MS_PER_SEC = 1000;
-const MS_PER_MIN = 60 * MS_PER_SEC;
-const MS_PER_HOUR = 60 * MS_PER_MIN;
-
-const formatTime = (micros) => {
-  if (!micros || micros <= 0)
-    return '0:00';
-  const totalSec = Math.floor(micros / 1000000);
-  const h = Math.floor(totalSec / 3600);
-  const m = Math.floor((totalSec % 3600) / 60);
-  const s = totalSec % 60;
-  if (h > 0)
-    return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-  return `${m}:${String(s).padStart(2, '0')}`;
-};
+import { MediaWidgetBase } from '../../utils/mediaPlayer/mediaWidget.js';
 
 export const MediaWidget = GObject.registerClass(
-  class MediaWidget extends St.BoxLayout {
-    _init(settings, mpris) {
-      super._init({
-        vertical: true,
-        style_class: 'dmm-widget',
-        x_expand: true,
-        visible: true,
-      });
+    class MediaWidget extends MediaWidgetBase {
+        _init(settings, mpris) {
+            super._init(settings, mpris);
+        }
 
-      this._settings = settings;
-      this._mpris = mpris;
-      this._player = null;
-      this._lastTitle = '';
-      this._lastArtist = '';
-      this._lastCoverUrl = '';
-      this._positionTimer = null;
-      this._isDragging = false;
-      this._cachedColors = new Map();
-      this._playerProgress = new Map(); // player → {position, length}
+        _getStyle(name) {
+            return `dmm-${name}`;
+        }
 
-      this._slider = null;
-      this._gradientStyle = '';
-      this._roundClipRadius = 0;
-      this._players = [];
-      this._currentIndex = -1;
-      this._userSelected = false;
-      this._prevStatuses = new Map();
+        _buildCustomUI() {
+            this._cachedColors = new Map();
+            this._artSize = 64;
+            this._gradientStyle = '';
+            this._roundClipRadius = 0;
 
-      this._buildUI();
-      this._applySettings();
-    }
+            // Add dmm-specific style class to control buttons
+            this._prevBtn.add_style_class_name('dmm-control-btn');
+            this._pauseBtn.add_style_class_name('dmm-control-btn');
+            this._nextBtn.add_style_class_name('dmm-control-btn');
 
-    _buildUI() {
-      // Header row: app icon + player name + page indicators
-      this._header = new St.BoxLayout({
-        style_class: 'dmm-header',
-        x_align: Clutter.ActorAlign.FILL,
-      });
-
-      this._appIcon = new St.Icon({
-        icon_name: 'audio-x-generic-symbolic',
-        icon_size: 16,
-        y_align: Clutter.ActorAlign.CENTER,
-        style_class: 'dmm-app-icon',
-      });
-      this._appIcon.opacity = 153;
-      this._header.add_child(this._appIcon);
-
-      this._playerName = new St.Label({
-        style_class: 'dmm-player-name',
-        text: '',
-        x_expand: true,
-        x_align: Clutter.ActorAlign.START,
-        y_align: Clutter.ActorAlign.CENTER,
-      });
-      this._playerName.opacity = 153;
-      this._header.add_child(this._playerName);
-
-      this._pageIndicator = new PageIndicators(Clutter.Orientation.HORIZONTAL);
-      this._pageIndicator.x_align = Clutter.ActorAlign.END;
-      this._pageIndicator.y_align = Clutter.ActorAlign.CENTER;
-      this._pageIndicator.connectObject(
-        'page-activated', (_ind, page) => {
-          this._userSelected = true;
-          this._setCurrentPlayer(page);
-        },
-        this
-      );
-      this._header.add_child(this._pageIndicator);
-
-      this.add_child(this._header);
-
-      // Controls (created early, placed at far right of bodyRow)
-      this._controls = new St.BoxLayout({
-        style_class: 'dmm-controls',
-        x_align: Clutter.ActorAlign.END,
-        y_align: Clutter.ActorAlign.CENTER,
-      });
-
-      this._prevBtn = this._makeControlButton('media-skip-backward-symbolic', () => {
-        this._player?.prev();
-      });
-      this._controls.add_child(this._prevBtn);
-
-      this._pauseBtn = this._makeControlButton('media-playback-start-symbolic', () => {
-        this._player?.playPause();
-      });
-      this._controls.add_child(this._pauseBtn);
-
-      this._nextBtn = this._makeControlButton('media-skip-forward-symbolic', () => {
-        this._player?.next();
-      });
-      this._controls.add_child(this._nextBtn);
-
-      const bodyRow = new St.BoxLayout({
-        style_class: 'dmm-body',
-        x_align: Clutter.ActorAlign.FILL,
-      });
-      this.add_child(bodyRow);
-
-      this._artSize = 64;
-
-      // Album art
-      this._art = new CrossfadeArt(this._artSize / 2);
-      this._art.set_style('margin-left: 6px;');
-      this._art.visible = false;
-      bodyRow.add_child(this._art);
-
-      // Text column: title (top) + artist (bottom), both expand
-      const infoCol = new St.BoxLayout({
-        vertical: true,
-        style_class: 'dmm-info',
-        x_expand: true,
-      });
-      bodyRow.add_child(infoCol);
-
-      this._titleLabel = new St.Label({
-        style_class: 'dmm-title',
-        text: '',
-        x_expand: true,
-        x_align: Clutter.ActorAlign.START,
-        y_align: Clutter.ActorAlign.START,
-        y_expand: true,
-      });
-      infoCol.add_child(this._titleLabel);
-
-      this._artistLabel = new St.Label({
-        style_class: 'dmm-artist',
-        text: '',
-        x_expand: true,
-        x_align: Clutter.ActorAlign.START,
-        y_align: Clutter.ActorAlign.START,
-        y_expand: true,
-      });
-      infoCol.add_child(this._artistLabel);
-
-      // Controls at far right, vertically centered between title/artist
-      bodyRow.add_child(this._controls);
-
-      // Progress bar
-      this._progress = new St.BoxLayout({
-        style_class: 'dmm-progress',
-        visible: false,
-      });
-      this.add_child(this._progress);
-
-      this._timeLabel = new St.Label({
-        style_class: 'dmm-time',
-        text: '0:00',
-      });
-      this._progress.add_child(this._timeLabel);
-
-      this._slider = new Slider(0);
-      this._slider.x_expand = true;
-      this._slider.reactive = true;
-      this._progress.add_child(this._slider);
-
-      this._slider.connectObject(
-        'drag-begin', () => {
-          this._isDragging = true;
-          return Clutter.EVENT_PROPAGATE;
-        },
-        'drag-end', () => {
-          if (this._player && this._player._length) {
-            const lengthSec = this._player._length / 1000000;
-            const pos = Math.floor(this._slider.value * lengthSec) * 1000000;
-            this._player.position = pos;
-            this._playerProgress.set(this._player, {
-              position: pos,
-              length: this._player._length,
+            const bodyRow = new St.BoxLayout({
+                style_class: 'dmm-body',
+                x_align: Clutter.ActorAlign.FILL,
             });
-          }
-          this._isDragging = false;
-          return Clutter.EVENT_PROPAGATE;
-        },
-        'notify::value', () => {
-          if (this._isDragging && this._player?._length) {
-            const lengthSec = this._player._length / 1000000;
-            const pos = Math.floor(this._slider.value * lengthSec) * 1000000;
-            this._timeLabel.text = formatTime(pos);
-          }
-        },
-        'scroll-event', () => Clutter.EVENT_STOP,
-        this
-      );
 
-      this._durationLabel = new St.Label({
-        style_class: 'dmm-duration',
-        text: '0:00',
-      });
-      this._progress.add_child(this._durationLabel);
-    }
-
-    _makeControlButton(iconName, callback) {
-      const btn = new St.Button({
-        style_class: 'dmm-control-btn message-media-control',
-        child: new St.Icon({ icon_name: iconName, icon_size: 14 }),
-        reactive: true,
-        can_focus: true,
-        track_hover: true,
-      });
-      btn.connect('button-press-event', () => Clutter.EVENT_STOP);
-      btn.connect('button-release-event', () => {
-        callback();
-        return Clutter.EVENT_STOP;
-      });
-      return btn;
-    }
-
-    // #region Multi-Player Management
-
-    setPlayers(players) {
-      const oldCount = this._players.length;
-      this._players = players || [];
-
-      for (const player of this._prevStatuses.keys()) {
-        if (!this._players.includes(player)) {
-          this._prevStatuses.delete(player);
-          this._playerProgress.delete(player);
-        }
-      }
-
-      this._updatePageIndicator();
-      if (this._currentIndex < 0 || this._currentIndex >= this._players.length) {
-        this._userSelected = false;
-        this._showLastActive();
-      } else {
-        this._updateHeader();
-        if (this._players.length > oldCount) {
-          const autoSwitch = this._settings?.get_boolean('dmm-auto-switch') !== false;
-          if (autoSwitch) {
-            const best = this._findLastActiveIndex();
-            if (best >= 0 && best !== this._currentIndex) {
-              const bestScore = this._scorePlayer(this._players[best]);
-              const curScore = this._scorePlayer(this._player);
-              if (bestScore > curScore)
-                this._setCurrentPlayer(best, true);
-            }
-          }
-        }
-      }
-    }
-
-    onPlayerDataChanged(player) {
-      const prevStatus = this._prevStatuses.get(player);
-      const currStatus = player.playbackStatus;
-      this._prevStatuses.set(player, currStatus);
-
-      if (player === this._player) {
-        this.sync(this._player);
-        return;
-      }
-
-      const autoSwitch = this._settings?.get_boolean('dmm-auto-switch') !== false;
-      if (!autoSwitch)
-        return;
-
-      const startedPlaying = currStatus === 'Playing' && prevStatus !== 'Playing';
-      const hasRealTitle = !!player.trackTitle && player.trackTitle !== 'Unknown title';
-
-      if (this._userSelected) {
-        if (!startedPlaying || !hasRealTitle)
-          return;
-        const idx = this._players.indexOf(player);
-        if (idx >= 0)
-          this._setCurrentPlayer(idx, true);
-        return;
-      }
-
-      const changedScore = this._scorePlayer(player);
-      const currentScore = this._scorePlayer(this._player);
-      if (changedScore > currentScore) {
-        const idx = this._players.indexOf(player);
-        if (idx >= 0)
-          this._setCurrentPlayer(idx, true);
-      }
-    }
-
-    _scorePlayer(p) {
-      if (!p) return -1;
-      const hasTitle = !!p.trackTitle && p.trackTitle !== 'Unknown title';
-      if (p.isPlaying() && hasTitle) return 500;
-      if (p.playbackStatus === 'Paused' && hasTitle) return 100;
-      return 0;
-    }
-
-    _findLastActiveIndex() {
-      if (this._players.length === 0)
-        return -1;
-      let bestIdx = 0;
-      let bestScore = -1;
-      let bestTime = 0;
-      for (let i = 0; i < this._players.length; i++) {
-        const p = this._players[i];
-        const score = this._scorePlayer(p);
-        const time = p.lastPlayingTime || 0;
-        if (score > bestScore || (score === bestScore && time > bestTime)) {
-          bestScore = score;
-          bestTime = time;
-          bestIdx = i;
-        }
-      }
-      if (this._players[bestIdx].playbackStatus !== 'Playing') {
-        const playingIdx = this._players.findIndex(
-          p => p.isPlaying() && !!p.trackTitle && p.trackTitle !== 'Unknown title'
-        );
-        if (playingIdx >= 0)
-          return playingIdx;
-      }
-      return bestScore > 0 ? bestIdx : 0;
-    }
-
-    _showLastActive() {
-      if (this._players.length === 0) {
-        this._currentIndex = -1;
-        this.sync(null);
-        return;
-      }
-      this._setCurrentPlayer(this._findLastActiveIndex(), true);
-    }
-
-    _setCurrentPlayer(index, auto = false) {
-      if (index < 0 || index >= this._players.length)
-        return;
-      if (this._currentIndex === index && this._player === this._players[index])
-        return;
-
-      // Save outgoing player's position
-      this._saveCurrentProgress();
-
-      this._currentIndex = index;
-      this._player = this._players[index];
-      this._pageIndicator.setCurrentPosition(index);
-      this._updateHeader();
-      this.sync(this._player);
-      if (!auto)
-        this._userSelected = true;
-    }
-
-    _saveCurrentProgress() {
-      if (!this._player)
-        return;
-      const saved = this._playerProgress.get(this._player);
-      const pos = saved ? saved.position : 0;
-      this._playerProgress.set(this._player, {
-        position: pos,
-        length: this._player._length || 0,
-      });
-    }
-
-    _updatePageIndicator() {
-      const n = this._players.length;
-      this._pageIndicator.setNPages(n);
-      this._pageIndicator.visible = n > 1;
-    }
-
-    _updateHeader() {
-      const player = this._player;
-      if (!player) {
-        this._playerName.text = '';
-        this._appIcon.icon_name = 'audio-x-generic-symbolic';
-        return;
-      }
-      // Aylur pattern: use DesktopEntry as icon name, fallback to audio icon
-      const entry = player.entry;
-      if (entry)
-        this._appIcon.icon_name = entry + '-symbolic';
-      else
-        this._appIcon.icon_name = 'audio-x-generic-symbolic';
-      this._playerName.text = player.identity || player.busName.replace('org.mpris.MediaPlayer2.', '');
-    }
-
-    // #endregion
-
-    sync(player) {
-      if (!player) {
-        this.visible = false;
-        this._stopPositionTimer();
-        return;
-      }
-
-      if (player !== this._player)
-        return;
-
-      this.visible = true;
-
-      const title = player.trackTitle || '';
-      const artist = player.trackArtists ? player.trackArtists.join(', ') : '';
-      const coverUrl = player.trackCoverUrl || '';
-
-      if (title !== this._lastTitle || artist !== this._lastArtist) {
-        this._lastTitle = title;
-        this._lastArtist = artist;
-        this._titleLabel.text = title;
-        this._artistLabel.text = artist;
-        // Track changed → reset saved position for this player
-        const saved = this._playerProgress.get(player);
-        if (saved) {
-          saved.position = 0;
-          saved.length = player._length || 0;
-        }
-      }
-
-      if (coverUrl !== this._lastCoverUrl) {
-        this._lastCoverUrl = coverUrl;
-        if (this._settings.get_boolean('dmm-show-art')) {
-          if (coverUrl) {
-            const cachedUrl = this._mpris?.getCachedArtUrl
-              ? this._mpris.getCachedArtUrl(coverUrl)
-              : null;
-            this._art.setArt(cachedUrl || coverUrl);
-            this._art.visible = true;
-          } else {
-            this._art.setArt(null);
+            this._art = new CrossfadeArt(this._artSize / 2);
+            this._art.set_style('margin-left: 6px;');
             this._art.visible = false;
-          }
-        } else {
-          this._art.visible = false;
-        }
-      }
+            bodyRow.add_child(this._art);
 
-      // Update play/pause icon
-      const iconName = player.isPlaying()
-        ? 'media-playback-pause-symbolic'
-        : 'media-playback-start-symbolic';
-      const icon = this._pauseBtn.get_child();
-      if (icon && icon.icon_name !== iconName)
-        icon.icon_name = iconName;
-
-      // Reactive state for prev/next
-      this._prevBtn.reactive = !!player.canGoPrevious;
-      this._nextBtn.reactive = !!player.canGoNext;
-
-      // Per-player progress tracking
-      const saved = this._playerProgress.get(player);
-      const length = player._length || 0;
-      const position = saved ? saved.position : 0;
-
-      // Show progress immediately from saved state (no async flicker)
-      this._updateProgressDisplay(position, length);
-
-      // Keep timer running for any player with length (even paused),
-      // so position stays fresh when switching back
-      if (this._settings.get_boolean('dmm-progress-enabled') && length > 0) {
-        this._startPositionTimer();
-      } else {
-        this._stopPositionTimer();
-      }
-
-      this._updateGradient();
-    }
-
-    _startPositionTimer() {
-      if (this._positionTimer)
-        return;
-
-      this._updatePosition();
-      this._positionTimer = GLib.timeout_add(
-        GLib.PRIORITY_DEFAULT,
-        1000,
-        () => {
-          this._updatePosition();
-          return GLib.SOURCE_CONTINUE;
-        }
-      );
-    }
-
-    _stopPositionTimer() {
-      if (this._positionTimer) {
-        GLib.source_remove(this._positionTimer);
-        this._positionTimer = null;
-      }
-    }
-
-    async _updatePosition() {
-      // Fetch and cache positions for ALL players so switching is instant
-      const promises = this._players.map(async (p) => {
-        try {
-          const pos = await p.position;
-          if (pos !== null && !this._isDragging) {
-            this._playerProgress.set(p, {
-              position: pos,
-              length: p._length || 0,
+            const infoCol = new St.BoxLayout({
+                vertical: true,
+                style_class: 'dmm-info',
+                x_expand: true,
             });
-            if (p === this._player)
-              this._updateProgressDisplay(pos, p._length || 0);
-          }
-        } catch (_) { /* player may no longer be available */ }
-      });
-      await Promise.all(promises);
-    }
+            infoCol.add_child(this._titleLabel);
+            infoCol.add_child(this._artistLabel);
+            bodyRow.add_child(infoCol);
 
-    _updateProgressDisplay(pos, length) {
-      const showProgress = this._settings.get_boolean('dmm-progress-enabled');
+            bodyRow.add_child(this._controls);
 
-      if (!showProgress) {
-        this._progress.visible = false;
-        return;
-      }
-
-      // Empty bar when no length info → show 0:00 / 0:00
-      this._timeLabel.text = formatTime(pos);
-      this._durationLabel.text = formatTime(length);
-
-      const currentSec = pos / 1000000;
-      const lengthSec = length / 1000000;
-      const ratio = lengthSec > 0 ? Math.min(currentSec / lengthSec, 1) : 0;
-      this._slider.value = ratio;
-
-      this._progress.visible = true;
-    }
-
-    _updateGradient() {
-      this._gradientStyle = '';
-      if (!this._settings.get_boolean('dmm-gradient-enabled')) {
-        this._applyInlineStyles();
-        return;
-      }
-
-      const coverUrl = this._player?.trackCoverUrl;
-      if (!coverUrl || coverUrl.endsWith('.svg')) {
-        this._applyInlineStyles();
-        return;
-      }
-
-      if (!coverUrl.startsWith('file://')) {
-        this._applyInlineStyles();
-        return;
-      }
-
-      const path = decodeURIComponent(coverUrl.replace(/^file:\/\//, ''));
-      let colorTask = this._cachedColors.get(path);
-      if (!colorTask) {
-        try {
-          const pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(path, 128, 128);
-          colorTask = this._getMeanColor(pixbuf);
-          this._cachedColors.set(path, colorTask);
-        } catch (_) {
-          this._applyInlineStyles();
-          return;
-        }
-      }
-
-      colorTask.then(color => {
-        if (!color || !this._cachedColors)
-          return;
-        const [r, g, b] = color;
-        const startOpa = this._settings.get_int('dmm-gradient-start-opaque') / 1000;
-        const endOpa = this._settings.get_int('dmm-gradient-end-opaque') / 1000;
-        const startMix = this._settings.get_int('dmm-gradient-start-mix') / 1000;
-        const endMix = this._settings.get_int('dmm-gradient-end-mix') / 1000;
-
-        const bgR = 30, bgG = 30, bgB = 30;
-
-        this._gradientStyle = ''
-          + `background-gradient-direction:horizontal;`
-          + `background-gradient-start:rgba(${Math.round(bgR + (r - bgR) * startMix)},${Math.round(bgG + (g - bgG) * startMix)},${Math.round(bgB + (b - bgB) * startMix)},${startOpa});`
-          + `background-gradient-end:rgba(${Math.round(bgR + (r - bgR) * endMix)},${Math.round(bgG + (g - bgG) * endMix)},${Math.round(bgB + (b - bgB) * endMix)},${endOpa});`;
-        this._applyInlineStyles();
-      }).catch(() => { });
-    }
-
-    _getMeanColor(pixbuf) {
-      return new Promise(resolve => {
-        const w = pixbuf.get_width();
-        const h = pixbuf.get_height();
-        const pixels = pixbuf.get_pixels();
-        const rowstride = pixbuf.get_rowstride();
-        const nChannels = pixbuf.get_n_channels();
-
-        let rSum = 0, gSum = 0, bSum = 0, count = 0;
-        const skip = 4;
-
-        for (let y = 0; y < h; y += skip) {
-          for (let x = 0; x < w; x += skip) {
-            const idx = y * rowstride + x * nChannels;
-            rSum += pixels[idx];
-            gSum += pixels[idx + 1];
-            bSum += pixels[idx + 2];
-            count++;
-          }
+            this.insert_child_at_index(bodyRow, 1);
         }
 
-        if (count === 0) {
-          resolve(null);
-          return;
+        _updateCover(player) {
+            const coverUrl = player.trackCoverUrl || '';
+            if (coverUrl === this._lastCoverUrl)
+                return;
+            this._lastCoverUrl = coverUrl;
+
+            if (!this._settings.get_boolean('dmm-show-art')) {
+                this._art.visible = false;
+                return;
+            }
+            if (coverUrl) {
+                const cachedUrl = this._mpris?.getCachedArtUrl
+                    ? this._mpris.getCachedArtUrl(coverUrl)
+                    : null;
+                this._art.setArt(cachedUrl || coverUrl);
+                this._art.visible = true;
+            } else {
+                this._art.setArt(null);
+                this._art.visible = false;
+            }
         }
 
-        resolve([
-          Math.round(rSum / count),
-          Math.round(gSum / count),
-          Math.round(gSum / count),
-        ]);
-      });
+        _onSync(player) {
+            this._updateGradient();
+        }
+
+        _isProgressEnabled() {
+            return this._settings.get_boolean('dmm-progress-enabled');
+        }
+
+        _autoSwitchEnabled() {
+            return this._settings.get_boolean('dmm-auto-switch');
+        }
+
+        _applyControlVisibility() {
+            this._prevBtn.visible = this._settings.get_boolean('dmm-show-prev');
+            this._pauseBtn.visible = this._settings.get_boolean('dmm-show-pause');
+            this._nextBtn.visible = this._settings.get_boolean('dmm-show-next');
+        }
+
+        _applyControlOpacity() {
+            const alpha = Math.max(0, Math.min(255,
+                this._settings.get_int('dmm-control-opacity')));
+            for (const btn of [this._prevBtn, this._pauseBtn, this._nextBtn]) {
+                const icon = btn.get_child();
+                if (icon)
+                    icon.opacity = alpha;
+            }
+        }
+
+        _applySettings() {
+            super._applySettings();
+
+            const compact = this._settings.get_boolean('dmm-compact');
+            this.set_style_class_name(
+                compact ? 'dmm-widget dmm-compact' : 'dmm-widget'
+            );
+
+            const showArt = this._settings.get_boolean('dmm-show-art');
+            const artSize = this._settings.get_int('dmm-art-size');
+            const roundness = this._settings.get_int('dmm-album-roundness');
+            if (artSize !== this._artSize || roundness !== this._art._roundness) {
+                this._artSize = artSize;
+                this._art._roundness = roundness;
+                this._art._size = artSize;
+                this._art.refreshStyle();
+            }
+            if (!showArt)
+                this._art.visible = false;
+            else if (this._lastCoverUrl)
+                this._art.visible = true;
+
+            const progStyle = this._settings.get_string('dmm-progress-style');
+            this._progress.style_class = progStyle === 'default'
+                ? `${this._getStyle('progress')} ${this._getStyle('progress-default')}`
+                : this._getStyle('progress');
+
+            this._updateSliderStyle();
+            this._updateRoundClip();
+            this._updateGradient();
+            this._applyInlineStyles();
+        }
+
+        // #region Private helpers
+
+        _updateSliderStyle() {
+            const style = this._settings.get_string('dmm-progress-style');
+            const isSlim = style === 'slim';
+            const handleRadius = this._settings.get_int('dmm-slider-handle-radius');
+            const barHeight = this._settings.get_int('dmm-slider-bar-height');
+            const activeColor = this._settings.get_string('dmm-slider-active-color');
+            const bgColor = this._settings.get_string('dmm-slider-background-color');
+
+            let css = '';
+
+            if (isSlim) {
+                css += '-slider-handle-radius:0px;';
+                css += `color:${activeColor || '-st-accent-color'};`;
+            } else {
+                css += `-slider-handle-radius:${handleRadius}px;`;
+                if (activeColor)
+                    css += `color:${activeColor};`;
+            }
+
+            css += `-barlevel-height:${barHeight}px;`;
+
+            if (activeColor && isSlim)
+                css += `-barlevel-active-background-color:${activeColor};`;
+            if (bgColor)
+                css += `-barlevel-background-color:${bgColor};`;
+
+            this._slider.style = css;
+        }
+
+        _updateRoundClip() {
+            const enabled = this._settings.get_boolean('dmm-round-clip-enabled');
+            this._roundClipRadius = enabled
+                ? this._settings.get_int('dmm-round-clip-radius')
+                : 0;
+        }
+
+        _updateGradient() {
+            this._gradientStyle = '';
+            if (!this._settings.get_boolean('dmm-gradient-enabled')) {
+                this._applyInlineStyles();
+                return;
+            }
+
+            const coverUrl = this._player?.trackCoverUrl;
+            if (!coverUrl || coverUrl.endsWith('.svg')) {
+                this._applyInlineStyles();
+                return;
+            }
+
+            if (!coverUrl.startsWith('file://')) {
+                this._applyInlineStyles();
+                return;
+            }
+
+            const path = decodeURIComponent(coverUrl.replace(/^file:\/\//, ''));
+            let colorTask = this._cachedColors.get(path);
+            if (!colorTask) {
+                try {
+                    const pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(path, 128, 128);
+                    colorTask = this._getMeanColor(pixbuf);
+                    this._cachedColors.set(path, colorTask);
+                } catch (_) {
+                    this._applyInlineStyles();
+                    return;
+                }
+            }
+
+            colorTask.then(color => {
+                if (!color || !this._cachedColors)
+                    return;
+                const [r, g, b] = color;
+                const startOpa = this._settings.get_int('dmm-gradient-start-opaque') / 1000;
+                const endOpa = this._settings.get_int('dmm-gradient-end-opaque') / 1000;
+                const startMix = this._settings.get_int('dmm-gradient-start-mix') / 1000;
+                const endMix = this._settings.get_int('dmm-gradient-end-mix') / 1000;
+
+                const bgR = 30, bgG = 30, bgB = 30;
+
+                this._gradientStyle = ''
+                    + `background-gradient-direction:horizontal;`
+                    + `background-gradient-start:rgba(${Math.round(bgR + (r - bgR) * startMix)},${Math.round(bgG + (g - bgG) * startMix)},${Math.round(bgB + (b - bgB) * startMix)},${startOpa});`
+                    + `background-gradient-end:rgba(${Math.round(bgR + (r - bgR) * endMix)},${Math.round(bgG + (g - bgG) * endMix)},${Math.round(bgB + (b - bgB) * endMix)},${endOpa});`;
+                this._applyInlineStyles();
+            }).catch(() => {});
+        }
+
+        _getMeanColor(pixbuf) {
+            return new Promise(resolve => {
+                const w = pixbuf.get_width();
+                const h = pixbuf.get_height();
+                const pixels = pixbuf.get_pixels();
+                const rowstride = pixbuf.get_rowstride();
+                const nChannels = pixbuf.get_n_channels();
+
+                let rSum = 0, gSum = 0, bSum = 0, count = 0;
+                const skip = 4;
+
+                for (let y = 0; y < h; y += skip) {
+                    for (let x = 0; x < w; x += skip) {
+                        const idx = y * rowstride + x * nChannels;
+                        rSum += pixels[idx];
+                        gSum += pixels[idx + 1];
+                        bSum += pixels[idx + 2];
+                        count++;
+                    }
+                }
+
+                if (count === 0) {
+                    resolve(null);
+                    return;
+                }
+
+                resolve([
+                    Math.round(rSum / count),
+                    Math.round(gSum / count),
+                    Math.round(gSum / count),
+                ]);
+            });
+        }
+
+        _applyInlineStyles() {
+            let css = '';
+            if (this._gradientStyle) {
+                css += this._gradientStyle;
+            } else {
+                css += 'background-color:#54545A;';
+            }
+            if (this._roundClipRadius > 0)
+                css += `border-radius:${this._roundClipRadius}px;`;
+            this.style = css;
+        }
+
+        // #endregion
+
+        updateSettings(settings) {
+            this._cachedColors.clear();
+            super.updateSettings(settings);
+        }
+
+        destroy() {
+            this._cachedColors.clear();
+            super.destroy();
+        }
     }
-
-    _updateSliderStyle() {
-      const style = this._settings.get_string('dmm-progress-style');
-      const isSlim = style === 'slim';
-      const handleRadius = this._settings.get_int('dmm-slider-handle-radius');
-      const barHeight = this._settings.get_int('dmm-slider-bar-height');
-      const activeColor = this._settings.get_string('dmm-slider-active-color');
-      const bgColor = this._settings.get_string('dmm-slider-background-color');
-
-      let css = '';
-
-      if (isSlim) {
-        css += '-slider-handle-radius:0px;';
-        css += `color:${activeColor || '-st-accent-color'};`;
-      } else {
-        css += `-slider-handle-radius:${handleRadius}px;`;
-        if (activeColor)
-          css += `color:${activeColor};`;
-      }
-
-      css += `-barlevel-height:${barHeight}px;`;
-
-      if (activeColor && isSlim)
-        css += `-barlevel-active-background-color:${activeColor};`;
-      if (bgColor)
-        css += `-barlevel-background-color:${bgColor};`;
-
-      this._slider.style = css;
-    }
-
-    _applySettings() {
-      const compact = this._settings.get_boolean('dmm-compact');
-      this.set_style_class_name(compact ? 'dmm-widget dmm-compact' : 'dmm-widget');
-
-      const opacity = this._settings.get_int('dmm-control-opacity');
-      const alpha = Math.max(0, Math.min(255, opacity));
-      for (const btn of [this._prevBtn, this._pauseBtn, this._nextBtn]) {
-        const icon = btn.get_child();
-        if (icon)
-          icon.opacity = alpha;
-      }
-
-
-      const showPrev = this._settings.get_boolean('dmm-show-prev');
-      const showPause = this._settings.get_boolean('dmm-show-pause');
-      const showNext = this._settings.get_boolean('dmm-show-next');
-      this._prevBtn.visible = showPrev;
-      this._pauseBtn.visible = showPause;
-      this._nextBtn.visible = showNext;
-
-      const showArt = this._settings.get_boolean('dmm-show-art');
-      const artSize = this._settings.get_int('dmm-art-size');
-      const roundness = this._settings.get_int('dmm-album-roundness');
-      if (artSize !== this._artSize || roundness !== this._art._roundness) {
-        this._artSize = artSize;
-        this._art._roundness = roundness;
-        this._art._size = artSize;
-        this._art.refreshStyle();
-      }
-      if (!showArt)
-        this._art.visible = false;
-      else if (this._lastCoverUrl)
-        this._art.visible = true;
-
-      const progStyle = this._settings.get_string('dmm-progress-style');
-      this._progress.style_class = progStyle === 'default'
-        ? 'dmm-progress dmm-progress-default'
-        : 'dmm-progress';
-
-      this._updateSliderStyle();
-      this._updateRoundClip();
-      this._updateGradient();
-      this._applyInlineStyles();
-    }
-
-    _updateRoundClip() {
-      const enabled = this._settings.get_boolean('dmm-round-clip-enabled');
-      this._roundClipRadius = enabled ? this._settings.get_int('dmm-round-clip-radius') : 0;
-    }
-
-    _applyInlineStyles() {
-      let css = '';
-      if (this._gradientStyle) {
-        css += this._gradientStyle;
-      } else {
-        css += 'background-color:#54545A;';
-      }
-      if (this._roundClipRadius > 0)
-        css += `border-radius:${this._roundClipRadius}px;`;
-      this.style = css;
-    }
-
-    updateSettings(settings) {
-      this._cachedColors.clear();
-      this._settings = settings;
-      this._applySettings();
-      this.sync(this._player);
-    }
-
-    destroy() {
-      this._stopPositionTimer();
-      this._playerProgress.clear();
-      if (this._slider)
-        this._slider.disconnectObject(this);
-      super.destroy();
-    }
-  }
 );

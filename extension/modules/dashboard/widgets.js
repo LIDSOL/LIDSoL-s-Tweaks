@@ -420,11 +420,20 @@ class MediaWidget extends DashWidget {
         super._init(settings, 'media');
         this._media = new DashboardMediaWidget(settings);
         this.add_child(this._media);
+
+        this._connect('style');
+        this._connect('cover-width');
+        this._connect('cover-height');
+        this._connect('cover-roundness');
+        this._connect('show-text');
+        this._connect('text-align');
+
         this._sync();
     }
 
     _sync() {
         super._sync();
+        this._media.updateSettings(this._settings);
     }
 });
 

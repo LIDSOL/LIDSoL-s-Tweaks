@@ -426,7 +426,6 @@ class MediaWidget extends DashWidget {
         this._connect('cover-height');
         this._connect('cover-roundness');
         this._connect('show-text');
-        this._connect('text-align');
 
         this._sync();
     }

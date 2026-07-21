@@ -1448,8 +1448,6 @@
     <key type="i" name="dashboard-media-cover-roundness"><default>8</default></key>
     <key type="b" name="dashboard-media-fade"><default>true</default></key>
     <key type="b" name="dashboard-media-show-text"><default>true</default></key>
-    <key type="i" name="dashboard-media-text-align"><default>1</default></key>
-    <key type="i" name="dashboard-media-text-position"><default>1</default></key>
     <key type="b" name="dashboard-media-show-volume"><default>true</default></key>
     <key type="b" name="dashboard-media-show-loop-shuffle"><default>true</default></key>
 

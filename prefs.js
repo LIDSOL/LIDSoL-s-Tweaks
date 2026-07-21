@@ -581,7 +581,7 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
       preferRow.add_suffix(preferEntry);
       exp.add_row(preferRow);
 
-      const styleModel = new Gtk.StringList({ strings: ['Normal Vertical', 'Normal Horizontal', 'Label on Cover', 'Label on Cover +Vertical Controls', 'Full'] });
+      const styleModel = new Gtk.StringList({ strings: ['Normal Vertical', 'Normal Horizontal', 'Label on Cover', 'Full'] });
       const styleRow = new Adw.ComboRow({ title: 'Style', model: styleModel, selected: s.get_int('dashboard-media-style') });
       styleRow.connect('notify::selected', () => s.set_int('dashboard-media-style', styleRow.selected));
       exp.add_row(styleRow);
@@ -591,14 +591,6 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
       exp.add_row(_makeSpinRow('Cover Roundness', 'dashboard-media-cover-roundness', 0, 48, 1));
       exp.add_row(_makeExpandRow('Fade', 'dashboard-media-fade'));
       exp.add_row(_makeExpandRow('Show Text', 'dashboard-media-show-text'));
-
-      const textExpander = new Adw.ExpanderRow({ title: 'Text Options' });
-      textExpander.add_row(_makeAlignRow('Title Align', 'dashboard-media-text-align'));
-      const titlePosModel = new Gtk.StringList({ strings: ['Top', 'Bottom'] });
-      const titlePosRow = new Adw.ComboRow({ title: 'Title Position', model: titlePosModel, selected: s.get_int('dashboard-media-text-position') });
-      titlePosRow.connect('notify::selected', () => s.set_int('dashboard-media-text-position', titlePosRow.selected));
-      textExpander.add_row(titlePosRow);
-      exp.add_row(textExpander);
 
       exp.add_row(_makeExpandRow('Show Volume Slider', 'dashboard-media-show-volume'));
       exp.add_row(_makeExpandRow('Show Loop and Shuffle', 'dashboard-media-show-loop-shuffle'));

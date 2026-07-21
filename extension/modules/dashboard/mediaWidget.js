@@ -178,19 +178,41 @@ var DashboardMediaWidget = GObject.registerClass({
         const isNormalHorizontal = style === 1;
         const isOverlay = style === 2 || style === 4;
 
-        if (isNormalVertical || isNormalHorizontal) {
-            this._bodyRow.vertical = isNormalVertical;
+        if (isNormalVertical) {
+            this._bodyRow.vertical = true;
 
             this._bodyRow.add_child(this._coverContainer);
             this._bodyRow.add_child(this._infoCol);
 
-            this._coverContainer.x_align = isNormalVertical
-                ? Clutter.ActorAlign.CENTER
-                : Clutter.ActorAlign.START;
+            this._coverContainer.x_align = Clutter.ActorAlign.CENTER;
             this._coverContainer.x_expand = false;
             this._coverContainer.y_expand = false;
 
-            this._infoCol.x_align = Clutter.ActorAlign.START;
+            this._infoCol.x_align = Clutter.ActorAlign.CENTER;
+            this._infoCol.x_expand = false;
+            this._titleLabel.x_align = Clutter.ActorAlign.CENTER;
+            this._artistLabel.x_align = Clutter.ActorAlign.CENTER;
+            this._progress.x_align = Clutter.ActorAlign.CENTER;
+            this._controls.x_align = Clutter.ActorAlign.CENTER;
+
+            this._syncCoverCSS();
+        } else if (isNormalHorizontal) {
+            this._bodyRow.vertical = false;
+
+            this._bodyRow.add_child(this._coverContainer);
+            this._bodyRow.add_child(this._infoCol);
+
+            this._coverContainer.x_align = Clutter.ActorAlign.START;
+            this._coverContainer.x_expand = false;
+            this._coverContainer.y_expand = false;
+
+            this._infoCol.x_align = Clutter.ActorAlign.FILL;
+            this._infoCol.x_expand = true;
+            this._titleLabel.x_align = Clutter.ActorAlign.START;
+            this._artistLabel.x_align = Clutter.ActorAlign.START;
+            this._progress.x_align = Clutter.ActorAlign.END;
+            this._controls.x_align = Clutter.ActorAlign.END;
+
             this._syncCoverCSS();
         } else if (isOverlay) {
             this._bodyRow.vertical = true;

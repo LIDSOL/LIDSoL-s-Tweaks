@@ -1,9 +1,8 @@
 'use strict';
 
 import Clutter from 'gi://Clutter';
-import Gio from 'gi://Gio';
-import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
+import Pango from 'gi://Pango';
 import St from 'gi://St';
 
 import { MprisService } from '../../utils/mprisService.js';
@@ -35,7 +34,9 @@ var DashboardMediaWidget = GObject.registerClass({
         this._coverWidth = 160;
         this._coverHeight = 160;
         this._coverRoundness = 8;
-        this._coverImagePath = null;
+
+        this._titleLabel.clutter_text.set_ellipsize(Pango.EllipsizeMode.END);
+        this._artistLabel.clutter_text.set_ellipsize(Pango.EllipsizeMode.END);
 
         this._art = new AlbumArt({ size: this._coverWidth, roundness: this._coverRoundness });
 
@@ -54,6 +55,12 @@ var DashboardMediaWidget = GObject.registerClass({
 
         this._coverOverlay = new St.Widget({
             layout_manager: new Clutter.BinLayout(),
+            x_expand: true,
+            y_expand: true,
+            visible: false,
+        });
+
+        this._coverGradient = new St.Widget({
             x_expand: true,
             y_expand: true,
             visible: false,
@@ -91,7 +98,7 @@ var DashboardMediaWidget = GObject.registerClass({
 
         this._settings.connectObject(
             'changed::dashboard-media-style',
-            () => { this._lastCoverUrl = ''; this._applyLayout(); this.sync(this._player); },
+            () => { this._lastCoverUrl = null; this._applyDimensions(); this._applyLayout(); this.sync(this._player); },
             'changed::dashboard-media-cover-width',
             () => { this._applyDimensions(); this._applyLayout(); this.sync(this._player); },
             'changed::dashboard-media-cover-height',
@@ -141,45 +148,14 @@ var DashboardMediaWidget = GObject.registerClass({
             return;
         this._lastCoverUrl = coverUrl;
 
-        const style = this._settings.get_int('dashboard-media-style');
-        const isOverlay = style === 2 || style === 4;
-
-        if (isOverlay) {
-            // Overlay mode: use CSS background-image with background-size: cover
-            // so the image fills the entire container without AlbumArt constraining it
-            this._coverContainer.set_child(null);
-            this._coverImagePath = null;
-
-            if (coverUrl) {
-                let localPath = null;
-                if (coverUrl.startsWith('file://')) {
-                    localPath = decodeURIComponent(coverUrl.replace(/^file:\/\//, ''));
-                } else {
-                    const cached = this._mpris?.getCachedArtUrl
-                        ? this._mpris.getCachedArtUrl(coverUrl)
-                        : null;
-                    if (cached && cached.startsWith('file://'))
-                        localPath = decodeURIComponent(cached.replace(/^file:\/\//, ''));
-                }
-                if (localPath && GLib.file_test(localPath, GLib.FileTest.EXISTS))
-                    this._coverImagePath = localPath;
-            }
-            this._syncCoverCSS();
+        if (coverUrl) {
+            this._coverContainer.set_child(this._art);
+            this._art.setArt(coverUrl);
+            this._fallbackIcon.visible = false;
         } else {
-            // Normal mode: use AlbumArt child widget
-            this._coverImagePath = null;
-            if (coverUrl) {
-                const cachedUrl = this._mpris?.getCachedArtUrl
-                    ? this._mpris.getCachedArtUrl(coverUrl)
-                    : null;
-                this._coverContainer.set_child(this._art);
-                this._art.setArt(cachedUrl || coverUrl);
-                this._fallbackIcon.visible = false;
-            } else {
-                this._art.setArt(null);
-                this._coverContainer.set_child(this._fallbackIcon);
-                this._fallbackIcon.visible = true;
-            }
+            this._art.setArt(null);
+            this._coverContainer.set_child(this._fallbackIcon);
+            this._fallbackIcon.visible = true;
         }
     }
 
@@ -198,22 +174,37 @@ var DashboardMediaWidget = GObject.registerClass({
             this._bodyRow.remove_child(this._coverOverlay);
         this._coverOverlay.visible = false;
 
-        for (const child of [this._coverContainer, this._infoCol]) {
+        for (const child of [this._coverContainer, this._infoCol, this._coverGradient]) {
             if (child.get_parent() === this._coverOverlay)
                 this._coverOverlay.remove_child(child);
         }
 
         this._coverOverlay.style = '';
         this._infoCol.style = '';
+        this._coverGradient.style = '';
 
+        // Reset all layout properties to safe defaults before applying mode
+        this._coverContainer.x_align = Clutter.ActorAlign.CENTER;
+        this._coverContainer.x_expand = false;
+        this._coverContainer.y_expand = false;
+
+        this._art.x_expand = false;
+        this._art.y_expand = false;
+
+        this._infoCol.x_align = Clutter.ActorAlign.START;
+        this._infoCol.x_expand = false;
+        this._infoCol.y_align = Clutter.ActorAlign.CENTER;
+        this._infoCol.y_expand = false;
+
+        this._bodyRow.vertical = true;
         this._bodyRow.x_align = Clutter.ActorAlign.FILL;
         this._bodyRow.x_expand = true;
 
-        const isNormalVertical = style === 0;
-        const isNormalHorizontal = style === 1;
-        const isOverlay = style === 2 || style === 4;
+        this._coverGradient.visible = false;
 
-        if (isNormalVertical) {
+        const isFull = style === 2;
+
+        if (style === 0) {
             this._bodyRow.vertical = true;
 
             this._bodyRow.add_child(this._coverContainer);
@@ -231,7 +222,7 @@ var DashboardMediaWidget = GObject.registerClass({
             this._controls.x_align = Clutter.ActorAlign.CENTER;
 
             this._syncCoverCSS();
-        } else if (isNormalHorizontal) {
+        } else if (style === 1) {
             this._bodyRow.vertical = false;
             this._bodyRow.x_align = Clutter.ActorAlign.CENTER;
             this._bodyRow.x_expand = false;
@@ -251,64 +242,63 @@ var DashboardMediaWidget = GObject.registerClass({
             this._controls.x_align = Clutter.ActorAlign.CENTER;
 
             this._syncCoverCSS();
-        } else if (isOverlay) {
+        } else if (isFull) {
             this._bodyRow.vertical = true;
 
             this._coverOverlay.add_child(this._coverContainer);
             this._coverContainer.x_expand = true;
             this._coverContainer.y_expand = true;
+            this._coverContainer.x_align = Clutter.ActorAlign.FILL;
+            this._art.x_expand = true;
+            this._art.y_expand = true;
+
+            // Gradient always present, fills the cover area exactly
+            this._coverGradient.x_expand = true;
+            this._coverGradient.y_expand = true;
+            this._coverGradient.x_align = Clutter.ActorAlign.FILL;
+            this._coverOverlay.add_child(this._coverGradient);
+            this._coverGradient.visible = true;
 
             this._coverOverlay.add_child(this._infoCol);
+            this._infoCol.x_expand = true;
             this._infoCol.x_align = Clutter.ActorAlign.FILL;
             this._infoCol.y_align = Clutter.ActorAlign.END;
+            this._infoCol.y_expand = false;
 
-            if (showText) {
-                const r = this._coverRoundness;
-                this._infoCol.style =
-                    `border-radius:0 0 ${r}px ${r}px;overflow:hidden;`
-                    + 'background-gradient-direction:vertical;'
-                    + 'background-gradient-start:transparent;'
-                    + 'background-gradient-end:rgba(0,0,0,0.6);'
-                    + 'padding:26px 4px 10px;';
-            } else {
-                this._infoCol.style = 'background: transparent; padding: 0;';
-            }
+            const pad = showText ? 'padding:20px 6px 8px;' : 'padding:0 6px 4px;';
+            this._infoCol.style = `overflow:hidden;${pad}`;
 
             this._bodyRow.add_child(this._coverOverlay);
             this._coverOverlay.visible = true;
 
-            this._syncCoverCSS();
-        } else {
-            this._bodyRow.vertical = true;
-            this._bodyRow.add_child(this._coverContainer);
-            this._bodyRow.add_child(this._infoCol);
-            this._coverContainer.x_align = Clutter.ActorAlign.CENTER;
-            this._coverContainer.x_expand = false;
-            this._coverContainer.y_expand = false;
             this._syncCoverCSS();
         }
     }
 
     _syncCoverCSS() {
         const style = this._settings.get_int('dashboard-media-style');
-        const isOverlay = style === 2 || style === 4;
+        const isFull = style === 2;
+        const r = this._coverRoundness;
 
-        if (isOverlay) {
-            let css = `border-radius: ${this._coverRoundness}px; overflow: hidden;`;
-            css += ` min-height: ${this._coverHeight + 8}px;`;
-            if (this._coverImagePath) {
-                css += ` background-image: url("${this._coverImagePath}");`;
-                css += ' background-size: cover;';
-                css += ' background-position: center;';
-            }
-            this._coverContainer.set_style(css);
+        if (isFull) {
+            this._coverContainer.set_style(`
+                min-height: ${this._coverHeight + 40}px;
+                border-radius: ${r}px;
+                overflow: hidden;
+            `);
+            this._coverGradient.set_style(`
+                background-gradient-direction: vertical;
+                background-gradient-start: transparent;
+                background-gradient-end: rgba(0,0,0,0.6);
+                border-radius: 0 0 ${r}px ${r}px;
+            `);
         } else {
             this._coverContainer.set_style(`
                 min-width: ${this._coverWidth}px;
                 min-height: ${this._coverHeight}px;
                 width: ${this._coverWidth}px;
                 height: ${this._coverHeight}px;
-                border-radius: ${this._coverRoundness}px;
+                border-radius: ${r}px;
                 overflow: hidden;
             `);
         }
@@ -319,10 +309,16 @@ var DashboardMediaWidget = GObject.registerClass({
         this._coverHeight = this._settings.get_int('dashboard-media-cover-height');
         this._coverRoundness = this._settings.get_int('dashboard-media-cover-roundness');
 
-        const size = Math.min(this._coverWidth, this._coverHeight);
+        const style = this._settings.get_int('dashboard-media-style');
+        const isFull = style === 2;
+
+        // In Full mode, art fills the larger container
+        const size = isFull
+            ? Math.min(this._coverWidth + 40, this._coverHeight + 40)
+            : Math.min(this._coverWidth, this._coverHeight);
         this._art.size = size;
         this._art.roundness = this._coverRoundness;
-        this._fallbackIcon.icon_size = Math.round(size * 0.6);
+        this._fallbackIcon.icon_size = Math.round(Math.min(this._coverWidth, this._coverHeight) * 0.6);
 
         this._syncCoverCSS();
     }

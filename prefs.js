@@ -581,7 +581,7 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
       preferRow.add_suffix(preferEntry);
       exp.add_row(preferRow);
 
-      const styleModel = new Gtk.StringList({ strings: ['Normal Vertical', 'Normal Horizontal', 'Label on Cover', 'Full'] });
+      const styleModel = new Gtk.StringList({ strings: ['Normal Vertical', 'Normal Horizontal', 'Full'] });
       const styleRow = new Adw.ComboRow({ title: 'Style', model: styleModel, selected: s.get_int('dashboard-media-style') });
       styleRow.connect('notify::selected', () => s.set_int('dashboard-media-style', styleRow.selected));
       exp.add_row(styleRow);

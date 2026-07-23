@@ -393,6 +393,7 @@ var MprisService = GObject.registerClass({
     Signals: {
         'player-added': { param_types: [GObject.TYPE_OBJECT] },
         'player-removed': { param_types: [GObject.TYPE_OBJECT] },
+        'players-changed': {},
     },
 }, class MprisService extends GObject.Object {
     static _instance = null;
@@ -410,6 +411,8 @@ var MprisService = GObject.registerClass({
         this._players = new Map();
         this._proxy = null;
         this._started = false;
+        this._filterMode = 0;
+        this._filterList = [];
     }
 
     start() {
@@ -545,11 +548,27 @@ var MprisService = GObject.registerClass({
     }
 
     get players() {
-        return [...this._players.values()].filter(p => p.canPlay);
+        return [...this._players.values()].filter(p => p.canPlay && this._isPlayerAllowed(p.busName));
     }
 
     get allPlayers() {
         return [...this._players.values()];
+    }
+
+    setFilter(mode, list) {
+        this._filterMode = mode;
+        this._filterList = list.map(s => s.toLowerCase().trim()).filter(s => s.length > 0);
+        this.emit('players-changed');
+    }
+
+    _isPlayerAllowed(busName) {
+        if (this._filterMode === 0) return true;
+        if (this._filterList.length === 0) return this._filterMode === 1;
+        const lower = busName.toLowerCase();
+        const match = this._filterList.some(item => lower.includes(item));
+        if (this._filterMode === 1) return !match;
+        if (this._filterMode === 2) return match;
+        return true;
     }
 
     destroy() {

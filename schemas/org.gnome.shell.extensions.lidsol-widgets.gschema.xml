@@ -1300,6 +1300,18 @@
       <description>Radio en píxeles de las esquinas redondeadas del widget.</description>
     </key>
 
+    <!-- Player Filter -->
+    <key type="i" name="player-filter-mode">
+      <default>0</default>
+      <summary>Player filter mode</summary>
+      <description>0=Off (allow all), 1=Blacklist (exclude listed), 2=Whitelist (only allow listed)</description>
+    </key>
+    <key type="s" name="player-filter-list">
+      <default>''</default>
+      <summary>Comma-separated list of players to filter</summary>
+      <description>Player name substrings to match against bus names (e.g. firefox, chrome, spotify)</description>
+    </key>
+
     <!-- Dashboard -->
     <key type="b" name="dashboard-enabled">
       <default>false</default>

@@ -50,6 +50,13 @@ const CATEGORIES = [
     summary: 'Personalización de la barra superior',
     description: 'Esquinas redondeadas, indicador de espacios, formato de fecha y notificaciones.',
   },
+  {
+    id: 'general',
+    title: 'General',
+    icon: 'emblem-system-symbolic',
+    summary: 'Configuración general',
+    description: 'Filtros de jugadores multimedia y otras opciones generales.',
+  },
 ];
 
 export default class LidsolWidgetsPrefs extends ExtensionPreferences {
@@ -87,6 +94,9 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     }
     if (cat.id === 'topbar') {
       this._addTopbarModuleGroup(page);
+    }
+    if (cat.id === 'general') {
+      this._addGeneralPage(page);
     }
     return page;
   }
@@ -231,6 +241,125 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
       },
     }));
     page.add(orgGroup);
+  }
+
+  _addGeneralPage(page) {
+    const s = this._settings;
+    const descGroup = new Adw.PreferencesGroup({
+      title: 'Configuración general',
+      description: 'Filtros de jugadores multimedia y otras opciones generales.',
+    });
+    page.add(descGroup);
+
+    const filterGroup = createGroup({
+      parent: page,
+      title: 'Filtro de jugadores multimedia',
+      description: 'Controla qué reproductores multimedia aparecen en los widgets.',
+    });
+
+    const filterModel = new Gtk.StringList();
+    filterModel.append('Desactivado (permitir todos)');
+    filterModel.append('Lista negra (excluir listados)');
+    filterModel.append('Lista blanca (solo permitir listados)');
+
+    const filterModeRow = new Adw.ComboRow({
+      title: 'Modo de filtro',
+      subtitle: 'Elige cómo filtrar los reproductores multimedia',
+      model: filterModel,
+      selected: s.get_int('player-filter-mode'),
+    });
+    filterModeRow.connect('notify::selected', () => {
+      s.set_int('player-filter-mode', filterModeRow.selected);
+    });
+    filterGroup.add(filterModeRow);
+
+    const filterListRow = new Adw.EntryRow({
+      title: 'Jugadores filtrados (separados por coma)',
+    });
+    s.bind('player-filter-list', filterListRow, 'text', Gio.SettingsBindFlags.DEFAULT);
+    filterGroup.add(filterListRow);
+
+    const updateFilterState = () => {
+      const active = s.get_int('player-filter-mode') !== 0;
+      filterListRow.set_sensitive(active);
+    };
+    s.connect('changed::player-filter-mode', updateFilterState);
+    updateFilterState();
+
+    const detectedGroup = createGroup({
+      parent: page,
+      title: 'Jugadores detectados',
+      description: 'Haz clic en un jugador activo para añadirlo a la lista de filtro.',
+    });
+
+    const detectedRow = new Adw.ActionRow({
+      title: 'Jugadores activos',
+      subtitle: 'Clic para añadir a la lista de filtro',
+    });
+
+    const refreshBtn = new Gtk.Button({
+      icon_name: 'view-refresh-symbolic',
+      valign: Gtk.Align.CENTER,
+      margin_end: 10,
+      css_classes: ['flat'],
+    });
+    detectedRow.add_prefix(refreshBtn);
+
+    const playerBox = new Gtk.Box({ spacing: 6, valign: Gtk.Align.CENTER });
+    detectedRow.add_suffix(playerBox);
+    detectedGroup.add(detectedRow);
+
+    const updateDetected = () => {
+      let child = playerBox.get_first_child();
+      while (child) {
+        const next = child.get_next_sibling();
+        playerBox.remove(child);
+        child = next;
+      }
+
+      const connection = Gio.bus_get_sync(Gio.BusType.SESSION, null);
+      connection.call(
+        'org.freedesktop.DBus', '/org/freedesktop/DBus',
+        'org.freedesktop.DBus', 'ListNames',
+        null, null, Gio.DBusCallFlags.NONE, -1, null,
+        (c, res) => {
+          try {
+            const r = c.call_finish(res);
+            const names = r.deep_unpack()[0];
+            const mpris = names.filter(n => n.startsWith('org.mpris.MediaPlayer2.'));
+            const apps = [...new Set(mpris.map(n =>
+              n.replace('org.mpris.MediaPlayer2.', '').split('.')[0]
+            ))];
+
+            if (apps.length === 0) {
+              playerBox.append(new Gtk.Label({ label: 'Sin jugadores detectados' }));
+            } else {
+              for (const app of apps) {
+                const btn = new Gtk.Button({ label: app, css_classes: ['suggested-action'] });
+                btn.connect('clicked', () => {
+                  const current = s.get_string('player-filter-list');
+                  const list = current.split(',').map(v => v.trim()).filter(v => v.length > 0);
+                  if (!list.includes(app)) {
+                    list.push(app);
+                    s.set_string('player-filter-list', list.join(', '));
+                  }
+                });
+                playerBox.append(btn);
+              }
+            }
+          } catch (e) { /* ignore */ }
+        }
+      );
+    };
+
+    refreshBtn.connect('clicked', updateDetected);
+    updateDetected();
+
+    const updateDetectedSensitive = () => {
+      detectedRow.set_sensitive(s.get_int('player-filter-mode') !== 0);
+    };
+    s.connect('changed::player-filter-mode', updateDetectedSensitive);
+    updateDetectedSensitive();
   }
 
   _addShellModuleGroup(page) {

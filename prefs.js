@@ -245,11 +245,6 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
 
   _addGeneralPage(page) {
     const s = this._settings;
-    const descGroup = new Adw.PreferencesGroup({
-      title: 'Configuración general',
-      description: 'Filtros de jugadores multimedia y otras opciones generales.',
-    });
-    page.add(descGroup);
 
     const filterGroup = createGroup({
       parent: page,
@@ -258,13 +253,13 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     });
 
     const filterModel = new Gtk.StringList();
-    filterModel.append('Desactivado (permitir todos)');
+    filterModel.append('Desactivado');
     filterModel.append('Lista negra (excluir listados)');
     filterModel.append('Lista blanca (solo permitir listados)');
 
     const filterModeRow = new Adw.ComboRow({
       title: 'Modo de filtro',
-      subtitle: 'Elige cómo filtrar los reproductores multimedia',
+      subtitle: 'Off = permitir todos, Lista negra = excluir los marcados, Lista blanca = solo permitir los marcados',
       model: filterModel,
       selected: s.get_int('player-filter-mode'),
     });
@@ -273,49 +268,60 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     });
     filterGroup.add(filterModeRow);
 
-    const filterListRow = new Adw.EntryRow({
-      title: 'Jugadores filtrados (separados por coma)',
-    });
-    s.bind('player-filter-list', filterListRow, 'text', Gio.SettingsBindFlags.DEFAULT);
-    filterGroup.add(filterListRow);
-
-    const updateFilterState = () => {
-      const active = s.get_int('player-filter-mode') !== 0;
-      filterListRow.set_sensitive(active);
-    };
-    s.connect('changed::player-filter-mode', updateFilterState);
-    updateFilterState();
-
-    const detectedGroup = createGroup({
+    const playersGroup = createGroup({
       parent: page,
-      title: 'Jugadores detectados',
-      description: 'Haz clic en un jugador activo para añadirlo a la lista de filtro.',
+      title: 'Jugadores',
+      description: 'Reproductores detectados y configurados. Los jugadores en gris no están activos actualmente.',
     });
 
-    const detectedRow = new Adw.ActionRow({
-      title: 'Jugadores activos',
-      subtitle: 'Clic para añadir a la lista de filtro',
-    });
-
+    const headerBox = new Gtk.Box({ spacing: 4 });
     const refreshBtn = new Gtk.Button({
       icon_name: 'view-refresh-symbolic',
       valign: Gtk.Align.CENTER,
-      margin_end: 10,
       css_classes: ['flat'],
     });
-    detectedRow.add_prefix(refreshBtn);
+    refreshBtn.tooltip_text = 'Actualizar lista de jugadores';
+    headerBox.append(refreshBtn);
+    playersGroup.header_suffix = headerBox;
 
-    const playerBox = new Gtk.Box({ spacing: 6, valign: Gtk.Align.CENTER });
-    detectedRow.add_suffix(playerBox);
-    detectedGroup.add(detectedRow);
+    const switchRows = new Map();
+    const playerListBox = new Gtk.Box({
+      orientation: Gtk.Orientation.VERTICAL,
+      spacing: 0,
+    });
+    playersGroup.add(playerListBox);
 
-    const updateDetected = () => {
-      let child = playerBox.get_first_child();
+    const getFilterList = () => {
+      try {
+        return s.get_string('player-filter-list')
+          .split(',').map(v => v.trim()).filter(v => v.length > 0);
+      } catch { return []; }
+    };
+
+    const saveFilterList = (list) => {
+      s.set_string('player-filter-list', list.join(', '));
+    };
+
+    const isPlayerEnabled = (name) => getFilterList().includes(name);
+
+    const togglePlayer = (name, enabled) => {
+      const list = getFilterList();
+      const idx = list.indexOf(name);
+      if (enabled && idx === -1)
+        list.push(name);
+      else if (!enabled && idx !== -1)
+        list.splice(idx, 1);
+      saveFilterList(list);
+    };
+
+    const rebuildPlayers = () => {
+      let child = playerListBox.get_first_child();
       while (child) {
         const next = child.get_next_sibling();
-        playerBox.remove(child);
+        playerListBox.remove(child);
         child = next;
       }
+      switchRows.clear();
 
       const connection = Gio.bus_get_sync(Gio.BusType.SESSION, null);
       connection.call(
@@ -327,39 +333,66 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
             const r = c.call_finish(res);
             const names = r.deep_unpack()[0];
             const mpris = names.filter(n => n.startsWith('org.mpris.MediaPlayer2.'));
-            const apps = [...new Set(mpris.map(n =>
+            const detected = [...new Set(mpris.map(n =>
               n.replace('org.mpris.MediaPlayer2.', '').split('.')[0]
             ))];
 
-            if (apps.length === 0) {
-              playerBox.append(new Gtk.Label({ label: 'Sin jugadores detectados' }));
-            } else {
-              for (const app of apps) {
-                const btn = new Gtk.Button({ label: app, css_classes: ['suggested-action'] });
-                btn.connect('clicked', () => {
-                  const current = s.get_string('player-filter-list');
-                  const list = current.split(',').map(v => v.trim()).filter(v => v.length > 0);
-                  if (!list.includes(app)) {
-                    list.push(app);
-                    s.set_string('player-filter-list', list.join(', '));
-                  }
-                });
-                playerBox.append(btn);
-              }
+            const filterList = getFilterList();
+            const configured = filterList.filter(name => !detected.includes(name));
+            const all = [...detected, ...configured];
+
+            const filterActive = s.get_int('player-filter-mode') !== 0;
+
+            if (all.length === 0) {
+              playerListBox.append(new Gtk.Label({
+                label: 'Sin jugadores detectados',
+                sensitive: false,
+                margin_top: 8,
+                margin_bottom: 8,
+              }));
+              return;
+            }
+
+            for (const name of all) {
+              const isDetected = detected.includes(name);
+              const sw = new Gtk.Switch({
+                active: isPlayerEnabled(name),
+                valign: Gtk.Align.CENTER,
+                sensitive: filterActive,
+              });
+              sw.connect('notify::active', () => {
+                togglePlayer(name, sw.active);
+              });
+
+              const row = new Adw.ActionRow({
+                title: name,
+                subtitle: isDetected ? 'Activo' : 'No detectado',
+                activatable: false,
+              });
+              row.add_suffix(sw);
+
+              if (!isDetected)
+                row.set_opacity(0.5);
+
+              switchRows.set(name, { row, sw });
+              playerListBox.append(row);
             }
           } catch (e) { /* ignore */ }
         }
       );
     };
 
-    refreshBtn.connect('clicked', updateDetected);
-    updateDetected();
-
-    const updateDetectedSensitive = () => {
-      detectedRow.set_sensitive(s.get_int('player-filter-mode') !== 0);
+    const updateAllSensitive = () => {
+      const active = s.get_int('player-filter-mode') !== 0;
+      for (const [, { sw }] of switchRows)
+        sw.set_sensitive(active);
     };
-    s.connect('changed::player-filter-mode', updateDetectedSensitive);
-    updateDetectedSensitive();
+
+    s.connect('changed::player-filter-mode', () => {
+      updateAllSensitive();
+    });
+    refreshBtn.connect('clicked', rebuildPlayers);
+    rebuildPlayers();
   }
 
   _addShellModuleGroup(page) {

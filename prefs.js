@@ -268,12 +268,6 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     });
     filterGroup.add(filterModeRow);
 
-    const playersGroup = createGroup({
-      parent: page,
-      title: 'Jugadores',
-      description: 'Reproductores detectados y configurados. Los jugadores en gris no están activos actualmente.',
-    });
-
     const headerBox = new Gtk.Box({ spacing: 4 });
     const refreshBtn = new Gtk.Button({
       icon_name: 'view-refresh-symbolic',
@@ -282,14 +276,14 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     });
     refreshBtn.tooltip_text = 'Actualizar lista de jugadores';
     headerBox.append(refreshBtn);
-    playersGroup.header_suffix = headerBox;
+    filterGroup.header_suffix = headerBox;
 
     const switchRows = new Map();
-    const playerListBox = new Gtk.Box({
-      orientation: Gtk.Orientation.VERTICAL,
-      spacing: 0,
+    const playerListBox = new Gtk.ListBox({
+      selection_mode: Gtk.SelectionMode.NONE,
+      css_classes: ['boxed-list'],
     });
-    playersGroup.add(playerListBox);
+    filterGroup.add(playerListBox);
 
     const getFilterList = () => {
       try {

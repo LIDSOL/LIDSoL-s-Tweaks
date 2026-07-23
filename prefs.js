@@ -279,11 +279,7 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     filterGroup.header_suffix = headerBox;
 
     const switchRows = new Map();
-    const playerListBox = new Gtk.ListBox({
-      selection_mode: Gtk.SelectionMode.NONE,
-      css_classes: ['boxed-list'],
-    });
-    filterGroup.add(playerListBox);
+    const playerRows = [];
 
     const getFilterList = () => {
       try {
@@ -309,12 +305,9 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     };
 
     const rebuildPlayers = () => {
-      let child = playerListBox.get_first_child();
-      while (child) {
-        const next = child.get_next_sibling();
-        playerListBox.remove(child);
-        child = next;
-      }
+      for (const row of playerRows)
+        filterGroup.remove(row);
+      playerRows.length = 0;
       switchRows.clear();
 
       const connection = Gio.bus_get_sync(Gio.BusType.SESSION, null);
@@ -338,12 +331,13 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
             const filterActive = s.get_int('player-filter-mode') !== 0;
 
             if (all.length === 0) {
-              playerListBox.append(new Gtk.Label({
-                label: 'Sin jugadores detectados',
-                sensitive: false,
-                margin_top: 8,
-                margin_bottom: 8,
-              }));
+              const emptyRow = new Adw.ActionRow({
+                title: 'Sin jugadores detectados',
+                activatable: false,
+              });
+              emptyRow.set_opacity(0.5);
+              filterGroup.add(emptyRow);
+              playerRows.push(emptyRow);
               return;
             }
 
@@ -369,7 +363,8 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
                 row.set_opacity(0.5);
 
               switchRows.set(name, { row, sw });
-              playerListBox.append(row);
+              filterGroup.add(row);
+              playerRows.push(row);
             }
           } catch (e) { /* ignore */ }
         }

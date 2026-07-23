@@ -138,8 +138,7 @@ export class AtAGlanceIndicator {
 
                     // Layer 1: direct meta from D-Bus
                     if (meta && meta.coverUrl) {
-                        let cachedCover = this._manager.getArtUrl(meta.coverUrl);
-                        this._lastCoverUrl = cachedCover || meta.coverUrl;
+                        this._lastCoverUrl = meta.coverUrl;
                         this._lastMediaText = this._formatMediaText(meta.title, meta.artist);
                         this._lastPlayingState = meta.isPlaying;
                         this._mediaArt._currentUrl = this._lastCoverUrl;
@@ -235,8 +234,7 @@ export class AtAGlanceIndicator {
 
         const nowPlaying = meta.isPlaying;
         const text = this._formatMediaText(meta.title, meta.artist);
-        let cachedCover = meta.coverUrl ? this._manager.getArtUrl(meta.coverUrl) : null;
-        let effectiveCover = cachedCover || meta.coverUrl;
+        const cover = meta.coverUrl || '';
 
         if (nowPlaying) {
             this._lastActivePlayer = this._player;
@@ -244,7 +242,7 @@ export class AtAGlanceIndicator {
                 GLib.Source.remove(this._pauseDebounceId);
                 this._pauseDebounceId = 0;
             }
-            this._onMediaUpdate(text, effectiveCover, true);
+            this._onMediaUpdate(text, cover, true);
             return;
         }
 
@@ -302,10 +300,8 @@ export class AtAGlanceIndicator {
             });
         }
 
-        if (cover) {
-            let cachedCover = this._manager.getArtUrl(cover);
-            this._mediaArt.setArt(cachedCover || cover);
-        }
+        if (cover)
+            this._mediaArt.setArt(cover);
 
         this._updateArtVisibility();
     }
@@ -313,10 +309,8 @@ export class AtAGlanceIndicator {
     _syncPlayerState() {
         if (!this._player) return;
         const meta = this._manager.getActivePlayerMeta();
-        const cover = meta?.coverUrl || '';
-        let cachedCover = cover ? this._manager.getArtUrl(cover) : null;
         this._lastMediaText = this._formatMediaText(meta?.title || '', meta?.artist || '');
-        this._lastCoverUrl = cachedCover || cover;
+        this._lastCoverUrl = meta?.coverUrl || '';
         this._lastPlayingState = meta?.isPlaying || false;
         this._updateMedia();
         this._updateMediaVisibility();
@@ -332,10 +326,8 @@ export class AtAGlanceIndicator {
         this._mediaLabel.text = this._formatMediaText(meta?.title || '', meta?.artist || '');
 
         const cover = meta?.coverUrl || '';
-        if (cover) {
-            let cachedCover = this._manager.getArtUrl(cover);
-            this._mediaArt.setArt(cachedCover || cover, !!opts.forceArt);
-        }
+        if (cover)
+            this._mediaArt.setArt(cover, !!opts.forceArt);
 
         this._updateArtVisibility();
     }

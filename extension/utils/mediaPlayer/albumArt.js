@@ -6,6 +6,7 @@ import GdkPixbuf from 'gi://GdkPixbuf';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
+import Soup from 'gi://Soup';
 import St from 'gi://St';
 
 const LOAD_SIZE = 256;
@@ -92,28 +93,52 @@ var AlbumArt = GObject.registerClass(
             }
         }
 
-        _downloadToCache(url) {
-            if (!url.startsWith('http://') && !url.startsWith('https://'))
+    _downloadToCache(url) {
+        if (!url.startsWith('http://') && !url.startsWith('https://'))
+            return url;
+
+        GLib.mkdir_with_parents(CACHE_DIR, 0o755);
+        const hash = GLib.compute_checksum_for_string(GLib.ChecksumType.MD5, url, -1);
+        const cachePath = GLib.build_filenamev([CACHE_DIR, hash]);
+
+        if (GLib.file_test(cachePath, GLib.FileTest.EXISTS))
+            return `file://${cachePath}`;
+
+        try {
+            const session = new Soup.Session({ timeout: 10 });
+            const message = Soup.Message.new('GET', url);
+            if (!message)
                 return url;
 
-            GLib.mkdir_with_parents(CACHE_DIR, 0o755);
-            const hash = GLib.compute_checksum_for_string(GLib.ChecksumType.MD5, url, -1);
-            const cachePath = GLib.build_filenamev([CACHE_DIR, hash]);
-
-            if (GLib.file_test(cachePath, GLib.FileTest.EXISTS))
-                return `file://${cachePath}`;
-
-            try {
-                const request = Gio.HttpRequest.new(url);
-                const session = new Gio.HttpSession({ timeout: 10 });
-                const response = session.send(request);
-                const bytes = response.read_bytes();
-                GLib.file_set_contents(cachePath, bytes.toArray());
-                return `file://${cachePath}`;
-            } catch (e) {
+            const inputStream = session.send(message);
+            if (message.get_status() !== Soup.Status.OK) {
+                inputStream.close(null);
                 return url;
             }
+
+            const chunks = [];
+            const buf = new Uint8Array(65536);
+            let n;
+            while ((n = inputStream.read(buf, null)) > 0)
+                chunks.push(buf.slice(0, n));
+            inputStream.close(null);
+
+            let totalLen = 0;
+            for (const c of chunks)
+                totalLen += c.length;
+            const merged = new Uint8Array(totalLen);
+            let offset = 0;
+            for (const c of chunks) {
+                merged.set(c, offset);
+                offset += c.length;
+            }
+
+            GLib.file_set_contents(cachePath, merged);
+            return `file://${cachePath}`;
+        } catch (e) {
+            return url;
         }
+    }
 
         setArt(url, force = false) {
             if (!force && url === this._currentUrl)

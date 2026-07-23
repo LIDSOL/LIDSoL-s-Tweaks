@@ -4,7 +4,10 @@ import GdkPixbuf from 'gi://GdkPixbuf';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
+import Soup from 'gi://Soup';
 import { MprisService } from '../mprisService.js';
+
+Gio._promisify(Soup.Session.prototype, 'send_and_read_async');
 
 const ART_CACHE_MAX_BYTES = 20 * 1024 * 1024;
 
@@ -251,32 +254,28 @@ var MediaPlayerManager = GObject.registerClass({
         if (!artUrl.startsWith('http://') && !artUrl.startsWith('https://')) return;
 
         try {
-            let session = new Gio.SocketClient();
-            let file = Gio.File.new_for_path(targetPath);
+            let session = new Soup.Session({ timeout: 10 });
+            let message = Soup.Message.new('GET', artUrl);
+            if (!message) return;
 
-            let httpSession = new Gio.HttpClient({ timeout: 10 });
-
-            let request = Gio.HttpRequest.new(artUrl);
-            httpSession.send_async(request, GLib.PRIORITY_DEFAULT, null, (session_, res) => {
-                try {
-                    let response = httpSession.send_finish(res);
-                    let bytes = response.get_body_bytes();
-                    file.replace_contents_bytes_async(
-                        bytes, null, false,
-                        Gio.FileCreateFlags.REPLACE_DESTINATION,
-                        null,
-                        (file_, result) => {
-                            try {
-                                file.replace_contents_finish(result);
-                                let uri = 'file://' + targetPath;
-                                this._artCache.set(artUrl, uri);
-                                this._lastKnownCover = uri;
-                                this._trimDiskCache();
-                            } catch (e) { /* ignore */ }
-                        }
-                    );
-                } catch (e) { /* ignore */ }
-            });
+            session.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null).then(bytes => {
+                if (message.get_status() !== Soup.Status.OK) return;
+                let file = Gio.File.new_for_path(targetPath);
+                file.replace_contents_bytes_async(
+                    bytes, null, false,
+                    Gio.FileCreateFlags.REPLACE_DESTINATION,
+                    null,
+                    (file_, result) => {
+                        try {
+                            file.replace_contents_finish(result);
+                            let uri = 'file://' + targetPath;
+                            this._artCache.set(artUrl, uri);
+                            this._lastKnownCover = uri;
+                            this._trimDiskCache();
+                        } catch (e) { /* ignore */ }
+                    }
+                );
+            }).catch(() => { /* ignore */ });
         } catch (e) { /* ignore */ }
     }
 

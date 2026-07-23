@@ -53,21 +53,13 @@ export const MediaWidget = GObject.registerClass(
             this.insert_child_at_index(bodyRow, 1);
         }
 
-        _updateCover(player) {
-            const coverUrl = player.trackCoverUrl || '';
-            if (coverUrl === this._lastCoverUrl)
-                return;
-            this._lastCoverUrl = coverUrl;
-
+        _setArt(url) {
             if (!this._settings.get_boolean('dmm-show-art')) {
                 this._art.visible = false;
                 return;
             }
-            if (coverUrl) {
-                const cachedUrl = this._mpris?.getCachedArtUrl
-                    ? this._mpris.getCachedArtUrl(coverUrl)
-                    : null;
-                this._art.setArt(cachedUrl || coverUrl);
+            if (url) {
+                this._art.setArt(url);
                 this._art.visible = true;
             } else {
                 this._art.setArt(null);

@@ -42,6 +42,10 @@ var MprisPlayer = GObject.registerClass({
         this._lastPlayingTime = 0;
         this._wasPlaying = false;
 
+        // Local position tracking (fallback when D-Bus Position unavailable)
+        this._lastKnownPosition = 0;
+        this._positionTimestamp = 0;
+
         this._createProxies();
     }
 
@@ -236,8 +240,24 @@ var MprisPlayer = GObject.registerClass({
             'org.mpris.MediaPlayer2.Player',
             'Position'
         ).then(result => {
-            return result[0].get_int64();
+            const pos = result[0].get_int64();
+            if (pos !== null && pos >= 0) {
+                this._lastKnownPosition = pos;
+                this._positionTimestamp = Date.now();
+            }
+            return pos;
         }).catch(() => null);
+    }
+
+    // Fallback for players that don't expose Position via D-Bus
+    getEstimatedPosition() {
+        if (this.playbackStatus !== 'Playing')
+            return this._lastKnownPosition;
+        const elapsed = Date.now() - this._positionTimestamp;
+        const estimated = this._lastKnownPosition + elapsed * 1000;
+        if (this._length && estimated > this._length)
+            return this._length;
+        return estimated;
     }
 
     set position(value) {
@@ -301,8 +321,18 @@ var MprisPlayer = GObject.registerClass({
             console.error(`[MprisService] _update error for ${this._busName}:`, e);
         }
         const nowPlaying = this.playbackStatus === 'Playing';
-        if (nowPlaying !== this._wasPlaying)
+        if (nowPlaying !== this._wasPlaying) {
             this._lastPlayingTime = Date.now();
+            if (nowPlaying) {
+                // Starting playback — sync position from D-Bus if available
+                this.position.then(pos => {
+                    if (pos !== null && pos >= 0) {
+                        this._lastKnownPosition = pos;
+                        this._positionTimestamp = Date.now();
+                    }
+                }).catch(() => {});
+            }
+        }
         this._wasPlaying = nowPlaying;
         this.emit('changed');
     }
@@ -362,6 +392,17 @@ var MprisPlayer = GObject.registerClass({
         this._playerProxy.connectObject(
             'g-properties-changed',
             () => this._update(),
+            this
+        );
+
+        // Track Seeked signal for position updates
+        this._playerProxy.connectObject(
+            'Seeked',
+            (_proxy, position) => {
+                this._lastKnownPosition = position;
+                this._positionTimestamp = Date.now();
+                this.emit('changed');
+            },
             this
         );
 

@@ -145,18 +145,15 @@ var DashboardMediaWidget = GObject.registerClass({
     return true;
   }
 
-  _updateCover(player) {
-    const coverUrl = player.trackCoverUrl || '';
-    if (coverUrl === this._lastCoverUrl)
-      return;
-    this._lastCoverUrl = coverUrl;
-
-    if (coverUrl) {
+  _setArt(url) {
+    if (url) {
       this._coverContainer.set_child(this._art);
-      this._art.setArt(coverUrl);
+      this._art.setArt(url);
+      this._art.visible = true;
       this._fallbackIcon.visible = false;
     } else {
       this._art.setArt(null);
+      this._art.visible = false;
       this._coverContainer.set_child(this._fallbackIcon);
       this._fallbackIcon.visible = true;
     }

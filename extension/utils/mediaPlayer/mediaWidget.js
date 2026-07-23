@@ -430,7 +430,27 @@ export const MediaWidgetBase = GObject.registerClass(
             this._onSync(player);
         }
 
-        _updateCover(player) {}
+        _updateCover(player) {
+            const coverUrl = player.trackCoverUrl || '';
+            if (coverUrl === this._lastCoverUrl)
+                return;
+            this._lastCoverUrl = coverUrl;
+            this._setArt(coverUrl);
+        }
+
+        // Override in subclass for specific behavior (visibility, fallback icon, etc.)
+        _setArt(url) {
+            if (this._art) {
+                if (url) {
+                    this._art.setArt(url);
+                    this._art.visible = true;
+                } else {
+                    this._art.setArt(null);
+                    this._art.visible = false;
+                }
+            }
+        }
+
         _updateControls(player) {
             if (!player)
                 return;
@@ -499,15 +519,30 @@ export const MediaWidgetBase = GObject.registerClass(
             const promises = this._players.map(async (p) => {
                 try {
                     const pos = await p.position;
-                    if (pos !== null && !this._isDragging) {
+                    const effectivePos = (pos !== null && pos !== undefined)
+                        ? pos
+                        : p.getEstimatedPosition();
+                    if (effectivePos !== null && effectivePos !== undefined && !this._isDragging) {
                         this._playerProgress.set(p, {
-                            position: pos,
+                            position: effectivePos,
                             length: p._length || 0,
                         });
                         if (p === this._player)
-                            this._updateProgressDisplay(pos, p._length || 0);
+                            this._updateProgressDisplay(effectivePos, p._length || 0);
                     }
-                } catch (_) { }
+                } catch (_) {
+                    try {
+                        const effectivePos = p.getEstimatedPosition();
+                        if (effectivePos !== null && !this._isDragging) {
+                            this._playerProgress.set(p, {
+                                position: effectivePos,
+                                length: p._length || 0,
+                            });
+                            if (p === this._player)
+                                this._updateProgressDisplay(effectivePos, p._length || 0);
+                        }
+                    } catch (_) { }
+                }
             });
             await Promise.all(promises);
         }

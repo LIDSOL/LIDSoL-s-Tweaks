@@ -1500,5 +1500,75 @@
     <key type="b" name="dashboard-user-real-name"><default>false</default></key>
     <key type="i" name="dashboard-user-text-spacing"><default>12</default></key>
 
+    <!-- Gnofi -->
+    <key type="b" name="gnofi-enabled">
+      <default>false</default>
+      <summary>Habilitar Gnofi</summary>
+      <description>Launcher extensible, selector y buscador de aplicaciones</description>
+    </key>
+    <key type="as" name="gnofi-hotkey">
+      <default><![CDATA[['<Super>space']]]></default>
+      <summary>Atajo de teclado</summary>
+      <description>Atajo para abrir el launcher Gnofi</description>
+    </key>
+    <key type="b" name="gnofi-panel-visible">
+      <default>false</default>
+      <summary>Mostrar botón en el panel</summary>
+    </key>
+    <key type="s" name="gnofi-panel-icon">
+      <default>"open-menu-symbolic"</default>
+      <summary>Icono del botón del panel</summary>
+    </key>
+    <key type="s" name="gnofi-panel-label">
+      <default>""</default>
+      <summary>Etiqueta del botón del panel</summary>
+    </key>
+    <key type="i" name="gnofi-panel-position">
+      <default>0</default>
+      <range min="0" max="2"/>
+      <summary>Posición del botón (0=izquierda, 1=centro, 2=derecha)</summary>
+    </key>
+    <key type="i" name="gnofi-panel-index">
+      <default>0</default>
+      <summary>Índice dentro de la caja del panel</summary>
+    </key>
+    <key type="i" name="gnofi-window-width">
+      <default>500</default>
+      <range min="300" max="1200"/>
+      <summary>Ancho de la ventana del launcher</summary>
+    </key>
+    <key type="i" name="gnofi-window-margin-top">
+      <default>200</default>
+      <range min="0" max="800"/>
+      <summary>Margen superior de la ventana</summary>
+    </key>
+    <key type="s" name="gnofi-command-leader">
+      <default>":"</default>
+      <summary>Prefijo de comandos</summary>
+      <description>Carácter que activa el modo comandos</description>
+    </key>
+    <key type="i" name="gnofi-search-delay">
+      <default>100</default>
+      <range min="0" max="1000"/>
+      <summary>Retraso de búsqueda (ms)</summary>
+    </key>
+    <key type="b" name="gnofi-close-on-workspace-switch">
+      <default>true</default>
+      <summary>Cerrar al cambiar de espacio de trabajo</summary>
+    </key>
+    <key type="b" name="gnofi-replace-overview-search">
+      <default>true</default>
+      <summary>Reemplazar búsqueda del overview</summary>
+      <description>Oculta la entrada de búsqueda del overview y abre el launcher en su lugar</description>
+    </key>
+    <key type="b" name="gnofi-close-overview">
+      <default>false</default>
+      <summary>Cerrar overview al cerrar el launcher</summary>
+    </key>
+    <key type="b" name="gnofi-open-at-startup">
+      <default>false</default>
+      <summary>Abrir al iniciar sesión</summary>
+    </key>
+
   </schema>
 </schemalist>

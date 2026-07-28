@@ -13,6 +13,7 @@ import { DashboardModule } from '../modules/dashboard/module.js';
 import { NotificationMediaModule } from '../modules/notificationMedia/module.js';
 import { UserAvatarDateMenuModule } from '../modules/userAvatarDateMenu/module.js';
 import { DateMenuMediaModule } from '../modules/dateMenuMedia/module.js';
+import { GnofiModule } from '../modules/gnofi/module.js';
 
 const REGISTERED_MODULES = [
     {
@@ -92,6 +93,12 @@ const REGISTERED_MODULES = [
         name: 'Date Menu Media',
         enabledKey: 'dmm-enabled',
         moduleClass: DateMenuMediaModule
+    },
+    {
+        id: 'gnofi',
+        name: 'Gnofi',
+        enabledKey: 'gnofi-enabled',
+        moduleClass: GnofiModule
     }
 ];
 

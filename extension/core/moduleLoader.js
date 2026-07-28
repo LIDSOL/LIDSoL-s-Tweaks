@@ -13,7 +13,7 @@ import { DashboardModule } from '../modules/dashboard/module.js';
 import { NotificationMediaModule } from '../modules/notificationMedia/module.js';
 import { UserAvatarDateMenuModule } from '../modules/userAvatarDateMenu/module.js';
 import { DateMenuMediaModule } from '../modules/dateMenuMedia/module.js';
-import { GnofiModule } from '../modules/gnofi/module.js';
+import { LauncherModule } from '../modules/launcher/module.js';
 
 const REGISTERED_MODULES = [
     {
@@ -95,10 +95,10 @@ const REGISTERED_MODULES = [
         moduleClass: DateMenuMediaModule
     },
     {
-        id: 'gnofi',
-        name: 'Gnofi',
-        enabledKey: 'gnofi-enabled',
-        moduleClass: GnofiModule
+        id: 'launcher',
+        name: 'Launcher',
+        enabledKey: 'launcher-enabled',
+        moduleClass: LauncherModule
     }
 ];
 

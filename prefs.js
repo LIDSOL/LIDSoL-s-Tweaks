@@ -409,15 +409,19 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     }));
     page.add(group);
 
-    const gnofiGroup = new Adw.PreferencesGroup();
-    gnofiGroup.add(createModuleRow({
+    const launcherGroup = new Adw.PreferencesGroup({
+      title: 'Launcher',
+      description: 'Buscador flotante que roba la búsqueda del overview para mostrarla en una ventana flotante.',
+    });
+    launcherGroup.add(createModuleRow({
       settings: this._settings,
-      bindKey: 'gnofi-enabled',
-      title: 'Gnofi',
-      subtitle: 'Launcher extensible, selector y buscador de aplicaciones',
-      onDetailed: () => this._openDialog('Gnofi', p => this._buildGnofiDialog(p)),
+      bindKey: 'launcher-enabled',
+      title: 'Launcher',
+      subtitle: 'Buscador flotante que sustituye la búsqueda del overview',
+      onDetailed: () => this._openDialog('Launcher', p => this._buildLauncherDialog(p)),
     }));
-    page.add(gnofiGroup);
+    page.add(launcherGroup);
+
   }
 
   _openDialog(title, buildFn) {
@@ -536,35 +540,6 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     group.add(createEntryRow({ settings: s, bindKey: 'qt-filepath', title: 'Archivo de notas', subtitle: 'Ruta absoluta al archivo de texto' }));
     group.add(createEntryRow({ settings: s, bindKey: 'qt-prepend', title: 'Prefijo', subtitle: 'Texto antes de cada nota (vacío = fecha actual)' }));
     group.add(createEntryRow({ settings: s, bindKey: 'qt-append', title: 'Separador', subtitle: 'Texto que separa las notas en el archivo' }));
-  }
-
-  _buildGnofiDialog(page) {
-    const s = this._settings;
-
-    const generalGroup = createGroup({ parent: page, title: 'General', description: 'Configuración general del launcher' });
-    generalGroup.add(createKeyboardShortcutRow({ settings: s, bindKey: 'gnofi-hotkey', title: 'Atajo de teclado', subtitle: 'Combinación para abrir el launcher' }));
-    generalGroup.add(createSpinButtonRow({ settings: s, bindKey: 'gnofi-window-width', title: 'Ancho de ventana', adjProps: { lower: 300, upper: 1200, step_increment: 10 } }));
-    generalGroup.add(createSpinButtonRow({ settings: s, bindKey: 'gnofi-window-margin-top', title: 'Margen superior', adjProps: { lower: 0, upper: 800, step_increment: 10 } }));
-    generalGroup.add(createSpinButtonRow({ settings: s, bindKey: 'gnofi-search-delay', title: 'Retraso de búsqueda (ms)', adjProps: { lower: 0, upper: 1000, step_increment: 10 } }));
-    generalGroup.add(createEntryRow({ settings: s, bindKey: 'gnofi-command-leader', title: 'Prefijo de comandos', subtitle: 'Carácter que activa el modo comandos' }));
-    generalGroup.add(createSwitchRow({ settings: s, bindKey: 'gnofi-close-on-workspace-switch', title: 'Cerrar al cambiar de espacio de trabajo' }));
-    generalGroup.add(createSwitchRow({ settings: s, bindKey: 'gnofi-replace-overview-search', title: 'Reemplazar búsqueda del overview', subtitle: 'Oculta la búsqueda nativa y abre el launcher' }));
-    generalGroup.add(createSwitchRow({ settings: s, bindKey: 'gnofi-close-overview', title: 'Cerrar overview al cerrar el launcher' }));
-    generalGroup.add(createSwitchRow({ settings: s, bindKey: 'gnofi-open-at-startup', title: 'Abrir al iniciar sesión' }));
-
-    const panelGroup = createGroup({ parent: page, title: 'Botón del panel', description: 'Mostrar un botón en la barra superior' });
-    panelGroup.add(createSwitchRow({ settings: s, bindKey: 'gnofi-panel-visible', title: 'Mostrar botón en el panel' }));
-    panelGroup.add(createEntryRow({ settings: s, bindKey: 'gnofi-panel-icon', title: 'Icono', subtitle: 'Nombre del icono simbólico (ej. open-menu-symbolic)' }));
-    panelGroup.add(createEntryRow({ settings: s, bindKey: 'gnofi-panel-label', title: 'Etiqueta', subtitle: 'Texto junto al icono (vacío = solo icono)' }));
-    const posModel = new Gtk.StringList({ strings: ['Izquierda', 'Centro', 'Derecha'] });
-    const posRow = new Adw.ComboRow({
-      title: 'Posición en el panel',
-      model: posModel,
-      selected: s.get_int('gnofi-panel-position'),
-    });
-    posRow.connect('notify::selected', () => s.set_int('gnofi-panel-position', posRow.get_selected()));
-    panelGroup.add(posRow);
-    panelGroup.add(createSpinButtonRow({ settings: s, bindKey: 'gnofi-panel-index', title: 'Índice dentro de la caja', adjProps: { lower: 0, upper: 20 } }));
   }
 
   _buildDashboardDialog(page) {
@@ -868,6 +843,17 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     const roundGroup = createGroup({ parent: page, title: 'Clip redondeado', description: 'Recorta las esquinas del widget multimedia.' });
     roundGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-round-clip-enabled', title: 'Habilitar clip redondeado' }));
     roundGroup.add(createSpinButtonRow({ settings: s, bindKey: 'dmm-round-clip-radius', title: 'Radio de esquina', adjProps: { lower: 0, upper: 48, step: 1 } }));
+  }
+
+  _buildLauncherDialog(page) {
+    const s = this._settings;
+    const mainGroup = createGroup({ parent: page, title: 'Launcher', description: 'Buscador flotante que roba la búsqueda del overview para mostrarla en una ventana flotante.' });
+    mainGroup.add(createSwitchRow({ settings: s, bindKey: 'launcher-enabled', title: 'Habilitar Launcher' }));
+    mainGroup.add(createKeyboardShortcutRow({ settings: s, bindKey: 'launcher-hotkey', title: 'Atajo de teclado', subtitle: 'Combinación para abrir/cerrar el launcher' }));
+    mainGroup.add(createSpinButtonRow({ settings: s, bindKey: 'launcher-width', title: 'Ancho', adjProps: { lower: 400, upper: 1200, step_increment: 10 } }));
+    mainGroup.add(createSpinButtonRow({ settings: s, bindKey: 'launcher-height', title: 'Alto', adjProps: { lower: 300, upper: 1000, step_increment: 10 } }));
+    mainGroup.add(createSwitchRow({ settings: s, bindKey: 'launcher-use-animations', title: 'Usar animaciones' }));
+    mainGroup.add(createSpinButtonRow({ settings: s, bindKey: 'launcher-animation-speed', title: 'Velocidad de animación (ms)', adjProps: { lower: 50, upper: 500, step_increment: 10 } }));
   }
 
   _buildUserAvatarDialog(page) {

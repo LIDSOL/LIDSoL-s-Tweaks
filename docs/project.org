@@ -103,12 +103,6 @@ DEADLINE: <2026-07-18 Sat>
 ***** IN-PROGRESS Image Widget
 ***** Clock Widget
 ***** Weather Widget
-**** TODO [#B] Gnofi :shell:
-DEADLINE: <2026-07-10 Fri>
-[[./img/gnofi.png]]
-
-- Descripción: Un launcher extensible, selector, buscador y paleta de comandos para GNOME. Añade un ícono al top bar que despliega el lanzador.
-  - Se usará como base el código de [[Gnofi de Aylur]]. Es compatible hasta GNOME 49, no debería ser difícil darle el mantenimiento para darle compatibilidad con GNOME 50.
 **** DONE Quick Settings Tweaks [3/3] :quicksettings:
 - Descripción: Permite configurar los ajustes rápidos, adaptación parcial de [[https://github.com/qwreey/quick-settings-tweaks][Quick Settings Tweaks]]:
 - [X] System Items

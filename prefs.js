@@ -847,7 +847,7 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
 
   _buildLauncherDialog(page) {
     const s = this._settings;
-    const mainGroup = createGroup({ parent: page, title: 'Launcher', description: 'Buscador flotante que roba la búsqueda del overview para mostrarla en una ventana flotante.' });
+    const mainGroup = createGroup({ parent: page, title: 'Launcher', description: 'Buscador flotante similar a rofi o spotlight, .' });
     mainGroup.add(createSwitchRow({ settings: s, bindKey: 'launcher-enabled', title: 'Habilitar Launcher' }));
     mainGroup.add(createKeyboardShortcutRow({ settings: s, bindKey: 'launcher-hotkey', title: 'Atajo de teclado', subtitle: 'Combinación para abrir/cerrar el launcher' }));
     mainGroup.add(createSpinButtonRow({ settings: s, bindKey: 'launcher-width', title: 'Ancho', adjProps: { lower: 400, upper: 1200, step_increment: 10 } }));

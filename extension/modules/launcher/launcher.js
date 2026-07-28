@@ -27,6 +27,7 @@ export class Launcher {
         this._textChangedEventId = null;
         this._keybindingId = null;
         this._stageEventId = null;
+        this._focusNotifyId = null;
     }
 
     enable() {
@@ -173,9 +174,57 @@ export class Launcher {
             this._search.show();
         });
         this._search._text.get_parent().grab_key_focus();
+
+        // ── auto-close: patch activateDefault for Enter key ──
+        // hide visually immediately (opacity 0), run original, full cleanup on focus loss
+        if (!this._searchResults.__activateDefault) {
+            this._searchResults.__activateDefault = this._searchResults.activateDefault;
+        }
+        this._searchResults.activateDefault = () => {
+            this.mainContainer.opacity = 0;
+            this._searchResults.__activateDefault();
+        };
+
+        // ── auto-close: patch focus.activate for click/keyboard activation ──
+        this._focusNotifyId = global.stage.connect('notify::key-focus', () => {
+            const focus = global.stage.get_key_focus();
+            // Full hide when focus leaves the launcher
+            if (!this._visible) return;
+            if (!focus || !this.mainContainer.contains(focus)) {
+                this.hide();
+                return;
+            }
+            // Patch each focused result item's activate to hide visually immediately
+            if (focus.activate && !focus.__activate) {
+                focus.__activate = focus.activate;
+                focus.activate = () => {
+                    this.mainContainer.opacity = 0;
+                    focus.__activate();
+                };
+            }
+        });
     }
 
     _releaseUi() {
+        // ── restore activateDefault ──
+        if (this._searchResults && this._searchResults.__activateDefault) {
+            this._searchResults.activateDefault = this._searchResults.__activateDefault;
+            this._searchResults.__activateDefault = null;
+        }
+
+        // ── disconnect focus notify ──
+        if (this._focusNotifyId) {
+            global.stage.disconnect(this._focusNotifyId);
+            this._focusNotifyId = null;
+        }
+
+        // ── restore current focus activate ──
+        const currentFocus = global.stage.get_key_focus();
+        if (currentFocus && currentFocus.__activate) {
+            currentFocus.activate = currentFocus.__activate;
+            currentFocus.__activate = null;
+        }
+
         if (this._entry) {
             if (this._entry.get_parent()) {
                 this._entry.get_parent().remove_child(this._entry);

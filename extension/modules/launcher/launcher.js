@@ -42,6 +42,7 @@ export class Launcher {
             name: 'searchLightBox',
             vertical: true,
         });
+        this.container.add_style_class_name('popup-menu-content');
         this.mainContainer.add_child(this.container);
         this._updateSettings();
         this._registerKeybinding();
@@ -300,6 +301,8 @@ export class Launcher {
             this._entry = null;
         }
         if (this._search) {
+            this._search._text.set_text('');
+            this._search.hide();
             if (this._search.get_parent()) {
                 this._search.get_parent().remove_child(this._search);
             }
@@ -322,7 +325,10 @@ export class Launcher {
         const monitor = Main.layoutManager.primaryMonitor;
         const sf = St.ThemeContext.get_for_stage(global.stage).scale_factor;
         this._expanded = false;
-        this._initialHeight = this._entry ? (this._entry.height + 8 * sf) : 50;
+        const [, entryHeight] = this._entry
+            ? this._entry.get_preferred_height(-1)
+            : [0, 34];
+        this._initialHeight = entryHeight + 8; // 8px bottom CSS padding
         this._baseX = monitor.x + Math.floor((monitor.width - this._width) * this._posX / 100);
         this._baseY = monitor.y + Math.floor((monitor.height - this._initialHeight) * this._posY / 100);
         this.container.set_size(this._width, this._initialHeight);

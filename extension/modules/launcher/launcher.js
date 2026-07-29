@@ -174,9 +174,48 @@ export class Launcher {
         };
 
         this._textChangedEventId = this._search._text.connect('text-changed', () => {
-            this.container.set_size(this._width, this._height);
-            this.mainContainer.set_size(this._width, this._height);
-            this._search.show();
+            const text = this._search._text.get_text();
+            if (text && !this._expanded) {
+                this._expanded = true;
+                this._search.show();
+                if (this._useAnimations) {
+                    this.mainContainer.ease({
+                        height: this._height,
+                        duration: this._animationSpeed,
+                        mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                    });
+                    this.container.ease({
+                        height: this._height,
+                        duration: this._animationSpeed,
+                        mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                    });
+                } else {
+                    this.container.set_size(this._width, this._height);
+                    this.mainContainer.set_size(this._width, this._height);
+                }
+                this.mainContainer.set_position(
+                    this._baseX,
+                    this._baseY,
+                );
+            } else if (!text && this._expanded) {
+                this._expanded = false;
+                this._search.hide();
+                if (this._useAnimations) {
+                    this.mainContainer.ease({
+                        height: this._initialHeight,
+                        duration: this._animationSpeed,
+                        mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                    });
+                    this.container.ease({
+                        height: this._initialHeight,
+                        duration: this._animationSpeed,
+                        mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                    });
+                } else {
+                    this.container.set_size(this._width, this._initialHeight);
+                    this.mainContainer.set_size(this._width, this._initialHeight);
+                }
+            }
         });
         this._entry.grab_key_focus();
 
@@ -235,6 +274,8 @@ export class Launcher {
             }
             this._entryKeyHandlerId = null;
         }
+        this._expanded = false;
+        this._initialHeight = 50;
 
         // ── disconnect focus notify ──
         if (this._focusNotifyId) {
@@ -280,12 +321,13 @@ export class Launcher {
     _layout() {
         const monitor = Main.layoutManager.primaryMonitor;
         const sf = St.ThemeContext.get_for_stage(global.stage).scale_factor;
-        this.container.set_size(this._width, this._height);
-        this.mainContainer.set_size(this._width, this._height);
-        this.mainContainer.set_position(
-            monitor.x + Math.floor((monitor.width - this._width) * this._posX / 100),
-            monitor.y + Math.floor((monitor.height - this._height) * this._posY / 100),
-        );
+        this._expanded = false;
+        this._initialHeight = this._entry ? (this._entry.height + 8 * sf) : 50;
+        this._baseX = monitor.x + Math.floor((monitor.width - this._width) * this._posX / 100);
+        this._baseY = monitor.y + Math.floor((monitor.height - this._initialHeight) * this._posY / 100);
+        this.container.set_size(this._width, this._initialHeight);
+        this.mainContainer.set_size(this._width, this._initialHeight);
+        this.mainContainer.set_position(this._baseX, this._baseY);
     }
 
     _connectStageEvents() {

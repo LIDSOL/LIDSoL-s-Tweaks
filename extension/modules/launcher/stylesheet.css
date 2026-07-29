@@ -5,7 +5,7 @@
     background-color: rgba(30, 30, 35, 0.96);
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 12px 40px 4px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
     padding: 12px;
 }
 #searchLightBox > StEntry {

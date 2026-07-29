@@ -1531,5 +1531,17 @@
       <range min="50" max="500"/>
       <summary>Velocidad de animación (ms)</summary>
     </key>
+    <key type="i" name="launcher-position-x">
+      <default>50</default>
+      <range min="0" max="100"/>
+      <summary>Posición horizontal (%)</summary>
+      <description>Porcentaje desde el borde izquierdo de la pantalla (0=izquierda, 50=centro, 100=derecha)</description>
+    </key>
+    <key type="i" name="launcher-position-y">
+      <default>70</default>
+      <range min="0" max="100"/>
+      <summary>Posición vertical (%)</summary>
+      <description>Porcentaje desde el borde superior de la pantalla (0=arriba, 50=centro, 100=abajo)</description>
+    </key>
   </schema>
 </schemalist>

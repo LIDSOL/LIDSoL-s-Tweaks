@@ -852,6 +852,10 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     mainGroup.add(createKeyboardShortcutRow({ settings: s, bindKey: 'launcher-hotkey', title: 'Atajo de teclado', subtitle: 'Combinación para abrir/cerrar el launcher' }));
     mainGroup.add(createSpinButtonRow({ settings: s, bindKey: 'launcher-width', title: 'Ancho', adjProps: { lower: 400, upper: 1200, step_increment: 10 } }));
     mainGroup.add(createSpinButtonRow({ settings: s, bindKey: 'launcher-height', title: 'Alto', adjProps: { lower: 300, upper: 1000, step_increment: 10 } }));
+    const posGroup = createGroup({ parent: page, title: 'Posición', description: 'Ajusta dónde aparece el launcher en la pantalla' });
+    posGroup.add(createSpinButtonRow({ settings: s, bindKey: 'launcher-position-x', title: 'Posición horizontal (%)', subtitle: '0=izquierda, 50=centro, 100=derecha', adjProps: { lower: 0, upper: 100, step_increment: 5 } }));
+    posGroup.add(createSpinButtonRow({ settings: s, bindKey: 'launcher-position-y', title: 'Posición vertical (%)', subtitle: '0=arriba, 50=centro, 100=abajo', adjProps: { lower: 0, upper: 100, step_increment: 5 } }));
+
     mainGroup.add(createSwitchRow({ settings: s, bindKey: 'launcher-use-animations', title: 'Usar animaciones' }));
     mainGroup.add(createSpinButtonRow({ settings: s, bindKey: 'launcher-animation-speed', title: 'Velocidad de animación (ms)', adjProps: { lower: 50, upper: 500, step_increment: 10 } }));
   }

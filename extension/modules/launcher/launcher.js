@@ -28,6 +28,7 @@ export class Launcher {
         this._keybindingId = null;
         this._stageEventId = null;
         this._focusNotifyId = null;
+        this._entryKeyHandlerId = null;
     }
 
     enable() {
@@ -59,6 +60,8 @@ export class Launcher {
     _updateSettings() {
         this._width = this._settings.get_int('launcher-width');
         this._height = this._settings.get_int('launcher-height');
+        this._posX = this._settings.get_int('launcher-position-x');
+        this._posY = this._settings.get_int('launcher-position-y');
         this._animationSpeed = this._settings.get_int('launcher-animation-speed');
         this._useAnimations = this._settings.get_boolean('launcher-use-animations');
     }
@@ -165,18 +168,33 @@ export class Launcher {
 
         if (!this._search.__searchCancelled) {
             this._search.__searchCancelled = this._search._searchCancelled;
-            this._search._searchCancelled = () => {};
         }
+        this._search._searchCancelled = () => {
+            if (this._visible) this.hide();
+        };
 
         this._textChangedEventId = this._search._text.connect('text-changed', () => {
             this.container.set_size(this._width, this._height);
             this.mainContainer.set_size(this._width, this._height);
             this._search.show();
         });
-        this._search._text.get_parent().grab_key_focus();
+        this._entry.grab_key_focus();
+
+        // ── Tab/Shift+Tab: runs after search controller (which doesn't handle Tab) ──
+        this._entryKeyHandlerId = this._entry.connect('key-press-event', (_entry, event) => {
+            const symbol = event.get_key_symbol();
+
+            if (symbol === Clutter.KEY_Tab || symbol === Clutter.KEY_ISO_Left_Tab) {
+                if (this._searchResults && this._searchResults._moveSelection) {
+                    this._searchResults._moveSelection(symbol === Clutter.KEY_Tab ? 1 : -1);
+                    return Clutter.EVENT_STOP;
+                }
+            }
+
+            return Clutter.EVENT_PROPAGATE;
+        });
 
         // ── auto-close: patch activateDefault for Enter key ──
-        // hide visually immediately (opacity 0), run original, full cleanup on focus loss
         if (!this._searchResults.__activateDefault) {
             this._searchResults.__activateDefault = this._searchResults.activateDefault;
         }
@@ -185,16 +203,14 @@ export class Launcher {
             this._searchResults.__activateDefault();
         };
 
-        // ── auto-close: patch focus.activate for click/keyboard activation ──
+        // ── auto-close: patch focus.activate for click activation ──
         this._focusNotifyId = global.stage.connect('notify::key-focus', () => {
             const focus = global.stage.get_key_focus();
-            // Full hide when focus leaves the launcher
             if (!this._visible) return;
             if (!focus || !this.mainContainer.contains(focus)) {
                 this.hide();
                 return;
             }
-            // Patch each focused result item's activate to hide visually immediately
             if (focus.activate && !focus.__activate) {
                 focus.__activate = focus.activate;
                 focus.activate = () => {
@@ -210,6 +226,14 @@ export class Launcher {
         if (this._searchResults && this._searchResults.__activateDefault) {
             this._searchResults.activateDefault = this._searchResults.__activateDefault;
             this._searchResults.__activateDefault = null;
+        }
+
+        // ── disconnect entry key handler ──
+        if (this._entryKeyHandlerId) {
+            if (this._entry) {
+                this._entry.disconnect(this._entryKeyHandlerId);
+            }
+            this._entryKeyHandlerId = null;
         }
 
         // ── disconnect focus notify ──
@@ -259,8 +283,8 @@ export class Launcher {
         this.container.set_size(this._width, this._height);
         this.mainContainer.set_size(this._width, this._height);
         this.mainContainer.set_position(
-            monitor.x + Math.floor((monitor.width - this._width) / 2),
-            monitor.y + Math.floor(monitor.height * 0.18),
+            monitor.x + Math.floor((monitor.width - this._width) * this._posX / 100),
+            monitor.y + Math.floor((monitor.height - this._height) * this._posY / 100),
         );
     }
 

@@ -1543,5 +1543,15 @@
       <summary>Posición vertical (%)</summary>
       <description>Porcentaje desde el borde superior de la pantalla (0=arriba, 50=centro, 100=abajo)</description>
     </key>
+    <key type="as" name="launcher-commands">
+      <default>[]</default>
+      <summary>Comandos personalizados</summary>
+      <description>Comandos personalizados para el launcher en formato "nombre|comando"</description>
+    </key>
+    <key type="b" name="launcher-hide-search">
+      <default>false</default>
+      <summary>Ocultar barra de búsqueda del Overview</summary>
+      <description>Oculta el campo "Type to search" en el Overview. Aparece al empezar a escribir.</description>
+    </key>
   </schema>
 </schemalist>

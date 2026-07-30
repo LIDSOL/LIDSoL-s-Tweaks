@@ -858,6 +858,8 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
 
     mainGroup.add(createSwitchRow({ settings: s, bindKey: 'launcher-use-animations', title: 'Usar animaciones' }));
     mainGroup.add(createSpinButtonRow({ settings: s, bindKey: 'launcher-animation-speed', title: 'Velocidad de animación (ms)', adjProps: { lower: 50, upper: 500, step_increment: 10 } }));
+    const overviewGroup = createGroup({ parent: page, title: 'Overview', description: 'Ajustes relacionados con la vista general' });
+    overviewGroup.add(createSwitchRow({ settings: s, bindKey: 'launcher-hide-search', title: 'Ocultar barra de búsqueda', subtitle: 'Oculta el campo "Type to search" en el Overview. Aparece al empezar a escribir.' }));
   }
 
   _buildUserAvatarDialog(page) {

@@ -160,6 +160,7 @@ export class Launcher {
         if (this._entryParent) {
             this._entryParent.remove_child(this._entry);
         }
+        this._entry.opacity = 255;
         this.container.add_child(this._entry);
 
         if (this._searchParent) {

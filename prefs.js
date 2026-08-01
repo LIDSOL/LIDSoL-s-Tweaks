@@ -212,6 +212,13 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
       subtitle: 'Indicador de espacios de trabajo estilo Space Bar',
       onDetailed: () => this._openDialog('Workspace Indicator', p => this._buildWorkspaceIndicatorDialog(p)),
     }));
+    group.add(createModuleRow({
+      settings: this._settings,
+      bindKey: 'battery-indicator-enabled',
+      title: 'Battery Indicator',
+      subtitle: 'Círculo y/o barra personalizados para la batería en la barra superior',
+      onDetailed: () => this._openDialog('Battery Indicator', p => this._buildBatteryIndicatorDialog(p)),
+    }));
     page.add(group);
 
     const dmGroup = new Adw.PreferencesGroup({
@@ -242,6 +249,70 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
       },
     }));
     page.add(orgGroup);
+  }
+
+  _buildBatteryIndicatorDialog(page) {
+    const s = this._settings;
+
+    const mainGroup = new Adw.PreferencesGroup({
+      title: 'Estilo',
+      description: 'Configura el estilo del indicador en la barra superior.',
+    });
+    const styleOptions = {
+      'circle': 'Círculo',
+      'bar': 'Barra',
+      'both': 'Ambos',
+    };
+    mainGroup.add(createComboRow({
+      settings: s, bindKey: 'bi-top-bar-style', title: 'Estilo', subtitle: 'Círculo, barra, o ambos', options: styleOptions,
+    }));
+    mainGroup.add(createSwitchRow({
+      settings: s, bindKey: 'bi-show-percentage',
+      title: 'Mostrar porcentaje', subtitle: 'Muestra el porcentaje junto al indicador',
+    }));
+    mainGroup.add(createSpinButtonRow({
+      settings: s, bindKey: 'bi-position', title: 'Posición', subtitle: '0=izquierda, 1=centro, 2=derecha',
+      adjProps: { lower: 0, upper: 2, step: 1 },
+    }));
+    mainGroup.add(createSpinButtonRow({
+      settings: s, bindKey: 'bi-offset', title: 'Desplazamiento', subtitle: 'Orden dentro de la sección',
+      adjProps: { lower: 0, upper: 100, step: 1 },
+    }));
+    page.add(mainGroup);
+
+    const barGroup = new Adw.PreferencesGroup({
+      title: 'Barra',
+      description: 'Configura la apariencia de la barra de batería.',
+    });
+    barGroup.add(createSpinButtonRow({
+      settings: s, bindKey: 'bi-bar-width', title: 'Ancho', subtitle: 'Ancho en píxeles',
+      adjProps: { lower: 20, upper: 300, step: 1 },
+    }));
+    barGroup.add(createSpinButtonRow({
+      settings: s, bindKey: 'bi-bar-height', title: 'Alto', subtitle: 'Alto en píxeles',
+      adjProps: { lower: 4, upper: 40, step: 1 },
+    }));
+    barGroup.add(createSpinButtonRow({
+      settings: s, bindKey: 'bi-bar-radius', title: 'Redondeo', subtitle: 'Radio de borde en píxeles',
+      adjProps: { lower: 0, upper: 20, step: 1 },
+    }));
+    barGroup.add(createSpinButtonRow({
+      settings: s, bindKey: 'bi-low-threshold', title: 'Umbral bajo', subtitle: 'Porcentaje para activar el color de batería baja',
+      adjProps: { lower: 0, upper: 100, step: 1 },
+    }));
+    barGroup.add(createColorButtonRow({
+      settings: s, bindKey: 'bi-color', title: 'Color normal', subtitle: 'Vacío usa el color del tema',
+    }));
+    barGroup.add(createColorButtonRow({
+      settings: s, bindKey: 'bi-charging-color', title: 'Color de carga', subtitle: 'Vacío usa el color del tema',
+    }));
+    barGroup.add(createColorButtonRow({
+      settings: s, bindKey: 'bi-low-color', title: 'Color batería baja', subtitle: 'Vacío usa el color del tema',
+    }));
+    barGroup.add(createColorButtonRow({
+      settings: s, bindKey: 'bi-bg-color', title: 'Color de fondo', subtitle: 'Vacío usa el color por defecto',
+    }));
+    page.add(barGroup);
   }
 
   _addGeneralPage(page) {

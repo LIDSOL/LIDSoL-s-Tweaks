@@ -1553,5 +1553,78 @@
       <summary>Ocultar barra de búsqueda del Overview</summary>
       <description>Oculta el campo "Type to search" en el Overview. Aparece al empezar a escribir.</description>
     </key>
+
+    <!-- Battery Indicator -->
+    <key type="b" name="battery-indicator-enabled">
+      <default>false</default>
+      <summary>Habilitar indicador de batería personalizado</summary>
+      <description>Reemplaza el indicador nativo de batería con un círculo y/o barra personalizados</description>
+    </key>
+    <key name="bi-top-bar-style" type="s">
+      <choices>
+        <choice value="circle"/>
+        <choice value="bar"/>
+        <choice value="both"/>
+      </choices>
+      <default>"circle"</default>
+      <summary>Estilo del indicador en la barra superior</summary>
+      <description>Círculo, barra, o ambos</description>
+    </key>
+    <key name="bi-show-percentage" type="b">
+      <default>false</default>
+      <summary>Mostrar porcentaje</summary>
+      <description>Muestra el porcentaje de batería junto al indicador</description>
+    </key>
+    <key name="bi-position" type="i">
+      <range min="0" max="2"/>
+      <default>2</default>
+      <summary>Posición en la barra superior</summary>
+      <description>0=izquierda, 1=centro, 2=derecha</description>
+    </key>
+    <key name="bi-offset" type="i">
+      <range min="0" max="100"/>
+      <default>0</default>
+      <summary>Desplazamiento en la barra</summary>
+    </key>
+    <key name="bi-bar-width" type="i">
+      <default>80</default>
+      <range min="20" max="300"/>
+      <summary>Ancho de la barra</summary>
+    </key>
+    <key name="bi-bar-height" type="i">
+      <default>16</default>
+      <range min="8" max="32"/>
+      <summary>Alto de la barra</summary>
+    </key>
+    <key name="bi-bar-radius" type="i">
+      <default>7</default>
+      <range min="0" max="20"/>
+      <summary>Redondeo de la barra</summary>
+    </key>
+    <key name="bi-low-threshold" type="i">
+      <default>20</default>
+      <range min="0" max="100"/>
+      <summary>Umbral de batería baja</summary>
+    </key>
+    <key name="bi-color" type="s">
+      <default>""</default>
+      <summary>Color de la barra/círculo</summary>
+      <description>Color CSS. Vacío usa el color del tema.</description>
+    </key>
+    <key name="bi-charging-color" type="s">
+      <default>""</default>
+      <summary>Color de carga</summary>
+      <description>Color CSS cuando está cargando. Vacío usa el color del tema.</description>
+    </key>
+    <key name="bi-low-color" type="s">
+      <default>""</default>
+      <summary>Color de batería baja</summary>
+      <description>Color CSS para batería baja. Vacío usa el color del tema.</description>
+    </key>
+    <key name="bi-bg-color" type="s">
+      <default>""</default>
+      <summary>Color de fondo de la barra</summary>
+      <description>Color CSS de fondo de la barra. Vacío usa el color por defecto.</description>
+    </key>
   </schema>
 </schemalist>

@@ -14,6 +14,7 @@ import { NotificationMediaModule } from '../modules/notificationMedia/module.js'
 import { UserAvatarDateMenuModule } from '../modules/userAvatarDateMenu/module.js';
 import { DateMenuMediaModule } from '../modules/dateMenuMedia/module.js';
 import { LauncherModule } from '../modules/launcher/module.js';
+import { BatteryIndicatorModule } from '../modules/batteryIndicator/module.js';
 
 const REGISTERED_MODULES = [
     {
@@ -99,6 +100,12 @@ const REGISTERED_MODULES = [
         name: 'Launcher',
         enabledKey: 'launcher-enabled',
         moduleClass: LauncherModule
+    },
+    {
+        id: 'batteryIndicator',
+        name: 'Battery Indicator',
+        enabledKey: 'battery-indicator-enabled',
+        moduleClass: BatteryIndicatorModule
     }
 ];
 

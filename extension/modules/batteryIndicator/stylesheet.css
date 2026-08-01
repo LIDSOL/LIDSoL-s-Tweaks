@@ -1,0 +1,16 @@
+.lidsol-bi-circle {
+    margin: 0 2px;
+}
+
+.lidsol-bi-bar {
+    min-width: 60px;
+}
+
+.lidsol-bi-label {
+    font-size: 11px;
+    margin: 0 3px;
+}
+
+.lidsol-bi-level-fill {
+    min-height: 100%;
+}

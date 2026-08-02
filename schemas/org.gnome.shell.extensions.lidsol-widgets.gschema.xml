@@ -1380,8 +1380,26 @@
     </key>
 
     <key type="s" name="dashboard-layout-json">
-      <default>'{"vertical":true,"children":[{"vertical":false,"x_expand":true,"children":["clock","settings","system"]},{"vertical":false,"x_expand":true,"children":[{"vertical":true,"children":["media","links"]},"apps"]},{"vertical":false,"x_expand":true,"children":["user","levels"]}]}'</default>
+      <default>'{"type":"grid","columns":3,"children":[{"widget":"clock","col":0,"row":0},{"widget":"settings","col":1,"row":0},{"widget":"system","col":2,"row":0},{"widget":"apps","col":0,"row":1,"col_span":2,"row_span":2},{"widget":"media","col":2,"row":1,"row_span":2},{"widget":"user","col":0,"row":3},{"widget":"levels","col":1,"row":3,"col_span":2}]}'</default>
       <summary>Layout JSON</summary>
+    </key>
+
+    <key type="i" name="dashboard-grid-spacing">
+      <range min="0" max="60"/>
+      <default>12</default>
+      <summary>Espaciado uniforme de la cuadrícula</summary>
+      <description>Separación uniforme entre filas y columnas del layout en grid</description>
+    </key>
+    <key type="i" name="dashboard-grid-columns">
+      <range min="1" max="6"/>
+      <default>3</default>
+      <summary>Columnas de la cuadrícula</summary>
+      <description>Número de columnas usado para colocar automáticamente los widgets sin posición explícita</description>
+    </key>
+    <key type="b" name="dashboard-grid-homogeneous">
+      <default>false</default>
+      <summary>Celdas homogéneas</summary>
+      <description>Hace que todas las columnas y filas tengan el mismo tamaño</description>
     </key>
 
     <key type="i" name="dashboard-read-config">

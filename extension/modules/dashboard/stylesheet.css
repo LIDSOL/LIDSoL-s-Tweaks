@@ -7,6 +7,10 @@
     padding: 4px;
 }
 
+.dashboard .grid-container {
+    padding: 4px;
+}
+
 .dashboard .dash-widget {
     padding: 8px;
     border-radius: 12px;

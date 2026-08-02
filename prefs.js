@@ -775,6 +775,24 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     dashGroup.add(_makeExpandRow('Darken Background', 'dashboard-darken'));
     page.add(dashGroup);
 
+    // ── Grid group ──
+    const gridGroup = new Adw.PreferencesGroup({ title: 'Grid Layout' });
+    gridGroup.add(_makeSpinRow('Spacing', 'dashboard-grid-spacing', 0, 60, 1));
+    gridGroup.add(_makeSpinRow('Columns', 'dashboard-grid-columns', 1, 6, 1));
+    gridGroup.add(_makeExpandRow('Homogeneous Cells', 'dashboard-grid-homogeneous'));
+
+    const resetLayoutRow = new Adw.ActionRow({
+      title: 'Reset Layout',
+      subtitle: 'Restore the default grid layout',
+    });
+    const resetLayoutBtn = new Gtk.Button({ label: 'Reset', valign: Gtk.Align.CENTER });
+    resetLayoutBtn.connect('clicked', () => {
+      s.reset('dashboard-layout-json');
+    });
+    resetLayoutRow.add_suffix(resetLayoutBtn);
+    gridGroup.add(resetLayoutRow);
+    page.add(gridGroup);
+
     // ── Widgets group ──
     const widgetsGroup = new Adw.PreferencesGroup({ title: 'Widgets' });
     page.add(widgetsGroup);

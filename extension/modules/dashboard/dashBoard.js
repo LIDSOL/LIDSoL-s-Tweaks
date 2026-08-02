@@ -149,6 +149,8 @@ class DashBoardModal extends ModalDialog.ModalDialog {
                 return new St.BoxLayout({ style_class: 'container' });
             }
         }
+        if (obj.type === 'grid')
+            return this._parseGrid(obj);
         const box = new St.BoxLayout({
             style_class: 'container',
             vertical: obj.vertical || false,
@@ -171,6 +173,73 @@ class DashBoardModal extends ModalDialog.ModalDialog {
             }
         }
         return box;
+    }
+
+    _parseGrid(obj) {
+        const spacing = this._settings.get_int('dashboard-grid-spacing');
+        const columns = obj.columns || this._settings.get_int('dashboard-grid-columns');
+        const homogeneous = obj.homogeneous ?? this._settings.get_boolean('dashboard-grid-homogeneous');
+
+        const layout = new Clutter.GridLayout({
+            row_spacing: spacing,
+            column_spacing: spacing,
+            row_homogeneous: homogeneous,
+            column_homogeneous: homogeneous,
+        });
+        const grid = new St.Widget({
+            style_class: 'container grid-container',
+            layout_manager: layout,
+            x_expand: true,
+            y_expand: true,
+            x_align: Clutter.ActorAlign.FILL,
+            y_align: Clutter.ActorAlign.FILL,
+        });
+        layout.hookup_style(grid);
+
+        let nextRow = 0;
+        let nextCol = 0;
+        const children = obj.children || [];
+        for (let i = 0; i < children.length; i++) {
+            const child = children[i];
+            try {
+                const widget = this._parseGridChild(child);
+                if (!widget)
+                    continue;
+
+                const col = child.col ?? nextCol;
+                const row = child.row ?? nextRow;
+                const colSpan = child.col_span ?? 1;
+                const rowSpan = child.row_span ?? 1;
+
+                widget.x_expand = true;
+                widget.y_expand = true;
+                widget.x_align = Clutter.ActorAlign.FILL;
+                widget.y_align = Clutter.ActorAlign.FILL;
+
+                layout.attach(widget, col, row, colSpan, rowSpan);
+
+                if (child.col === undefined && child.row === undefined) {
+                    nextCol += colSpan;
+                    if (nextCol >= columns) {
+                        nextCol = 0;
+                        nextRow++;
+                    }
+                }
+            } catch (e) {
+                console.error('[LIDSoL Dashboard] Error parsing grid child:', e);
+            }
+        }
+        return grid;
+    }
+
+    _parseGridChild(child) {
+        if (typeof child === 'string')
+            return this._widgetList[child]();
+        if (child.widget && this._widgetList[child.widget])
+            return this._widgetList[child.widget]();
+        if (child.type === 'grid' || child.vertical !== undefined || child.children)
+            return this._parseJson(child);
+        return null;
     }
 
     _parseAlign(align) {

@@ -22,6 +22,9 @@ const SETTINGS_KEYS = [
     'dashboard-y-offset',
     'dashboard-darken',
     'dashboard-layout-json',
+    'dashboard-grid-spacing',
+    'dashboard-grid-columns',
+    'dashboard-grid-homogeneous',
     'dashboard-hide-activities',
 ];
 

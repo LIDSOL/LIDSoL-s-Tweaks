@@ -17,6 +17,13 @@ var DashboardMediaWidget = GObject.registerClass({
   _init(settings) {
     const mpris = MprisService.getDefault();
     super._init(settings, mpris);
+
+    // Keep the dashboard open when interacting with the media widget.
+    // St.Widget/St.BoxLayout default to non-reactive, so presses on the
+    // widget's non-reactive areas (cover, labels, empty space) used to fall
+    // through to the dashboard's close-on-press handler (dashBoard.js).
+    this.reactive = true;
+    this.connect('button-press-event', () => Clutter.EVENT_STOP);
   }
 
   _getStyle(name) {
@@ -27,6 +34,39 @@ var DashboardMediaWidget = GObject.registerClass({
     const btn = super._makeControlButton(iconName, callback);
     btn.add_style_class_name('dashboard-media-control-button');
     return btn;
+  }
+
+  _updatePageIndicator() {
+    super._updatePageIndicator();
+    this._wireDotTaps();
+  }
+
+  _wireDotTaps() {
+    const ind = this._pageIndicator;
+    if (!ind)
+      return;
+    for (const dot of ind.get_children()) {
+      if (dot._tapWired)
+        continue;
+      dot._tapWired = true;
+      dot._tapFired = false;
+      // St.Button "clicked" is a Clutter gesture, which ignores synthetic/tap
+      // events, so the dots would not respond to trackpad taps. Handle
+      // press/release directly and keep the dashboard open while at it.
+      dot.connect('button-press-event', () => {
+        dot._tapFired = false;
+        return Clutter.EVENT_STOP;
+      });
+      dot.connect('button-release-event', () => {
+        const index = ind.get_children().indexOf(dot);
+        if (index >= 0 && !dot._tapFired)
+          ind.emit('page-activated', index);
+        return Clutter.EVENT_STOP;
+      });
+      dot.connect('clicked', () => {
+        dot._tapFired = true;
+      });
+    }
   }
 
   _buildCustomUI() {

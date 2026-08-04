@@ -221,6 +221,19 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     }));
     page.add(group);
 
+    const startGroup = new Adw.PreferencesGroup({
+      title: 'Start Icon',
+      description: 'Botón de inicio en el panel que abre el dashboard (y más adelante, el launcher).',
+    });
+    startGroup.add(createModuleRow({
+      settings: this._settings,
+      bindKey: 'dashboard-button-enable',
+      title: 'Start Icon',
+      subtitle: 'Botón de panel que abre el dashboard',
+      onDetailed: () => this._openDialog('Start Icon', p => this._buildStartIconDialog(p)),
+    }));
+    page.add(startGroup);
+
     const dmGroup = new Adw.PreferencesGroup({
       title: 'Date Menu',
       description: 'Formato personalizado del reloj del panel con indicador multimedia.',
@@ -655,51 +668,6 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
       if (extraRows) extraRows(expander);
       return expander;
     }
-
-    // ── Panel Button group ──
-    const buttonGroup = new Adw.PreferencesGroup({ title: 'Panel Button' });
-
-    const enableSwitch = new Adw.SwitchRow({
-      title: 'Enable Panel Button',
-      active: s.get_boolean('dashboard-button-enable'),
-    });
-    s.bind('dashboard-button-enable', enableSwitch, 'active', Gio.SettingsBindFlags.DEFAULT);
-
-    const enableExpander = new Adw.ExpanderRow({ title: 'Panel Button' });
-    enableExpander.add_row(enableSwitch);
-
-    const posModel = new Gtk.StringList({ strings: ['Left', 'Center', 'Right'] });
-    const posRow = new Adw.ComboRow({ title: 'Position', model: posModel, selected: s.get_int('dashboard-position') });
-    posRow.connect('notify::selected', () => s.set_int('dashboard-position', posRow.selected));
-    enableExpander.add_row(posRow);
-
-    enableExpander.add_row(_makeSpinRow('Offset', 'dashboard-offset', 0, 100, 1));
-
-    const showIconRow = new Adw.SwitchRow({
-      title: 'Show Icon',
-      active: s.get_boolean('dashboard-button-show-icon'),
-    });
-    s.bind('dashboard-button-show-icon', showIconRow, 'active', Gio.SettingsBindFlags.DEFAULT);
-    enableExpander.add_row(showIconRow);
-
-    const iconPathEntry = new Gtk.Entry({ text: s.get_string('dashboard-button-icon-path'), valign: Gtk.Align.CENTER });
-    const focusCtrl = new Gtk.EventControllerFocus();
-    focusCtrl.connect('leave', () => s.set_string('dashboard-button-icon-path', iconPathEntry.get_buffer().text));
-    iconPathEntry.add_controller(focusCtrl);
-    const iconPathRow = new Adw.ActionRow({ title: 'Icon Path', activatable_widget: iconPathEntry });
-    iconPathRow.add_suffix(iconPathEntry);
-    enableExpander.add_row(iconPathRow);
-
-    const labelEntry = new Gtk.Entry({ text: s.get_string('dashboard-button-label'), valign: Gtk.Align.CENTER });
-    const labelFocusCtrl = new Gtk.EventControllerFocus();
-    labelFocusCtrl.connect('leave', () => s.set_string('dashboard-button-label', labelEntry.get_buffer().text));
-    labelEntry.add_controller(labelFocusCtrl);
-    const labelRow = new Adw.ActionRow({ title: 'Label', activatable_widget: labelEntry });
-    labelRow.add_suffix(labelEntry);
-    enableExpander.add_row(labelRow);
-
-    buttonGroup.add(enableExpander);
-    page.add(buttonGroup);
 
     // ── Dash group ──
     const dashGroup = new Adw.PreferencesGroup({ title: 'Dash' });

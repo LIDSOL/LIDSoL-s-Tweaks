@@ -117,22 +117,39 @@ const AvatarItem = GObject.registerClass(
 
             this.accessible_name = this._settingsApp?.get_name() ?? null;
 
-            this.connect('clicked', () => {
-                Main.overview.hide();
-                Main.panel.closeQuickSettings();
-                if (this._settingsApp) {
-                    const windows = this._settingsApp.get_windows();
-                    if (windows.length > 0) {
-                        const win = windows[0];
-                        GLib.timeout_add(GLib.PRIORITY_DEFAULT, 150, () => {
-                            win.activate(0);
-                            return GLib.SOURCE_REMOVE;
-                        });
-                    } else {
-                        Util.spawn(['gnome-control-center', 'system', 'users']);
-                    }
-                }
+            // St.Button "clicked" is gesture-based in GNOME 50 and ignores
+            // tap/synthetic events, so handle press/release directly too.
+            this._clickedFired = false;
+            this.connect('button-press-event', () => {
+                this._clickedFired = false;
+                return Clutter.EVENT_STOP;
             });
+            this.connect('button-release-event', () => {
+                if (!this._clickedFired)
+                    this._openSettings();
+                return Clutter.EVENT_STOP;
+            });
+            this.connect('clicked', () => {
+                this._clickedFired = true;
+                this._openSettings();
+            });
+        }
+
+        _openSettings() {
+            Main.overview.hide();
+            Main.panel.closeQuickSettings();
+            if (this._settingsApp) {
+                const windows = this._settingsApp.get_windows();
+                if (windows.length > 0) {
+                    const win = windows[0];
+                    GLib.timeout_add(GLib.PRIORITY_DEFAULT, 150, () => {
+                        win.activate(0);
+                        return GLib.SOURCE_REMOVE;
+                    });
+                } else {
+                    Util.spawn(['gnome-control-center', 'system', 'users']);
+                }
+            }
         }
     }
 );

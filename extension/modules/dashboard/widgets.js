@@ -77,7 +77,22 @@ class HoverButton extends St.Button {
             can_focus: true,
             track_hover: true,
         });
-        this.connect('clicked', callback);
+        // GNOME 50's St.Button "clicked" is a Clutter gesture, which ignores
+        // synthetic/tap events, so we handle press/release directly instead.
+        this._clickedFired = false;
+        this.connect('button-press-event', () => {
+            this._clickedFired = false;
+            return Clutter.EVENT_STOP;
+        });
+        this.connect('button-release-event', () => {
+            if (!this._clickedFired)
+                callback();
+            return Clutter.EVENT_STOP;
+        });
+        this.connect('clicked', () => {
+            this._clickedFired = true;
+            callback();
+        });
         this.connect('notify::hover', () => this._toggleHoverLabel());
         this._hoverLabel = new St.Label({
             style_class: 'dash-label',
@@ -548,7 +563,29 @@ class AppBtn extends Dash.DashIcon {
         this.pos = pos;
         this.settings = settings;
 
+        // St.Button "clicked" is gesture-based in GNOME 50 and ignores taps,
+        // so fall back to direct release handling (guarded against drags and
+        // double activation when the gesture does recognize).
+        this._clickedFired = false;
+        this._pressTime = 0;
+        this._pressX = 0;
+        this._pressY = 0;
+
+        this.connect('button-press-event', (self, event) => {
+            this._clickedFired = false;
+            this._pressTime = event.get_time();
+            [this._pressX, this._pressY] = event.get_coords();
+            return Clutter.EVENT_STOP;
+        });
+        this.connect('button-release-event', (self, event) => {
+            if (!this._clickedFired && this._isTap(event)) {
+                this.activate();
+                if (parentDialog) parentDialog.close();
+            }
+            return Clutter.EVENT_STOP;
+        });
         this.connect('clicked', () => {
+            this._clickedFired = true;
             if (parentDialog) parentDialog.close();
         });
         this._changeIconSize();
@@ -559,6 +596,16 @@ class AppBtn extends Dash.DashIcon {
 
     _changeIconSize() {
         this.icon.setIconSize(this.settings.get_int('dashboard-apps-icon-size'));
+    }
+
+    _isTap(event) {
+        const elapsed = event.get_time() - this._pressTime;
+        if (elapsed > 500)
+            return false;
+        const [x, y] = event.get_coords();
+        const dx = x - this._pressX;
+        const dy = y - this._pressY;
+        return Math.hypot(dx, dy) < 20;
     }
 
     acceptDrop(source) {

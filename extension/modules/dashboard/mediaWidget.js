@@ -245,6 +245,19 @@ var DashboardMediaWidget = GObject.registerClass({
     this._playerName.opacity = 153;
     this._playerName.style = '';
 
+    // The progress row lives inside _infoCol by default (styles 0 and 2).
+    // Style 1 (horizontal) relocates it below the body row so it can span
+    // the full widget width instead of being squeezed next to a wide cover.
+    // Restore it here on every layout pass.
+    if (this._progress.get_parent() !== this._infoCol) {
+      if (this._progress.get_parent())
+        this._progress.get_parent().remove_child(this._progress);
+      this._infoCol.insert_child_at_index(this._progress, 2);
+    }
+    this._progress.x_expand = false;
+    this._progress.y_expand = false;
+    this._progress.y_align = Clutter.ActorAlign.CENTER;
+
     this._coverContainer.x_align = Clutter.ActorAlign.CENTER;
     this._coverContainer.x_expand = false;
     this._coverContainer.y_expand = false;
@@ -301,18 +314,19 @@ var DashboardMediaWidget = GObject.registerClass({
       this._art.x_align = Clutter.ActorAlign.FILL;
       this._art.y_align = Clutter.ActorAlign.FILL;
 
-      this._infoCol.x_align = Clutter.ActorAlign.CENTER;
-      this._infoCol.x_expand = false;
+      this._infoCol.x_align = Clutter.ActorAlign.FILL;
+      this._infoCol.x_expand = true;
       this._titleLabel.x_align = Clutter.ActorAlign.CENTER;
       this._artistLabel.x_align = Clutter.ActorAlign.CENTER;
-      this._progress.x_align = Clutter.ActorAlign.CENTER;
+      this._progress.x_expand = true;
+      this._progress.x_align = Clutter.ActorAlign.FILL;
       this._controls.x_align = Clutter.ActorAlign.CENTER;
 
       this._syncCoverCSS();
     } else if (style === 1) {
       this._bodyRow.vertical = false;
-      this._bodyRow.x_align = Clutter.ActorAlign.CENTER;
-      this._bodyRow.x_expand = false;
+      this._bodyRow.x_align = Clutter.ActorAlign.FILL;
+      this._bodyRow.x_expand = true;
 
       this._bodyRow.add_child(this._coverContainer);
       this._bodyRow.add_child(this._infoCol);
@@ -327,14 +341,23 @@ var DashboardMediaWidget = GObject.registerClass({
       this._art.x_align = Clutter.ActorAlign.FILL;
       this._art.y_align = Clutter.ActorAlign.FILL;
 
-      this._infoCol.x_align = Clutter.ActorAlign.CENTER;
-      this._infoCol.x_expand = false;
+      this._infoCol.x_align = Clutter.ActorAlign.FILL;
+      this._infoCol.x_expand = true;
       this._infoCol.y_align = Clutter.ActorAlign.CENTER;
       this._infoCol.y_expand = false;
       this._titleLabel.x_align = Clutter.ActorAlign.CENTER;
       this._artistLabel.x_align = Clutter.ActorAlign.CENTER;
-      this._progress.x_align = Clutter.ActorAlign.CENTER;
       this._controls.x_align = Clutter.ActorAlign.CENTER;
+
+      // The progress row spans the full widget width below the cover+info
+      // row, so the slider has room even when the cover is wide.
+      if (this._progress.get_parent() === this._infoCol)
+        this._infoCol.remove_child(this._progress);
+      this.add_child(this._progress);
+      this._progress.x_expand = true;
+      this._progress.x_align = Clutter.ActorAlign.FILL;
+      this._progress.y_expand = false;
+      this._progress.y_align = Clutter.ActorAlign.CENTER;
 
       this._syncCoverCSS();
     } else if (isFull) {
@@ -377,7 +400,9 @@ var DashboardMediaWidget = GObject.registerClass({
       const pad = showText ? 'padding:20px 6px 8px;' : 'padding:0 6px 4px;';
       this._infoCol.style = `overflow:hidden;${pad}`;
 
+      this._bodyRow.add_child(this._spacerTop);
       this._bodyRow.add_child(this._coverOverlay);
+      this._bodyRow.add_child(this._spacerBottom);
       this._coverOverlay.visible = true;
 
       this._syncCoverCSS();

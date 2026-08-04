@@ -258,6 +258,12 @@ var DashboardMediaWidget = GObject.registerClass({
     this._progress.y_expand = false;
     this._progress.y_align = Clutter.ActorAlign.CENTER;
 
+    // Full mode reorders _infoCol as [controls, progress, title, artist];
+    // restore the canonical [title, artist, progress, controls] here.
+    if (this._controls.get_parent() === this._infoCol)
+      this._infoCol.remove_child(this._controls);
+    this._infoCol.add_child(this._controls);
+
     this._coverContainer.x_align = Clutter.ActorAlign.CENTER;
     this._coverContainer.x_expand = false;
     this._coverContainer.y_expand = false;
@@ -383,7 +389,8 @@ var DashboardMediaWidget = GObject.registerClass({
       this._art.y_align = Clutter.ActorAlign.FILL;
 
       // Gradient only when Fade is enabled; it fills the overlay, i.e. the
-      // exact same area as the cover art.
+      // exact same area as the cover art. Smooth from the top, a bit
+      // stronger towards the bottom (see _syncCoverCSS).
       this._coverGradient.x_expand = true;
       this._coverGradient.y_expand = true;
       this._coverGradient.x_align = Clutter.ActorAlign.FILL;
@@ -399,6 +406,15 @@ var DashboardMediaWidget = GObject.registerClass({
 
       const pad = showText ? 'padding:20px 6px 8px;' : 'padding:0 6px 4px;';
       this._infoCol.style = `overflow:hidden;${pad}`;
+
+      // Full mode: _infoCol is ordered [controls, progress, title, artist].
+      // The reset block above restores the canonical order on the next pass.
+      if (this._controls.get_parent() === this._infoCol)
+        this._infoCol.remove_child(this._controls);
+      this._infoCol.insert_child_at_index(this._controls, 0);
+      if (this._progress.get_parent() === this._infoCol)
+        this._infoCol.remove_child(this._progress);
+      this._infoCol.insert_child_at_index(this._progress, 1);
 
       this._bodyRow.add_child(this._spacerTop);
       this._bodyRow.add_child(this._coverOverlay);
@@ -422,7 +438,7 @@ var DashboardMediaWidget = GObject.registerClass({
       this._coverGradient.set_style(`
                 background-gradient-direction: vertical;
                 background-gradient-start: rgba(0,0,0,0);
-                background-gradient-end: rgba(0,0,0,0.55);
+                background-gradient-end: rgba(0,0,0,0.70);
                 border-radius: 0 0 ${r}px ${r}px;
             `);
     } else {

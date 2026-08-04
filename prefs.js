@@ -811,7 +811,6 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
       exp.add_row(_makeExpandRow('Fade', 'dashboard-media-fade'));
       exp.add_row(_makeExpandRow('Show Text', 'dashboard-media-show-text'));
 
-      exp.add_row(_makeExpandRow('Show Volume Slider', 'dashboard-media-show-volume'));
       exp.add_row(_makeExpandRow('Show Loop and Shuffle', 'dashboard-media-show-loop-shuffle'));
     }));
 

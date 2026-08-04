@@ -1374,6 +1374,17 @@
       <default>true</default>
       <summary>Oscurecer fondo</summary>
     </key>
+    <key type="b" name="dashboard-container-transparent">
+      <default>false</default>
+      <summary>Contenedor transparente</summary>
+      <description>Hace transparente el contenedor (wrapper) que envuelve todos los widgets del dashboard</description>
+    </key>
+    <key type="i" name="dashboard-dialog-scale">
+      <range min="50" max="150"/>
+      <default>100</default>
+      <summary>Escala del contenedor</summary>
+      <description>Porcentaje de escala aplicado al padding del contenedor (marco) que rodea los widgets. Los widgets conservan su tamaño natural y se mantienen centrados sin desbordamiento</description>
+    </key>
 
     <key type="s" name="dashboard-layout-json">
       <default>'{"type":"grid","columns":3,"children":[{"widget":"system","col":0,"row":0},{"widget":"clock","col":1,"row":0,"col_span":2},{"widget":"apps","col":0,"row":1,"row_span":2},{"widget":"media","col":1,"row":1,"col_span":2,"row_span":2},{"widget":"levels","col":0,"row":3},{"widget":"user","col":1,"row":3,"col_span":2}]}'</default>

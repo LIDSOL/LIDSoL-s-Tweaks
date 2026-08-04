@@ -735,6 +735,8 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     dashGroup.add(_makeSpinRow('X Offset', 'dashboard-x-offset', -1000, 1000, 10));
     dashGroup.add(_makeSpinRow('Y Offset', 'dashboard-y-offset', -1000, 1000, 10));
     dashGroup.add(_makeExpandRow('Darken Background', 'dashboard-darken'));
+    dashGroup.add(_makeExpandRow('Transparent Container', 'dashboard-container-transparent'));
+    dashGroup.add(_makeSpinRow('Container Scale (%)', 'dashboard-dialog-scale', 50, 150, 5));
     page.add(dashGroup);
 
     // ── Grid group ──

@@ -21,6 +21,8 @@ const SETTINGS_KEYS = [
     'dashboard-x-offset',
     'dashboard-y-offset',
     'dashboard-darken',
+    'dashboard-container-transparent',
+    'dashboard-dialog-scale',
     'dashboard-layout-json',
     'dashboard-grid-spacing',
     'dashboard-grid-columns',

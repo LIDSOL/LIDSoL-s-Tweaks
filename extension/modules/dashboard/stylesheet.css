@@ -20,6 +20,14 @@
     background-color: rgba(255, 255, 255, 0.08);
 }
 
+.dashboard.container-transparent .dash-widget.events-button {
+    background-color: rgb(84, 84, 90);
+}
+
+.dashboard.container-transparent .dash-widget.events-button:hover {
+    background-color: rgb(96, 96, 104);
+}
+
 .dashboard .dash-widget.user-widget {
     min-width: 200px;
 }

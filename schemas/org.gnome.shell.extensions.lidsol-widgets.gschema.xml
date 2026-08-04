@@ -1351,10 +1351,6 @@
       <default><![CDATA[['<Ctrl><Super>d']]]></default>
       <summary>Atajo para abrir/cerrar Dashboard</summary>
     </key>
-    <key type="b" name="dashboard-hide-activities">
-      <default>false</default>
-      <summary>Ocultar botón de Actividades</summary>
-    </key>
 
     <key type="i" name="dashboard-x-align">
       <range min="0" max="3"/>
@@ -1380,7 +1376,7 @@
     </key>
 
     <key type="s" name="dashboard-layout-json">
-      <default>'{"type":"grid","columns":3,"children":[{"widget":"clock","col":0,"row":0},{"widget":"settings","col":1,"row":0},{"widget":"system","col":2,"row":0},{"widget":"apps","col":0,"row":1,"col_span":2,"row_span":2},{"widget":"media","col":2,"row":1,"row_span":2},{"widget":"user","col":0,"row":3},{"widget":"levels","col":1,"row":3,"col_span":2}]}'</default>
+      <default>'{"type":"grid","columns":3,"children":[{"widget":"system","col":0,"row":0},{"widget":"clock","col":1,"row":0,"col_span":2},{"widget":"apps","col":0,"row":1,"row_span":2},{"widget":"media","col":1,"row":1,"col_span":2,"row_span":2},{"widget":"levels","col":0,"row":3},{"widget":"user","col":1,"row":3,"col_span":2}]}'</default>
       <summary>Layout JSON</summary>
     </key>
 
@@ -1419,9 +1415,9 @@
     <key type="i" name="dashboard-apps-width"><default>0</default></key>
     <key type="i" name="dashboard-apps-height"><default>0</default></key>
     <key type="b" name="dashboard-apps-background"><default>true</default></key>
-    <key type="i" name="dashboard-apps-rows"><default>3</default></key>
+    <key type="i" name="dashboard-apps-rows"><default>2</default></key>
     <key type="i" name="dashboard-apps-cols"><default>3</default></key>
-    <key type="i" name="dashboard-apps-icon-size"><default>42</default></key>
+    <key type="i" name="dashboard-apps-icon-size"><default>28</default></key>
 
     <!-- Clock Widget -->
     <key type="i" name="dashboard-clock-x-align"><default>0</default></key>
@@ -1447,7 +1443,7 @@
     <key type="b" name="dashboard-levels-show-cpu"><default>true</default></key>
     <key type="b" name="dashboard-levels-show-ram"><default>true</default></key>
     <key type="b" name="dashboard-levels-show-temp"><default>true</default></key>
-    <key type="i" name="dashboard-levels-fixed-width"><default>250</default></key>
+    <key type="i" name="dashboard-levels-fixed-width"><default>200</default></key>
     <key type="s" name="dashboard-levels-command"><default>'gnome-system-monitor'</default></key>
 
     <!-- Links Widget -->
@@ -1472,7 +1468,7 @@
     <key type="i" name="dashboard-media-height"><default>0</default></key>
     <key type="b" name="dashboard-media-background"><default>true</default></key>
     <key type="s" name="dashboard-media-prefer"><default>"spotify"</default></key>
-    <key type="i" name="dashboard-media-style"><default>1</default></key>
+    <key type="i" name="dashboard-media-style"><default>2</default></key>
     <key type="i" name="dashboard-media-cover-width"><default>160</default></key>
     <key type="i" name="dashboard-media-cover-height"><default>160</default></key>
     <key type="i" name="dashboard-media-cover-roundness"><default>8</default></key>

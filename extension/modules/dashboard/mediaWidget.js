@@ -250,8 +250,11 @@ var DashboardMediaWidget = GObject.registerClass({
       this._coverContainer.x_expand = true;
       this._coverContainer.y_expand = true;
       this._coverContainer.x_align = Clutter.ActorAlign.FILL;
+      this._coverContainer.y_align = Clutter.ActorAlign.FILL;
       this._art.x_expand = true;
       this._art.y_expand = true;
+      this._art.x_align = Clutter.ActorAlign.FILL;
+      this._art.y_align = Clutter.ActorAlign.FILL;
 
       // Gradient only when Fade is enabled
       this._coverGradient.x_expand = true;
@@ -269,6 +272,9 @@ var DashboardMediaWidget = GObject.registerClass({
       const pad = showText ? 'padding:20px 6px 8px;' : 'padding:0 6px 4px;';
       this._infoCol.style = `overflow:hidden;${pad}`;
 
+      this._coverOverlay.x_align = Clutter.ActorAlign.FILL;
+      this._coverOverlay.y_align = Clutter.ActorAlign.FILL;
+
       this._bodyRow.add_child(this._coverOverlay);
       this._coverOverlay.visible = true;
 
@@ -283,7 +289,8 @@ var DashboardMediaWidget = GObject.registerClass({
 
     if (isFull) {
       this._coverContainer.set_style(`
-                min-height: ${this._coverHeight + 40}px;
+                width: 100%;
+                height: 100%;
                 border-radius: ${r}px;
                 overflow: hidden;
             `);
@@ -313,10 +320,16 @@ var DashboardMediaWidget = GObject.registerClass({
     const style = this._settings.get_int('dashboard-media-style');
     const isFull = style === 2;
 
-    // In Full mode, art fills the larger container
-    const size = isFull
-      ? Math.min(this._coverWidth + 40, this._coverHeight + 40)
-      : Math.min(this._coverWidth, this._coverHeight);
+    // In Full mode keep the widget square so its grid cell renders as a square
+    if (isFull) {
+      const square = Math.max(this._coverWidth, this._coverHeight) + 40;
+      this.set_style(`min-width: ${square}px; min-height: ${square}px;`);
+    } else {
+      this.set_style('');
+    }
+
+    // In Full mode, art fills the whole widget (preferred min only, FILL expands it)
+    const size = Math.min(this._coverWidth, this._coverHeight);
     this._art.size = size;
     this._art.roundness = this._coverRoundness;
     this._fallbackIcon.icon_size = Math.round(Math.min(this._coverWidth, this._coverHeight) * 0.6);

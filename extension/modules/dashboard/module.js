@@ -25,7 +25,6 @@ const SETTINGS_KEYS = [
     'dashboard-grid-spacing',
     'dashboard-grid-columns',
     'dashboard-grid-homogeneous',
-    'dashboard-hide-activities',
 ];
 
 export class DashboardModule {
@@ -51,11 +50,6 @@ export class DashboardModule {
         );
 
         this._addPanelButton();
-
-        if (this._settings.get_boolean('dashboard-hide-activities')) {
-            this._activities = Main.panel.statusArea.activities.get_parent();
-            this._activities.hide();
-        }
     }
 
     _addPanelButton() {
@@ -95,11 +89,6 @@ export class DashboardModule {
             const themeContext = St.ThemeContext.get_for_stage(global.stage);
             themeContext.get_theme().unload_stylesheet(this._stylesheetFile);
             this._stylesheetFile = null;
-        }
-
-        if (this._activities) {
-            this._activities.show();
-            this._activities = null;
         }
 
         this._extension = null;

@@ -421,7 +421,7 @@ El Gtk.ListBos ahora tiene:
 Con esto se solucionó un bug que no permitia arrastar elementos a una caja vacía.
 ** 673bd3b
 - Port completo del módulo Dashboard desde Aylur's Widgets (GNOME 44 -> 50):
-  - extension/modules/dashboard/module.js — módulo principal con stylesheet, panel button, hide-activities.
+  - extension/modules/dashboard/module.js — módulo principal con stylesheet, panel button.
   - extension/modules/dashboard/dashBoard.js — DashBoardModal (modal dialog con layout JSON) + DashBoardPanelButton (panel button con keybinding)
   - extension/modules/dashboard/stylesheet.css — estilos scoped bajo .dashboard (fix: clases .clock/.date/.day sin scope causaban que el reloj del top bar se volviera enorme al activar el dashboard)
   - extension/modules/dashboard/widgets.js — 8 widgets (User, Levels, Media, Links, Clock, Apps, Settings, System) + HoverButton + AppBtn + LevelsBox

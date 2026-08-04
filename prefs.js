@@ -658,12 +658,6 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
 
     // ── Panel Button group ──
     const buttonGroup = new Adw.PreferencesGroup({ title: 'Panel Button' });
-    const hideActivitiesRow = new Adw.SwitchRow({
-      title: 'Hide Activities Button',
-      active: s.get_boolean('dashboard-hide-activities'),
-    });
-    s.bind('dashboard-hide-activities', hideActivitiesRow, 'active', Gio.SettingsBindFlags.DEFAULT);
-    buttonGroup.add(hideActivitiesRow);
 
     const enableSwitch = new Adw.SwitchRow({
       title: 'Enable Panel Button',
@@ -870,17 +864,14 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
       exp.add_row(_makeSpinRow('Icon Size', 'dashboard-apps-icon-size', 4, 100, 2));
     }));
 
-    widgetsGroup.add(_makeWidgetExpander('settings', 'Settings', exp => {
-      exp.add_row(_makeExpandRow('Vertical', 'dashboard-settings-vertical'));
-      exp.add_row(_makeSpinRow('Icon Size', 'dashboard-settings-icon-size', 4, 100, 2));
-    }));
-
-    widgetsGroup.add(_makeWidgetExpander('system', 'System Actions', exp => {
+    widgetsGroup.add(_makeWidgetExpander('system', 'System & Settings', exp => {
       const layoutModel = new Gtk.StringList({ strings: ['Vertical', 'Horizontal', '2x2'] });
       const layoutRow = new Adw.ComboRow({ title: 'Layout', model: layoutModel, selected: s.get_int('dashboard-system-layout') });
       layoutRow.connect('notify::selected', () => s.set_int('dashboard-system-layout', layoutRow.selected));
       exp.add_row(layoutRow);
       exp.add_row(_makeSpinRow('Icon Size', 'dashboard-system-icon-size', 4, 100, 2));
+      exp.add_row(_makeExpandRow('Settings Vertical', 'dashboard-settings-vertical'));
+      exp.add_row(_makeSpinRow('Settings Icon Size', 'dashboard-settings-icon-size', 4, 100, 2));
     }));
   }
 

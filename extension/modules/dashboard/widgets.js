@@ -662,6 +662,10 @@ class SystemWidget extends DashWidget {
         super._init(settings, 'system', parentDialog, {x_expand: true});
         this._connect('icon-size');
         this._connect('layout');
+        this._handlerIds.push(
+            settings.connect('changed::dashboard-settings-icon-size', () => this._sync()),
+            settings.connect('changed::dashboard-settings-vertical', () => this._sync())
+        );
         this._sync();
     }
 
@@ -670,17 +674,27 @@ class SystemWidget extends DashWidget {
 
         const iconSize = this._settings.get_int('dashboard-system-icon-size');
         const layout = this._settings.get_int('dashboard-system-layout');
+        const settingsIconSize = this._settings.get_int('dashboard-settings-icon-size');
+        const settingsVertical = this._settings.get_boolean('dashboard-settings-vertical');
 
         this.destroy_all_children();
+        this.vertical = true;
+
         const btns = [
             this._button('system-shutdown-symbolic', 'power-off', iconSize, 'Power Off'),
             this._button('system-reboot-symbolic', 'restart', iconSize, 'Reboot'),
             this._button('system-log-out-symbolic', 'logout', iconSize, 'Log Out'),
             this._button('weather-clear-night-symbolic', 'suspend', iconSize, 'Suspend'),
         ];
+
+        const actionsBox = new St.BoxLayout({
+            style_class: 'container',
+            x_expand: true,
+            y_expand: true,
+        });
         switch (layout) {
         case 2: {
-            this.vertical = false;
+            actionsBox.vertical = false;
             const col = () => {
                 return new St.BoxLayout({
                     style_class: 'container',
@@ -695,20 +709,35 @@ class SystemWidget extends DashWidget {
             col1.add_child(btns[1]);
             col2.add_child(btns[0]);
             col2.add_child(btns[3]);
-            this.add_child(col1);
-            this.add_child(col2);
+            actionsBox.add_child(col1);
+            actionsBox.add_child(col2);
             break;
         }
         case 1:
-            this.vertical = true;
-            btns.forEach(btn => this.add_child(btn));
+            actionsBox.vertical = true;
+            btns.forEach(btn => actionsBox.add_child(btn));
             break;
 
         default:
-            this.vertical = false;
-            btns.reverse().forEach(btn => this.add_child(btn));
+            actionsBox.vertical = false;
+            btns.reverse().forEach(btn => actionsBox.add_child(btn));
             break;
         }
+        this.add_child(actionsBox);
+
+        const settingsBox = new St.BoxLayout({
+            style_class: 'container',
+            vertical: settingsVertical,
+            x_expand: true,
+            y_expand: true,
+        });
+        [
+            this._appButton('network-wireless-signal-good-symbolic', 'gnome-wifi-panel', settingsIconSize, 'WiFi'),
+            this._appButton('bluetooth-active-symbolic', 'gnome-bluetooth-panel', settingsIconSize, 'Bluetooth'),
+            this._appButton('org.gnome.Settings-symbolic', 'org.gnome.Settings', settingsIconSize, 'Settings'),
+        ]
+        .forEach(btn => settingsBox.add_child(btn));
+        this.add_child(settingsBox);
     }
 
     _button(icon, action, iconSize, label) {
@@ -720,6 +749,21 @@ class SystemWidget extends DashWidget {
             label,
             () => {
                 SystemActions.getDefault().activateAction(action);
+                if (this._parentDialog) this._parentDialog.close();
+            },
+            this._hasBackground ? 'message-media-control' : 'events-button'
+        );
+    }
+
+    _appButton(icon, panel, iconSize, label) {
+        return new HoverButton(
+            new St.Icon({
+                icon_name: icon,
+                icon_size: iconSize,
+            }),
+            label,
+            () => {
+                Shell.AppSystem.get_default().lookup_app(`${panel}.desktop`).activate();
                 if (this._parentDialog) this._parentDialog.close();
             },
             this._hasBackground ? 'message-media-control' : 'events-button'

@@ -106,6 +106,12 @@ var DashboardMediaWidget = GObject.registerClass({
       visible: false,
     });
 
+    // Expandable spacers used to center content vertically in a BoxLayout.
+    // Clutter only hands extra space along the main axis to *expandable*
+    // children, so a pair of them splits the slack evenly around the content.
+    this._spacerTop = new St.Widget({ y_expand: true });
+    this._spacerBottom = new St.Widget({ y_expand: true });
+
     this._bodyRow = new St.BoxLayout({
       style_class: 'dashboard-media-player',
       x_expand: true,
@@ -225,21 +231,50 @@ var DashboardMediaWidget = GObject.registerClass({
     this._coverGradient.style = '';
 
     // Reset all layout properties to safe defaults before applying mode
+    for (const s of [this._spacerTop, this._spacerBottom]) {
+      if (s.get_parent() === this._bodyRow)
+        this._bodyRow.remove_child(s);
+    }
+
+    // The header always lives in the widget root (base class), above the
+    // bodyRow. Make sure it's back there with default styling.
+    if (this._header.get_parent() !== this)
+      this.insert_child_at_index(this._header, 0);
+    this._header.style = '';
+    this._appIcon.opacity = 153;
+    this._playerName.opacity = 153;
+    this._playerName.style = '';
+
     this._coverContainer.x_align = Clutter.ActorAlign.CENTER;
     this._coverContainer.x_expand = false;
     this._coverContainer.y_expand = false;
+    this._coverContainer.y_align = Clutter.ActorAlign.CENTER;
 
     this._art.x_expand = false;
     this._art.y_expand = false;
+    this._art.x_align = Clutter.ActorAlign.CENTER;
+    this._art.y_align = Clutter.ActorAlign.CENTER;
 
     this._infoCol.x_align = Clutter.ActorAlign.START;
     this._infoCol.x_expand = false;
     this._infoCol.y_align = Clutter.ActorAlign.CENTER;
     this._infoCol.y_expand = false;
 
+    this._titleLabel.x_align = Clutter.ActorAlign.START;
+    this._artistLabel.x_align = Clutter.ActorAlign.START;
+    this._progress.x_align = Clutter.ActorAlign.FILL;
+    this._controls.x_align = Clutter.ActorAlign.END;
+
     this._bodyRow.vertical = true;
     this._bodyRow.x_align = Clutter.ActorAlign.FILL;
     this._bodyRow.x_expand = true;
+    this._bodyRow.y_expand = true;
+    this._bodyRow.y_align = Clutter.ActorAlign.FILL;
+
+    this._coverOverlay.x_expand = false;
+    this._coverOverlay.y_expand = false;
+    this._coverOverlay.x_align = Clutter.ActorAlign.CENTER;
+    this._coverOverlay.y_align = Clutter.ActorAlign.CENTER;
 
     this._coverGradient.visible = false;
 
@@ -248,12 +283,23 @@ var DashboardMediaWidget = GObject.registerClass({
     if (style === 0) {
       this._bodyRow.vertical = true;
 
+      this._bodyRow.add_child(this._spacerTop);
       this._bodyRow.add_child(this._coverContainer);
       this._bodyRow.add_child(this._infoCol);
+      this._bodyRow.add_child(this._spacerBottom);
 
       this._coverContainer.x_align = Clutter.ActorAlign.CENTER;
       this._coverContainer.x_expand = false;
       this._coverContainer.y_expand = false;
+      this._coverContainer.y_align = Clutter.ActorAlign.CENTER;
+
+      // Art must fill the cover container exactly (coverW × coverH), so it
+      // resizes with the Cover Width/Height settings instead of staying at
+      // a fixed square.
+      this._art.x_expand = true;
+      this._art.y_expand = true;
+      this._art.x_align = Clutter.ActorAlign.FILL;
+      this._art.y_align = Clutter.ActorAlign.FILL;
 
       this._infoCol.x_align = Clutter.ActorAlign.CENTER;
       this._infoCol.x_expand = false;
@@ -274,9 +320,17 @@ var DashboardMediaWidget = GObject.registerClass({
       this._coverContainer.x_align = Clutter.ActorAlign.CENTER;
       this._coverContainer.x_expand = false;
       this._coverContainer.y_expand = false;
+      this._coverContainer.y_align = Clutter.ActorAlign.CENTER;
+
+      this._art.x_expand = true;
+      this._art.y_expand = true;
+      this._art.x_align = Clutter.ActorAlign.FILL;
+      this._art.y_align = Clutter.ActorAlign.FILL;
 
       this._infoCol.x_align = Clutter.ActorAlign.CENTER;
       this._infoCol.x_expand = false;
+      this._infoCol.y_align = Clutter.ActorAlign.CENTER;
+      this._infoCol.y_expand = false;
       this._titleLabel.x_align = Clutter.ActorAlign.CENTER;
       this._artistLabel.x_align = Clutter.ActorAlign.CENTER;
       this._progress.x_align = Clutter.ActorAlign.CENTER;
@@ -285,6 +339,15 @@ var DashboardMediaWidget = GObject.registerClass({
       this._syncCoverCSS();
     } else if (isFull) {
       this._bodyRow.vertical = true;
+
+      // Full style: the cover overlay IS the art, sized at 2× the configured
+      // cover dimensions (100×100 → 200×200) and centered in the cell.
+      // Everything (art, gradient, text, progress, controls) is stacked inside
+      // it, so no element can overflow the album art.
+      this._coverOverlay.x_expand = false;
+      this._coverOverlay.y_expand = false;
+      this._coverOverlay.x_align = Clutter.ActorAlign.CENTER;
+      this._coverOverlay.y_align = Clutter.ActorAlign.CENTER;
 
       this._coverOverlay.add_child(this._coverContainer);
       this._coverContainer.x_expand = true;
@@ -296,10 +359,12 @@ var DashboardMediaWidget = GObject.registerClass({
       this._art.x_align = Clutter.ActorAlign.FILL;
       this._art.y_align = Clutter.ActorAlign.FILL;
 
-      // Gradient only when Fade is enabled
+      // Gradient only when Fade is enabled; it fills the overlay, i.e. the
+      // exact same area as the cover art.
       this._coverGradient.x_expand = true;
       this._coverGradient.y_expand = true;
       this._coverGradient.x_align = Clutter.ActorAlign.FILL;
+      this._coverGradient.y_align = Clutter.ActorAlign.FILL;
       this._coverOverlay.add_child(this._coverGradient);
       this._coverGradient.visible = showFade;
 
@@ -311,9 +376,6 @@ var DashboardMediaWidget = GObject.registerClass({
 
       const pad = showText ? 'padding:20px 6px 8px;' : 'padding:0 6px 4px;';
       this._infoCol.style = `overflow:hidden;${pad}`;
-
-      this._coverOverlay.x_align = Clutter.ActorAlign.FILL;
-      this._coverOverlay.y_align = Clutter.ActorAlign.FILL;
 
       this._bodyRow.add_child(this._coverOverlay);
       this._coverOverlay.visible = true;
@@ -329,15 +391,13 @@ var DashboardMediaWidget = GObject.registerClass({
 
     if (isFull) {
       this._coverContainer.set_style(`
-                width: 100%;
-                height: 100%;
                 border-radius: ${r}px;
                 overflow: hidden;
             `);
       this._coverGradient.set_style(`
                 background-gradient-direction: vertical;
-                background-gradient-start: transparent;
-                background-gradient-end: rgba(0,0,0,0.7);
+                background-gradient-start: rgba(0,0,0,0);
+                background-gradient-end: rgba(0,0,0,0.55);
                 border-radius: 0 0 ${r}px ${r}px;
             `);
     } else {
@@ -360,15 +420,21 @@ var DashboardMediaWidget = GObject.registerClass({
     const style = this._settings.get_int('dashboard-media-style');
     const isFull = style === 2;
 
-    // In Full mode keep the widget square so its grid cell renders as a square
+    // In Full mode the cover is rendered at 2× the configured size
+    // (100×100 → 200×200) so the overlay fits the whole art and every child
+    // (text, progress, controls) stays inside it. The widget keeps a matching
+    // minimum so the grid cell does not collapse.
     if (isFull) {
-      const square = Math.max(this._coverWidth, this._coverHeight) + 40;
-      this.set_style(`min-width: ${square}px; min-height: ${square}px;`);
+      const w2 = this._coverWidth * 2;
+      const h2 = this._coverHeight * 2;
+      this._coverOverlay.set_size(w2, h2);
+      this.set_style(`min-width: ${w2}px; min-height: ${h2}px;`);
     } else {
       this.set_style('');
     }
 
-    // In Full mode, art fills the whole widget (preferred min only, FILL expands it)
+    // Preferred size only; the art is expanded to fill its container, so the
+    // rendered size is exactly coverW × coverH in every style.
     const size = Math.min(this._coverWidth, this._coverHeight);
     this._art.size = size;
     this._art.roundness = this._coverRoundness;

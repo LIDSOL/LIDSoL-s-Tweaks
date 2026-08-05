@@ -183,6 +183,17 @@
     background-color: rgba(255, 255, 255, 0.1);
 }
 
+.dashboard .system-action-button {
+    border-radius: 8px;
+    padding: 4px;
+    background-color: transparent;
+    color: white;
+}
+
+.dashboard .system-action-button:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
 .dashboard .message-media-control {
     border-radius: 100px;
     padding: 8px;

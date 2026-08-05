@@ -671,7 +671,7 @@ class SettingsWidget extends DashWidget {
                 Shell.AppSystem.get_default().lookup_app(`${panel}.desktop`).activate();
                 if (this._parentDialog) this._parentDialog.close();
             },
-            this._hasBackground ? 'message-media-control' : 'events-button'
+            'system-action-button'
         );
     }
 });
@@ -746,7 +746,7 @@ class SystemWidget extends DashWidget {
                 SystemActions.getDefault().activateAction(action);
                 if (this._parentDialog) this._parentDialog.close();
             },
-            this._hasBackground ? 'message-media-control' : 'events-button'
+            'system-action-button'
         );
     }
 
@@ -761,7 +761,7 @@ class SystemWidget extends DashWidget {
                 Shell.AppSystem.get_default().lookup_app(`${panel}.desktop`).activate();
                 if (this._parentDialog) this._parentDialog.close();
             },
-            this._hasBackground ? 'message-media-control' : 'events-button'
+            'system-action-button'
         );
     }
 });

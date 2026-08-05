@@ -832,7 +832,6 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
       layoutRow.connect('notify::selected', () => s.set_int('dashboard-system-layout', layoutRow.selected));
       exp.add_row(layoutRow);
       exp.add_row(_makeSpinRow('Icon Size', 'dashboard-system-icon-size', 4, 100, 2));
-      exp.add_row(_makeExpandRow('Settings Vertical', 'dashboard-settings-vertical'));
     }));
   }
 

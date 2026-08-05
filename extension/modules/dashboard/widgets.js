@@ -640,7 +640,6 @@ export var SettingsWidget = GObject.registerClass(
 class SettingsWidget extends DashWidget {
     _init(settings, parentDialog) {
         super._init(settings, 'settings', parentDialog, {x_expand: true});
-        this._connect('vertical');
         this._handlerIds.push(
             settings.connect('changed::dashboard-system-icon-size', () => this._sync())
         );
@@ -650,7 +649,6 @@ class SettingsWidget extends DashWidget {
     _sync() {
         super._sync();
 
-        this.vertical = this._settings.get_boolean('dashboard-settings-vertical');
         const iconSize = this._settings.get_int('dashboard-system-icon-size');
 
         this.destroy_all_children();
@@ -684,9 +682,6 @@ class SystemWidget extends DashWidget {
         super._init(settings, 'system', parentDialog, {x_expand: true});
         this._connect('icon-size');
         this._connect('layout');
-        this._handlerIds.push(
-            settings.connect('changed::dashboard-settings-vertical', () => this._sync())
-        );
         this._sync();
     }
 
@@ -695,7 +690,6 @@ class SystemWidget extends DashWidget {
 
         const iconSize = this._settings.get_int('dashboard-system-icon-size');
         const layout = this._settings.get_int('dashboard-system-layout');
-        const settingsVertical = this._settings.get_boolean('dashboard-settings-vertical');
 
         this.destroy_all_children();
         this.vertical = true;
@@ -714,7 +708,6 @@ class SystemWidget extends DashWidget {
 
         const settingsBox = new St.BoxLayout({
             style_class: 'container',
-            vertical: settingsVertical,
             x_expand: true,
             y_expand: true,
         });

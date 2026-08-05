@@ -495,7 +495,8 @@ class ClockWidget extends DashWidget {
     _init(settings) {
         super._init(settings, 'clock');
         this._connect('vertical');
-        this._sync();
+        this._connect('clock-size');
+        this._connect('date-size');
 
         this.clock = this._label('clock');
         this.date = this._label('date');
@@ -525,6 +526,7 @@ class ClockWidget extends DashWidget {
         });
 
         this._updateClock();
+        this._sync();
     }
 
     _updateClock() {
@@ -535,7 +537,17 @@ class ClockWidget extends DashWidget {
     }
 
     _sync() {
-        this.vertical = this._settings.get_boolean('dashboard-clock-vertical');
+        const vertical = this._settings.get_boolean('dashboard-clock-vertical');
+        this.vertical = vertical;
+        // Landscape mode (vertical off) lays the time next to the date/day,
+        // which needs more room than the 150px CSS min-width; widen it so the
+        // time never gets clipped. Vertical mode keeps the CSS default.
+        this.set_style(vertical ? '' : 'min-width: 300px;');
+
+        // Font sizes, configurable via prefs (Time / Date).
+        this.clock.set_style(`font-size: ${this._settings.get_int('dashboard-clock-clock-size')}px;`);
+        this.date.set_style(`font-size: ${this._settings.get_int('dashboard-clock-date-size')}px;`);
+
         super._sync();
     }
 

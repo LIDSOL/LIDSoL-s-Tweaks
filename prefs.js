@@ -825,6 +825,8 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
 
     widgetsGroup.add(_makeWidgetExpander('clock', 'Clock', exp => {
       exp.add_row(_makeExpandRow('Vertical', 'dashboard-clock-vertical'));
+      exp.add_row(_makeSpinRow('Time Size', 'dashboard-clock-clock-size', 8, 200, 2));
+      exp.add_row(_makeSpinRow('Date Size', 'dashboard-clock-date-size', 8, 100, 1));
     }));
 
     widgetsGroup.add(_makeWidgetExpander('apps', 'App Launcher', exp => {

@@ -640,8 +640,10 @@ export var SettingsWidget = GObject.registerClass(
 class SettingsWidget extends DashWidget {
     _init(settings, parentDialog) {
         super._init(settings, 'settings', parentDialog, {x_expand: true});
-        this._connect('icon-size');
         this._connect('vertical');
+        this._handlerIds.push(
+            settings.connect('changed::dashboard-system-icon-size', () => this._sync())
+        );
         this._sync();
     }
 
@@ -649,7 +651,7 @@ class SettingsWidget extends DashWidget {
         super._sync();
 
         this.vertical = this._settings.get_boolean('dashboard-settings-vertical');
-        const iconSize = this._settings.get_int('dashboard-settings-icon-size');
+        const iconSize = this._settings.get_int('dashboard-system-icon-size');
 
         this.destroy_all_children();
         [
@@ -683,7 +685,6 @@ class SystemWidget extends DashWidget {
         this._connect('icon-size');
         this._connect('layout');
         this._handlerIds.push(
-            settings.connect('changed::dashboard-settings-icon-size', () => this._sync()),
             settings.connect('changed::dashboard-settings-vertical', () => this._sync())
         );
         this._sync();
@@ -694,7 +695,6 @@ class SystemWidget extends DashWidget {
 
         const iconSize = this._settings.get_int('dashboard-system-icon-size');
         const layout = this._settings.get_int('dashboard-system-layout');
-        const settingsIconSize = this._settings.get_int('dashboard-settings-icon-size');
         const settingsVertical = this._settings.get_boolean('dashboard-settings-vertical');
 
         this.destroy_all_children();
@@ -719,9 +719,9 @@ class SystemWidget extends DashWidget {
             y_expand: true,
         });
         [
-            this._appButton('network-wireless-signal-good-symbolic', 'gnome-wifi-panel', settingsIconSize, 'WiFi'),
-            this._appButton('bluetooth-active-symbolic', 'gnome-bluetooth-panel', settingsIconSize, 'Bluetooth'),
-            this._appButton('org.gnome.Settings-symbolic', 'org.gnome.Settings', settingsIconSize, 'Settings'),
+            this._appButton('network-wireless-signal-good-symbolic', 'gnome-wifi-panel', iconSize, 'WiFi'),
+            this._appButton('bluetooth-active-symbolic', 'gnome-bluetooth-panel', iconSize, 'Bluetooth'),
+            this._appButton('org.gnome.Settings-symbolic', 'org.gnome.Settings', iconSize, 'Settings'),
         ]
         .forEach(btn => settingsBox.add_child(btn));
 

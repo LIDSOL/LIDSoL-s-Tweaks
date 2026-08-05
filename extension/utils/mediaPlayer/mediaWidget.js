@@ -253,11 +253,9 @@ export const MediaWidgetBase = GObject.registerClass(
                     const autoSwitch = this._autoSwitchEnabled();
                     if (autoSwitch) {
                         const best = this._findLastActiveIndex();
-                        if (best >= 0 && best !== this._currentIndex) {
-                            const bestScore = this._scorePlayer(this._players[best]);
-                            const curScore = this._scorePlayer(this._player);
-                            if (bestScore > curScore)
-                                this._setCurrentPlayer(best, true);
+                        if (best >= 0 && best !== this._currentIndex
+                            && this._isBetterPlayer(this._players[best], this._player)) {
+                            this._setCurrentPlayer(best, true);
                         }
                     }
                 }
@@ -271,6 +269,17 @@ export const MediaWidgetBase = GObject.registerClass(
 
             if (player === this._player) {
                 this.sync(this._player);
+                // The current player changed; if it is no longer the best
+                // (e.g. it paused/stopped while another one keeps playing),
+                // fall back to the best remaining player. Never override a
+                // manual user selection.
+                if (!this._userSelected && this._autoSwitchEnabled()) {
+                    const best = this._findLastActiveIndex();
+                    if (best >= 0 && best !== this._currentIndex
+                        && this._isBetterPlayer(this._players[best], this._player)) {
+                        this._setCurrentPlayer(best, true);
+                    }
+                }
                 return;
             }
 
@@ -290,9 +299,7 @@ export const MediaWidgetBase = GObject.registerClass(
                 return;
             }
 
-            const changedScore = this._scorePlayer(player);
-            const currentScore = this._scorePlayer(this._player);
-            if (changedScore > currentScore) {
+            if (this._isBetterPlayer(player, this._player)) {
                 const idx = this._players.indexOf(player);
                 if (idx >= 0)
                     this._setCurrentPlayer(idx, true);
@@ -305,6 +312,25 @@ export const MediaWidgetBase = GObject.registerClass(
             if (p.isPlaying() && hasTitle) return 500;
             if (p.playbackStatus === 'Paused' && hasTitle) return 100;
             return 0;
+        }
+
+        // True when player `a` should take over from player `b`. Score wins;
+        // on a tie the most recently active player (lastPlayingTime) wins, so
+        // e.g. a second GSConnect source that starts playing on the device
+        // takes over even if the current one is also Playing with a title.
+        _isBetterPlayer(a, b) {
+            if (!a)
+                return false;
+            const aScore = this._scorePlayer(a);
+            const bScore = this._scorePlayer(b);
+            if (aScore !== bScore)
+                return aScore > bScore;
+            // Equal score: only auto-switch when the candidate is actually
+            // playing and more recent, so a paused/stopped player never
+            // steals focus just because it was touched more recently.
+            return aScore > 0
+                && a.isPlaying()
+                && (a.lastPlayingTime || 0) > (b.lastPlayingTime || 0);
         }
 
         _findLastActiveIndex() {

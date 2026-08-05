@@ -451,45 +451,6 @@ class MediaWidget extends DashWidget {
     }
 });
 
-export var LinksWidget = GObject.registerClass(
-class LinksWidget extends DashWidget {
-    _init(settings, parentDialog) {
-        super._init(settings, 'links', parentDialog);
-        this._connect('names');
-        this._connect('urls');
-        this._connect('icon-size');
-        this._connect('vertical');
-        this._sync();
-    }
-
-    _sync() {
-        super._sync();
-        this.vertical = this._settings.get_boolean('dashboard-links-vertical');
-        this.remove_all_children();
-
-        const names = this._settings.get_strv('dashboard-links-names');
-        const urls = this._settings.get_strv('dashboard-links-urls');
-
-        for (let i = 0; i < urls.length; i++)
-            this.add_child(this._button(names[i] || 'weblink', urls[i]));
-    }
-
-    _button(name, link) {
-        return new HoverButton(
-            new St.Icon({
-                icon_name: 'web-browser-symbolic',
-                icon_size: this._settings.get_int('dashboard-links-icon-size'),
-            }),
-            link,
-            () => {
-                Util.spawnCommandLine(`xdg-open ${link}`);
-                if (this._parentDialog) this._parentDialog.close();
-            },
-            this._hasBackground ? 'message-media-control' : 'events-button'
-        );
-    }
-});
-
 export var ClockWidget = GObject.registerClass(
 class ClockWidget extends DashWidget {
     _init(settings) {

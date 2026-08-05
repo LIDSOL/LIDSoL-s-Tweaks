@@ -1459,19 +1459,6 @@
     <key type="i" name="dashboard-levels-fixed-width"><default>200</default></key>
     <key type="s" name="dashboard-levels-command"><default>'gnome-system-monitor'</default></key>
 
-    <!-- Links Widget -->
-    <key type="i" name="dashboard-links-x-align"><default>0</default></key>
-    <key type="i" name="dashboard-links-y-align"><default>0</default></key>
-    <key type="b" name="dashboard-links-x-expand"><default>false</default></key>
-    <key type="b" name="dashboard-links-y-expand"><default>false</default></key>
-    <key type="i" name="dashboard-links-width"><default>0</default></key>
-    <key type="i" name="dashboard-links-height"><default>0</default></key>
-    <key type="b" name="dashboard-links-background"><default>false</default></key>
-    <key type="b" name="dashboard-links-vertical"><default>false</default></key>
-    <key type="i" name="dashboard-links-icon-size"><default>60</default></key>
-    <key type="as" name="dashboard-links-names"><default>['reddit','youtube','gmail','twitter','github']</default></key>
-    <key type="as" name="dashboard-links-urls"><default>['https://www.reddit.com/','https://www.youtube.com/','https://www.gmail.com/','https://twitter.com/','https://www.github.com/']</default></key>
-
     <!-- Media Widget -->
     <key type="i" name="dashboard-media-x-align"><default>0</default></key>
     <key type="i" name="dashboard-media-y-align"><default>0</default></key>

@@ -16,7 +16,6 @@ import {
     AppsWidget,
     ClockWidget,
     LevelsWidget,
-    LinksWidget,
     MediaWidget,
     SettingsWidget,
     SystemWidget,
@@ -133,7 +132,6 @@ class DashBoardModal extends ModalDialog.ModalDialog {
                 this._levelsWidget = new LevelsWidget(this._settings, this);
                 return this._levelsWidget;
             },
-            links: () => new LinksWidget(this._settings, this),
             media: () => {
                 this._mediaWidget = new MediaWidget(this._settings, this);
                 return this._mediaWidget;

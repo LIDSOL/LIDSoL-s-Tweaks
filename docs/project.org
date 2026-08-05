@@ -424,7 +424,7 @@ Con esto se solucionó un bug que no permitia arrastar elementos a una caja vac�
   - extension/modules/dashboard/module.js — módulo principal con stylesheet, panel button.
   - extension/modules/dashboard/dashBoard.js — DashBoardModal (modal dialog con layout JSON) + DashBoardPanelButton (panel button con keybinding)
   - extension/modules/dashboard/stylesheet.css — estilos scoped bajo .dashboard (fix: clases .clock/.date/.day sin scope causaban que el reloj del top bar se volviera enorme al activar el dashboard)
-  - extension/modules/dashboard/widgets.js — 8 widgets (User, Levels, Media, Links, Clock, Apps, Settings, System) + HoverButton + AppBtn + LevelsBox
+  - extension/modules/dashboard/widgets.js — 7 widgets (User, Levels, Media, Clock, Apps, Settings, System) + HoverButton + AppBtn + LevelsBox
   - moduleLoader.js — registrado DashboardModule con enabledKey: dashboard-enabled
   - Schema: 73 keys con prefijo dashboard- (layout, posición, offset, darken, button, shortcut + widget-specific keys)
 - Prefs UI completa (Aylur-style) en prefs.js _buildDashboardDialog:

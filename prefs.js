@@ -814,15 +814,6 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
       exp.add_row(_makeExpandRow('Show Loop and Shuffle', 'dashboard-media-show-loop-shuffle'));
     }));
 
-    widgetsGroup.add(_makeWidgetExpander('links', 'Links', exp => {
-      exp.add_row(_makeExpandRow('Vertical', 'dashboard-links-vertical'));
-      exp.add_row(_makeSpinRow('Icon Size', 'dashboard-links-icon-size', 4, 100, 2));
-      exp.add_row(new Adw.ActionRow({
-        title: 'Web Links',
-        subtitle: 'You can change the links through dconf editor.\nPlace SVGs named name-symbolic.svg in the extension media folder.',
-      }));
-    }));
-
     widgetsGroup.add(_makeWidgetExpander('clock', 'Clock', exp => {
       exp.add_row(_makeExpandRow('Vertical', 'dashboard-clock-vertical'));
       exp.add_row(_makeSpinRow('Time Size', 'dashboard-clock-clock-size', 8, 200, 2));

@@ -700,50 +700,17 @@ class SystemWidget extends DashWidget {
         this.destroy_all_children();
         this.vertical = true;
 
-        const btns = [
-            this._button('system-shutdown-symbolic', 'power-off', iconSize, 'Power Off'),
-            this._button('system-reboot-symbolic', 'restart', iconSize, 'Reboot'),
-            this._button('system-log-out-symbolic', 'logout', iconSize, 'Log Out'),
-            this._button('weather-clear-night-symbolic', 'suspend', iconSize, 'Suspend'),
-        ];
-
         const actionsBox = new St.BoxLayout({
             style_class: 'container',
             x_expand: true,
             y_expand: true,
         });
-        switch (layout) {
-        case 2: {
-            actionsBox.vertical = false;
-            const col = () => {
-                return new St.BoxLayout({
-                    style_class: 'container',
-                    vertical: true,
-                    x_expand: true,
-                    y_expand: true,
-                });
-            };
-            const col1 = col();
-            const col2 = col();
-            col1.add_child(btns[2]);
-            col1.add_child(btns[1]);
-            col2.add_child(btns[0]);
-            col2.add_child(btns[3]);
-            actionsBox.add_child(col1);
-            actionsBox.add_child(col2);
-            break;
-        }
-        case 1:
-            actionsBox.vertical = true;
-            btns.forEach(btn => actionsBox.add_child(btn));
-            break;
-
-        default:
-            actionsBox.vertical = false;
-            btns.reverse().forEach(btn => actionsBox.add_child(btn));
-            break;
-        }
-        this.add_child(actionsBox);
+        [
+            this._button('system-shutdown-symbolic', 'power-off', iconSize, 'Power Off'),
+            this._button('system-reboot-symbolic', 'restart', iconSize, 'Reboot'),
+            this._button('system-log-out-symbolic', 'logout', iconSize, 'Log Out'),
+            this._button('weather-clear-night-symbolic', 'suspend', iconSize, 'Suspend'),
+        ].forEach(btn => actionsBox.add_child(btn));
 
         const settingsBox = new St.BoxLayout({
             style_class: 'container',
@@ -757,7 +724,22 @@ class SystemWidget extends DashWidget {
             this._appButton('org.gnome.Settings-symbolic', 'org.gnome.Settings', settingsIconSize, 'Settings'),
         ]
         .forEach(btn => settingsBox.add_child(btn));
-        this.add_child(settingsBox);
+
+        if (layout === 1) {
+            // Layout 1: both widgets side by side in a single row.
+            const row = new St.BoxLayout({
+                style_class: 'container',
+                x_expand: true,
+                y_expand: true,
+            });
+            row.add_child(actionsBox);
+            row.add_child(settingsBox);
+            this.add_child(row);
+        } else {
+            // Layout 2 (default): stack both widgets in two rows.
+            this.add_child(actionsBox);
+            this.add_child(settingsBox);
+        }
     }
 
     _button(icon, action, iconSize, label) {

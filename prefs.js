@@ -828,7 +828,7 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
 
     widgetsGroup.add(_makeWidgetExpander('system', 'Settings &amp; System', exp => {
       const layoutModel = new Gtk.StringList({ strings: ['Stacked', 'Side by Side'] });
-      const layoutRow = new Adw.ComboRow({ title: 'Layout', subtitle: 'Stacked: two rows (current behavior). Side by Side: single row.', model: layoutModel, selected: s.get_int('dashboard-system-layout') });
+      const layoutRow = new Adw.ComboRow({ title: 'Layout', subtitle: 'Stacked: two rows (current behavior).\nSide by Side: single row.', model: layoutModel, selected: s.get_int('dashboard-system-layout') });
       layoutRow.connect('notify::selected', () => s.set_int('dashboard-system-layout', layoutRow.selected));
       exp.add_row(layoutRow);
       exp.add_row(_makeSpinRow('Icon Size', 'dashboard-system-icon-size', 4, 100, 2));

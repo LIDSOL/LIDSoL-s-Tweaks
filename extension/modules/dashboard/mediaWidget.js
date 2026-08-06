@@ -71,9 +71,17 @@ var DashboardMediaWidget = GObject.registerClass({
 
   _buildCustomUI() {
     this._playerChangedIds = new Map();
-    this._coverWidth = 160;
-    this._coverHeight = 160;
+    this._coverWidth = 100;
+    this._coverHeight = 100;
     this._coverRoundness = 8;
+    // Full style: Cover W/H are a percentage of the widget's default size
+    // (100 = current size). The default is measured at runtime while the
+    // widget is unconstrained; the scaled size is reported as the preferred
+    // size so the grid grows the cell to match.
+    this._defaultW = 0;
+    this._defaultH = 0;
+    this._targetW = 0;
+    this._targetH = 0;
 
     this._titleLabel.clutter_text.set_ellipsize(Pango.EllipsizeMode.END);
     this._artistLabel.clutter_text.set_ellipsize(Pango.EllipsizeMode.END);
@@ -116,6 +124,12 @@ var DashboardMediaWidget = GObject.registerClass({
       style_class: 'dashboard-media-player',
       x_expand: true,
     });
+    // Full style: measure the natural widget size while Cover W/H are at 100
+    // and report the scaled size as preferred so the grid grows to match.
+    this.connectObject(
+      'notify::allocation', () => this._syncFullScale(),
+      this
+    );
 
     this._infoCol = new St.BoxLayout({
       vertical: true,
@@ -244,6 +258,7 @@ var DashboardMediaWidget = GObject.registerClass({
     this._appIcon.opacity = 153;
     this._playerName.opacity = 153;
     this._playerName.style = '';
+    this.remove_style_class_name('dashboard-media-full');
 
     // The progress row lives inside _infoCol by default (styles 0 and 2).
     // Style 1 (horizontal) relocates it below the body row so it can span
@@ -369,14 +384,16 @@ var DashboardMediaWidget = GObject.registerClass({
     } else if (isFull) {
       this._bodyRow.vertical = true;
 
-      // Full style: the cover overlay IS the art, sized at 2× the configured
-      // cover dimensions (100×100 → 200×200) and centered in the cell.
-      // Everything (art, gradient, text, progress, controls) is stacked inside
-      // it, so no element can overflow the album art.
-      this._coverOverlay.x_expand = false;
-      this._coverOverlay.y_expand = false;
-      this._coverOverlay.x_align = Clutter.ActorAlign.CENTER;
-      this._coverOverlay.y_align = Clutter.ActorAlign.CENTER;
+      // Full style: the widget (with its container) is scaled by Cover
+      // Width / Cover Height as a percentage of its default size (100x100 =
+      // current size). The overlay fills the whole widget so the art is
+      // always expanded and cropped (cover effect) to whatever size the
+      // widget gets. Everything (art, gradient, text, progress, controls)
+      // is stacked inside the overlay.
+      this._coverOverlay.x_expand = true;
+      this._coverOverlay.y_expand = true;
+      this._coverOverlay.x_align = Clutter.ActorAlign.FILL;
+      this._coverOverlay.y_align = Clutter.ActorAlign.FILL;
 
       this._coverOverlay.add_child(this._coverContainer);
       this._coverContainer.x_expand = true;
@@ -416,10 +433,13 @@ var DashboardMediaWidget = GObject.registerClass({
         this._infoCol.remove_child(this._progress);
       this._infoCol.insert_child_at_index(this._progress, 1);
 
-      this._bodyRow.add_child(this._spacerTop);
+      // The overlay fills the bodyRow on its own; no centering spacers needed.
       this._bodyRow.add_child(this._coverOverlay);
-      this._bodyRow.add_child(this._spacerBottom);
       this._coverOverlay.visible = true;
+
+      // Full style drops the widget padding so the art is flush with the
+      // widget's edges (see .dashboard-media-full in stylesheet.css).
+      this.add_style_class_name('dashboard-media-full');
 
       this._syncCoverCSS();
     }
@@ -459,39 +479,97 @@ var DashboardMediaWidget = GObject.registerClass({
     this._coverRoundness = this._settings.get_int('dashboard-media-cover-roundness');
 
     const style = this._settings.get_int('dashboard-media-style');
-    const isFull = style === 2;
 
-    // In Full mode the cover is rendered at 2× the configured size
-    // (100×100 → 200×200) so the overlay fits the whole art and every child
-    // (text, progress, controls) stays inside it. The widget keeps a matching
-    // minimum so the grid cell does not collapse.
-    if (isFull) {
-      const w2 = this._coverWidth * 2;
-      const h2 = this._coverHeight * 2;
-      this._coverOverlay.set_size(w2, h2);
-      this.set_style(`min-width: ${w2}px; min-height: ${h2}px;`);
-    } else {
-      this.set_style('');
-    }
+    // Every style keeps the widget expanded to its grid cell; in Full the
+    // Cover W/H scale is applied through the preferred-size vfuncs (see
+    // _syncFullScale), not inline CSS, so no styles are left over when
+    // switching modes.
+    this.x_expand = true;
+    this.x_align = Clutter.ActorAlign.FILL;
+    this.set_size(-1, -1);
+    this.set_style('');
+
+    this._coverOverlay.set_size(-1, -1);
 
     // Preferred size only; the art is expanded to fill its container, so the
-    // rendered size is exactly coverW × coverH in every style.
+    // rendered size is exactly coverW × coverH in the non-full styles.
     const size = Math.min(this._coverWidth, this._coverHeight);
     this._art.size = size;
     this._art.roundness = this._coverRoundness;
     this._fallbackIcon.icon_size = Math.round(Math.min(this._coverWidth, this._coverHeight) * 0.6);
 
     this._syncCoverCSS();
+    this._syncFullScale();
+  }
+
+  // Full style: Cover Width / Cover Height scale the whole widget as a
+  // percentage of its default (100) size. While a dimension is at 100 its
+  // natural allocation is captured as the baseline; when it differs from 100
+  // the scaled size is stored in _targetW/_targetH and reported by
+  // vfunc_get_preferred_* so the grid grows the cell to match.
+  _syncFullScale() {
+    const isFull = this._settings && this._settings.get_int('dashboard-media-style') === 2;
+    if (!isFull) {
+      this._targetW = 0;
+      this._targetH = 0;
+      return;
+    }
+    const w = Math.floor(this.get_width());
+    const h = Math.floor(this.get_height());
+    if (w < 1 || h < 1)
+      return;
+    const cw = this._coverWidth;
+    const ch = this._coverHeight;
+    const wDefault = cw === 100;
+    const hDefault = ch === 100;
+
+    if (wDefault)
+      this._defaultW = w;
+    if (hDefault)
+      this._defaultH = h;
+    if (this._defaultW < 1)
+      this._defaultW = w;
+    if (this._defaultH < 1)
+      this._defaultH = h;
+
+    const tw = wDefault ? 0 : Math.max(1, Math.round((this._defaultW * cw) / 100));
+    const th = hDefault ? 0 : Math.max(1, Math.round((this._defaultH * ch) / 100));
+    if (tw !== this._targetW || th !== this._targetH) {
+      this._targetW = tw;
+      this._targetH = th;
+      this.queue_relayout();
+    }
+  }
+
+  // Full style: report the scaled widget size (Cover W/H as a percentage of
+  // the default) so the grid grows the cell to match. When a dimension is at
+  // 100 no target is set and the natural size is used (100 = current size).
+  vfunc_get_preferred_width(forHeight) {
+    const isFull = this._settings && this._settings.get_int('dashboard-media-style') === 2;
+    if (!isFull || this._targetW < 1)
+      return super.vfunc_get_preferred_width(forHeight);
+    return [this._targetW, this._targetW];
+  }
+
+  vfunc_get_preferred_height(forWidth) {
+    const isFull = this._settings && this._settings.get_int('dashboard-media-style') === 2;
+    if (!isFull || this._targetH < 1)
+      return super.vfunc_get_preferred_height(forWidth);
+    return [this._targetH, this._targetH];
   }
 
   _applySettings() {
     super._applySettings();
     this._applyLayout();
     this._applyDimensions();
-    this.set_style_class_name('dashboard-media-widget');
+    // add_style_class_name (not set_style_class_name) so the layout-added
+    // 'dashboard-media-full' class survives (set_* replaces the whole list).
+    this.add_style_class_name('dashboard-media-widget');
   }
 
   destroy() {
+    if (this._bodyRow)
+      this._bodyRow.disconnectObject(this);
     if (this._mpris) {
       this._mpris.disconnectObject(this);
       for (const [player, id] of this._playerChangedIds) {

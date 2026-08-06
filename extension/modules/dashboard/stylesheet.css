@@ -210,6 +210,20 @@
     padding: 4px;
 }
 
+/* Full style: the cover art fills the whole widget. Keep a tiny 1px margin
+   at the top and sides so the art doesn't touch the widget's edges. */
+.dashboard .dashboard-media-widget.dashboard-media-full {
+    padding: 8px 8px 8px;
+}
+
+.dashboard .dashboard-media-widget.dashboard-media-full .dashboard-media-player {
+    padding: 0;
+}
+
+.dashboard .dash-widget.media-widget.dashboard-media-full {
+    padding: 0;
+}
+
 .dashboard .dashboard-media-header {
     spacing: 8px;
     padding: 2px 4px;

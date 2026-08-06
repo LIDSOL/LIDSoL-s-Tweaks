@@ -448,6 +448,12 @@ class MediaWidget extends DashWidget {
     _sync() {
         super._sync();
         this._media.updateSettings(this._settings);
+        // Mirror the Full style onto the wrapper so the dash-widget padding
+        // can be dropped too (see .dashboard-media-full rules).
+        if (this._settings.get_int('dashboard-media-style') === 2)
+            this.add_style_class_name('dashboard-media-full');
+        else
+            this.remove_style_class_name('dashboard-media-full');
     }
 });
 

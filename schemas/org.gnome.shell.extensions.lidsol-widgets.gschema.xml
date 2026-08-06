@@ -1469,8 +1469,8 @@
     <key type="b" name="dashboard-media-background"><default>true</default></key>
     <key type="s" name="dashboard-media-prefer"><default>"spotify"</default></key>
     <key type="i" name="dashboard-media-style"><default>2</default></key>
-    <key type="i" name="dashboard-media-cover-width"><default>160</default></key>
-    <key type="i" name="dashboard-media-cover-height"><default>160</default></key>
+    <key type="i" name="dashboard-media-cover-width"><default>100</default></key>
+    <key type="i" name="dashboard-media-cover-height"><default>100</default></key>
     <key type="i" name="dashboard-media-cover-roundness"><default>8</default></key>
     <key type="b" name="dashboard-media-fade"><default>true</default></key>
     <key type="b" name="dashboard-media-show-text"><default>true</default></key>

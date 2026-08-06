@@ -219,6 +219,53 @@ var DashboardMediaWidget = GObject.registerClass({
     }
   }
 
+  // No active media: keep the widget visible and show a default placeholder
+  // (default cover art image + text) instead of hiding it. Works in every
+  // layout style since it only fills the same slots the player data uses.
+  sync(player) {
+    if (!player) {
+      this._showEmptyState();
+      return;
+    }
+    super.sync(player);
+  }
+
+  _showEmptyState() {
+    this.visible = true;
+    this._stopPositionTimer();
+
+    // Reset the change-tracking caches so a later player that happens to
+    // share the same title/artist/art URL still triggers a refresh.
+    this._lastTitle = '';
+    this._lastArtist = '';
+    this._lastCoverUrl = '';
+
+    this._appIcon.icon_name = 'audio-x-generic-symbolic';
+    this._playerName.text = '';
+    this._pageIndicator.setNPages(0);
+    this._pageIndicator.visible = false;
+
+    // Placeholder text: the same slots real media data uses.
+    this._titleLabel.text = 'No media playing';
+    this._artistLabel.text = 'No media information';
+
+    // Default cover art image (the same placeholder used when a player has
+    // no art URL).
+    this._setArt('');
+
+    this._prevBtn.reactive = false;
+    this._nextBtn.reactive = false;
+    const icon = this._pauseBtn.get_child();
+    if (icon)
+      icon.icon_name = 'media-playback-start-symbolic';
+
+    // Empty progress bar: no media, so nothing to seek.
+    this._timeLabel.text = '0:00';
+    this._durationLabel.text = '0:00';
+    this._slider.value = 0;
+    this._progress.visible = true;
+  }
+
   _applyLayout() {
     const style = this._settings.get_int('dashboard-media-style');
     const showText = this._settings.get_boolean('dashboard-media-show-text');

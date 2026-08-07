@@ -616,10 +616,51 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     const group = createGroup({ parent: page, title: 'Quick Text', description: 'Captura rápida de notas mediante atajo de teclado' });
     group.add(createSwitchRow({ settings: s, bindKey: 'qt-multiline', title: 'Entrada de una sola línea', subtitle: 'Si está activo, Enter guarda la nota directamente' }));
     group.add(createSwitchRow({ settings: s, bindKey: 'qt-hideacted', title: 'Ocultar notas procesadas', subtitle: 'Oculta notas marcadas como procesadas en la ventana de acciones' }));
-    const hotkeyEntry = new Gtk.Entry({ text: s.get_strv('qt-hotkey')[0] || '', valign: Gtk.Align.CENTER });
-    hotkeyEntry.connect('changed', () => s.set_strv('qt-hotkey', [hotkeyEntry.get_text()]));
-    const hotkeyRow = new Adw.ActionRow({ title: 'Atajo de teclado', subtitle: 'Combinación para abrir el diálogo de notas', activatable_widget: hotkeyEntry });
-    hotkeyRow.add_suffix(hotkeyEntry);
+    const hotkeyRow = new Adw.ActionRow({ title: 'Atajo de teclado', subtitle: 'Combinación para abrir el diálogo de notas' });
+    const hotkeyLabel = new Gtk.ShortcutLabel({
+      accelerator: s.get_strv('qt-hotkey')[0] ?? null,
+      valign: Gtk.Align.CENTER,
+    });
+    const hotkeyBtn = new Gtk.Button({ label: 'Establecer atajo', valign: Gtk.Align.CENTER });
+    hotkeyBtn.connect('clicked', () => {
+      const dialog = new Gtk.Dialog({
+        title: 'Establecer atajo',
+        modal: true,
+        useHeaderBar: 1,
+        transientFor: page.get_root(),
+        widthRequest: 400,
+        heightRequest: 200,
+      });
+      const box = new Gtk.Box({
+        marginBottom: 12, marginEnd: 12, marginStart: 12, marginTop: 12,
+        orientation: Gtk.Orientation.VERTICAL, valign: Gtk.Align.CENTER,
+      });
+      box.append(new Gtk.Label({ label: 'Introduce una combinación de teclas:', marginBottom: 12 }));
+      box.append(new Gtk.Label({
+        label: 'Esc para cancelar, Retroceso para desactivar',
+        css_classes: ['dim-label'],
+      }));
+      dialog.set_child(box);
+      const keyCtrl = new Gtk.EventControllerKey({ propagationPhase: Gtk.PropagationPhase.CAPTURE });
+      dialog.add_controller(keyCtrl);
+      keyCtrl.connect('key-pressed', (_, keyval, _keycode, modifier) => {
+        modifier = modifier & ~64 & ~16;
+        if (!Gtk.accelerator_valid(keyval, modifier)) return Gdk.EVENT_STOP;
+        if (keyval === Gdk.KEY_Escape) { dialog.close(); return Gdk.EVENT_STOP; }
+        if (keyval === Gdk.KEY_BackSpace && !modifier) {
+          s.set_strv('qt-hotkey', []);
+          hotkeyLabel.accelerator = null;
+          dialog.close(); return Gdk.EVENT_STOP;
+        }
+        const accel = Gtk.accelerator_name(keyval, modifier);
+        s.set_strv('qt-hotkey', [accel]);
+        hotkeyLabel.accelerator = accel;
+        dialog.close(); return Gdk.EVENT_STOP;
+      });
+      dialog.present();
+    });
+    hotkeyRow.add_suffix(hotkeyLabel);
+    hotkeyRow.add_suffix(hotkeyBtn);
     group.add(hotkeyRow);
     group.add(createEntryRow({ settings: s, bindKey: 'qt-filepath', title: 'Archivo de notas', subtitle: 'Ruta absoluta al archivo de texto' }));
     group.add(createEntryRow({ settings: s, bindKey: 'qt-prepend', title: 'Prefijo', subtitle: 'Texto antes de cada nota (vacío = fecha actual)' }));

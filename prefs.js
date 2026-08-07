@@ -623,6 +623,7 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     group.add(hotkeyRow);
     group.add(createEntryRow({ settings: s, bindKey: 'qt-filepath', title: 'Archivo de notas', subtitle: 'Ruta absoluta al archivo de texto' }));
     group.add(createEntryRow({ settings: s, bindKey: 'qt-prepend', title: 'Prefijo', subtitle: 'Texto antes de cada nota (vacío = fecha actual)' }));
+    group.add(createSwitchRow({ settings: s, bindKey: 'qt-linebreak', title: 'Salto de línea', subtitle: 'Añade un salto de línea después del prefijo' }));
     group.add(createEntryRow({ settings: s, bindKey: 'qt-append', title: 'Separador', subtitle: 'Texto que separa las notas en el archivo' }));
   }
 

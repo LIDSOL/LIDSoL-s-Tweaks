@@ -403,6 +403,12 @@
       <summary>Prefijo de cada nota (vacío = fecha actual)</summary>
     </key>
 
+    <key type="b" name="qt-linebreak">
+      <default>false</default>
+      <summary>Salto de línea después del prefijo</summary>
+      <description>Añade un salto de línea después del prefijo, antes del texto de la nota. Si está desactivado, el prefijo y la nota aparecen en la misma línea</description>
+    </key>
+
     <key type="b" name="qt-multiline">
       <default>false</default>
       <summary>Entrada de una sola línea</summary>

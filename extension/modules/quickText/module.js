@@ -176,7 +176,9 @@ export class QuickTextModule {
         } else {
             prepend = eprependText;
         }
-        return `${prepend}\n${str}\n${eappendText}`;
+        if (this._settings?.get_boolean('qt-linebreak'))
+            return `${prepend}\n${str}\n${eappendText}`;
+        return `${prepend}${str}\n${eappendText}`;
     }
 
     async _doSaveSnippet(entry, filepath, pendLoc, append, prependStr, dialog) {

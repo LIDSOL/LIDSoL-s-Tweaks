@@ -306,7 +306,6 @@ export var LevelsWidget = GObject.registerClass(
 class LevelsWidget extends DashWidget {
     _init(settings, parentDialog) {
         super._init(settings, 'levels', parentDialog);
-        this._connect('vertical');
         this._connect('fixed-width');
         this._sync();
     }
@@ -322,7 +321,6 @@ class LevelsWidget extends DashWidget {
     }
 
     _sync() {
-        this.vertical = this._settings.get_boolean('dashboard-levels-vertical');
         this._buildUI();
         super._sync();
         const fw = this._settings.get_int('dashboard-levels-fixed-width');
@@ -396,7 +394,7 @@ class LevelsBox extends St.BoxLayout {
         this.destroy_all_children();
         this.levels = [];
 
-        const vertical = this._settings.get_boolean('dashboard-levels-vertical');
+        const vertical = false;
         const showBattery = this._settings.get_boolean('dashboard-levels-show-battery');
         const showStorage = this._settings.get_boolean('dashboard-levels-show-storage');
         const showCpu = this._settings.get_boolean('dashboard-levels-show-cpu');

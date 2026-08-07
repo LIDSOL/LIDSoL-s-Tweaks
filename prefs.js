@@ -771,8 +771,7 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     }));
 
     widgetsGroup.add(_makeWidgetExpander('levels', 'System Levels', exp => {
-      exp.add_row(_makeSpinRow('Fixed Width', 'dashboard-levels-fixed-width', 300, 530, 5));
-      exp.add_row(_makeExpandRow('Vertical', 'dashboard-levels-vertical'));
+      exp.add_row(_makeSpinRow('Width', 'dashboard-levels-fixed-width', 300, 530, 5));
       exp.add_row(_makeExpandRow('Show Battery', 'dashboard-levels-show-battery'));
       exp.add_row(_makeExpandRow('Show Storage', 'dashboard-levels-show-storage'));
       exp.add_row(_makeExpandRow('Show CPU', 'dashboard-levels-show-cpu'));

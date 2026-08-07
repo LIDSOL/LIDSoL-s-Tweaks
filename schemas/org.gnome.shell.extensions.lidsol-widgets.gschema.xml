@@ -1450,13 +1450,12 @@
     <key type="i" name="dashboard-levels-width"><default>0</default></key>
     <key type="i" name="dashboard-levels-height"><default>0</default></key>
     <key type="b" name="dashboard-levels-background"><default>true</default></key>
-    <key type="b" name="dashboard-levels-vertical"><default>false</default></key>
     <key type="b" name="dashboard-levels-show-battery"><default>true</default></key>
     <key type="b" name="dashboard-levels-show-storage"><default>true</default></key>
     <key type="b" name="dashboard-levels-show-cpu"><default>true</default></key>
     <key type="b" name="dashboard-levels-show-ram"><default>true</default></key>
     <key type="b" name="dashboard-levels-show-temp"><default>true</default></key>
-    <key type="i" name="dashboard-levels-fixed-width"><default>200</default></key>
+    <key type="i" name="dashboard-levels-fixed-width"><default>450</default></key>
     <key type="s" name="dashboard-levels-command"><default>'gnome-system-monitor'</default></key>
 
     <!-- Media Widget -->

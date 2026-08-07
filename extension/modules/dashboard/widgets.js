@@ -200,7 +200,10 @@ class UserWidget extends DashWidget {
         this._loadAvatar(userBtn, roundness, iconWidth, iconHeight);
         this._user.connectObject(
             'changed', () => this._loadAvatar(userBtn, roundness, iconWidth, iconHeight),
-            'notify::is-loaded', () => this._syncUserName(),
+            'notify::is-loaded', () => {
+                this._loadAvatar(userBtn, roundness, iconWidth, iconHeight);
+                this._syncUserName();
+            },
             this);
 
         const [major] = PACKAGE_VERSION.split('.').map(v => Number(v));

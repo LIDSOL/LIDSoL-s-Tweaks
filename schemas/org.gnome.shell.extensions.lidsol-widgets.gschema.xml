@@ -1504,12 +1504,12 @@
     <key type="i" name="dashboard-user-width"><default>0</default></key>
     <key type="i" name="dashboard-user-height"><default>0</default></key>
     <key type="b" name="dashboard-user-background"><default>true</default></key>
-    <key type="b" name="dashboard-user-vertical"><default>true</default></key>
-    <key type="i" name="dashboard-user-icon-roundness"><default>13</default></key>
-    <key type="i" name="dashboard-user-icon-width"><default>100</default></key>
-    <key type="i" name="dashboard-user-icon-height"><default>100</default></key>
-    <key type="b" name="dashboard-user-real-name"><default>false</default></key>
-    <key type="i" name="dashboard-user-text-spacing"><default>12</default></key>
+    <key type="b" name="dashboard-user-vertical"><default>false</default></key>
+    <key type="i" name="dashboard-user-icon-roundness"><default>99</default></key>
+    <key type="i" name="dashboard-user-icon-width"><default>80</default></key>
+    <key type="i" name="dashboard-user-icon-height"><default>80</default></key>
+    <key type="b" name="dashboard-user-real-name"><default>true</default></key>
+    <key type="i" name="dashboard-user-text-spacing"><default>1</default></key>
 
     <!-- Launcher -->
     <key type="b" name="launcher-enabled">

@@ -762,12 +762,12 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     page.add(widgetsGroup);
 
     widgetsGroup.add(_makeWidgetExpander('user', 'User', exp => {
-      exp.add_row(_makeSpinRow('Icon Roundness', 'dashboard-user-icon-roundness', 0, 99, 1));
-      exp.add_row(_makeSpinRow('Icon Width', 'dashboard-user-icon-width', 10, 500, 2));
-      exp.add_row(_makeSpinRow('Icon Height', 'dashboard-user-icon-height', 10, 500, 2));
+      exp.add_row(_makeSpinRow('Icon Roundness', 'dashboard-user-icon-roundness', 1, 99, 1));
+      exp.add_row(_makeSpinRow('Icon Width', 'dashboard-user-icon-width', 10, 150, 2));
+      exp.add_row(_makeSpinRow('Icon Height', 'dashboard-user-icon-height', 10, 150, 2));
       exp.add_row(_makeSpinRow('Text Spacing', 'dashboard-user-text-spacing', 0, 80, 1));
       exp.add_row(_makeExpandRow('Vertical', 'dashboard-user-vertical'));
-      exp.add_row(_makeExpandRow('Show Real Name', 'dashboard-user-real-name'));
+      exp.add_row(_makeExpandRow('Show User Name', 'dashboard-user-real-name'));
     }));
 
     widgetsGroup.add(_makeWidgetExpander('levels', 'System Levels', exp => {

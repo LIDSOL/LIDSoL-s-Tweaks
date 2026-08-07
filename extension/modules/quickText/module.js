@@ -103,6 +103,10 @@ export class QuickTextModule {
         const eprepend = new St.Entry({can_focus: false, text: prependStr});
 
         dialog.addButton({
+            label: 'OK',
+            action: () => this._doSaveSnippet(entry, filepath, pendLoc, append, prependStr, dialog),
+        });
+        dialog.addButton({
             label: 'Cancel',
             action: () => dialog.close(),
             key: Clutter.KEY_Escape,
@@ -113,10 +117,6 @@ export class QuickTextModule {
                 this._doWindow();
                 dialog.close();
             },
-        });
-        dialog.addButton({
-            label: 'OK',
-            action: () => this._doSaveSnippet(entry, filepath, pendLoc, append, prependStr, dialog),
         });
         dialog.open();
 
@@ -176,9 +176,13 @@ export class QuickTextModule {
         } else {
             prepend = eprependText;
         }
-        if (this._settings?.get_boolean('qt-linebreak'))
-            return `${prepend}\n${str}\n${eappendText}`;
-        return `${prepend}${str}\n${eappendText}`;
+        const linebreak = this._settings?.get_boolean('qt-linebreak');
+        const body = linebreak ? `${prepend}\n${str}` : `${prepend}${str}`;
+        if (!this._settings?.get_boolean('qt-append-enabled'))
+            return body;
+        if (eappendText === '')
+            return `${body}\n`;
+        return `${body}\n${eappendText}`;
     }
 
     async _doSaveSnippet(entry, filepath, pendLoc, append, prependStr, dialog) {

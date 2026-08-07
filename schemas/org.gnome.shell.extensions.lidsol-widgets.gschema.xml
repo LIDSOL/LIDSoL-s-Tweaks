@@ -398,6 +398,12 @@
       <summary>Separador entre notas</summary>
     </key>
 
+    <key type="b" name="qt-append-enabled">
+      <default>false</default>
+      <summary>Usar separador entre notas</summary>
+      <description>Añade el texto del separador entre notas. Si el texto está vacío, deja una línea extra vacía. Si está desactivado, no hay separador ni línea extra</description>
+    </key>
+
     <key type="s" name="qt-prepend">
       <default>""</default>
       <summary>Prefijo de cada nota (vacío = fecha actual)</summary>

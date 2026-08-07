@@ -614,8 +614,6 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
   _buildQuickTextDialog(page) {
     const s = this._settings;
     const group = createGroup({ parent: page, title: 'Quick Text', description: 'Captura rápida de notas mediante atajo de teclado' });
-    group.add(createSwitchRow({ settings: s, bindKey: 'qt-multiline', title: 'Entrada de una sola línea', subtitle: 'Si está activo, Enter guarda la nota directamente' }));
-    group.add(createSwitchRow({ settings: s, bindKey: 'qt-hideacted', title: 'Ocultar notas procesadas', subtitle: 'Oculta notas marcadas como procesadas en la ventana de acciones' }));
     const hotkeyRow = new Adw.ActionRow({ title: 'Atajo de teclado', subtitle: 'Combinación para abrir el diálogo de notas' });
     const hotkeyLabel = new Gtk.ShortcutLabel({
       accelerator: s.get_strv('qt-hotkey')[0] ?? null,
@@ -662,10 +660,26 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     hotkeyRow.add_suffix(hotkeyLabel);
     hotkeyRow.add_suffix(hotkeyBtn);
     group.add(hotkeyRow);
+    group.add(createSwitchRow({ settings: s, bindKey: 'qt-multiline', title: 'Entrada de una sola línea', subtitle: 'Si está activo, Enter guarda la nota directamente' }));
+    group.add(createSwitchRow({ settings: s, bindKey: 'qt-hideacted', title: 'Ocultar notas procesadas', subtitle: 'Oculta notas marcadas como procesadas en la ventana de acciones' }));
     group.add(createEntryRow({ settings: s, bindKey: 'qt-filepath', title: 'Archivo de notas', subtitle: 'Ruta absoluta al archivo de texto' }));
     group.add(createEntryRow({ settings: s, bindKey: 'qt-prepend', title: 'Prefijo', subtitle: 'Texto antes de cada nota (vacío = fecha actual)' }));
-    group.add(createSwitchRow({ settings: s, bindKey: 'qt-linebreak', title: 'Salto de línea', subtitle: 'Añade un salto de línea después del prefijo' }));
-    group.add(createEntryRow({ settings: s, bindKey: 'qt-append', title: 'Separador', subtitle: 'Texto que separa las notas en el archivo' }));
+    group.add(createSwitchRow({ settings: s, bindKey: 'qt-linebreak', title: 'Salto de línea', subtitle: 'Añade un salto de línea después del prefijo.\nSi está desactivado, el prefijo y la nota van en la misma línea.' }));
+    const appendRow = createEntryRow({ settings: s, bindKey: 'qt-append', title: 'Separador', subtitle: 'Texto que separa las notas en el archivo' });
+    const updateAppendSensitive = () => {
+      const enabled = s.get_boolean('qt-append-enabled');
+      appendRow.sensitive = enabled;
+      appendRow.set_opacity(enabled ? 1.0 : 0.5);
+    };
+    s.connect('changed::qt-append-enabled', updateAppendSensitive);
+    updateAppendSensitive();
+    group.add(createSwitchRow({
+      settings: s,
+      bindKey: 'qt-append-enabled',
+      title: 'Separador',
+      subtitle: 'Añade un separador entre notas. Si está vacío, deja una línea extra',
+    }));
+    group.add(appendRow);
   }
 
   _buildDashboardDialog(page) {

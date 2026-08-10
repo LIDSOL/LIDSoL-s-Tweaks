@@ -276,7 +276,7 @@ const QuickTextApp = GObject.registerClass({
 
                     const liTxtView = new Gtk.TextView();
                     const liBuffer = new Gtk.TextBuffer();
-                    liBuffer.set_text(item, -1);
+                    liBuffer.set_text(this._cleanItem(item), -1);
                     liTxtView.set_buffer(liBuffer);
                     liTxtView.set_editable(false);
 
@@ -343,7 +343,7 @@ const QuickTextApp = GObject.registerClass({
                         const text = liBuffer.get_text(
                             liBuffer.get_start_iter(),
                             liBuffer.get_end_iter(), true).trim();
-                        this.items[i] = `${text}\n`;
+                        this.items[i] = text;
                         this._doSave(this._doJoin(this.items));
                         this._updateListUI();
                     });
@@ -376,9 +376,7 @@ const QuickTextApp = GObject.registerClass({
     }
 
     _doJoin(items) {
-        const settings = getSettings();
-        const append = settings.get_string('qt-append');
-        return items.join(append);
+        return items.join('\n');
     }
 
     _doList() {
@@ -387,7 +385,14 @@ const QuickTextApp = GObject.registerClass({
         const append = settings.get_string('qt-append');
         try {
             const fileStr = fopen(fpath);
-            this.items = fileStr.split(append);
+            if (append && fileStr.includes(append)) {
+                this.items = fileStr.split(append);
+            } else {
+                this.items = fileStr.split(/\r?\n/g);
+            }
+            this.items = this.items
+                .map(s => s.trim())
+                .filter(s => s.length > 0);
         } catch (error) {
             console.error(error);
         }
@@ -397,8 +402,16 @@ const QuickTextApp = GObject.registerClass({
         doSave(str);
     }
 
+    _cleanItem(item) {
+        const append = getSettings().get_string('qt-append');
+        if (!append)
+            return item;
+        const esc = append.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        return item.replace(new RegExp(`^[ \\t]*${esc}[ \\t]*$`, 'gm'), '');
+    }
+
     _getSummary(note) {
-        const lines = note.trim().split(/\r\n|\r|\n/gm);
+        const lines = this._cleanItem(note).trim().split(/\r\n|\r|\n/gm);
         const summary = (lines[1] && lines[1].length > 72)
             ? lines[1].slice(0, 71) + '...'
             : (lines[1] || '');

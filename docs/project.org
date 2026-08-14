@@ -1,161 +1,123 @@
-#+TITLE: LIDSoL's Extension Proyect
+#+TITLE: Proyecto LIDSoL's Tweaks
 #+AUTHOR: RamenRoot
-#+DATE: 2026-06-25
+#+DATE: 2026-08-15
 * 0. Introducción
-Este proyecto aborda la modernización e integración de múltiples extensiones para GNOME Shell 50.
+Este proyecto aborda la modernización e integración de múltiples extensiones para GNOME Shell 50. El problema a resolver radica en la fragilidad de las extensiones, que dependen de APIs internas sujetas a cambios, esto genera obsolescencia: las actualizaciones del escritorio pueden /romper/ las extensiones.
 
-EL problema central radica en la fragilidad de las extensiones, que dependen de APIs internas sujetas a cambios, lo que genera obsolescencia: las actualizaciones del escritorio pueden /romper/ las extensiones.
-
-Se propone usar como base el código de la extensión Aylur's Widgets (compatible hasta GNOME 44), Quick Settings Tweaks y otro puñado de extensiones con el propósito de modernizarlas y unificarlas en una única extensión compatible con GNOME Shell 50.
+Se propone usar como base el código de la extensión Aylur's Widgets (compatible hasta GNOME 44), Quick Settings Tweaks y otro puñado de extensiones con el propósito de modernizar y/o unificar estas en una única extensión compatible con GNOME Shell 50.
 
 La arquitectura de la extensión debe facilitar su mantenimiento y se validará mediante métricas objetivas de rendimiento.
+
 * 1. Objetivos
 ** Objetivos generales
-Diseñar, implementar y mantener una extensión modular para GNOME que reinterprete y modernice los componentes de extensiones obsoletas como [[https://extensions.gnome.org/extension/5338/aylurs-widgets/][Aylur's Widgets]] mediante una arquitectura que facilite el mantenimiento, adaptada a los cambios de API de GNOME Shell y GJS. La propuesta no consiste en replicar las extensiones originales, si no en evaluar la vigencia de cada componente en GNOME 50, integrar aquello que siga aportando valor y descartar lo redundante. 
-- Garantizar compatibilidad total con GNOME 50
-- Rediseñar los módulos bajo el principio de "modularidad estricta"
-- Separar estrictamente la lógica de negocio y la capa de presentación (UI).
-- Implementar un sistema centralizado de señales
-- Implementar Lazy Loading de módulos
-- Reducir listeners globales innecesarios y evitar memory leaks 
-- Validar consumo de CPU y memoria mediante profiling
-- Optimizar el rendimiento y evitar degradación en animaciones del Shell
-- Consolidar un backend reusable y extensible. Diseñar un backend MPRIS unificado y reusable
-- Diseñar e implementar un framework modular interno
-- Documentar formalmente la arquitectura interna y contratos entre módulos
-- Minimizar conflictos con extensiones populares
-- Publicar la extensión
+Diseñar, implementar y mantener una extensión modular para GNOME que reinterprete y modernice los componentes de extensiones obsoletas como [[https://extensions.gnome.org/extension/5338/aylurs-widgets/][Aylur's Widgets]] mediante una arquitectura que facilite el mantenimiento, adaptada a los cambios de API de GNOME Shell y GJS.
+- Garantizar compatibilidad toal con GNOME 50 y 51.
+- Hacer los cambios necesarios para que los módulos sean estrictamente modulares.
+- Separar estrictamente la lógica de negocio con la capa de presentación.
+- Implementar Lazy Loading de módulos.
+- Diseñar e implementar un framework modular interno. Consolidad un backend reusable y extensible.
+- Diseñar un backend MPRIS unificado y extensible.
+- Reducir listeners globales innecesarios y evitar memory leaks.
+- Validar consumo de CPU y memoria mediante profiling.
+- Optimizar el rendimiento y evitar degradación en animaciones del Shell.
+- Documentar formalmente la arquitectura interna y contratos entre módulos.
+- Minimizar conflictos con extensiones populares.
+- Publicar la extensión.
+
 ** Objetivos específicos
-*** IN-PROGRESS Ventana de configuraciones
-- [ ] Mejorar la organización de los elementos
-- [ ] Mejorar la responsividad
-  - [ ] View Switcher en "ventana grande" y "View Switcher Bar" en ventana pequeña.
-  - [ ] Evitar que el contenido se "pegue" a los switch
-*** IN-PROGRESS Core
-*** IN-PROGRESS Utils
-*** IN-PROGRESS Módulos [4/11] [36%]
-**** TODO [#B] Battery Bar :topbar:
-DEADLINE: <2026-07-11 Sat>
-[[./img/aylurs-battery.png]]
-
-- Descripción: Indicador alternativo de batería en el Top Bar.
-  - Se toma como base uno de los módulos de Aylur's Widgets. Compatible hasta GNOME 44, por lo que será necesario darle mantenimiento para hacerlo compatible con GNOME 50.
-- Configuración:
-  - Visibilidad de ícono y porcentaje.
-  - Dimensiones.
-  - Colores dinámicos configurables (batería baja, cargando, normal)
-**** IN-PROGRESS [#B] Date Menu (dinámico) [1/3] :topbar:
-DEADLINE: <2026-07-11 Sat>
-- Descripción: Basado en [[https://www.androidauthority.com/pixel-launcher-at-a-glance-widget-visibility-update-3597606/][el widget At a Glance de los Google Pixel]]. El texto del "Date Menu" cambia dinámicamente, muestra el contenido multimedia que se reproduce actualmente e indica de notificaciones.
-***** DONE Date Menu Formatter :topbar:
-[[./img/date-format.png]]
-
-- Descripción: Permite la personalización del formato de la fecha y hora en el panel.
-  - Aylur's Widget tiene un componente que permite personalizar esto, también se tomará como referencia el código de la extensión [[https://extensions.gnome.org/extension/4655/date-menu-formatter/][Date Menu Formatter de Marcin Jakubowski]]. Esta última compatible hasta GNOME 50, por lo que no debería ser difícil integrarla.  
-***** IN-PROGRESS Media Player
-[[./img/aylurs-player.png]]
-
-- Descripción: Controles multimedia integrados en el Date Menu ó Top Bar. El indicador no es visible al menos que se reproduzca contenido multimedia, tomando el lugar del Date Menu.
-  - Para usar como base, se pueden tomar en cuenta todas las siguientes implementaciones:
-    - [[https://extensions.gnome.org/extension/4928/mpris-label/][Media Label and Controls (por moon-0xff)]], compatible hasta GNOME 49.
-    - [[https://extensions.gnome.org/extension/9334/dynamic-music-pill/][Dynamic Music Pill (por andbal)]], compatible hasta GNOME 50.
-    - [[https://extensions.gnome.org/extension/4470/media-controls/][Media Controls (por Sakith B.)]], compatible hasta GNOME 49.
-    - [[https://extensions.gnome.org/extension/9184/advanced-media-controller/][Advanced Media Controller (por sanjai)]] compatible hasta GNOME 50.
-- Objetivos:
-- [ ] Mostrar información de pista.
-- [ ] Controles (anterior, pausa, siguiente)
-- [ ] Separar estrictamente el estado y la representación visual. 
-- [ ] Selección de reproductor preferido o descartados
-- [ ] Gestionar caché (portada de álbumes)
-- [ ] Widget de reproducción multimedia personalizable accesible desde el DateMenu
-***** TODO Notification Indicator
-- Descripción: Indicador de notificaciones (contador numérico). 
-**** IN-PROGRESS [#A] Dashboard [2/12]
-DEADLINE: <2026-07-09 Thu>
-Notas:
-- **Sincrónico vs asíncrono**: Gio.DBusProxy.new_sync() parece más simple
-  pero no espera a que el name-owner esté disponible. Usar new() + Promise
-  garantiza que las propiedades están cacheadas antes de acceder.
-- **GVariant a{sv}**: deepUnpack() desenrolla recursivamente, incluyendo
-  los v internos. Pero proxy.Metadata devuelve el GVariant crudo donde los
-  valores tipo v necesitan .deepUnpack() o .get_string() según el tipo.
-- **connectSignal vs signal_subscribe**: connectSignal en Gio.DBusProxy
-  es más simple y directo que signal_subscribe de Gio.DBus.session.
-- **can-play como guard**: No emitir player-added hasta que canPlay sea
-  true evita errores de "proxy no listo".
-- **Export en ESM**: GObject.registerClass() con export var puede fallar
-  si hay errores en tiempo de evaluación. Usar export { ... } explícito
-  al final del archivo es más fiable.
-***** DONE Redondeo de las barras del monitor del sistema
-***** DONE El monitor del sistema no funciona correctamente
-***** TODO Al hacer click en el reloj se debe abrir gnome clock, u otro programa que el usuario elija
-***** TODO Opción de modificar direcciones e íconos en los accesos directos web
-***** TODO Colocar íconos en los acceso directos web
-***** TODO Mejoras visuales en el dashboard (centrar los botones de control de multimedia, redondeo de portada)
-***** TODO Al hacer click en algún botón del widget multimedia evitar que se cierre el dashboard
-***** TODO Eliminar el fondo de los botones de botones de los ajustes/power
-***** TODO Reducir el tamaño de la "ventana", el fondo del dashboard
-***** TODO Opción "mostrar/ocultar" el fondo del dashboard
-***** TODO Modificar el tamaño de los gaps del dashboard, la separación entre los widgets
-***** TODO Cambiar el widget de lanzador (dashboard) por un widget del clima
-**** IN-PROGRESS [#C] Desktop Widgets :shell:
-DEADLINE: <2026-07-18 Sat>
-***** IN-PROGRESS Image Widget
-***** Clock Widget
-***** Weather Widget
-**** DONE Quick Settings Tweaks [3/3] :quicksettings:
-- Descripción: Permite configurar los ajustes rápidos, adaptación parcial de [[https://github.com/qwreey/quick-settings-tweaks][Quick Settings Tweaks]]:
-- [X] System Items
-- [X] Quick Settings
-- [X] Overlay Mode
-**** IN-PROGRESS [#B] Quick Text [1/4] :shell:
-DEADLINE: <2026-07-09 Thu>
-- Descripción: Un atajo de teclado (Ctrl+Super+i, aunque es personalizable) abre una ventana de diálogo desde la cual podemos escribir contenido que se insertará en algún alchivo de texto plano de nuestra preferencia; podemos configurar un prefijo o sufijo al texto insertado. Es útil para tomar notas rápidas, fragmentos de texto y anotar ideas; puede usarse como complemento a cualquier app de notas basada en texto plano. El nombre y la ruta de acceso al archivo de destino deben establecerse antes de utilizar la extensión y el archivo debe existir.
+*** 1. Shell
+- [ ] 1.0.1 Colocar un ícono simbólico en la Page 1 (Shell) del View Switcher.
+- [ ] 1.0.2 Debe haber un solo Group para las tres opciones, dashboard, quick text y Launcher deben ser opciones "pegadas" entre sí, sin separación.
+- [ ] 1.0.3 Renombrar la sección ¿qué nombre sería más adecuado que Shell?
+- [ ] 1.0.4 Mejorar la descripción
+**** TODO 1.1 Dashboard
+- [ ] 1.1.1 Eliminar el switch "Homogeneous Cells" y todo su código asociado.
+- [ ] 1.1.2 System Levels -> Width: Escribir en la descripción una pequeña advertencia: si el valor es muy pequeño puede haber un desbordamiento en el launcher.
+- [ ] 1.1.3 Media Player -> Prefer: eliminar esto y todo su código asociado.
+- [ ] 1.1.4 Media Player: Eliminar el switch Show Loop and Shuffle y todo su código asociado.
+- [ ] 1.1.5 Media Player: El slider debe funcionar en los reproductores locales (reproductores de música desde la terminal, locales GUI, Flapak y web).
+- [ ] 1.1.5 Media Player: El slider debe funcionar en los reproductores locales (reproductores de música desde la terminal, locales GUI, Flatpak y web).
+- [ ] 1.1.6 Media Player: El slider debe funcionar en los reproductores de GSConnect
+- [ ] 1.1.7 Clock: La distancia entre reloj y fecha debe poder modificarse. Debe ser válida la configuración tanto para vertical como para horizontal. No debe haber desbordamiento.
+- [ ] 1.1.8 Clock: El Date Size debe aplicar también para el día.
+- [ ] 1.1.9 Clock: Al hacer click en el reloj se debe abrir gnome clock, u otro programa que el usuario elija
+- [ ] 1.1.10 Settings & System: Las opciones de System deben mantenerse intactas. Pero hay que modificar Settings, para que estén en este orden y tengan:
+  - Settings (abrir los ajuste en general).
+  - Wi-Fi (abrir los ajustes de wi-fi)
+  - Bluetooth (abrir los ajustes de bluetooth)
+  - Night Ligth (activar y desactivar la luz nocturna)
+  - Dark Style (activar y desactivar el modo oscuro)
+  - Do Not Disturb (activar y desactivar el modo do not disturb) 
+- [ ] 1.1.11 Cambiar las preferencias por defecto a mi configuración actual.
+**** TODO 1.2 Quick Text
+- Descripción: Un atajo de teclado (Super+i, aunque es personalizable) abre una ventana de diálogo desde la cual podemos escribir contenido que se insertará en algún alchivo de texto plano de nuestra preferencia; podemos configurar un prefijo o sufijo al texto insertado. Es útil para tomar notas rápidas, fragmentos de texto y anotar ideas; puede usarse como complemento a cualquier app de notas basada en texto plano. El nombre y la ruta de acceso al archivo de destino deben establecerse antes de utilizar la extensión y el archivo debe existir.
   - Se usa como base el código de la extensión *Quick Text* de *Brainstormtrooper*. Esta extensión es compatible hasta GNOME 47, por lo que será necesario darle mantenimiento para darle compatibilidad con GNOME 50.
     - [[https://github.com/brainstormtrooper/quicktext][QuickText (GitHub)]]
     - [[https://extensions.gnome.org/extension/5892/quick-text/][QuickText (Extension.Gnome)]]
-- [X] Darle soporte a GNOME 50 e integrar la extensión a LIDSoL's Extensión
-- [ ] Mejorar la configuración de atajos de teclado
-- [ ] Cambiar el orden de los botones: Ok, Actions, Cancel
-- [ ] Configuración para tener o no salto de línea en el prefijo/sufijo
-
-La /primera versión/ será solamente adaptar y actualizar a GNOME 50 QuickText, pero, posteriormente sería interesante implementar algo similar a [[https://unclutterapp.com/][unclutter]]:
+  - La /primera versión/ será solamente adaptar y actualizar a GNOME 50 QuickText, pero, posteriormente sería interesante implementar algo similar a [[https://unclutterapp.com/][unclutter]]:
 
 [[./img/unclutter.gif]]
 
 Para ello, se puede tomar como base la extensión [[https://github.com/boerdereinar/copyous][copyous]].
-**** DONE Panel Corners [1/1] :topbar:
-[[./img/panel-corners.png]]
+- [ ] 1.2.1: Bug: Al abrir la ventana de Actions, no se ve el texto de las notas, se requiere hacer resize a la ventana para que aparezca el contenido de las notas.
+- [ ] 1.2.2: Feat: Implementa una acción en el botón de calendario (actualmente no tiene funcionalidad).
+  - [ ] 1.2.2.1: Por defecto: Al pulsar el botón se abre el calendario, creando un evento usando el texto de la nota como titulo del evento.
+  - [ ] 1.2.2.2. Adicionalmente, en los ajustes se debe poder crear un comando personalizado de bash, una acción personalizada (puede ser útil para mover el texto a otro archivo, crear un evento en ikhal u otro calendario basado en terminal, etcétera). Se pasa como input el texto de la nota seleccionada al comando. 
+**** TODO 1.3 Launcher
+- [ ] 1.3.1 Elimina el launcher tipo spotlight, todas sus opciones y código asociado
+  - [ ] 1.3.1.1 Ancho, alto, usar animaciones, velocidad, posición.
+- [ ] 1.3.2 Nueva implementación del launcher
+Flujo: Se añadió una opción llamada "Ocultar barra de búsqueda", esta oculta el campo "Type to search" en el Overview, pero aparece cuando se empieza a escribir. Si se configura un atajo de teclado (Keyboard->Keyboard Shortcuts->Search), al estar oculta la barra de búsqueda, si se usa susodicho atajo de teclado, aparenta solo abrir el overview. La idea de esta nueva implementación es que, aunque esté oculta la barra de búsqueda, al accionar un atajo de teclado para abrir la búsqueda, esta se muestre (toda la interfaz de busqueda, como entrando al "modo búsqueda", y no que solo aparente que se queda en el overview. 
+**** 1.4 Unclutter
+Basado en unclutter y copyus
+- Se debe abrir con un atajo de teclado o un hot point como en overview.
+- Se tienen tres vistas:
+  - Clipboard
+    - Se muestra la imagen, color (hexa, rgb)
+    - Se puede editar el texto
+  - Files
+    - Debería poderse arrastrar archivos y directorios a la vista de archivos. Y a la inversa. Tomar desde la vista de archivos y arrastrarlo a, por ejemplo, arrastrar un archivo de esta sección al navegador, libre office, nautilus.
+  - Notes.
+    - Esta sección tiene tres botones: añadir, vista general y buscar
+    - Por defecto muestra la última nota o la vista general.
+    - Al añadir una nueva nota (botón) puedes escribir y añadirla (quicktext)
+*** 2. Quick Settings
+**** Avatar de usuario
+**** System Items Layout
+**** Quick Toggles Layout
+**** Overlay Mode
+*** 3. Widgets
+**** Background Widgets
+**** Date Menu Media
+*** 4. Top Bar
+**** Panel Corners
+**** Workspace Indicator
+**** Battery Indicator
+**** Start Icon
+**** Date Menu
+**** Top Bar Organized
+*** 5. General
+**** 
+*** 6. Backend 
+- [ ] Mejorar y corrección de bugs del MPRIS
 
-- Descripción: Añade esquinas redondeadas en la top bar.
-  - Se usa como base el código de la extensión [[https://github.com/aunetx/panel-corners][Panel Corners de Aunetx]].
-  - Esta extensión es compatible con GNOME 50, por lo que será fácil de integrar.
-- [X] Integrar la extensión a LIDSoL'S Extension
-**** DONE Top Bar Organized :topbar:
-DEADLINE: <2026-07-04 Sat>
-- Descripción: Permite cambiar la ubicación de los elementos en el Top Bar. Compatible hasta GNOME 50, así que será fácil de integrar.
-  - Se usa como base el código de la extensión Top Bar Organized de June:
-    - [[https://extensions.gnome.org/extension/4356/top-bar-organizer/][Top Bar Organized (extensions.gnome)]]
-    - [[https://gitlab.gnome.org/june/top-bar-organizer][Top Bar Organized (gitlab)]]
-**** DONE User Avatar In Quick Settings [1/1] :quicksettings:
-[[./img/avatar.png]]
-- Descripción: Añade el avatar del usuario al Quick Settings, junto a la configuración relacionada con el sistema.
-  - Se usará como base el código de la extensión [[https://github.com/d-go/quick-settings-avatar][Quick Settings Avatar de d-go]], esta es compatible hasta GNOME 50, por lo que su integración debería ser sencilla.
-- [X] Integrarla a LIDSoL's Extension.
-**** IN-PROGRESS [#B] Workspace Indicator [2/3] :topbar:
-[[./img/aylurs-workspace.png]]
-- Descripción: Indicador de espacios de trabajo, ofrece una alternativa más configurable que la píldora nativa. Aylur's Widgets incluye un módulo indicador de espacios de trabajo, pero está diseñado para GNOME 44, en versiones posteriores del DE este indicador queda obsoleto.
-
-[[./img/spacebar.png]]
-  
-  - Pero, se puede tomar como base la extensión [[https://extensions.gnome.org/extension/5090/space-bar/][SpaceBar de luchrioh]], simplificarla, añadirle animaciones de transición entre espacios de trabajo e integrarla a LIDSoL's Widgets. Space Bar es compatible con GNOME 50, por lo que su integración debería ser sencilla.
-- [X] Integrar la extensión a LIDSoL's Widgets
-- [ ] Añadir una opción para usar el color de acento de GNOME como color de fondo del espacio activo.
-- [X] Añadir animaciones de transición cuando se cambia de espacio de trabajo.
-  - [X] Animación similar a la píldora nativa.
-  - [X] Animación más "agresiva"
 * 2. Arquitectura propuesta
-** Estructura de directorios
+** Core Framework
+*** Module Loader
+- Carga y descarga dinámica de módulos
+- Activación condicional según configuración
+- Gesitón de dependencias internas
+*** Signal Manager
+- Registro centralizado
+- Desconexión automática en disable().
+- Prevención de memory leaks.
+*** Settings Manager
+- Wrapper sobre GSettings.
+- Observadores desacoplados.
+- Actualización reactiva controlada.
+*** Logger
+** Estructura de directorio
+Aquí un ejemplo general de la estructura de directorios usada.
 #+BEGIN_SRC bash
 Gnome-Widgets/
 ├── extension.js                 # Punto de entrada principal
@@ -212,489 +174,79 @@ Gnome-Widgets/
     ├── core/
     └── modules/
 #+END_SRC
-** Core Framework
-*** Module Loader
-- Carga y descarga dinámica de módulos
-- Activación condicional según configuración
-- Gesitón de dependencias internas
-*** Signal Manager
-- Registro centralizado
-- Desconexión automática en disable().
-- Prevención de memory leaks.
-*** Settings Manager
-- Wrapper sobre GSettings.
-- Observadores desacoplados.
-- Actualización reactiva controlada.
-*** Logger
-* 5. Issues
-Aquí anotaré las cosas que sería bueno corregir/implementar pero que no son de alta prioridad (sería bueno que estén, pero no pasa nada si no están). Después las añadiré a las issues de github
-** UserWidget: no enfoca ventana existente de ajustes de usuario
-   - win.activate(0) no funciona en Wayland para enfocar la ventana de gnome-control-center ya abierta. Intentos fallidos: focus(), activate() con timestamps variados (event.get_time, global.get_current_time, META_CURRENT_TIME), idle_add, timeout_add(150ms), raise()+focus(). Sin cursor de carga (Util.spawn lo solucionó), pero la ventana no recibe foco.
-   - Posible causa: Mutter/Wayland rechaza peticiones de foco fuera del contexto directo de un evento de usuario. Pendiente de investigación.
-* 4. Notas técnicas de cada commit:
-** 9f879cf
-- El día de ayer se añadió "correctamente" systemItems.js, pero hoy al intentar usar esta feature, dejó de funcionar. Así que se volvió a portar. Se hicieron los siguientes cambios:
-  1. _getItems() siempre usaba GLib.idle_add incluso si _systemItem ya existía: Fast-path síncrono: si systemItem ya está disponible, resuelve inmediatamente sin idle_add
-  2. Errores silenciosos invisibles infinitos — el catch devolvía SOURCE_CONTINUE sin log: console.warn() en el catch del idle poller para diagnosticar
-  3. Múltiples operaciones async concurrentes si cambiaban settings rápido: _pending guard: _cancelPending() elimina el idle callback anterior antes de crear uno nuevo
-  4. _maid.clear() se llamaba pero _getItems() podía resolver con items undefined, que hideJob() ignoraba silenciosamente: Todos los hideJob() protegidos con && items.xxx
-  5. Sin forma de cancelar idle_add en disable(): _cancelPending() en disable()
-  6. _disconnectHandlers() podía fallar si _gsettings era null: Guard null en _disconnectHandlers()
-- Aun así, seguía sin funcionar. Ahí fue cuando me di cuenta de que, si Quick Toggles Layout estaba activado, System Items Layout funcionaba; pero sí se desactivaba Quick Toggles Layout, System Items Layout dejaba de trabajar. El problema estaba en que ModuleLoader registraba todo quickSettingsTweaks con enableKey: 'qst-toggles-enabled', por lo que al desactivar Quick Toggles Layout se descargaba el módulo entero, incluyendo System Items Layout.
-  - Cambios realizados:
-    1. Nuevo módulo independiente extension/modules/systemItems/module.js — wrapper que crea un SystemItemsFeature como módulo autónomo.
-    2. extension/modules/quickSettingsTweaks/module.js — eliminado SystemItemsFeature y su import; ahora solo gestiona QuickTogglesFeature.
-    3. extension/core/moduleLoader.js — agregado SystemItemsModule en REGISTERED_MODULES con enabledKey: 'qst-system-items-enabled', separado del módulo de Quick Toggles.
-- El tamaño predefinido de la ventana de configuración prefs.js se cambió a a 495x600 
-Flujo de activación (dos niveles)
-1. ModuleLoader verifica qst-toggles-enabled → si true, crea QuickSettingsTweaksModule
-2. QuickSettingsTweaksModule.enable() crea SystemItemsFeature y llama a su enable()
-3. SystemItemsFeature.enable() lee qst-system-items-enabled → si false, conecta handlers pero no aplica layout
-4. Cuando el usuario activa qst-system-items-enabled desde preferencias, el handler changed:: dispara _scheduleApply()
-** f487daa
-- Los atajos de teclado para activar/desactivar los toggles personalizados no funcionaban correctamente.
-- **Keybinding de custom toggles migrado a `Main.wm.addKeybinding()`**:
-  - Reemplazado `global.display.connect('key-press-event', ...)` por `Main.wm.addKeybinding()` con slots GSettings (`qst-custom-kb-0` a `qst-custom-kb-9`), más estable y sin necesidad de parsear aceleradores manualmente.
-  - `_destroyCustomToggles()` ahora usa `Main.wm.removeKeybinding()` en vez de `global.display.disconnect()`.
-  - Cada toggle guarda `kbSlot` y `kbRegistered` en vez de `keybindingId`.
-- **10 nuevas keys GSettings** en el schema: `qst-custom-kb-0` a `qst-custom-kb-9` (tipo `as`, default `[]`).
-- **Reorganización de la página Quick Settings en prefs.js**:
-  - Separado en dos `Adw.PreferencesGroup`: "Área de sistema" (User Avatar + System Items) y "Toggles" (Quick Toggles Layout).
-  - Intercambiado el orden de las filas System Items ↔ Quick Toggles para que cada una quede en su grupo correcto.
-** 3876e7e 
-- Comportamiento de incicio corregido en quickToggles.js.
-  - `LidSolToggleIndicator` ahora aplica `config.initialState` (0=On, 1=Off, 2=Previous, 3=Command output) al crearse, no solo confiaba en `_toggleState` (vacío al iniciar sesión).
-  - Agregado `runAtBoot` con retardo: si `item.runAtBoot` es true, programa el comando ON/OFF según el estado resultante con `delayTime` segundos de espera.
-  - Persistencia de estado en GSettings (`qst-custom-state-0..9`): cada toggle guarda su estado booleano al hacer clic, permitiendo que "Estado anterior" (initialState=2) funcione entre sesiones.
-  - Schema — 10 nuevas keys qst-custom-state-0..9. Tipo b (boolean), default false. Siguen el mismo patrón que los slots de keybinding.
-** 84cb3b9
-- Mejoras en prefes.js:
-  - /getIconName()/ ahora retorna /item-icon/ si está definido, mostrando el ícono real del toggle en la lista de ordenamiento.
-  - Priview en vico del ícono en el formulario de edición (se actualiza al escribir).
-  - Una nueva fila de "Sugerencias" con ejemplos de íconos y encace al repo de gitlab con los íconos simbólicos.
-- **Script de test Syncthing** (`scripts/syncthing-toggle.sh`) — Ejercita todos los campos de configuración de toggles personalizados:
-  - `commandOn` / `commandOff` / `checkCommand` / `checkRegex` / `checkExitCode` / `commandSync`. Este solo es para testar, despues se eliminará.
-** 2bb9dce
-- Se edito la ventana de configuraciones, prefes.js, ambos *botones de restablecer* ahora muestran un Adw.AlertDialog de confirmación con respuesta destructiva antes de procedes. Es para evitar eliminar tus configuraciones por error.
-- Se editó quickToggles.js, había un error en el *reordenamiento en vivo* de los toggles personalizados, /_reload()/ ahora llama a /_onUpdate/ después de crear los toggles personalizados, para poder editar el orden de los quick settings.
-** 70c84ca
-- Se hizo un port de Overlay Mode desde Quick-Settings-Tweaks.
-  - Se creo /extension/modules/quickSettingsTweaks/overlayMenu.js/ con /OverlayMenuFeature/.
-  - Se usa /QuickSettingsMenuTracker/ para hookear creación/apertura de menús de toggles.
-  - Animaciones: flyout (/EASE_OUT_BACK/) y dialog (/EASE_OUT_EXPO/).
-  - Recálculo dinámico de Y offset al cambiar altura del menú.
-  - Preferencias en Quick Settings -> Toggles -> Overlay Mode (ancho, duración, estilo, alclaje).
-- 5 nuevas keys GSettings: /qst-overlay-menu-*/
-- [X] Agregada clase /QuickSettingsMenuTracker/ faltante en /extension/utils/childrenTracker.js/
-- /overlayMenu.js/ importaba /QuickSettingsMenuTracker/ desde /childrenTracker.js/, pero no existía → SyntaxError
-- Implementación: wrapper sobre /QuickSettingsToggleTracker/ que, por cada toggle con propiedad /.menu/, conecta /notify::isOpen/ y expone /onMenuCreated/onMenuOpen/
-- Ciclo de vida gestionado via /Maid/ (se limpia al destruirse el toggle)
-** 896629c 
-- [X] Fix, bug de posicionamiento en X. El overlay aparecía en x=0 en vez de alineado con QuickSettings.
-  - Causa raíz: el `_xconstraint` usaba `menu.box` como source (coordenadas relativas al padre), no `menu._boxPointer` (coordenadas stage-absolutas). Además nunca se actualizaba `_xconstraint.offset`.
-  - Cambios en `/extension/modules/quickSettingsTweaks/overlayMenu.js`:
-    1. `_xconstraint.source` cambiado de `menu.box` → `menu._boxPointer` (mismo source que Y)
-    2. `_onOpen()` ahora setea `_xconstraint.offset = coords.offsetX`
-    3. `_onMenuCreated()` añade `menu.actor.x_align = Clutter.ActorAlign.CENTER` al fijar width
-    4. Handler `notify::height` ahora también actualiza `_xconstraint.offset`
-** 3a2f272
-- overlayMenu.js
-  - Posición X: _xconstraint vinculado a menu._boxPointer (no menu.box), y su offset se actualiza en _onOpen() y en notify::height.
-  - x_align = CENTER: al fijar menu.actor.width para que el menú se centre dentro del overlay.
-  - AdvAni.ease(): flyout usa LowBackover bezier (0.225, 1.2, 0.45, 1), dialog usa MiddleBackover (0.4, 1.35, 0.55, 1).
-  - Handlers siempre conectados: _connectHandlers() movido antes del if (!this._enabled) return.
-  - Live keys: duration, style, overflow anchor ya no hacen reload completo, solo _loadSettings().
-  - _scheduleReload() captura gsettings: evita que disable() (que setea _gsettings = null) rompa el enable() posterior.
-- childrenTracker.js
-  - QuickSettingsMenuTracker refactorizado: ahora extiende ChildrenTrackerBase directamente (como QST), monitorea _grid con child-added y detecta child.menu.
-  - open-state-changed en vez de notify::isOpen — es la señal nativa de QuickSettingsMenu.
-  - .menus getter (en vez de .items) que retorna las claves del appliedChild Map.
-- advani.js
-  - Nuevo archivo utility con AdvAni.ease(actor, params) que aplica custom cubic-bezier curves.
-  - Dos modos: LowBackover y MiddleBackover, definidos como ModeDefine con puntos de control Graphene.
-  - Tras llamar a actor.ease(), busca los transitions por key y llama set_cubic_bezier_progress() para sobrescribir la interpolación.
-** bb029de
-- schemas/…gschema.xml: nueva key ws-transition-animation (enum: none/subtle/aggressive)
-- settings.js: transitionAnimation Subject agregado
-- workspacesBar.js: 
-- _updateWorkspacesBar() → distingue cambio estructural (_fullRefresh) vs cambio de activo (_updateInPlace)
-- _updateInPlace() actualiza styleClass y texto sin destruir actores
-- _animateEnter() aplica escala con easing: Subtle 0.95→1.0 (EASE_OUT_QUAD, 200ms), Aggressive 0.7→1.15 bounce (EASE_OUT_BACK, 150ms) luego a 1.0 (EASE_OUT_QUAD, 100ms)
-- prefsSettings.js: combo «Animación de transición» en grupo Apariencia
-** cbfae79
-- Bugfix: _updateInPlace() usaba referencia obsoleta de _dragHandler.wsBoxes — workspace.name no se actualizaba al renombrar. Fix: leer de this._ws.workspaces[workspace.index]
-- Bugfix: ease() race condition — dos wsBox.ease() consecutivos sobre las mismas propiedades (scale_x, scale_y) no encadenan; el segundo reemplaza al primero antes del primer frame. Fix: onComplete callback para secuenciar.
-- Fix: wsBox.remove_all_transitions() antes de cada animación para cancelar transiciones pendientes por cambios rápidos de workspace. label.remove_all_transitions() en fade.
-- fade: animación sobre label (opacity 0→255, EASE_OUT_QUAD, 250ms)
-- pulse: dos fases onComplete — scale 1.0→1.1 (EASE_OUT_QUAD, 140ms) → 1.1→1.0 (EASE_OUT_CUBIC, 180ms)
-- aggressive: corregido con onComplete (mismos parámetros, ahora secuencial limpio)
-** 7f8c563
-- Renombrado extension/modules/backgroundClock/ → backgroundWidgets/
-- Extraída clase ClockWidget a clockWidget.js (antes BackgroundClockWidget dentro de module.js)
-- module.js convertido en orquestador: importa ClockWidget desde clockWidget.js
-- moduleLoader.js actualizado: import BackgroundWidgetsModule, id 'backgroundWidgets', name 'Background Widgets', enabledKey 'background-clock-enabled' (retrocompatible)
-- prefs.js: descripción de categoría Widgets actualizada
-- Schema GSettings sin cambios (claves background-clock-* intactas)
-** 4fab644
-- Creado extension/modules/backgroundWidgets/baseWidget.js con clase DesktopWidget (extends St.Widget):
-  - _addToBackgroundGroup(): se inserta en Main.layoutManager._backgroundGroup
-  - _setupOverviewFade(): conecta notify::value de overview._controls._stateAdjustment → opacity = 255 * (1 - value)
-  - _removeOverviewFade(): desconecta la señal en destroy()
-  - _init() llama a ambos automáticamente
-- ClockWidget ahora extiende DesktopWidget en vez de St.Widget directamente
-- module.js simplificado: ya no agrega manualmente el widget al container (lo hace DesktopWidget._init)
-- Bugfix: DesktopWidget._init usa arrow function en connect('destroy') en vez de this._onDestroy.bind(this) — las subclases (ClockWidget) sobrescriben _onDestroy, la arrow function preserva el handler de la base
-- moduleLoader.js y prefs.js sin cambios respecto a checkpoint-0
-** f101246
-- Creado extension/modules/backgroundWidgets/pictureWidget.js con clase PictureWidget (extends DesktopWidget):
-  - CSS background-image: url("file://...") con background-size: cover
-  - Soporta imagen única o carpeta con selección aleatoria (recursiva en subdirectorios)
-  - Tamaño base + aspect ratio → ancho/alto calculados
-  - Posición raw x/y (píxeles desde esq. sup. izq.)
-  - Corner radius porcentual sobre la dimensión menor
-  - Auto-refresh timer (GLib.timeout_add_seconds) para rotar imágenes de carpeta
-  - Destroy handler limpia refreshId
-- Agregadas 8 keys GSettings al schema unificado (prefijo pw-):
-  - pw-enabled (bool, master toggle, default false)
-  - pw-image-path (string, ruta archivo o carpeta)
-  - pw-size (int, 10-2000, default 200)
-  - pw-aspect-ratio (double, 0.1-10, default 1.0)
-  - pw-position-x/y (int, default 100)
-  - pw-corner-radius (int, 0-100, default 20)
-  - pw-refresh-interval (int, 0-86400, default 60)
-- module.js actualizado: gestiona ClockWidget y PictureWidget con toggles independientes (background-clock-enabled + pw-enabled) mediante watchers GSettings runtime
-- Schema compilado (glib-compile-schemas)
-** 2491e88
-- prefs.js _addWidgetsModuleGroup: agregado createModuleRow para pw-enabled (Picture Widget) antes de Background Clock
-- Creado _buildPictureWidgetDialog() con grupos:
-  - Imagen: folder chooser con Gtk.FileChooserDialog (SELECT_FOLDER)
-  - Tamaño: tamaño base + aspect ratio (SpinButton con digits=2)
-  - Posición: X, Y en píxeles
-  - Apariencia: corner radius porcentual
-  - Avanzado: refresh interval (0 = sin auto-refresh)
-- Schema compilado
-- Bug: Picture Widget solo funcionaba si Background Clock estaba activo, porque ambos dependían de que ModuleLoader cargara backgroundWidgetsModule en base a background-clock-enabled
-- Solución: nuevo GSettings key background-widgets-enabled (bool, default true) como master toggle
-- moduleLoader.js: enabledKey cambiado de background-clock-enabled a background-widgets-enabled
-- module.js sin cambios — ya gestiona sub-toggles independientes (background-clock-enabled + pw-enabled)
-- prefs.js _addWidgetsModuleGroup: agregado master switch al inicio, sub-toggles con sensitiveBind
-- prefsHelpers.js createModuleRow: agregado parámetro sensitiveBind
-** 4c2c1e2
-Ahora la animación face al ingresar al overview es visible. Y el widget es persistente durante el cambio de workspace.
-- Bug raíz: widget en _backgroundGroup → overview overlay (semi-transparente) lo cubría→cambios de opacidad invisibles. Además _backgroundGroup se reestructura al cambiar workspace.
-- Solución: Migrar de _backgroundGroup a Main.layoutManager.uiGroup como padre. Widget se renderiza SOBRE el overlay del overview (visible durante transición). uiGroup no se reestructura al cambiar workspace → widget persistente.
-- Mecanismo fade: monkey-patch de WorkspaceBackground.prototype._init + notify::value en _stateAdjustment (por-background, DING-style), sin filtro _isOverviewTransition(), sin initial-opacity en conexión. Adj.value 0→1 → opacity 255→0 progresivo, cuadro por cuadro.
-- raiseToTop: idle_add set_child_above_sibling(this, null) para mantener widget sobre el overview.
-- Eliminados: _setupWorkspaceHandlers (switch-workspace + active-workspace-changed), _reparentAfterSwitch, _isOverviewTransition(), initial-opacity set.
-- Referencia desktop-icons-ng: usa ventana real (Gtk) fuera del árbol Clutter → no sufre ocultación por overlay. Este enfoque (Clutter en uiGroup + _stateAdjustment) logra el mismo efecto visual con actores nativos.
-** 3a32287
-- Implementado módulo topBarOrganizer que permite reordenar y ocultar elementos de la barra superior (panel).
-- 6 nuevas keys GSettings con prefijo tbo-:
-  - tbo-enabled (bool, default false) — master toggle del módulo
-  - tbo-left-box-order, tbo-center-box-order, tbo-right-box-order (as, default []) — orden por caja
-  - tbo-hide, tbo-show (as, default []) — ocultar/forzar mostrar items
-- module.js: hook de Panel.Panel.prototype._addToPanelBox via Maid.patchJob para interceptar nuevos items. Algoritmo:
-  - saveNewTopBarItems(): escanea Main.panel.statusArea, mapea container→role, agrega items desconocidos a GSettings
-  - orderTopBarItems(box): reordena hijos de _leftBox/_centerBox/_rightBox vía remove_child + insert_child_at_index, aplica hide/show según tbo-hide/tbo-show
-  - Conexión a changed:: de las 5 keys tbo-* para reordenar en vivo
-- moduleLoader.js: registrado TopBarOrganizerModule con enabledKey tbo-enabled
-- prefs.js: nuevo grupo "Organización del panel" en categoría Top Bar / Panel con:
-  - createModuleRow con switch de habilitación + botón "Organizar"
-  - Diálogo con 3 secciones (Left/Center/Right), flechas arriba/abajo por item, switch de visibilidad, botón restablecer
-  - Mapa de nombres e iconos para items conocidos (appMenu, dateMenu, activities, quickSettings, a11y, keyboard, screencastIndicator, remoteAccessIndicator)
-** 3414f12
-No se mostraban los ajustes del top-bar-organizer. El error era Adw.PreferencesGroup.get_rows() — no existe en GTK4/Adw. Causaba un TypeError dentro de childrenRequest, lo que impedía que dialog.present() se ejecutara, nunca era visible el dialog que muestra las configuraciones. Se remplazó por un array boxRows que trackea las filas manualmente.
-** 3ab233f
-Al ocultar un elemento (switch on), se ocultaba correctamente, pero al intentar mostrarlo nuevamente (switch off), ya no se mostraba, ni desactivando/activando la extensión. La causa era que wasVisible se capturaba después de que se llamara a hide(), ya lo habia puesto en false, y el else if (!wasVisible) lo volvía a ocultar en el reordenamiento. Para soluciar esto se usa mejor una lógica directa: si está en tbo-hide, se oculta, si no se muestra.
-** 7e16ea5
-Se reemplazaron los botones ↑↓←→ por Gtk.ListBox (tipo drag & drop). Cada fila tiene:
-- Asa de arrastre (list-drag-handle-symbolic) + icono + nombre
-- Switch de ocultar/mostrar.
-- DragSource: al arrastrar, crea un ContentProvider con el tipo TopBarOrganizerRow.$gtype para filtrar solo nuestras filas. drag-begin muestra una copia visual de la fila como icono de arrastre.
-- DropTarget: acepta solo filas del mismo tipo. En el drop, calcula la posición correcta (misma caja → reordenar; caja distinta → mover entre cajas) y guarda a GSettings.
-- Cross-box: _saveBothListBoxOrders usa settings.delay() + apply() para evitar race conditions con el módulo.
-Las 3 cajas están dentro de un solo Adw.PreferencesGroup con Gtk.Label como encabezados de sección, y Gtk.ListBox con estilo boxed-list para la apariencia de lista Adw.
-** e09fc44
-El Gtk.ListBos ahora tiene:
-- set_size_request(-1, 60): ahora hay una altura mínima de 60px aunque esté vacío.
-- Gtk.ListBox.set_placeholder(): muestra "arrastrar elementos aquí" en gris atenuado cuando no hay fila. 
-Con esto se solucionó un bug que no permitia arrastar elementos a una caja vacía.
-** 673bd3b
-- Port completo del módulo Dashboard desde Aylur's Widgets (GNOME 44 -> 50):
-  - extension/modules/dashboard/module.js — módulo principal con stylesheet, panel button.
-  - extension/modules/dashboard/dashBoard.js — DashBoardModal (modal dialog con layout JSON) + DashBoardPanelButton (panel button con keybinding)
-  - extension/modules/dashboard/stylesheet.css — estilos scoped bajo .dashboard (fix: clases .clock/.date/.day sin scope causaban que el reloj del top bar se volviera enorme al activar el dashboard)
-  - extension/modules/dashboard/widgets.js — 7 widgets (User, Levels, Media, Clock, Apps, Settings, System) + HoverButton + AppBtn + LevelsBox
-  - moduleLoader.js — registrado DashboardModule con enabledKey: dashboard-enabled
-  - Schema: 73 keys con prefijo dashboard- (layout, posición, offset, darken, button, shortcut + widget-specific keys)
-- Prefs UI completa (Aylur-style) en prefs.js _buildDashboardDialog:
-  - Panel Button (hide activities, enable, position, offset, icon, label)
-  - Dash (shortcut hotkey dialog con Gtk.EventControllerKey, read config, x/y align/offset, darken)
-  - 8 expanders de widget con x/y align, x/y expand, width, height, background + widget-specific controls
-  - Categoría Dashboard movida a Shell (categorías reordenadas: Shell → Quick Settings → Widgets → Top Bar)
-- Atajo de teclado: default cambiado de <Super>d a <Ctrl><Super>d para evitar conflicto con show-desktop nativo de GNOME
- - **Bug: dashboard no mostraba widgets** — extension/utils/mprisService.js era un stub vacío (solo un comentario TODO). Al construir la UI, _buildUI() llamaba a _parseJson() que creaba un MediaWidget, cuyo MediaBoxImpl llamaba MprisService.getDefault() → TypeError. El try/catch en _buildUI() atrapaba el error y creaba un BoxLayout vacío. Solución:
-  1. MprisService implementado con getDefault() singleton y connectObject/disconnectObject compatibles con GObject pattern
-  2. MediaBoxImpl ahora envuelve MprisService.getDefault() en try/catch; si no disponible, muestra "Nothing Playing"
-  3. _buildUI() y _parseJson() ahora envuelven CADA widget individualmente en try/catch — un widget roto no tumba los demás
-- **Bug: CSS sin scope** — selectores .clock, .date, .day sin prefijo .dashboard afectaban globalmente al Shell, agrandando el reloj del top bar. Fix: todos los selectores scoped bajo .dashboard
-- Schema compilado (glib-compile-schemas)
-** bf9c550
-El widget de multimedia del dashboard no se mostraba.
-El MprisService fue reescrito siguiendo el patrón de quick-settings-tweaks (QST). que tiene un widget multimedia probado y funcional.
+* Notas
 
-*Problema original*: El MprisService original usaba Gio.DBusProxy.new_sync() (síncrono) para crear los proxies D-Bus de cada reproductor MPRIS, y accedía a las propiedades via get_cached_property().deep_unpack(). Esto fallaba porque:
-1. El parseo de metadatos a{sv} con deep_unpack() no manejaba correctamente
-   la estructura de GVariant (los valores internos tipo v necesitan
-   desenrollado manual)
-2. No esperaba a que los proxies estuvieran listos antes de acceder a las
-   propiedades
-3. La detección de NameOwnerChanged usaba signal_subscribe en vez de
-   el patrón connectSignal de Gio.DBusProxy, que es más fiable
-4. La clase MprisPlayer no extendía GObject.Object correctamente (no tenía
-   signals ni propiedades GObject)
+* 1. Objetivos
+** Objetivos específicos
+*** IN-PROGRESS Módulos [4/11] [36%]
+**** IN-PROGRESS [#A] Dashboard [2/12]
+DEADLINE: <2026-07-09 Thu>
+Notas:
+- **Sincrónico vs asíncrono**: Gio.DBusProxy.new_sync() parece más simple
+  pero no espera a que el name-owner esté disponible. Usar new() + Promise
+  garantiza que las propiedades están cacheadas antes de acceder.
+- **GVariant a{sv}**: deepUnpack() desenrolla recursivamente, incluyendo
+  los v internos. Pero proxy.Metadata devuelve el GVariant crudo donde los
+  valores tipo v necesitan .deepUnpack() o .get_string() según el tipo.
+- **connectSignal vs signal_subscribe**: connectSignal en Gio.DBusProxy
+  es más simple y directo que signal_subscribe de Gio.DBus.session.
+- **can-play como guard**: No emitir player-added hasta que canPlay sea
+  true evita errores de "proxy no listo".
+- **Export en ESM**: GObject.registerClass() con export var puede fallar
+  si hay errores en tiempo de evaluación. Usar export { ... } explícito
+  al final del archivo es más fiable.
+ 
+**** TODO [#B] Battery Bar :topbar:
+DEADLINE: <2026-07-11 Sat>
+[[./img/aylurs-battery.png]]
 
-*Solución:* patrones de QST
-El nuevo MprisService sigue la estructura de QST:
-- Extiende GObject.Object con:
-  - Propiedades GObject: can-play, can-seek (notifican cambios vía notify::)
-  - Señal: changed (se emite cada vez que cambian metadatos/estado)
-- Crea 3 proxies D-Bus ASÍNCRONOS via Gio.DBusProxy.new() (Promise):
-  1. org.mpris.MediaPlayer2.Player — metadatos, playback status, controls
-  2. org.mpris.MediaPlayer2 — identity, desktop entry, CanRaise
-  3. org.freedesktop.DBus.Properties — Position (async Get)
-- Promise.all() espera los 3, luego llama _ready()
-- _ready() conecta:
-  - notify::g-name-owner → detecta cierre del reproductor
-  - g-properties-changed → actualiza metadatos vía _update()
-- _parseMetadata() (idéntico a QST):
-  - metadata['mpris:trackid']?.get_string()[0] — track ID
-  - metadata['mpris:length']?.deepUnpack() — duración
-  - metadata['xesam:artist']?.deepUnpack() — artistas (string → array)
-  - metadata['xesam:title']?.deepUnpack() — título
-  - metadata['mpris:artUrl']?.deepUnpack() — URL de carátula
-  - DesktopEntry → Shell.AppSystem lookup
-- Métodos de control: play(), pause(), next(), prev(), playPause(), raise()
-  usando Proxy.MethodAsync() (Promise)
-- Getters compatibles: title, artist, coverArt, playbackStatus, status,
-  canGoNext, canGoPrevious, canPlay, canSeek, isPlaying()
+- Descripción: Indicador alternativo de batería en el Top Bar.
+  - Se toma como base uno de los módulos de Aylur's Widgets. Compatible hasta GNOME 44, por lo que será necesario darle mantenimiento para hacerlo compatible con GNOME 50.
+- Configuración:
+  - Visibilidad de ícono y porcentaje.
+  - Dimensiones.
+  - Colores dinámicos configurables (batería baja, cargando, normal)
+**** IN-PROGRESS [#B] Date Menu (dinámico) [1/3] :topbar:
+DEADLINE: <2026-07-11 Sat>
+- Descripción: Basado en [[https://www.androidauthority.com/pixel-launcher-at-a-glance-widget-visibility-update-3597606/][el widget At a Glance de los Google Pixel]]. El texto del "Date Menu" cambia dinámicamente, muestra el contenido multimedia que se reproduce actualmente e indica de notificaciones.
+***** DONE Date Menu Formatter :topbar:
+[[./img/date-format.png]]
 
-*MprisService (singleton gestor de reproductores)*: 
-- Clase GObject con signals: player-added, player-removed
-- getDefault() → singleton que auto-inicia start()
-- start() crea Gio.DBusProxy.new_sync() para org.freedesktop.DBus:
-  - ListNamesSync() descubre reproductores existentes
-  - connectSignal('NameOwnerChanged') detecta nuevos/cerrados
-- _addPlayer() crea MprisPlayer y escucha notify::can-play
-  - player-added se emite SOLO cuando can-play = true (proxy listo)
-- players → getter que filtra solo los que canPlay = true
-- Ciclo de vida sin recursión: _close() solo nullifica proxies,
-  _removePlayer() es llamado solo desde el servicio
+- Descripción: Permite la personalización del formato de la fecha y hora en el panel.
+  - Aylur's Widget tiene un componente que permite personalizar esto, también se tomará como referencia el código de la extensión [[https://extensions.gnome.org/extension/4655/date-menu-formatter/][Date Menu Formatter de Marcin Jakubowski]]. Esta última compatible hasta GNOME 50, por lo que no debería ser difícil integrarla.  
+***** IN-PROGRESS Media Player
+[[./img/aylurs-player.png]]
 
-*Dashboard MediaBoxImpl actualizado*
-- Nuevos métodos _connectPlayer() / _disconnectPlayer() para manejo limpio
-- Conecta señal changed del player → _sync() (actualiza UI en track change)
-- Desconecta señal al removerse el player
-- Detecta players ya descubiertos tras conectar señales
-- Cover art usa Gio.File.new_for_uri() + Gio.FileIcon (como QST)
+- Descripción: Controles multimedia integrados en el Date Menu ó Top Bar. El indicador no es visible al menos que se reproduzca contenido multimedia, tomando el lugar del Date Menu.
+  - Para usar como base, se pueden tomar en cuenta todas las siguientes implementaciones:
+    - [[https://extensions.gnome.org/extension/4928/mpris-label/][Media Label and Controls (por moon-0xff)]], compatible hasta GNOME 49.
+    - [[https://extensions.gnome.org/extension/9334/dynamic-music-pill/][Dynamic Music Pill (por andbal)]], compatible hasta GNOME 50.
+    - [[https://extensions.gnome.org/extension/4470/media-controls/][Media Controls (por Sakith B.)]], compatible hasta GNOME 49.
+    - [[https://extensions.gnome.org/extension/9184/advanced-media-controller/][Advanced Media Controller (por sanjai)]] compatible hasta GNOME 50.
+- Objetivos:
+- [ ] Mostrar información de pista.
+- [ ] Controles (anterior, pausa, siguiente)
+- [ ] Separar estrictamente el estado y la representación visual. 
+- [ ] Selección de reproductor preferido o descartados
+- [ ] Gestionar caché (portada de álbumes)
+- [ ] Widget de reproducción multimedia personalizable accesible desde el DateMenu
+***** TODO Notification Indicator
+- Descripción: Indicador de notificaciones (contador numérico). 
+**** IN-PROGRESS [#C] Desktop Widgets :shell:
+DEADLINE: <2026-07-18 Sat>
+***** IN-PROGRESS Image Widget
+***** Clock Widget
+***** Weather Widget
+**** IN-PROGRESS [#B] Workspace Indicator [2/3] :topbar:
+[[./img/aylurs-workspace.png]]
+- Descripción: Indicador de espacios de trabajo, ofrece una alternativa más configurable que la píldora nativa. Aylur's Widgets incluye un módulo indicador de espacios de trabajo, pero está diseñado para GNOME 44, en versiones posteriores del DE este indicador queda obsoleto.
 
-** eee0bab
-*Dashboard MediaWidget QST-style (mediaWidget.js)*
-- Nuevo componente ProgressControl: St.BoxLayout con label de posición, Slider,
-  label de duración; drag-to-seek via position/position-changed signals;
-  polling 1s via GLib.timeout_add
-- Nuevo componente PlayerView: cover art (St.Bin con St.Widget icon) + info box
-  (título, artista, ProgressControl, botones prev/play-pause/next)
-- Nuevo componente DashboardMediaWidget: contenedor vertical con header
-  (nombre del player + PageIndicators dots), content box con fade animation
-  en switch de player, sincronización con MprisService via player-added/player-removed
-- pageIndicator (St.Widget) con dots clickables que emiten page-activated
-- Reemplaza MediaBoxImpl en widgets.js por DashboardMediaWidget
+[[./img/spacebar.png]]
+  
+  - Pero, se puede tomar como base la extensión [[https://extensions.gnome.org/extension/5090/space-bar/][SpaceBar de luchrioh]], simplificarla, añadirle animaciones de transición entre espacios de trabajo e integrarla a LIDSoL's Widgets. Space Bar es compatible con GNOME 50, por lo que su integración debería ser sencilla.
+- [X] Integrar la extensión a LIDSoL's Widgets
+- [ ] Añadir una opción para usar el color de acento de GNOME como color de fondo del espacio activo.
+- [X] Añadir animaciones de transición cuando se cambia de espacio de trabajo.
+  - [X] Animación similar a la píldora nativa.
+  - [X] Animación más "agresiva"
 
-*Bugfix: JS getters vs GObject Properties en MprisPlayer*
-- get canPlay() y get canSeek() del prototipo shadoweaban las propiedades
-  GObject 'can-play'/'can-seek' declaradas en registerClass(READWRITE)
-- TypeError: setting getter-only property — this.canPlay = value fallaba
-  silenciosamente en _parseMetadata(), notify::can-play nunca se emitía,
-  player-added nunca llegaba, widget quedaba vacío
-- Fix: eliminar ambos getters JS (mprisService.js:204-209), dejar que
-  GObject property system maneje get/set automáticamente
-- Se añadió lección en AGENTS.md
-
-*Debug logging removido*
-- ~15 líneas [LIDSoL Dbg] en mprisService.js y mediaWidget.js
-  (eran solo para diagnóstico del bug)
-
-*Dashboard: no cerrar al clickear media widget*
-- ModalDialog con shellReactive captura eventos via captured-event (capture phase)
-  y button-press-event en el diálogo (línea 41, bubble phase)
-- Solución final: conectar button-press-event en contentLayout del ModalDialog
-  (entre botones y diálogo en el árbol → firea antes en bubble phase)
-  - Clicks en media widget → Clutter.EVENT_STOP → no llega al diálogo
-  - Clicks en otro contenido → Clutter.EVENT_PROPAGATE → diálogo cierra
-- _isOnMediaWidget() usa Clutter.Actor.contains(source) para verificar si
-  el actor origen del evento está dentro del _mediaWidget
-- _mediaWidget almacenado en _buildUI via media factory, nulleado al rebuild
-- Intentos fallidos previos: EVENT_STOP en MediaWidget (sin efecto),
-  get_source() check en dialog (no funcionaba), reactive:true (rompía botones)
-- Solución definitiva: override de close() en DashBoardModal
-  - Captura TODAS las llamadas a close() venga de donde vengan
-  - Usa Clutter.get_current_event() para obtener el evento en curso
-  - Si es un BUTTON_PRESS cuyo source() está dentro del media widget,
-    close() no hace nada (return)
-  - KEY_PRESS (Escape) y otros eventos pasan directamente → close() normal
-  - Capas de defensa: close() override + contentLayout handler + line 58
-    original, las 3 cooperan para asegurar que media widget nunca cierre
-** 34065d4
-Corrección de errores al widget de avatar del dashboard
-- 1. Se importa AccountService y Avatar, la misma clase que usa el módulo userAvatar.
-- 2.  _buildUI (línea 173-182) — Reemplaza St.Icon con icon_name: 'avatar-default-symbolic' (siempre fallback) por la clase Avatar de GNOME Shell, que obtiene el usuario real via AccountsService.UserManager.get_default().get_user(GLib.get_user_name())
-  - Llama a user.get_icon_file() para obtener la ruta de la foto real
-  - Muestra la foto como background-image: url(...) en el St.Bin, con fallback al icono avatar-default-symbolic
-  - Actualización (línea 182) — Conecta señal changed del usuario para llamar _avatarPicture.update() cuando cambie la foto.
-  - Limpieza (líneas 134, 153-154) — Desconecta señales del usuario viejo en rebuild y destroy.
-  - _loadAvatar() (líneas 208-234) — Obtiene iconFile de AccountsService.User.get_icon_file(). Si existe: btn.child = null + background-image, background-size: cover, border-radius. Si no: fallback St.Icon con avatar-default-symbolic.
-- Eliminado import { Avatar } (innecesario).
-- Conecta _user.connectObject('changed', ...) para recargar al cambiar la foto (línea 170).
-- El baseStyle incluye padding: 0; border: none; para anular el padding/borde que la clase .button del tema de GNOME Shell pueda agregar. Con border-radius: 0 antes el padding extra hacía que el background-image se extendiera más allá del área esperada. Ahora queda fijo en el tamaño exacto de width × height.
-- Usa _loadAvatar que pone background-image: url("${iconFile}") directamente en el St.Button (idéntico a como la clase Avatar de GNOME Shell maneja la imagen internamente).
-- border-width: 0 y padding: 0 eliminan cualquier borde/padding heredado de la clase .button del tema.
-- background-color: transparent evita que el fondo semitransparente de .user-icon-button tintinee la foto.
-- El changed signal de AccountsService.User vuelve a llamar _loadAvatar con el mismo userBtn, actualizando el estilo in-place.
-** 7b66874
-Corrección en "show real name", en el dashboard:
-- _buildUI: GLib.get_real_name() → this._user.get_real_name() || GLib.get_real_name() (línea 194). AccountsService.User.get_real_name() retorna el nombre real del sistema; GLib.get_real_name() cae en "Unknown" en algunos entornos.
-- Señal notify::is-loaded (línea 172) — igual que en userAvatar, para cuando el usuario todavía no ha cargado.
-- _syncUserName() (líneas 211-215) — actualiza _nameLabel.text desde el usuario de AccountsService.
-- _nameLabel como propiedad de instancia para poder actualizarlo desde los callbacks.
-** 77c3673
-Mensaje de saludo dinámico según hora en dashboard UserWidget:
-- _getGreeting() segmenta el día en 4 rangos: 00-04 → "Night Time", 05-11 → "Good Morning", 12-17 → "Good Afternoon", 18-23 → "Good Evening".
-- Se actualiza automáticamente cada 5 minutos mediante setTimeout recursivo (GJS built-in, evita problemas con GLib.timeout_add que hacía desaparecer el widget).
-- _scheduleGreetingUpdate(interval) crea el timer; destroy handler lo limpia con clearTimeout.
-** b5b72fa
-- Al pulsar el UserWidget se abre la ventana de ajustes de GNOME en la sección Usuarios.
-- lookup_app del desktop file correcto según versión de GNOME (>= 46 → gnome-users-panel.desktop).
-- Click handler movido de userBtn a toda la instancia del widget (this.reactive = true + button-press-event).
-- launch: Util.spawn(['gnome-control-center', 'system', 'users']) en vez de Shell.App.activate() para evitar cursor de carga (Shell.App.activate() heredaba el bug de userAvatar/module.js que mostraba cursor de carga persistente).
-- Si ya hay ventanas abiertas → GLib.timeout_add(150ms) + meta_window.activate(0) para enfocar.
-- Si no hay ventanas → Util.spawn para lanzar.
-- Intervalo de actualización del saludo: 300000 → 10000 temporalmente para pruebas.
-** 19e3d71: userAvatar/module.js — mismo fix que dashboard UserWidget
-- Eliminado Shell.AppSystem.get_default().lookup_app(...).activate() que causaba cursor de carga persistente (heredado desde el port original).
-- Reemplazado por: si ya hay ventanas → GLib.timeout_add(150ms) + win.activate(0) para intentar enfocar; si no → Util.spawn(['gnome-control-center', 'system', 'users']).
-- Import agregado: Util.
-** ac998d4
-*** Eliminados ajustes genéricos de alineación/expansión/tamaño de todos los widgets del dashboard
-- prefs.js: _makeWidgetExpander ya no agrega filas de X/Y Axis Align, X/Y Axis Expand, Width, Height. Solo Background como fila genérica.
-- widgets.js (DashWidget): removidos _connect y _sync de y-align, x-align, y-expand, x-expand, width, height. Eliminada función _parseAlign (inused).
-- Nota: el widget de monitor de sistema (System Levels) perdió su longitud y se ve pequeño. Pendiente de arreglar.
-*** Text Spacing en UserWidget
-- schema: nueva key dashboard-user-text-spacing (int, default 12).
-- prefs.js: spinner Text Spacing (0-80, step 1) en el expander de User.
-- widgets.js (UserWidget): se inserta un St.BoxLayout spacer entre avatar y textos con min-width/min-height = textSpacing.
-- Para evitar interferencia del CSS .container { spacing: 8px; }, UserWidget._sync() ya no asigna la clase container; define style_class como dash-widget user-widget [+ events-button si background].
-- Con textSpacing = 0 no hay spacer → gap 0.
-** ac067d4: Monitor de sistema en Dashboard
-- Nuevo archivo: extension/modules/dashboard/systemMonitor.js
-  - LevelBar — barra de progreso animada (St.BoxLayout + St.Bin) con Clutter.ease() para transiciones suaves, soporta orientación horizontal/vertical y border-radius.
-  - UsageLevel — clase base que compone icono + barra + etiqueta + hover label, con colores por umbral vía pseudo-clases CSS (:red/:orange/:yellow/:green).
-  - CpuLevel — lectura de /proc/stat, cálculo delta (user+system / total) para uso real de CPU.
-  - RamLevel — lectura de /proc/meminfo (MemTotal - MemAvailable) para uso de RAM.
-  - TempLevel — lectura de /sys/class/thermal/thermal_zone0/temp (temperatura en °C/100).
-  - StorageLevel — uso de GTop (opcional, glibtop_fsusage) para uso de disco en /.
-  - PowerLevel — D-Bus UPower (org.freedesktop.UPower) para batería (porcentaje, estado de carga, iconos battery-level-*).
-- Modificación en extension/modules/dashboard/widgets.js
-  - LevelsWidget añadió startTimeout() / stopTimeout() que delegan a LevelsBox.
-  - LevelsBox reemplazó los placeholders (dibujados con St.DrawingArea y valores fijos) por instancias reales de PowerLevel, StorageLevel, CpuLevel, RamLevel, TempLevel.
-  - Timeout de 1 segundo con GLib.timeout_add_seconds() solo mientras el dashboard está abierto.
-  - Conexiones GSettings limpiadas al destruir.
-- Modificación: extension/modules/dashboard/dashBoard.js
-  - DashBoardModal guarda referencia a this._levelsWidget.
-  - Señal opened → startTimeout(), closed → stopTimeout().
-- Modificación: extension/modules/dashboard/stylesheet.css
-- Reglas para .level-fill con colores Adwaita: verde #3A944A, amarillo #C88800, naranja #ED5B00, rojo #E42D42.
-- Estilo para .level-bar y .usage-level StIcon.
-- Pseudo-clases mapean al fill (:red .level-fill, :orange .level-fill, etc.).
-** f183e28: fix en el monitor del  sistema.
-Picos anormales en el uso del upc que no corresponden con el uso verdadero.
-- Raiz del problema: 
-Raíz del problema: la línea cpu de /proc/stat tiene 10+ columnas. Solo leíamos 3:
-cpu  user nice system idle iowait irq softirq steal guest guest_nice
-      ^           ^      ^
-     leídos      leído  leído
-
-Faltaban:
-- nice en activo (tiempo de procesos re-niceados)
-- iowait, irq, softirq, steal en total
-Cuando el CPU atendía I/O o interrupciones entre dos lecturas, esos ticks se iban a campos que ignorábamos. El denominador totalDelta era artificialmente pequeño → usedDelta / totalDelta se disparaba.
-Ahora todos los campos en currentCPUTotal y nice en currentCPUUsed son incluidos, y se añadireron guardas para valores negativos/NaN/Infinity.
-** a26abc9: Feat, acción al pulsar el widget de monitor del sistema
-- Schema: añadido dashboard-levels-command (string, default gnome-system-monitor)
-- Levels click: LevelsBox recibe _parentDialog, y el handler de button-press-event cierra el diálogo antes de ejecutar el comando.
-** 54bb0f2: feat, se implementa el date menu config y el indicador de reproducción multimedia. Cambios al dashboard.
-- Se crearon los archivos:
-  - extension/modules/dateMenu/module.js — DateMenuModule (enable/disable, stylesheet, settings reload)
-  - extension/modules/dateMenu/dateMenu.js — AtAGlanceIndicator (reemplazo del reloj con formato personalizado + media pill)
-  - extension/modules/dateMenu/dateMenu.css — estilos mínimos
-- Modificaciones:
-  - schemas/org.gnome.shell.extensions.lidsol-widgets.gschema.xml — 5 keys nuevas (dm-*)
-  - extension/core/moduleLoader.js — import + registro del módulo
-  - prefs.js — grupo "Date Menu" en Top Bar/Panel + diálogo de configuración
-  - Layout JSON en schema — las 3 filas ahora tienen "x_expand": true para que ocupen todo el ancho del dashboard.
-  - SystemWidget — super._init(..., {x_expand: true}) para que se expanda dentro de su fila, eliminando el espacio en blanco a la derecha.
-- Funcionamiento:
-  - 1. Activar desde Prefs → Top Bar/Panel → Date Menu
-  - 2. Reemplaza Main.panel.statusArea.dateMenu._clockDisplay por un St.BoxLayout con reloj formateado
-  - 3. Cuando dm-show-media está activo y hay reproducción MPRIS, el reloj se oculta y se muestra un pill con album art circular (24×24) + título/artista
-  - 4. Timer de 1s actualiza hora y verifica cambios de estado multimedia (play/pause/cambio de tema)
-  - 5. Clicks se propagan al dateMenu hermano (abre notificaciones/calendario normalmente)
-  - 6. Al deshabilitar, restaura _clockDisplay original
-** 66b49c8
-- mprisService.js
-  - _lastPlayingTime: nueva propiedad en MprisPlayer, se actualiza en _update() cuando playbackStatus === 'Playing'
-  - getActivePlayer(): nuevo método en MprisService con scoring tipo dynamic-music-pill:
-  - Playing+hasTitle → 500pts, Paused+hasTitle → 100pts
-  - Tiebreak por lastPlayingTime (más reciente gana)
-  - Si el top scorer no está Playing pero otro sí → gana el que está Playing
-  - _parseMetadata() ahora limpia _trackTitle cuando metadata es null (antes no, causaba stale data)
-- dateMenu.js
-  - _onPlayerListChanged(): usa getActivePlayer() en vez de find(p => p.isPlaying())
-  - _onPlayerUpdate(): conectado directamente al changed del player activo → responde inmediatamente a cambios de Metadata/PlaybackStatus, sin esperar el timer de 1s
-  - Timer de 1s: solo actualiza el reloj, ya no hace polling de estado multimedia
-  - y_align: CENTER en _mediaLabel para centrar el texto verticalmente
-  - Desconexión segura: al cambiar de player activo, desconecta la señal changed del anterior antes de conectar al nuevo
-  - dateMenu.js — _onPlayerUpdate() ahora compara el texto mostrado (_lastMediaText) y cover URL en vez de track
-  - newPlayer && newPlayer === this._player evita el early return cuando ambos son null. Si no hay player activo, cae al else (líneas 117-122) y se conecta al primer player disponible como "dormant" — así escucha su changed para detectar cuando empiece a reproducir.
-  - _onPlayerUpdate() re-evalúa getActivePlayer() en cada cambio. Si un player dormant empieza a reproducir (o el usuario cambia de fuente multimedia), detecta que el active player cambió y llama _onPlayerListChanged() para reconectar y sincronizar.
-
-Esto cubre:
-- Startup: scan inicial emitió player-added antes de que conectáramos handlers → detectamos el player dormant → cuando empieza a sonar, _onPlayerUpdate dispara reconexión
-- Multi-source: cambiar entre Spotify/Firefox sin add/remove → _onPlayerUpdate detecta el nuevo active player y reconecta
-- Normal: track changes dentro del mismo player siguen funcionando con comparación de texto
-** 25e0b41
-- crossfadeArt.js — port del CrossfadeArt con fade-in 1800ms (EASE_OUT_QUAD) + fade-out 300ms de capas viejas 
-- dateMenu.js
-  - Debounce de pausa — cuando el player pasa a Stopped/Paused durante una transición de pista, espera 500ms antes de mostrar el reloj. Si el nuevo track empieza dentro de ese lapso, el contenido viejo se mantiene visible y se cancela el timer
-  - Crossfade de texto — al cambiar de pista, el texto del label hace fade-out 150ms → cambio de texto → fade-in 300ms
-  - Crossfade de carátula — _mediaArt.setArt() maneja el fade del album art independientemente
-- Schema — dm-show-art (bool, default true)
-- Prefs — switch "Mostrar carátula del álbum" bajo "Mostrar multimedia al reproducir"
-** a59bb7c
-- visualizer.js — tres clases internas + wrapper:
-  - CavaEngine (GObject) — subprocess cava, lectura async de stdout, normalización FFT con EMA rolling max, detección de silencio (30 frames)
-  - SimulatedVisualizer (St.BoxLayout) — barras St.Widget con animación sintética vía GLib.timeout_add(16ms). Wave: sin(t - idx * 1.0) pivot_y=1.0. Beat: sin(t * speeds[idx]) pivot_y=0.5
-  - CavaVisualizer (St.DrawingArea) — Cairo repaint con barras simétricas desde el centro, peak dots, edge fade, suavizado EMA
-  - VisualizerWidget (exported, St.BoxLayout) — wrapper con setMode(), setBarCount(), setVisualizerHeight(), setPlaying(). Fallback automático 3→2 si cava no está instalado
-- Integración (dateMenu.js)
-  - _updateVisualizer() — lee dm-visualizer-style, aplica modo, visibilidad y playing state
-  - Llamado desde _updateMediaVisibility() (ciclo normal) y desde changed::dm-visualizer-style (cambio en vivo)
-  - Visualizer añadido al _mediaPill después de _mediaLabel
-- Schema
-  - dm-visualizer-style (int, 0-3, default 0)
-  - dm-visualizer-bars (int, 2-16, default 4)
-  - dm-visualizer-height (int, 8-64, default 24)
-- Prefs
-  - Grupo "Visualizador" con ComboRow (Off/Wave/Beat/Cava) + SpinButtonRow para barras y altura
-The fix: DropDownChoice ahora se exporta desde prefsHelpers.js y se importa en prefs.js. Sin eso, el diálogo de Date Menu fallaba con ReferenceError silencioso y nunca se abría, impidiendo cambiar dm-visualizer-style de su default 0.
-** Cambios actuales

@@ -4,7 +4,8 @@
   "uuid": "lidsol-widgets@lidsol",
   "settings-schema": "org.gnome.shell.extensions.lidsol-widgets",
   "shell-version": [
-    "50"
+    "50",
+    "51"
   ],
   "version": 1,
   "url": "https://github.com/ramen-root/Gnome-Extensions",

@@ -82,8 +82,28 @@ const QuickTextApp = GObject.registerClass({
             this.launcher.spawnv(['xdg-open', settings.get_string('qt-filepath')]);
         });
 
-        this.window._listBox.append(this._getListUI());
+        const populate = () => {
+            this.window._listBox.append(this._getListUI());
+            this.window.queue_allocate();
+        };
+        if (this.window.get_mapped())
+            populate();
+        else
+            this.window.connect('map', populate);
         this.window.present();
+
+        GLib.timeout_add(GLib.PRIORITY_DEFAULT, 250, () => {
+            if (!this.window || !this.window.get_mapped())
+                return GLib.SOURCE_REMOVE;
+            const [w, h] = this.window.get_size();
+            this.window.set_default_size(w + 1, h + 1);
+            GLib.timeout_add(GLib.PRIORITY_DEFAULT, 60, () => {
+                if (this.window)
+                    this.window.set_default_size(w, h);
+                return GLib.SOURCE_REMOVE;
+            });
+            return GLib.SOURCE_REMOVE;
+        });
     }
 
     _getTimeFormat() {

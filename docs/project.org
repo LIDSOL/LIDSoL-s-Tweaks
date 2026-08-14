@@ -64,10 +64,11 @@ Para ello, se puede tomar como base la extensión [[https://github.com/boerderei
   - [ ] 1.2.2.1: Por defecto: Al pulsar el botón se abre el calendario, creando un evento usando el texto de la nota como titulo del evento.
   - [ ] 1.2.2.2. Adicionalmente, en los ajustes se debe poder crear un comando personalizado de bash, una acción personalizada (puede ser útil para mover el texto a otro archivo, crear un evento en ikhal u otro calendario basado en terminal, etcétera). Se pasa como input el texto de la nota seleccionada al comando. 
 **** TODO 1.3 Launcher
-- [ ] 1.3.1 Elimina el launcher tipo spotlight, todas sus opciones y código asociado
-  - [ ] 1.3.1.1 Ancho, alto, usar animaciones, velocidad, posición.
+- [X] 1.3.1 Elimina el launcher tipo spotlight, todas sus opciones y código asociado
+  - [X] 1.3.1.1 Ancho, alto, usar animaciones, velocidad, posición.
+  - Se eliminó el launcher rofi/spotlight (`launcher.js` con el patrón search-light que robaba `searchEntry` + `searchController` del overview) y su `stylesheet.css`. Se eliminaron las claves del schema `launcher-width`, `launcher-height`, `launcher-use-animations`, `launcher-animation-speed`, `launcher-position-x`, `launcher-position-y` y `launcher-commands`, junto con sus filas en `prefs.js` (`_buildLauncherDialog`). Se conservaron `launcher-enabled`, `launcher-hotkey` y `launcher-hide-search`.
 - [ ] 1.3.2 Nueva implementación del launcher
-Flujo: Se añadió una opción llamada "Ocultar barra de búsqueda", esta oculta el campo "Type to search" en el Overview, pero aparece cuando se empieza a escribir. Si se configura un atajo de teclado (Keyboard->Keyboard Shortcuts->Search), al estar oculta la barra de búsqueda, si se usa susodicho atajo de teclado, aparenta solo abrir el overview. La idea de esta nueva implementación es que, aunque esté oculta la barra de búsqueda, al accionar un atajo de teclado para abrir la búsqueda, esta se muestre (toda la interfaz de busqueda, como entrando al "modo búsqueda", y no que solo aparente que se queda en el overview. 
+  - En lugar de una ventana flotante, el atajo (`launcher-hotkey`) abre la **búsqueda nativa del Overview en "modo búsqueda"**: `searchController._setSearchActive(true)` + foco en el entry, de modo que toda la interfaz de búsqueda se muestra aunque la barra esté oculta (`launcher-hide-search`). Al entrar, se ocultan los contenedores vacíos de resultados/estado (`_scrollView`/`_statusContainer`) para una vista limpia hasta que el usuario escriba. El atajo hace toggle: si hay búsqueda activa → `reset()` + oculta el overview; si el overview está visible → entra en modo búsqueda; si no → lo abre y entra en modo búsqueda. La barra oculta aparece automáticamente al activarse la búsqueda (handler `notify::search-active` existente). 
 **** 1.4 Unclutter
 Basado en unclutter y copyus
 - Se debe abrir con un atajo de teclado o un hot point como en overview.
@@ -263,11 +264,12 @@ Consumidores: dateMenu, dashboard, notificationMedia — todos usan el mismo Med
 - [ ] 2.6 Enable icon and link customization (Reddit, GitHub, etc.).
 
 - [ ] Fase 3: Launcher (search-light pattern)
+  - **Superseded**: El launcher flotante search-light fue eliminado por 1.3.1 y reemplazado por la "vista de búsqueda" nativa (1.3.2). Los siguientes subtasks describen el launcher flotante histórico.
   - [x] 3.0: Launcher flotante que roba la búsqueda del overview (patrón search-light)
     - **search-light pattern**: Reparent `Main.overview.searchEntry` + `Main.overview.searchController` into custom `St.Widget` via `Main.layoutManager.addChrome()`. Reuses GNOME Shell's native search providers.
     - **Gnofi approach abandoned** — build pipeline, TS/JSX bundle, gnim framework, and all schema keys removed.
-    - **Module structure**: `extension/modules/launcher/` — `launcher.js` (core `Launcher` class), `module.js` (LIDSOL wrapper), `stylesheet.css` (dark floating window).
-    - **Schema + prefs**: 6 keys (`launcher-enabled`, `launcher-hotkey`, `launcher-width`, `launcher-height`, `launcher-use-animations`, `launcher-animation-speed`). Prefs in Widgets page via `_buildLauncherDialog()`.
+    - **Module structure (actual, post-1.3.2)**: `extension/modules/launcher/` — solo `module.js` (keybinding `launcher-hotkey` → modo búsqueda nativo + ocultar barra de búsqueda). `launcher.js` y `stylesheet.css` eliminados.
+    - **Schema + prefs (actual, post-1.3.1)**: 3 keys (`launcher-enabled`, `launcher-hotkey`, `launcher-hide-search`). Prefs en Widgets page via `_buildLauncherDialog()`.
     - **Keybinding**: `Main.wm.addKeybinding(name, settings, Meta.KeyBindingFlags.NONE, Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW, handler)`. Previously had broken signature (`Shell.KeyBindingMode` + wrong param).
     - **Wiring**: registered in `moduleLoader.js` as `{id: 'launcher', enabledKey: 'launcher-enabled', moduleClass: LauncherModule}`.
     - **Module not loading** — after fixing `KeyBindingMode` → `Meta.KeyBindingFlags` and action mode param, requires logout/login (GNOME Shell ESM cache).

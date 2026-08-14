@@ -495,13 +495,13 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
 
     const launcherGroup = new Adw.PreferencesGroup({
       title: 'Launcher',
-      description: 'Buscador flotante que roba la búsqueda del overview para mostrarla en una ventana flotante.',
+      description: 'Abre la búsqueda nativa del Overview con un atajo de teclado.',
     });
     launcherGroup.add(createModuleRow({
       settings: this._settings,
       bindKey: 'launcher-enabled',
       title: 'Launcher',
-      subtitle: 'Buscador flotante que sustituye la búsqueda del overview',
+      subtitle: 'Atajo para abrir la búsqueda del Overview (modo búsqueda)',
       onDetailed: () => this._openDialog('Launcher', p => this._buildLauncherDialog(p)),
     }));
     page.add(launcherGroup);
@@ -942,17 +942,9 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
 
   _buildLauncherDialog(page) {
     const s = this._settings;
-    const mainGroup = createGroup({ parent: page, title: 'Launcher', description: 'Buscador flotante similar a rofi o spotlight, .' });
+    const mainGroup = createGroup({ parent: page, title: 'Launcher', description: 'Abre la búsqueda nativa del Overview (modo búsqueda) con un atajo de teclado.' });
     mainGroup.add(createSwitchRow({ settings: s, bindKey: 'launcher-enabled', title: 'Habilitar Launcher' }));
-    mainGroup.add(createKeyboardShortcutRow({ settings: s, bindKey: 'launcher-hotkey', title: 'Atajo de teclado', subtitle: 'Combinación para abrir/cerrar el launcher' }));
-    mainGroup.add(createSpinButtonRow({ settings: s, bindKey: 'launcher-width', title: 'Ancho', adjProps: { lower: 400, upper: 1200, step_increment: 10 } }));
-    mainGroup.add(createSpinButtonRow({ settings: s, bindKey: 'launcher-height', title: 'Alto', adjProps: { lower: 300, upper: 1000, step_increment: 10 } }));
-    const posGroup = createGroup({ parent: page, title: 'Posición', description: 'Ajusta dónde aparece el launcher en la pantalla' });
-    posGroup.add(createSpinButtonRow({ settings: s, bindKey: 'launcher-position-x', title: 'Posición horizontal (%)', subtitle: '0=izquierda, 50=centro, 100=derecha', adjProps: { lower: 0, upper: 100, step_increment: 5 } }));
-    posGroup.add(createSpinButtonRow({ settings: s, bindKey: 'launcher-position-y', title: 'Posición vertical (%)', subtitle: '0=arriba, 50=centro, 100=abajo', adjProps: { lower: 0, upper: 100, step_increment: 5 } }));
-
-    mainGroup.add(createSwitchRow({ settings: s, bindKey: 'launcher-use-animations', title: 'Usar animaciones' }));
-    mainGroup.add(createSpinButtonRow({ settings: s, bindKey: 'launcher-animation-speed', title: 'Velocidad de animación (ms)', adjProps: { lower: 50, upper: 500, step_increment: 10 } }));
+    mainGroup.add(createKeyboardShortcutRow({ settings: s, bindKey: 'launcher-hotkey', title: 'Atajo de teclado', subtitle: 'Combinación para abrir la búsqueda del Overview (modo búsqueda)' }));
     const overviewGroup = createGroup({ parent: page, title: 'Overview', description: 'Ajustes relacionados con la vista general' });
     overviewGroup.add(createSwitchRow({ settings: s, bindKey: 'launcher-hide-search', title: 'Ocultar barra de búsqueda', subtitle: 'Oculta el campo "Type to search" en el Overview. Aparece al empezar a escribir.' }));
   }

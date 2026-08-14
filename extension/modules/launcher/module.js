@@ -1,18 +1,16 @@
 'use strict';
 
-import Gio from 'gi://Gio';
+import Meta from 'gi://Meta';
 import St from 'gi://St';
 import Clutter from 'gi://Clutter';
+import Shell from 'gi://Shell';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
-import { Launcher } from './launcher.js';
 
 export class LauncherModule {
     constructor() {
-        this._launcher = null;
         this._settings = null;
         this._extension = null;
-        this._stylesheetFile = null;
-        this._settingsChangedId = null;
+        this._keybindingId = null;
         this._hideSearchChangedId = null;
         this._searchActiveId = null;
         this._searchEntry = null;
@@ -26,16 +24,7 @@ export class LauncherModule {
         this._settings = gsettings;
         this._extension = extension;
 
-        this._loadStylesheet();
-
-        this._launcher = new Launcher(this._settings);
-        this._launcher.enable();
-
-        this._settingsChangedId = this._settings.connect('changed::launcher-hotkey', () => {
-            this._launcher.disable();
-            this._launcher = new Launcher(this._settings);
-            this._launcher.enable();
-        });
+        this._registerKeybinding();
 
         try {
             this._setupSearchBarHiding();
@@ -45,23 +34,76 @@ export class LauncherModule {
     }
 
     disable() {
+        this._unregisterKeybinding();
         if (this._hideSearchChangedId) {
             this._settings.disconnect(this._hideSearchChangedId);
             this._hideSearchChangedId = null;
         }
         this._destroySearchBarHiding();
-        if (this._settingsChangedId) {
-            this._settings.disconnect(this._settingsChangedId);
-            this._settingsChangedId = null;
-        }
-        if (this._launcher) {
-            this._launcher.disable();
-            this._launcher = null;
-        }
-        this._unloadStylesheet();
         this._settings = null;
         this._extension = null;
     }
+
+    // ── Search mode hotkey ──────────────────────────────────────────
+    // Opens the overview's native search (full "search mode" interface)
+    // even when the search bar is hidden (launcher-hide-search).
+
+    _registerKeybinding() {
+        Main.wm.addKeybinding(
+            'launcher-hotkey',
+            this._settings,
+            Meta.KeyBindingFlags.NONE,
+            Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW,
+            () => this._toggleSearchMode(),
+        );
+        this._keybindingId = 'launcher-hotkey';
+    }
+
+    _unregisterKeybinding() {
+        if (this._keybindingId) {
+            Main.wm.removeKeybinding(this._keybindingId);
+            this._keybindingId = null;
+        }
+    }
+
+    _toggleSearchMode() {
+        const search = Main.overview?.searchController;
+        const entry = Main.overview?.searchEntry;
+        if (!search || !entry) return;
+
+        if (search.searchActive) {
+            search.reset();
+            if (Main.overview.visible)
+                Main.overview.hide();
+        } else if (Main.overview.visible) {
+            this._enterSearchMode();
+        } else {
+            Main.overview.show();
+            this._enterSearchMode();
+        }
+    }
+
+    _enterSearchMode() {
+        const search = Main.overview.searchController;
+        const entry = Main.overview.searchEntry;
+        if (!search || !entry) return;
+
+        // Force the native "search mode": the whole search interface is
+        // shown (workspaces/app display fade out) instead of only opening
+        // the overview with a hidden search bar.
+        search._setSearchActive(true);
+        entry.grab_key_focus();
+
+        // No terms typed yet: keep the initial search display clean by
+        // hiding the empty results/status boxes until the user types.
+        const results = search._searchResults;
+        if (results) {
+            results._scrollView.visible = false;
+            results._statusContainer.visible = false;
+        }
+    }
+
+    // ── Search bar hiding (launcher-hide-search) ────────────────────
 
     _setupSearchBarHiding() {
         const entry = Main.overview?.searchEntry;
@@ -163,25 +205,6 @@ export class LauncherModule {
         if (this._searchEntry) {
             this._searchEntry.opacity = 255;
             this._searchEntry = null;
-        }
-    }
-
-    _loadStylesheet() {
-        if (!this._extension) return;
-        const themeContext = St.ThemeContext.get_for_stage(global.stage);
-        this._stylesheetFile = Gio.File.new_for_path(
-            this._extension.path + '/extension/modules/launcher/stylesheet.css'
-        );
-        if (this._stylesheetFile.query_exists(null)) {
-            themeContext.get_theme().load_stylesheet(this._stylesheetFile);
-        }
-    }
-
-    _unloadStylesheet() {
-        if (this._stylesheetFile) {
-            const themeContext = St.ThemeContext.get_for_stage(global.stage);
-            themeContext.get_theme().unload_stylesheet(this._stylesheetFile);
-            this._stylesheetFile = null;
         }
     }
 }

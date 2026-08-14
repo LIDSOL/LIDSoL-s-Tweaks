@@ -1526,49 +1526,12 @@
     <key type="b" name="launcher-enabled">
       <default>false</default>
       <summary>Habilitar Launcher</summary>
-      <description>Buscador flotante que sustituye la búsqueda del overview</description>
+      <description>Abrir la búsqueda nativa del Overview con el atajo de teclado (modo búsqueda)</description>
     </key>
     <key type="as" name="launcher-hotkey">
       <default><![CDATA[['<Super>d']]]></default>
       <summary>Atajo de teclado</summary>
-      <description>Atajo para abrir el launcher</description>
-    </key>
-    <key type="i" name="launcher-width">
-      <default>600</default>
-      <range min="400" max="1200"/>
-      <summary>Ancho del launcher</summary>
-    </key>
-    <key type="i" name="launcher-height">
-      <default>500</default>
-      <range min="300" max="1000"/>
-      <summary>Alto del launcher</summary>
-    </key>
-    <key type="b" name="launcher-use-animations">
-      <default>true</default>
-      <summary>Usar animaciones</summary>
-      <description>Animar la apertura y cierre del launcher</description>
-    </key>
-    <key type="i" name="launcher-animation-speed">
-      <default>100</default>
-      <range min="50" max="500"/>
-      <summary>Velocidad de animación (ms)</summary>
-    </key>
-    <key type="i" name="launcher-position-x">
-      <default>50</default>
-      <range min="0" max="100"/>
-      <summary>Posición horizontal (%)</summary>
-      <description>Porcentaje desde el borde izquierdo de la pantalla (0=izquierda, 50=centro, 100=derecha)</description>
-    </key>
-    <key type="i" name="launcher-position-y">
-      <default>10</default>
-      <range min="0" max="100"/>
-      <summary>Posición vertical (%)</summary>
-      <description>Porcentaje desde el borde superior de la pantalla (0=arriba, 50=centro, 100=abajo)</description>
-    </key>
-    <key type="as" name="launcher-commands">
-      <default>[]</default>
-      <summary>Comandos personalizados</summary>
-      <description>Comandos personalizados para el launcher en formato "nombre|comando"</description>
+      <description>Atajo para abrir la búsqueda del Overview (modo búsqueda)</description>
     </key>
     <key type="b" name="launcher-hide-search">
       <default>false</default>

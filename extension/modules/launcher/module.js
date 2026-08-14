@@ -49,7 +49,7 @@ export class LauncherModule {
     // even when the search bar is hidden (launcher-hide-search).
 
     _registerKeybinding() {
-        Main.wm.addKeybinding(
+        const action = Main.wm.addKeybinding(
             'launcher-hotkey',
             this._settings,
             Meta.KeyBindingFlags.NONE,
@@ -57,6 +57,7 @@ export class LauncherModule {
             () => this._toggleSearchMode(),
         );
         this._keybindingId = 'launcher-hotkey';
+        log(`[LIDSoL] Launcher keybinding registered, action=${action} accel=${this._settings.get_strv('launcher-hotkey')}`);
     }
 
     _unregisterKeybinding() {
@@ -69,6 +70,8 @@ export class LauncherModule {
     _toggleSearchMode() {
         const search = Main.overview?.searchController;
         const entry = Main.overview?.searchEntry;
+        log(`[LIDSoL] _toggleSearchMode: search=${!!search} entry=${!!entry} ` +
+            `searchActive=${search?.searchActive} overviewVisible=${Main.overview?.visible}`);
         if (!search || !entry) return;
 
         if (search.searchActive) {
@@ -101,6 +104,10 @@ export class LauncherModule {
             results._scrollView.visible = false;
             results._statusContainer.visible = false;
         }
+        log(`[LIDSoL] _enterSearchMode done: searchActive=${search.searchActive} ` +
+            `controllerVisible=${search.visible} controllerOpacity=${search.opacity} ` +
+            `searchBarH=${this._searchBarContainer ? this._searchBarContainer.height : -2} ` +
+            `entryOpacity=${this._searchEntry ? this._searchEntry.opacity : -2}`);
     }
 
     // ── Search bar hiding (launcher-hide-search) ────────────────────
@@ -167,8 +174,11 @@ export class LauncherModule {
 
     _showSearchBar() {
         if (!this._searchEntry || !this._searchBarContainer) return;
+        // Use the entry's preferred height: after the bar is collapsed the
+        // entry's allocated height is 0, which would keep the bar invisible.
+        const [, entryHeight] = this._searchEntry.get_preferred_height(-1);
         this._searchBarContainer.ease({
-            height: this._searchEntry.height,
+            height: Math.max(entryHeight, 1),
             opacity: 255,
             mode: Clutter.AnimationMode.EASE,
             duration: 110,

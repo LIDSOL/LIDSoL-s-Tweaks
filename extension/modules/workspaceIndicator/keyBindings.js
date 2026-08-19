@@ -33,6 +33,7 @@ export class KeyBindings {
         ];
         this._addedKeyBindings = [];
         this._replacedSystemBindings = {};
+        this._savedSystemKeyBindings = {};
 
         this._registerActivateByNumber();
         this._registerMoveToByNumber();
@@ -45,6 +46,12 @@ export class KeyBindings {
         this._addedKeyBindings = [];
         for (const shortcutName in this._replacedSystemBindings)
             this._restoreSystemBinding(shortcutName);
+        for (const key in this._savedSystemKeyBindings) {
+            const saved = this._savedSystemKeyBindings[key];
+            const s = new Gio.Settings({ schema_id: saved.schema });
+            s.set_strv(saved.key, saved.value);
+        }
+        this._savedSystemKeyBindings = {};
     }
 
     addKeyBinding(name, handler) {
@@ -67,7 +74,9 @@ export class KeyBindings {
     }
 
     _addExtensionKeyBindings() {
+        this._replaceConflictingSystemBinding('ws-move-workspace-left');
         this.addKeyBinding('ws-move-workspace-left', () => this._ws.moveCurrentWorkspace(-1));
+        this._replaceConflictingSystemBinding('ws-move-workspace-right');
         this.addKeyBinding('ws-move-workspace-right', () => this._ws.moveCurrentWorkspace(1));
         this.addKeyBinding('ws-activate-previous-key', () => this._ws.activatePrevious());
         this.addKeyBinding('ws-activate-empty-key', () => this._ws.activateEmptyOrAdd());
@@ -92,12 +101,13 @@ export class KeyBindings {
         this._settings.enableMoveToWorkspaceShortcuts.subscribe((value) => {
             for (let i = 0; i < 10; i++) {
                 const name = `move-to-workspace-${i + 1}`;
-                if (value)
-                    this._desktopKeybindings.set_strv(name, [`<Super><Shift>${(i + 1) % 10}`]);
-                else
-                    this._desktopKeybindings.reset(name);
+                if (value) {
+                    this._saveAndOverwriteSystemBinding(this._desktopKeybindings, name);
+                } else {
+                    this._restoreSystemKeyBinding(this._desktopKeybindings, name);
+                }
             }
-        });
+        }, { emitCurrentValue: true });
     }
 
     _replaceConflictingSystemBinding(shortcutName) {
@@ -133,6 +143,26 @@ export class KeyBindings {
             else
                 settings.set_strv(r.key, r.value);
             delete this._replacedSystemBindings[shortcutName];
+        }
+    }
+
+    _saveAndOverwriteSystemBinding(settings, key) {
+        const current = settings.get_strv(key);
+        if (current.length === 0)
+            return;
+        if (!(key in this._savedSystemKeyBindings))
+            this._savedSystemKeyBindings[key] = {
+                schema: settings.schema_id,
+                key,
+                value: current,
+            };
+        settings.set_strv(key, []);
+    }
+
+    _restoreSystemKeyBinding(settings, key) {
+        if (key in this._savedSystemKeyBindings) {
+            settings.set_strv(key, this._savedSystemKeyBindings[key].value);
+            delete this._savedSystemKeyBindings[key];
         }
     }
 }

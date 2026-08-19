@@ -3,6 +3,18 @@ import St from 'gi://St';
 import { DebouncingNotifier } from './debouncingNotifier.js';
 import { Settings } from './settings.js';
 
+const ACCENT_COLORS = {
+    blue:   '#3584e4',
+    teal:   '#2190a4',
+    green:  '#3a944a',
+    yellow: '#c88800',
+    orange: '#ed5b00',
+    red:    '#e62d42',
+    pink:   '#d56199',
+    purple: '#9141ac',
+    slate:  '#6f8396',
+};
+
 export class Styles {
     static _instance = null;
 
@@ -25,6 +37,13 @@ export class Styles {
         this._workspacesBarUpdateNotifier = new DebouncingNotifier();
         this._workspaceUpdateNotifier = new DebouncingNotifier();
         this._dynamicStyleSheet = null;
+        this._interfaceSettings = new Gio.Settings({ schema: 'org.gnome.desktop.interface' });
+        this._accentColorSignal = this._interfaceSettings.connect('changed::accent-color', () => {
+            if (this._settings.useAccentColor.value) {
+                this._updateStyleSheet();
+                this._workspaceUpdateNotifier.notify();
+            }
+        });
         this._registerSettingChanges();
         this._updateStyleSheet();
     }
@@ -32,6 +51,10 @@ export class Styles {
     _destroy() {
         this._workspaceUpdateNotifier.destroy();
         this._unloadStyleSheet();
+        if (this._accentColorSignal) {
+            this._interfaceSettings.disconnect(this._accentColorSignal);
+            this._accentColorSignal = null;
+        }
     }
 
     _updateStyleSheet() {
@@ -94,6 +117,7 @@ export class Styles {
         );
         [
             this._settings.workspaceMargin,
+            this._settings.useAccentColor,
             this._settings.activeWorkspaceBackgroundColor,
             this._settings.activeWorkspaceTextColor,
             this._settings.activeWorkspaceBorderColor,
@@ -162,9 +186,11 @@ export class Styles {
 
     _getActiveWorkspaceStyle() {
         const margin = this._settings.workspaceMargin.value;
-        const bg = this._settings.activeWorkspaceBackgroundColor.value;
-        const fg = this._settings.activeWorkspaceTextColor.value;
-        const border = this._settings.activeWorkspaceBorderColor.value;
+        const useAccent = this._settings.useAccentColor.value;
+        const accentHex = useAccent ? this._getAccentColor() : null;
+        const bg = useAccent ? accentHex : this._settings.activeWorkspaceBackgroundColor.value;
+        const fg = useAccent ? '#F6F5F4' : this._settings.activeWorkspaceTextColor.value;
+        const border = useAccent ? accentHex : this._settings.activeWorkspaceBorderColor.value;
         const size = this._settings.activeWorkspaceFontSize.value;
         const weight = this._settings.activeWorkspaceFontWeight.value;
         const radius = this._settings.activeWorkspaceBorderRadius.value;
@@ -209,5 +235,10 @@ export class Styles {
         if (size >= 0)
             style += `  font-size: ${size}pt;\n`;
         return style;
+    }
+
+    _getAccentColor() {
+        const name = this._interfaceSettings.get_string('accent-color');
+        return ACCENT_COLORS[name] || ACCENT_COLORS.blue;
     }
 }

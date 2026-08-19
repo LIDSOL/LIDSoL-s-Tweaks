@@ -236,9 +236,11 @@ DEADLINE: <2026-09-15 Tue>
 DEADLINE: <2026-08-20 Thu>
 - [X] 4.2.1 Bug: Es posible arrastrar un espacio de trabajo más allá de /añadir un nuevo espacio de trabajo/ (se muestra como un workspace con el símbolo "`+`"). Esto no debería ser posible. Provoca un bug en el cual el espacio de trabajo se mueve a la derecha de `+`, dejando un espacio hueco en el sitio en el cual antes estaba el workspace que se movió, esto no tiene efecto en los espacios de trabajo reales (nada se desplaza realmente).
 - [ ] 4.2.2 Feat: Usando como referencia Workspace [[https://gitlab.com/jguece/workspace-bar][Workspace Bar de jguece]], añadir la posibilidad de mostrar los programas abiertos en cada espacio de trabajo, y la posibilidad de tomar uno de esos programas y moverlos de workspace
-- [ ] 4.2.4 Feat: Añadir una opción para usar el color de acento de GNOME como color de fondo del espacio activo.
+- [X] 4.2.4 Feat: Añadir una opción para usar el color de acento de GNOME como color de fondo del espacio activo.
+  - Schema key: `ws-use-accent-color` (boolean, default: false). Cuando está activo, el fondo y borde del espacio activo usan el color de acento de GNOME (`org.gnome.desktop.interface` → `accent-color`), con mapeo a hex vía `ACCENT_COLORS` (blue, teal, green, yellow, orange, red, pink, purple, slate). El color de texto es siempre `#F6F5F4`. Los botones de color de fondo, texto y borde se deshabilitan en prefs. El color se actualiza dinámicamente al cambiar el acento en GNOME (señal `changed::accent-color`).
 - [X] 4.2.5 Bug: Sobre-escribe o borra los atajos de teclado por defecto (configurados desde gnome-control-center).
 - [ ] 4.2.6 Feat: Ocultar el Workspace Switcher en el overview.
+- [ ] 4.2.7 Bug: Movimiento anormal a la derecha e izquierda en los workspaces cuando se hace switch.
 **** TODO 4.4 Battery Indicator
 DEADLINE: <2026-09-11 Fri>
 

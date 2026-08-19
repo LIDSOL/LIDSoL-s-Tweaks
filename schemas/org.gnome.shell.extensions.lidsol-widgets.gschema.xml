@@ -241,6 +241,10 @@
       <default>4</default>
     </key>
 
+    <key type="b" name="ws-use-accent-color">
+      <default>false</default>
+    </key>
+
     <key type="s" name="ws-active-workspace-background-color">
       <default>'rgba(255,255,255,0.3)'</default>
     </key>

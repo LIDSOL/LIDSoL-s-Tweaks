@@ -46,8 +46,8 @@ const CATEGORIES = [
   },
   {
     id: 'topbar',
-    title: 'Top Bar / Panel',
-    icon: 'pan-end-symbolic',
+    title: 'Top Bar',
+    icon: 'go-top-symbolic',
     summary: 'Personalización de la barra superior',
     description: 'Esquinas redondeadas, indicador de espacios, formato de fecha y notificaciones.',
   },

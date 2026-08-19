@@ -184,6 +184,7 @@ export class Settings {
         this.emptyWorkspacePaddingV = SettingsSubject.createInt(s, 'ws-empty-workspace-padding-v');
 
         this.transitionAnimation = SettingsSubject.createString(s, 'ws-transition-animation');
+        this.useAccentColor = SettingsSubject.createBoolean(s, 'ws-use-accent-color');
         this.applicationStyles = SettingsSubject.createString(s, 'ws-application-styles');
         this.customStylesEnabled = SettingsSubject.createBoolean(s, 'ws-custom-styles-enabled');
         this.customStylesFailed = SettingsSubject.createBoolean(s, 'ws-custom-styles-failed');

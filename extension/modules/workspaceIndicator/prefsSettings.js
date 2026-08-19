@@ -121,9 +121,34 @@ export class WorkspaceIndicatorPrefs {
         // Active workspace
         const activeGroup = new Adw.PreferencesGroup();
         activeGroup.set_title('Espacio activo');
-        this._addColorButton(activeGroup, { key: 'ws-active-workspace-background-color', title: 'Color de fondo' });
-        this._addColorButton(activeGroup, { key: 'ws-active-workspace-text-color', title: 'Color de texto' });
-        this._addColorButton(activeGroup, { key: 'ws-active-workspace-border-color', title: 'Color del borde' });
+
+        const accentRow = new Adw.ActionRow({
+            title: 'Usar color de acento de GNOME',
+            subtitle: 'Fondo y borde usan el color de acento del sistema. Texto siempre #F6F5F4.',
+        });
+        const accentSwitch = new Gtk.Switch({
+            active: this._settings.get_boolean('ws-use-accent-color'),
+            valign: Gtk.Align.CENTER,
+        });
+        this._settings.bind('ws-use-accent-color', accentSwitch, 'active', Gio.SettingsBindFlags.DEFAULT);
+        accentRow.add_suffix(accentSwitch);
+        accentRow.activatable_widget = accentSwitch;
+        activeGroup.add(accentRow);
+
+        const bgColorRow = this._addColorButton(activeGroup, { key: 'ws-active-workspace-background-color', title: 'Color de fondo' });
+        const textColorRow = this._addColorButton(activeGroup, { key: 'ws-active-workspace-text-color', title: 'Color de texto' });
+        const borderColorRow = this._addColorButton(activeGroup, { key: 'ws-active-workspace-border-color', title: 'Color del borde' });
+
+        const colorRows = [bgColorRow, textColorRow, borderColorRow];
+        const updateAccentSensitivity = () => {
+            const accent = this._settings.get_boolean('ws-use-accent-color');
+            for (const row of colorRows) {
+                row.set_sensitive(!accent);
+            }
+        };
+        updateAccentSensitivity();
+        this._settings.connect('changed::ws-use-accent-color', updateAccentSensitivity);
+
         this._addSpinButton(activeGroup, { key: 'ws-active-workspace-font-size', title: 'Tamaño de fuente', lower: 0, upper: 255 });
         this._addCombo(activeGroup, {
             key: 'ws-active-workspace-font-weight',
@@ -299,6 +324,7 @@ export class WorkspaceIndicatorPrefs {
         const changed = this._settings.connect(`changed::${key}`, updateColor);
         row.add_suffix(colorButton);
         row.activatable_widget = colorButton;
+        return row;
     }
 
     _addKeyboardShortcut(group, { key, title, subtitle = null }) {

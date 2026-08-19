@@ -329,20 +329,6 @@ export class WorkspacesBar {
     }
 
     _updateWorkspacesBar() {
-        const newActiveIndex = this._ws.currentIndex;
-        const children = this._wsBar?.get_children() ?? [];
-        const existingCount = children.length;
-        const expectedCount = this._ws.workspaces.filter(w => w.isVisible).length;
-
-        if (existingCount === expectedCount && existingCount > 0)
-            this._updateInPlace(newActiveIndex);
-        else
-            this._fullRefresh();
-
-        this._prevActiveIndex = newActiveIndex;
-    }
-
-    _fullRefresh() {
         this._wsBar?.destroy_all_children();
         this._dragHandler.wsBoxes = [];
         for (let ws_index = 0; ws_index < this._ws.numberOfEnabledWorkspaces; ++ws_index) {
@@ -353,70 +339,7 @@ export class WorkspacesBar {
                 this._dragHandler.wsBoxes.push({ workspace, wsBox });
             }
         }
-    }
-
-    _updateInPlace(newActiveIndex) {
-        const animation = this._settings.transitionAnimation.value;
-        const shouldAnimate = animation !== 'none'
-            && this._prevActiveIndex >= 0
-            && this._prevActiveIndex !== newActiveIndex;
-
-        for (const { workspace, wsBox } of this._dragHandler.wsBoxes) {
-            const state = this._ws.workspaces[workspace.index];
-            if (!state) continue;
-            const label = wsBox.get_child();
-            const isActive = state.index === newActiveIndex;
-
-            let styleClass = 'space-bar-workspace-label';
-            styleClass += isActive ? ' active' : ' inactive';
-            styleClass += state.hasWindows ? ' nonempty' : ' empty';
-            label.styleClass = styleClass;
-            const text = this._ws.getDisplayName(state);
-            label.set_text(text);
-            if (text.trim() === '')
-                label.styleClass += ' no-text';
-
-            if (shouldAnimate && isActive)
-                this._animateEnter(wsBox, animation);
-        }
-    }
-
-    _animateEnter(wsBox, style) {
-        wsBox.remove_all_transitions();
-        if (style === 'fade') {
-            const label = wsBox.get_child();
-            label.remove_all_transitions();
-            label.set_opacity(0);
-            label.ease({
-                opacity: 255,
-                duration: 250,
-                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-            });
-        } else if (style === 'soft-pulse') {
-            wsBox.ease({
-                scale_x: 1.04,
-                scale_y: 1.04,
-                duration: 120,
-                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-                onComplete: () => {
-                    wsBox.ease({
-                        scale_x: 1.0,
-                        scale_y: 1.0,
-                        duration: 160,
-                        mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
-                    });
-                },
-            });
-        } else if (style === 'soft-slide') {
-            wsBox.translation_y = 6;
-            wsBox.opacity = 0;
-            wsBox.ease({
-                translation_y: 0,
-                opacity: 255,
-                duration: 200,
-                mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
-            });
-        }
+        this._prevActiveIndex = this._ws.currentIndex;
     }
 
     _createWsBox(workspace) {

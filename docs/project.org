@@ -21,7 +21,7 @@ Diseñar, implementar y mantener una extensión modular para GNOME que reinterpr
 *** TODO 1. Herramientas de escritorio (Shell) [0%]
 **** TODO 1.1 Dashboard
 ***** TODO Tareas
-DEADLINE: <2026-08-20 Thu>
+DEADLINE: <2026-08-21 Fri>
 - [X] 1.0.1 Colocar un ícono simbólico en la Page 1 (Shell) del View Switcher.
   - Las categorías de `CATEGORIES` (prefs.js) ya definían `icon` (Shell = `system-search-symbolic`), pero nunca se aplicaba a las páginas, por lo que el `Adw.ViewSwitcher` no mostraba iconos. Fix: `page.icon_name = cat.icon;` en `_buildPage()` aplica el icono a todas las páginas.
 - [X] 1.0.2 Debe haber un solo Group para las tres opciones, dashboard, quick text y Launcher deben ser opciones "pegadas" entre sí, sin separación.
@@ -232,9 +232,9 @@ DEADLINE: <2026-09-15 Tue>
 - [ ] 4.2.3.1 Posibilidad de usar el album art o el ícono del proveedor.
 ***** TODO 4.2.4 Notification Indicator
 - Descripción: Indicador de notificaciones (contador numérico). 
-**** NEXT 4.6 Workspace Indicator
+**** NEXT 4.6 Workspace Indicator [40%]
 DEADLINE: <2026-08-20 Thu>
-- [ ] 4.2.1 Bug: Es posible arrastrar un espacio de trabajo más allá de /añadir un nuevo espacio de trabajo/ (se muestra como un workspace con el símbolo "`+`"). Esto no debería ser posible. Provoca un bug en el cual el espacio de trabajo se mueve a la derecha de `+`, dejando un espacio hueco en el sitio en el cual antes estaba el workspace que se movió, esto no tiene efecto en los espacios de trabajo reales (nada se desplaza realmente).
+- [X] 4.2.1 Bug: Es posible arrastrar un espacio de trabajo más allá de /añadir un nuevo espacio de trabajo/ (se muestra como un workspace con el símbolo "`+`"). Esto no debería ser posible. Provoca un bug en el cual el espacio de trabajo se mueve a la derecha de `+`, dejando un espacio hueco en el sitio en el cual antes estaba el workspace que se movió, esto no tiene efecto en los espacios de trabajo reales (nada se desplaza realmente).
 - [ ] 4.2.2 Feat: Usando como referencia Workspace [[https://gitlab.com/jguece/workspace-bar][Workspace Bar de jguece]], añadir la posibilidad de mostrar los programas abiertos en cada espacio de trabajo, y la posibilidad de tomar uno de esos programas y moverlos de workspace
 - [ ] 4.2.4 Feat: Añadir una opción para usar el color de acento de GNOME como color de fondo del espacio activo.
 - [X] 4.2.5 Bug: Sobre-escribe o borra los atajos de teclado por defecto (configurados desde gnome-control-center).

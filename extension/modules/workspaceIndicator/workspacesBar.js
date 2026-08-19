@@ -329,6 +329,10 @@ export class WorkspacesBar {
     }
 
     _updateWorkspacesBar() {
+        const shouldAnimate = this._settings.transitionAnimation.value !== 'none'
+            && this._prevActiveIndex >= 0
+            && this._prevActiveIndex !== this._ws.currentIndex;
+
         this._wsBar?.destroy_all_children();
         this._dragHandler.wsBoxes = [];
         for (let ws_index = 0; ws_index < this._ws.numberOfEnabledWorkspaces; ++ws_index) {
@@ -337,9 +341,49 @@ export class WorkspacesBar {
                 const wsBox = this._createWsBox(workspace);
                 this._wsBar?.add_child(wsBox);
                 this._dragHandler.wsBoxes.push({ workspace, wsBox });
+                if (shouldAnimate && workspace.index === this._ws.currentIndex)
+                    this._animateEnter(wsBox, this._settings.transitionAnimation.value);
             }
         }
         this._prevActiveIndex = this._ws.currentIndex;
+    }
+
+    _animateEnter(wsBox, style) {
+        wsBox.remove_all_transitions();
+        if (style === 'fade') {
+            const label = wsBox.get_child();
+            label.remove_all_transitions();
+            label.set_opacity(0);
+            label.ease({
+                opacity: 255,
+                duration: 250,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            });
+        } else if (style === 'soft-pulse') {
+            wsBox.ease({
+                scale_x: 1.04,
+                scale_y: 1.04,
+                duration: 120,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                onComplete: () => {
+                    wsBox.ease({
+                        scale_x: 1.0,
+                        scale_y: 1.0,
+                        duration: 160,
+                        mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
+                    });
+                },
+            });
+        } else if (style === 'soft-slide') {
+            wsBox.translation_y = 6;
+            wsBox.opacity = 0;
+            wsBox.ease({
+                translation_y: 0,
+                opacity: 255,
+                duration: 200,
+                mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
+            });
+        }
     }
 
     _createWsBox(workspace) {

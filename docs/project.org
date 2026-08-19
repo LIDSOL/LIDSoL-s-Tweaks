@@ -1,18 +1,12 @@
 #+TITLE: Proyecto LIDSoL's Tweaks
-#+AUTHOR: RamenRoot
-#+DATE: 2026-08-15
+#+DATE: 2026-08-18
 * 0. Introducción
-Este proyecto aborda la modernización e integración de múltiples extensiones para GNOME Shell 50. El problema a resolver radica en la fragilidad de las extensiones, que dependen de APIs internas sujetas a cambios, esto genera obsolescencia: las actualizaciones del escritorio pueden /romper/ las extensiones.
-
-Se propone usar como base el código de la extensión Aylur's Widgets (compatible hasta GNOME 44), Quick Settings Tweaks y otro puñado de extensiones con el propósito de modernizar y/o unificar estas en una única extensión compatible con GNOME Shell 50.
-
-La arquitectura de la extensión debe facilitar su mantenimiento y se validará mediante métricas objetivas de rendimiento.
-
+En este proyecto se propone estudiar y usar como base el código de diversas extensiones de GNOME con el propósito de modernizarlas y/o integrarlas en una única extensión compatible con GNOME Shell 50; el problema a resolver radica en la fragilidad de las extensiones, que dependen de APIs internas sujetas a cambios: las actualizaciones del escritorio terminan /rompiendo/ las extensiones. La arquitectura del proyecto debe facilitar su mantenimiento y se validará mediante métricas de rendimiento.
 * 1. Objetivos
 ** Objetivos generales
 Diseñar, implementar y mantener una extensión modular para GNOME que reinterprete y modernice los componentes de extensiones obsoletas como [[https://extensions.gnome.org/extension/5338/aylurs-widgets/][Aylur's Widgets]] mediante una arquitectura que facilite el mantenimiento, adaptada a los cambios de API de GNOME Shell y GJS.
-- Garantizar compatibilidad toal con GNOME 50 y 51.
-- Hacer los cambios necesarios para que los módulos sean estrictamente modulares.
+- Garantizar compatibilidad total con GNOME 50 y 51.
+- Hacer los cambios necesarios para que los componentes sean estrictamente modulares.
 - Separar estrictamente la lógica de negocio con la capa de presentación.
 - Implementar Lazy Loading de módulos.
 - Diseñar e implementar un framework modular interno. Consolidad un backend reusable y extensible.
@@ -23,32 +17,46 @@ Diseñar, implementar y mantener una extensión modular para GNOME que reinterpr
 - Documentar formalmente la arquitectura interna y contratos entre módulos.
 - Minimizar conflictos con extensiones populares.
 - Publicar la extensión.
-
-** Objetivos específicos
-*** 1. Shell
-- [ ] 1.0.1 Colocar un ícono simbólico en la Page 1 (Shell) del View Switcher.
-- [ ] 1.0.2 Debe haber un solo Group para las tres opciones, dashboard, quick text y Launcher deben ser opciones "pegadas" entre sí, sin separación.
-- [ ] 1.0.3 Renombrar la sección ¿qué nombre sería más adecuado que Shell?
-- [ ] 1.0.4 Mejorar la descripción
+** Objetivos específicos [0%]
+*** TODO 1. Herramientas de escritorio (Shell) [0%]
 **** TODO 1.1 Dashboard
-- [ ] 1.1.1 Eliminar el switch "Homogeneous Cells" y todo su código asociado.
-- [ ] 1.1.2 System Levels -> Width: Escribir en la descripción una pequeña advertencia: si el valor es muy pequeño puede haber un desbordamiento en el launcher.
-- [ ] 1.1.3 Media Player -> Prefer: eliminar esto y todo su código asociado.
-- [ ] 1.1.4 Media Player: Eliminar el switch Show Loop and Shuffle y todo su código asociado.
-- [ ] 1.1.5 Media Player: El slider debe funcionar en los reproductores locales (reproductores de música desde la terminal, locales GUI, Flapak y web).
-- [ ] 1.1.5 Media Player: El slider debe funcionar en los reproductores locales (reproductores de música desde la terminal, locales GUI, Flatpak y web).
-- [ ] 1.1.6 Media Player: El slider debe funcionar en los reproductores de GSConnect
-- [ ] 1.1.7 Clock: La distancia entre reloj y fecha debe poder modificarse. Debe ser válida la configuración tanto para vertical como para horizontal. No debe haber desbordamiento.
-- [ ] 1.1.8 Clock: El Date Size debe aplicar también para el día.
-- [ ] 1.1.9 Clock: Al hacer click en el reloj se debe abrir gnome clock, u otro programa que el usuario elija
-- [ ] 1.1.10 Settings & System: Las opciones de System deben mantenerse intactas. Pero hay que modificar Settings, para que estén en este orden y tengan:
+***** TODO Tareas
+DEADLINE: <2026-08-19 Wed>
+- [X] 1.0.1 Colocar un ícono simbólico en la Page 1 (Shell) del View Switcher.
+  - Las categorías de `CATEGORIES` (prefs.js) ya definían `icon` (Shell = `system-search-symbolic`), pero nunca se aplicaba a las páginas, por lo que el `Adw.ViewSwitcher` no mostraba iconos. Fix: `page.icon_name = cat.icon;` en `_buildPage()` aplica el icono a todas las páginas.
+- [X] 1.0.2 Debe haber un solo Group para las tres opciones, dashboard, quick text y Launcher deben ser opciones "pegadas" entre sí, sin separación.
+  - `_addShellModuleGroup()` (prefs.js) usaba tres `Adw.PreferencesGroup` separados (Dashboard con título/descripción, Quick Text sin, Launcher con título/descripción), por lo que la página Shell mostraba tres bloques. Ahora hay un único group (sin título) con las tres filas de módulo pegadas.
+- [X] 1.0.3 Renombrar la sección ¿qué nombre sería más adecuado que Shell?
+  - "Shell" era ambiguo (también abarca top bar y gestor de ventanas). Renombrada a **Herramientas** en `CATEGORIES` (prefs.js), con icono `applications-utilities-symbolic` (llave inglesa, `preferences-system-symbolic` / `system-search-symbolic` eran de ajustes/búsqueda). El `id` interno sigue siendo `shell`.
+- [X] 1.0.4 Mejorar la descripción
+  - Header de la página: summary = "Herramientas de escritorio", description = "Dashboard personalizable, captura rápida de notas y launcher de búsqueda con atajo de teclado." (antes "Herramientas del sistema / Lanzador, menú de apagado y notas rápidas", que ya no correspondía a los módulos de la página).
+- [ ] 1.1.5  Evaluar si el botón "Read Config (load config from dashboard.json)" sigue siendo necesario. De no serlo, eliminarlo.  
+- [ ] 1.1.6  Eliminar el switch "Homogeneous Cells" y su código asociado.
+- [ ] 1.1.
+- [ ] 1.1.7  Media Player -> Prefer: eliminar esta opción y todo su código asociado. 
+- [ ] 1.1.8  Media Player: Implementar las opciones del switch Show Loop and Shuffle; deben de funcionar en local y GSconnect.
+- [ ] 1.1.9  Media player: El slider debe funcionar en reproductores locales (reproductores de música desde la terminal, GUI nativos, flatpak y web).
+- [ ] 1.1.10  Media player: El slider debe funcionar en GSConnect
+- [ ] 1.1.11  Media player:El conteo del tiempo (en avance de multimedia) va de 3 en 3, debe ser al segundo.
+- [ ] 1.1.12  Clock: La distancia entre el reloj y la fecha debe poder modificarse, actualmente está /hardcodeada/. Debe ser válida tanto para el layout vertical como para el horizontal. No debe hacer desbordamiento.
+- [ ] 1.1.13 Clock: Al hacer click en el reloj se debe lanzar gnome-clocks y otro programa que el usuario elija.
+- [ ] 1.1.14 Settings & System: Las opciones de System deben mantenerse intactas. Pero hay que modificar Settings, para que estén en este orden y tengan:
   - Settings (abrir los ajuste en general).
   - Wi-Fi (abrir los ajustes de wi-fi)
   - Bluetooth (abrir los ajustes de bluetooth)
   - Night Ligth (activar y desactivar la luz nocturna)
   - Dark Style (activar y desactivar el modo oscuro)
-  - Do Not Disturb (activar y desactivar el modo do not disturb) 
-- [ ] 1.1.11 Cambiar las preferencias por defecto a mi configuración actual.
+  - Do Not Disturb (activar y desactivar el modo do not disturb)  
+- [ ] 1.1.15 Cambiar las preferencias por defecto a mi configuración actual
+- [ ] 1.1.16 Feat: Actualmente el dashboard aparece como un "cuadro de dialogo". Sería interesante explorar la posibilidad de moverlo "a la búsqueda", en vez de mostrar el texto "Type to search", mostrar el dashboard. De ser posible:
+  - [ ] 1.1.16.1 Añadir un Combo Row con la posibilidad de elegir: dashboard en "cuadro de diálogo" o en la búsqueda. 
+- [ ] 1.1.17 Cambiar el widget de launcher por un widget del tiempo (o explorar otras posibilidad)
+***** Notas
+- **Sincrónico vs asíncrono**: Gio.DBusProxy.new_sync() parece más simple pero no espera a que el name-owner esté disponible. Usar new() + Promise garantiza que las propiedades están cacheadas antes de acceder.
+- **GVariant a{sv}**: deepUnpack() desenrolla recursivamente, incluyendo los v internos. Pero proxy.Metadata devuelve el GVariant crudo donde los valores tipo v necesitan .deepUnpack() o .get_string() según el tipo.
+- **connectSignal vs signal_subscribe**: connectSignal en Gio.DBusProxy es más simple y directo que signal_subscribe de Gio.DBus.session.
+- **can-play como guard**: No emitir player-added hasta que canPlay sea true evita errores de "proxy no listo".
+- **Export en ESM**: GObject.registerClass() con export var puede fallar si hay errores en tiempo de evaluación. Usar export { ... } explícito al final del archivo es más fiable.
 **** TODO 1.2 Quick Text
 - Descripción: Un atajo de teclado (Super+i, aunque es personalizable) abre una ventana de diálogo desde la cual podemos escribir contenido que se insertará en algún alchivo de texto plano de nuestra preferencia; podemos configurar un prefijo o sufijo al texto insertado. Es útil para tomar notas rápidas, fragmentos de texto y anotar ideas; puede usarse como complemento a cualquier app de notas basada en texto plano. El nombre y la ruta de acceso al archivo de destino deben establecerse antes de utilizar la extensión y el archivo debe existir.
   - Se usa como base el código de la extensión *Quick Text* de *Brainstormtrooper*. Esta extensión es compatible hasta GNOME 47, por lo que será necesario darle mantenimiento para darle compatibilidad con GNOME 50.
@@ -59,24 +67,37 @@ Diseñar, implementar y mantener una extensión modular para GNOME que reinterpr
 [[./img/unclutter.gif]]
 
 Para ello, se puede tomar como base la extensión [[https://github.com/boerdereinar/copyous][copyous]].
-- [ ] 1.2.1: Bug: Al abrir la ventana de Actions, no se ve el texto de las notas, se requiere hacer resize a la ventana para que aparezca el contenido de las notas.
-- [ ] 1.2.2: Feat: Implementa una acción en el botón de calendario (actualmente no tiene funcionalidad).
-  - [ ] 1.2.2.1: Por defecto: Al pulsar el botón se abre el calendario, creando un evento usando el texto de la nota como titulo del evento.
-  - [ ] 1.2.2.2. Adicionalmente, en los ajustes se debe poder crear un comando personalizado de bash, una acción personalizada (puede ser útil para mover el texto a otro archivo, crear un evento en ikhal u otro calendario basado en terminal, etcétera). Se pasa como input el texto de la nota seleccionada al comando. 
-**** TODO 1.3 Launcher
-- [X] 1.3.1 Elimina el launcher tipo spotlight, todas sus opciones y código asociado
-  - [X] 1.3.1.1 Ancho, alto, usar animaciones, velocidad, posición.
-  - Se eliminó el launcher rofi/spotlight (`launcher.js` con el patrón search-light que robaba `searchEntry` + `searchController` del overview) y su `stylesheet.css`. Se eliminaron las claves del schema `launcher-width`, `launcher-height`, `launcher-use-animations`, `launcher-animation-speed`, `launcher-position-x`, `launcher-position-y` y `launcher-commands`, junto con sus filas en `prefs.js` (`_buildLauncherDialog`). Se conservaron `launcher-enabled`, `launcher-hotkey` y `launcher-hide-search`.
-- [X] 1.3.2 Nueva implementación del launcher
-  - En lugar de una ventana flotante, el atajo (`launcher-hotkey`) abre la **búsqueda nativa del Overview en "modo búsqueda"**: `searchController._setSearchActive(true)` + foco en el entry, de modo que toda la interfaz de búsqueda se muestra aunque la barra esté oculta (`launcher-hide-search`). El atajo hace toggle: si hay búsqueda activa → `_closeSearchMode()` (solo oculta el overview, sin reset previo); si el overview está visible → entra en modo búsqueda; si no → lo abre y entra en modo búsqueda. La barra oculta aparece automáticamente al activarse la búsqueda (handler `notify::search-active` existente).
-  - **Bug resuelto**: la barra no reaparecía porque `_showSearchBar()` animaba a `height: this._searchEntry.height`, que es 0 tras colapsarla. Ahora usa la altura preferida (`get_preferred_height`).
-  - **Esc cierra la vista (1 pulsación)**: handler `captured-event` en `global.stage` (fase capture, antes que el entry enfocado) → si la búsqueda se activó por el atajo (`_searchModeActive`), `Esc` hace `Main.overview.hide()` (equivalente a pulsar Super). Se usa *capture* porque el handler propio del entry (`_onKeyPress` → `reset()` + `EVENT_STOP`) se tragaba la primera pulsación. El flag `_searchModeActive` se pone en `_enterSearchMode()` y se limpia cuando `search-active` pasa a false.
-  - **Sin flash de "No results" al cerrar**: antes se hacía `search.reset()` (limpia el texto → `_updateSearchProgress` muestra "No results") *antes* de ocultar, así que el mensaje se veía durante el fundido de salida. Ahora se oculta el overview primero; el reset ocurre en `vfunc_unmap` (ya invisible) → sin flash. Aplica a Esc, al toggle con el atajo de extensión y al atajo nativo.
-  - **Leyenda al entrar**: en lugar de ocultar todo, al entrar sin texto se muestra `_statusContainer` con el spinner parado y oculto (`visible=false`, para que no conserve su ranura de 64px vacía), un icono simbólico `system-search-symbolic` de 64px en la misma ranura que el spinner (sin `style_class` `search-entry-icon`, que lo encogía a ~1.091em vía CSS `icon-size`) y el texto localizado `_('Type to search')`, con la misma posición/tamaño/color que "Searching" (mismo widget `_statusText`, misma separación de 24px). El icono se oculta al empezar a escribir (signal `terms-changed`, `play()` nativo re-muestra el spinner) y `_updateSearchProgress()` nativo muestra "Searching…"/"No results".
-  - **Atajo nativo "Search" (Settings → Keyboard Shortcuts → Launcher → Search)**: ese atajo lo maneja gnome-settings-daemon → D-Bus `FocusSearch` → `Main.overview.focusSearch()`, que solo abre el overview y enfoca el entry → con la barra oculta se veía "solo el overview". Se parchea `focusSearch` (hook `_setupFocusSearchHook`/`_teardownFocusSearchHook`) para que se comporte igual que el atajo de la extensión: un **toggle** que abre nuestra vista y también la cierra (`original()` + `_toggleSearchMode()`), sin gate de `launcher-hide-search`.
-  - **Conflicto de atajos**: si `launcher-hotkey` coincide con el atajo nativo de búsqueda (`org.gnome.settings-daemon.plugins.media-keys` → `search`), se detecta (`_collidesWithNativeSearch`) y **no se registra** el keybinding propio para evitar doble disparo (abrir→cerrar); en ese caso el atajo nativo ya actúa como toggle vía el hook, así que gana el comportamiento de la extensión. El registro se reevalúa al cambiar `launcher-hotkey` (señal `changed::launcher-hotkey`).
 
-**** 1.4 Unclutter
+***** TODO Tareas
+DEADLINE: <2026-08-21 Fri>
+- [ ] 1.2.1  Bug: Al abrir la ventana de Actions, no se ve el texto de las notas, se requiere hacer resize a la ventana para que recien ahí se vea el contenido de las notas.
+- [ ] 1.2.2  Feat: Implementar una acción en el botón de calendario de Actions.
+  - [ ] 1.2.2.1 Al pulsar el botón de calendario (new event), por defecto, abre el calendario (gnome-calendar), creando un evento usando el texto de la nota como título del evento.
+  - [ ] 1.2.2.2 Adicionalmente, en los ajustes, se debe poder cambiar la acción de New Event, se debe configurar un comando bash, esta será una acción personalizada (puede ser útil para mover el texto a otro archivo, crear un evento en ikhal u otro calendario basado en terminal, etcétera). Se pasa como input el texto de la nota seleccionada al comando. 
+- [ ] 1.2.3 Mejorar el ajuste de "Archivo de notas" 
+  - [ ] 1.2.3.1 Manda una notificación si no encuentra el archivo
+  - [ ] 1.2.3.2 Mejorar el selector del archivo
+***** Notas
+**** TODO 1.3 Launcher
+DEADLINE: <2026-08-23 Sun>
+- [X] 1.3.1  Refactor: Eliminar el launcher tipo spotlight, todas sus opciones en prefes (ancho, alto, animaciones, velocidad, ubicación, ...) y todo el código asociado.
+- [X] 1.3.2  Feat: Nueva implementación del launcher, en lugar de una ventana flotante, el atajo `launch-hotkey` abre la búsqueda nativa del Overview en un /Modo búsqueda/.
+  - `searchController._setSearchActive(true)` + foco en el entry, de modo que toda la interfaz de búsqueda se muestra aunque la barra esté oculta (`launcher-hide-search`). El atajo hace toggle: si hay búsqueda activa → `_closeSearchMode()` (solo oculta el overview, sin reset previo); si el overview está visible → entra en modo búsqueda; si no → lo abre y entra en modo búsqueda. La barra oculta aparece automáticamente al activarse la búsqueda (handler `notify::search-active` existente).
+  - Fix: la barra no reaparecía porque `_showSearchBar()` animaba a `height: this._searchEntry.height`, que es 0 tras colapsarla. Ahora usa la altura preferida (`get_preferred_height`).
+  - Feat: Esc cierra la vista (1 pulsación); handler `captured-event` en `global.stage` (fase capture, antes que el entry enfocado) → si la búsqueda se activó por el atajo (`_searchModeActive`), `Esc` hace `Main.overview.hide()` (equivalente a pulsar Super). Se usa *capture* porque el handler propio del entry (`_onKeyPress` → `reset()` + `EVENT_STOP`) se tragaba la primera pulsación. El flag `_searchModeActive` se pone en `_enterSearchMode()` y se limpia cuando `search-active` pasa a false.
+  - Atajo nativo "Search" (Settings → Keyboard Shortcuts → Launcher → Search): ese atajo lo maneja gnome-settings-daemon → D-Bus `FocusSearch` → `Main.overview.focusSearch()`, que solo abre el overview y enfoca el entry → con la barra oculta se veía "solo el overview". Se parchea `focusSearch` (hook `_setupFocusSearchHook`/`_teardownFocusSearchHook`) para que se comporte igual que el atajo de la extensión: un **toggle** que abre nuestra vista y también la cierra (`original()` + `_toggleSearchMode()`), sin gate de `launcher-hide-search`.
+  - Conflicto de atajos: si `launcher-hotkey` coincide con el atajo nativo de búsqueda (`org.gnome.settings-daemon.plugins.media-keys` → `search`), se detecta (`_collidesWithNativeSearch`) y no se registra el keybinding propio para evitar doble disparo (abrir→cerrar); en ese caso el atajo nativo ya actúa como toggle vía el hook, así que gana el comportamiento de la extensión. El registro se reevalúa al cambiar `launcher-hotkey` (señal `changed::launcher-hotkey`).
+  - Sin flash de "No results" al cerrar: antes se hacía `search.reset()` (limpia el texto → `_updateSearchProgress` muestra "No results") *antes* de ocultar, así que el mensaje se veía durante el fundido de salida. Ahora se oculta el overview primero; el reset ocurre en `vfunc_unmap` (ya invisible) → sin flash. Aplica a Esc, al toggle con el atajo de extensión y al atajo nativo.
+  - Leyenda al entrar: en lugar de ocultar todo, al entrar sin texto se muestra `_statusContainer` con el spinner parado y oculto (`visible=false`, para que no conserve su ranura de 64px vacía), un icono simbólico `system-search-symbolic` de 64px en la misma ranura que el spinner (sin `style_class` `search-entry-icon`, que lo encogía a ~1.091em vía CSS `icon-size`) y el texto localizado `_('Type to search')`, con la misma posición/tamaño/color que "Searching" (mismo widget `_statusText`, misma separación de 24px). El icono se oculta al empezar a escribir (signal `terms-changed`, `play()` nativo re-muestra el spinner) y `_updateSearchProgress()` nativo muestra "Searching…"/"No results".
+- [ ] 1.3.3  Fix: Quitar el switch "Habilitar Launcher en Herramientas (shell)->Launcher (dialog). Este switch carga el módulo, pero el módulo se debe activar directamente desde las opciones **Herramientas (shell)**  
+- [ ] 1.3.4  Feat: Implementar comandos personalizados al /estilo gnofi/.
+  - [ ] 1.3.4.1 Añadir un PreferencesGroup, con un Group Title "comandos", el botón (Suffix) debe tener el texto "Añadir". Mostrar los comandos añadidos en la sección inferior. El objetivo es que en la búsqueda puedas escribir ":ejemplo", y esto accione un comando shell configurado.
+    - Clave de esquema `launcher-commands` (tipo `as`, formato `"nombre|comando"`)
+    - `_populateCommands()` crea un Gtk.ListBox con botones de eliminación para cada comando
+    - Adw.MessageDialog para añadir nuevos comandos (entradas de nombre + comando).
+**** TODO 1.5 stylushOSD      
+DEADLINE: <2026-08-25 Tue>
+**** SOMEDAY 1.4 Unclutter
 Basado en unclutter y copyus
 - Se debe abrir con un atajo de teclado o un hot point como en overview.
 - Se tienen tres vistas:
@@ -89,294 +110,138 @@ Basado en unclutter y copyus
     - Esta sección tiene tres botones: añadir, vista general y buscar
     - Por defecto muestra la última nota o la vista general.
     - Al añadir una nueva nota (botón) puedes escribir y añadirla (quicktext)
-*** 2. Quick Settings
-**** Avatar de usuario
-**** System Items Layout
-**** Quick Toggles Layout
-**** Overlay Mode
-*** 3. Widgets
-**** Background Widgets
-**** Date Menu Media
-*** 4. Top Bar
-**** Panel Corners
-**** Workspace Indicator
-**** Battery Indicator
-**** Start Icon
-**** Date Menu
-**** Top Bar Organized
-*** 5. General
-**** 
-*** 6. Backend 
-- [ ] Mejorar y corrección de bugs del MPRIS
-
+*** TODO 2. Quick Settings [16%]
+- [ ] 2.0.1 Debe tener 3 áreas: sistema, toggles e indicators
+**** DONE 2.1 Avatar de usuario
+**** TODO 2.2 System Items Layout
+DEADLINE: <2026-08-26 Wed>
+- [ ] 2.2.1 Los elementos deben organizarse mediante "drag and drop" y no mediante botones, símil al organizador de elementos del top bar (implementado en los commits 7e16ea5, e09fc44, 9a3444b y 5025bfa.
+- [ ] 2.2.2 Añadir indicadores del sistema (monitor de recursos) a la sección de Items Layout: círculos que indiquen la cantidad de uso de recursos.
+**** TODO 2.3 Quick Toggles Layout
+DEADLINE: <2026-08-27 Thu>
+- [ ] 2.3.1 Los elementos deben organizarse mediante "drag an drop" y no mediante botones, símil al organizador de elementos del top bar (implementado en los commits 7e16ea5, e09fc44, 9a3444b y 5025bfa.
+- [ ] 2.3.2 Testing de las reglas de coincidencia: Constructor name, Regex de título, GTYpe name.
+- [ ] 2.3.3 Añadir la posibilidad de colocar opciones a los quick (por ejemplo, en caffeine, independiente al botón, hay una flecha que despliega un menú que permite controlar el tiempo de pantalla activa). Se deben poder añadir estas opciones, cada una puede ser un argumento al script.
+  - [ ] 2.3.4 Ejemplos de pre-configuración: syncthing y "caffeine"
+**** TODO 2.4 Overlay Mode
+DEADLINE: <2026-08-29 Sat>
+- [ ] 2.4.1 "Animaciones avanzadas" en el overlay. Esta opción integrarla en el dialog de overlay mode.
+- [ ] 2.4.2 Explorar la posibilidad de usar la animación por defecto (desplaza los toggles hacia abajo), pero controlarla, verificando que el contenido no se desborda, si se desborda, desplaza los toggles arriba y abajo para siempre ver el contenido.
+**** TODO 2.5 System Indicator
+DEADLINE: <2026-08-31 Mon>
+Tomando como referencia a Quick Settings Tweaks, implementar:
+- [ ] 2.5.1 Si el widget de media está en los quicksettings (tarea 3.2.1):
+  - [ ] Añadir el visualizer y el album art a los System Indicators.
+- [ ] 2.5.2 Accent Screen sharing indicador: Posibilidad de usar el color de acento en el indicador de "compartiendo pantalla"
+- [ ] 2.5.3 Accent screen recording indicator: Posibilidad de usar el acento de color en el indicador "grabando pantalla"
+- [ ] 2.5.4 Privacy indicator style: Default, accent, monochrome.
+- [ ] 2.5.5 Ordering and hiding: posibilidad de reordenar y ocultar los indicadores del sistema
+  - No debe interferir con el elemento 4.4 (battery indicator).
+  - Reorganización mediante switch y drag and drop
+**** TODO 2.6 Quick Settings Compact
+*** TODO 3. Widgets [0%]
+- [ ] 3.0.1: Dividirlo en tres áreas: Date Menu widget, Quick Settings Widgets y Background widgets
+**** TODO 3.1 Date Menu Widgets
+DEADLINE: <2026-09-02 Wed>
+- [ ] 3.1.1 Eliminar la opción User Avatar y todo su código asociado.
+  - [ ] 3.1.1.1 Escribir en Notas: lecciones y referencias una "entrada" de como se implementaba este widget, por si resulta útil a posteriori.
+- [ ] 3.1.2 Ocultar caja derecha (quick settings tweaks referencia)
+- [ ] 3.1.3 Ocultar caja izquierda (quick settings tweaks referencia)
+- [ ] 3.1.4 Permutar caja derecha e izquierda (aylur's referencia)
+- [ ] 3.1.5 Bug: De vez en cuando, aparece un mensaje en el área de notificaciones: "No notifications". No sucede todo el tiempo, solo aparece "sin razón aparente" y luego, nunca desaparece este mensaje aunque hayan notificaciones, apareciendo la leyenda en el fondo de las notificaciones. Es decir, el mensaje persiste aunque hayan notificaciones.
+- [ ] 3.1.6 Mejoras en el widget de Media del Date Menu.
+  - [ ] 3.1.6.1 La barra de progreso avanza cada 9 segundos. Sería bueno ver una animación de desplazamiento del indicador, para no ver el avance de forma brusca.
+  - [ ] 3.1.6.2 Cuando se cambia de medio gracias al switch, la barra de progreso se muestra en 0 y después avanza hasta el estado tiempo real de producción. También se debe implementar la animación de avance en este caso, para evitar "ese cambio brusco"
+**** TODO 3.2 Quick Settings Widgets
+DEADLINE: <2026-09-04 Fri>
+- [ ] 3.2.1 Implementación del widget multimedia en los quick settings, tomando como referencia a quick settins tweaks
+  - Opción de mostrar el widget arriba o abajo de los toggles.
+  - Opciones el widget en un dialog
+  - Tomar como referencia el MPRIS de este widget para mejorar el de LIDSoL's Tweaks; relación con task 6
+- [ ] 3.2.2 Implementación del widget de notificaciones tomando como referencia quick settings tweaks.
+  - 3.2.2.1 Posibilidad de solo mostrar la última notificación/grupo de notificaciones, y mediante un botón en la parte inferior, muestra el resto de notificaciones usando el overlay mode, para evitar desbordamiento.
+    - En el overlay mode muestra la scroll bar.
+**** TODO 3.3 Background Widgets
+- [ ] 3.3.0 Mejorar la posición, colocado de los widgets
+  - [ ] 3.3.0.1 Usar un grid, el widget puede ocupar una "celda/coordenada" dentro de ese grid. Si un widget ya lo ocupa, no es posible colocar otro más para evitar superposición (puede ser usado un algoritmo de exclusión mutua). 
+- [ ] 3.3.1 Posibilidad de mostrar y ocultar los widgets background mediante un atajo de teclado
+***** TODO 3.3.1 Animación fade.
+DEADLINE: <2026-09-15 Tue>
+Implementar una animación fade al pasar del desktop al overview, para que la transición no sea tan brusca. Para ello puedes estudiar la extensión "/desktop-icons-ng/", que muestra íconos en el escritorio, y ya implementa la animación que buscamos.
+***** TODO Widget Picture 
+DEADLINE: <2026-09-15 Tue>
+***** SOMEDAY Widget clock
+- Referencia para el frontend: [[https://flathub.org/en/apps/re.sonny.Retro][Widget clock]]
+***** SOMEDAY Widget multimedia
+- Referencia para el frontend: [[https://flathub.org/en/apps/dev.geopjr.Turntable][Turntable (media widget flatpak)]]
+***** SOMEDAY Widget weather
+- Referencia para el frontend: [[https://flathub.org/en/apps/io.github.amit9838.mousam][Mouseam en "modo widget"]]
   
-* 2. Por organizar
+*** TODO 4. Top Bar [0%]
+- [ ] 4.1 Organizar este apartado en los siguientes grupos, cada grupo debe tener lo siguiente:
+  - General:
+    - Top Bar Organizer
+    - Panel Corners
+  - Elementos del panel:
+    - Start Icon
+    - Work space Indicator
+    - Date Menu (borra el /at a Glance/ y coloca "Date Menu Tweaks").
+    - Battery indicator
+**** TODO 4.1 Panel Corners
+DEADLINE: <2026-09-08 Tue>
+- [ ] 4.1.1 Eliminar el modo debug de las opciones avanzadas (switch). Pero deja la posibilidad de activarlo de manera más general.
+- [ ] 4.1.2 Añadir compatibilidad con la extensión "blur shell"
+**** TODO 4.2 Date Menu
+DEADLINE: <2026-09-15 Tue>
+- Descripción y objetivo: Basado en el widget [[https://support.google.com/android/answer/14883154][At a Glance]] de los Google Pixel. El texto de /Date Menu/ cambia dinámicamente, muestra el contenido multimedia en reproducción, muestra un contador de notificaciones, etcétera.
+***** TODO 4.2.1 Date Menu Formatter
+- Descripción y objetivo: Permite la personalización del formato de la fecha y hora en el panel.
+  - Aylur's Widget tiene un componente que permite personalizar esto, también se tomará como referencia el código de la extensión [[https://extensions.gnome.org/extension/4655/date-menu-formatter/][Date Menu Formatter de Marcin Jakubowski]]. Esta última compatible hasta GNOME 50, por lo que no debería ser difícil integrarla.
+[[./img/date-format.png]]
 
-/Pendiente de reorganizar como plan de desarrollo./
+- [ ] 4.2.1.1 Bug: Habilitar la opacidad en ./Gnome-Extensions/extension/modules/dateMenu/dateMenu.css, no se muestra correctamente. Las primeras 14 líneas desactivan la opacidad predeterminada en hover o active, esto con el objetivo de no superponer la opacidad nativa con la de /at-a-glance/. En teoría, con las líneas 20 a 32 debería de añadirse la opacidad en el date-menu, pero no es así.
+- [ ] 4.2.1.2 Bug: Espacio anómalo a un lado del date-menu (top bar, hora) al iniciar sesión (parece reservar espacio para el visualizador y la carátula). El relleno se normaliza después tras reproducir y pausar cualquier medio. 
 
-** Estado del desarrollo
-- [x] Fase 0: Infraestructura Compartida MPRIS:
-Se implementarán múltiples módulos que harán uso de MPRIS: widget de control multimedia en el dashboard, date menu y en las notificaciones. Se requiere la centralización, uso de funciones u orientado a objetos, para evitar repetir código en cada módulo:
+***** TODO 4.2.2 Progress Day
+- Descripción y objetivo: Usando como base [[https://github.com/ArcaEge/day-progress][day progres de ArcaEge]], añadir una barra o círculo de progreso en el date menu (no debe ser un ícono añadido, debe estar dentro el date meno, así como el indicador multimedia). Este remplaza o complementa la hora/fecha.
+- [ ] 4.2.2.1 En el Top Bar -> Date Menu; añadir debajo de "Multimedia", las opciones de Progress Day.
+- [ ] 4.2.2.2 Incluir en las opciones:
+  - Comportamiento:
+    - No mostrar barra(s)/círculo(s) de progreso.
+    - Mostrar barra(s)/circulo(s) de progreso junto con el reloj.
+    - Solo mostrar la barra(s)/circulo(s), remplazando el reloj/fecha (texto). Si esta opción está seleccionada, se deben bloquear los ajustes de formatos.
+  - Apariencia
+    - Time Elapsed
+    - Show Year Progress
+    - Shot Life progress
+    - Puede que sea mejor eliminar la opción "Stack Direction" y que siempre sea horizontal (siempre se desbordan en vertical)
+    - La posición queda descartada. Se debe poder controlar desde nuestro "Top bar organized", pues está en el date.
+  - Start Time, Reset Time, Year start date, life span. 
+- [ ] 4.2.2.4 Esto puede que interfiera con la disposición (vista multimedia, vista reloj, vista reloj+multimedia). Así que hay que tener cuidado de no romper estas opciones. Si se prefiere la barra de progreso por sobre el reloj (texto), las opciones de disposición, se deben comportar igual, pero en vez de mostrar el texto, mostrar la barra o barras.
 
-¿Sería bueno moverlo al core? recuerda que más abajo se describe la arquitectura.
+***** TODO 4.2.3 Media Player
+- Descripción y objetivo: Información de reproducción multimedia integrados en el Date Menu.
+  - Para usar como base, se pueden tomar en cuenta todas las siguientes implementaciones:
+    - [[https://extensions.gnome.org/extension/4928/mpris-label/][Media Label and Controls (por moon-0xff)]], compatible hasta GNOME 49.
+    - [[https://extensions.gnome.org/extension/9334/dynamic-music-pill/][Dynamic Music Pill (por andbal)]], compatible hasta GNOME 50.
+    - [[https://extensions.gnome.org/extension/4470/media-controls/][Media Controls (por Sakith B.)]], compatible hasta GNOME 49.
+    - [[https://extensions.gnome.org/extension/9184/advanced-media-controller/][Advanced Media Controller (por sanjai)]] compatible hasta GNOME 50.
 
-Ubicación: extension/utils/mediaPlayer/
-extension/utils/mediaPlayer/
-├── mediaManager.js     → ✓ MediaPlayerManager (singleton, D-Bus MPRIS, smart selection, art cache, getAverageColor)
-├── mediaPlayer.css     → ✓ estilos compartidos
-Consumidores: dateMenu, dashboard, notificationMedia — todos usan el mismo MediaPlayerManager singleton.
-- Escanea MPRIS vía D-Bus (ListNames), mantiene Map<busName, Proxy>
-- Smart selection: prioriza player con PlaybackStatus === 'Playing', luego último activo
-- Expone señales: player-changed, media-changed (title, artist, artUrl, status)
-- Art cache: Map en memoria + disco en ~/.cache/lidsol-widgets/art/ ✓ Ahora usa límite por tamaño (20 MB default, configurable via pref `dm-art-cache-size`). Evicción LRU por fecha de modificación. El dateMenu llama a `getArtUrl()` antes de `setArt()` para asegurar persistencia tras lock/unlock.
-- getAverageColor() de Dynamic Music Pill para extraer color dominante (code-references/dynamic-music-pill)
+[[./img/aylurs-player.png]]
 
+- [ ] 4.2.3.1 Posibilidad de usar el album art o el ícono del proveedor.
+***** TODO 4.2.4 Notification Indicator
+- Descripción: Indicador de notificaciones (contador numérico). 
+**** TODO 4.6 Workspace Indicator
+DEADLINE: <2026-09-10 Thu>
+- [ ] 4.2.1 Bug: Es posible arrastrar un espacio de trabajo más allá de /añadir un nuevo espacio de trabajo/ (se muestra como un workspace con el símbolo "`+`"). Esto no debería ser posible. Provoca un bug en el cual el espacio de trabajo se mueve a la derecha de `+`, dejando un espacio hueco en el sitio en el cual antes estaba el workspace que se movió, esto no tiene efecto en los espacios de trabajo reales (nada se desplaza realmente).
+- [ ] 4.2.2 Feat: Usando como referencia Workspace [[https://gitlab.com/jguece/workspace-bar][Workspace Bar de jguece]], añadir la posibilidad de mostrar los programas abiertos en cada espacio de trabajo, y la posibilidad de tomar uno de esos programas y moverlos de workspace
+- [ ] 4.2.4 Feat: Añadir una opción para usar el color de acento de GNOME como color de fondo del espacio activo.
+- [ ] 4.2.5 Bug: Sobre-escribe o borra los atajos de teclado por defecto (configurados desde gnome-control-center).
+- [ ] 4.2.6 Feat: Ocultar el Workspace Switcher.
+**** TODO 4.4 Battery Indicator
+DEADLINE: <2026-09-11 Fri>
 
-- [ ] Fase 1: Implementación de tweaks del date menu:
-  - [/] Widget de multimedia:
-    - [X] 1.1: Estudia el actual estado del widget notificationMedia y quita todo lo referente a él. Con excepción del ocultamiento de los indicadores (controles) multimedia por defecto de las notificaciones. Y deja en los ajustes (prefes.js) de widgets el switch para cargar este módulo. Por ahora, al activar el switch no deberíamos ver los indicadores multimedia de las notificaciones por defecto, es lo único que hace, ocultar los indicadores por defecto.
-    - [X] 1.2: Study Aylur's Widgets as reference (./code-references/gnome-extensions/). The goal was to understand how to place "widgets" in the date menu area. Done — see notes below.
-      - [X] 1.2.1: Added userAvatarDateMenu module: inijects avatar + name into the date menu's right column (above calendar). Prefs in Widgets area with `uadm-enabled`, `uadm-show-realname`, `uadm-show-username`. Schema keys `uadm-*`.
-      - [X] 1.2.2: Notes from Aylur's reference recorded below.
-    - [X] 1.3 Study the QST extension (./code-references/quick-settings-tweaks/), focus on its multimedia widget. Take notes in AGENTS.
-    - [X] 1.4 Study Aylur's multimedia widget (./code-references/gnome-extensions/widgets@aylur/extensions/mediaPlayer.js). Take notes in AGENTS.
-    - [x] 1.5 Taking the notes and what was learned into account, implement a minimalist multimedia widget be like of the “user avatar” widget. Remember to use the shared infrastructure, to avoid repeating code: ./Gnome-Extensions/extension/utils/mediaPlayer/* and ./Gnome-Extensions/schemas/schemas/extension/utils/mprisService.js
-
-
-- 1.5.A: Corrections and options: Remember to use as reference the multimedia widget from QST (./code-references/quick-settings-tweaks/) and it may also be useful the multimedia widget from the dashboard (./Gnome-Extensions/extension/modules/dashboard/mediaWidget.js). Remember to use ./Gnome-Extensions/extension/utils/mediaPlayer/* and ./Gnome-Extensions/extension/utils/mprisService.js to reuse code.
-  - [x] 1.15.A.0: Implement the multimedia selector from QST (like the one already implemented in ./Gnome-Extensions/extension/modules/dashboard/mediaWidget.js). The current behavior of the widget when selecting multimedia is good, do not change it, but it is desired to implement this selector.
-    - Imported `PageIndicators` from `resource:///org/gnome/shell/ui/pageIndicators.js`
-    - Added `_players[]` + `_currentIndex` to widget state
-    - Header now shows `[appIcon] [playerName] ... [pageIndicator dots]`
-    - `setPlayers(players)` syncs the player list from the module
-    - Auto-selects last active player (playing > paused > stopped, by recency); user can click dots to switch
-
-    **Corrección posterior:** `_showFirstPlaying()` → `_showLastActive()`. Ahora usa `_scorePlayer()` (Playing+title=500, Paused+title=100, tiebreak por `lastPlayingTime`). `onPlayerDataChanged()` auto-switch a un player mejor solo si el usuario no ha seleccionado manualmente (`_userSelected` flag).
-    - `onPlayerDataChanged(player)` updates current display only if player matches
-    - Module `_sync()` now calls `widget.setPlayers(mpris.players)` to pass all players
-  - [x] 1.5.A.1: In the multimedia widget of QST we can see in the upper left part, the icon of where the media comes from (firefox, gsconnect, a music app, etc), implement this in our widget. Root cause: Used player.app.get_icon() (GIcon) which is fragile. Aylur's pattern uses player.entry (DesktopEntry string) as icon name with fallback. Fix:
-    - Added get entry() and get identity() to MprisPlayer in mprisService.js:194-199 (mirrors Aylur's player API)
-    - _updateHeader() now uses player.entry + '-symbolic' as icon name, fallback 'audio-x-generic-symbolic'
-    - App icon init uses 'audio-x-generic-symbolic' instead of 'application-x-executable-symbolic'
-    - Player name from player.identity, fallback to bus name
-  - [x] 1.5.A.2: In the multimedia widget of QST, it has in the right corner a button (up/down arrow) to expand/collapse content. Implement this. Root cause: rotation_angle_z on St.Icon inside St.Button caused the icon to visually overflow its allocation during ease animation, because the pivot point was calculated on the St.Icon's allocation (which may differ from the texture bounds). Fix: Replaced rotation_angle_z with scale_y (vertical mirror). For a chevron arrow, scale_y: -1 produces the same visual result (down ⇄ up) but Clutter handles scaling pivot correctly — the icon stays within its 16×16 allocation.
-    - _toggleCollapsed(): ease({ rotation_angle_z: … }) → ease({ scale_y: … })
-    - _applySettings(): all rotation_angle_z references → scale_y
-    - Added x_expand: false, y_expand: false and pivot_point inline in constructor
-    - Fixed style class: 'message-expand-button' → 'dmm-expand-button' (matches our CSS)
-  - [x] 1.5.A.3: Change the cover art size range to 31 to 110. Use 50 by default.
-  - [x] 1.5.A.4: Add below the cover art size the option to modify the album roundness, from 1 to 99. Use 10 by default.
-  - [x] 1.5.A.6: The controls (previous, next, pause buttons) the user cannot change its opacity in the settings. Root cause: opacity was set on St.Button but may not cascade properly to the icon child. Fix: set opacity on the child St.Icon directly via `btn.get_child().opacity = alpha`.
-  - [x] 1.5.A.7: Adds a 10px padding to the right side of the buttons. Fix: `padding: 4px 10px 4px 0` on `.dmm-controls` CSS — gives 10px space between buttons and the right widget edge.
-  - [x] 1.5.A.8: The progress bar does not work properly:
-    - It marks the duration and elapsed time correctly, but the bar never fills:
-      - [x] Implement slim type bar QST ./code-references/quick-settings-tweaks/
-      - [x] Implement default type bar QST
-  - [x] 1.5.A.9: The width of the widget depends on the text length, it should always have the same width as the rest of notifications/media controls
-    - Root cause: `_list` (vertical BoxLayout inside `MessageView`) allocates children its own width.
-      If `hscrollbar_policy` is `AUTOMATIC`, `_list` gets its natural width = max of children's natural widths.
-      With text-sized children, `_list` is small, so children get small width.
-    - Fix: `min-width: 330px` in `.dmm-widget` CSS → widget's natural width is at least 330px,
-      making `_list`'s natural width at least 330px.
-    - Also `x_align: Clutter.ActorAlign.FILL` on the `St.Bin` wrapper ensures the Bin fills
-      whatever `_list` allocates (default `x_align` is `START`, so Bin would use its natural width).
-
-  - [x] 1.5.A.10: Mueve la opción "Notification media" switch de Widget al dialog Date Menu Media. Cuidado con volver a romper todo.
-
-  - [x] 1.5.A.12: Fix: widget positioned above all notifications.
-    - **Root cause:** `MessageViewLayout.vfunc_allocate()` solo itera `container.messages[]` (JS array). Cualquier hijo añadido via `add_child()` sin estar en `messages[]` recibe cero asignación.
-    - **Fix 1:** Envolver el widget en `St.Bin` + `add_child(bin)` + `messages.unshift(widget)`.
-    - **Fix 2 (dynamic):** Las notificaciones usan `_playerToMessage.size` como offset de inserción. `notificationMedia` hace `_playerToMessage.clear()` (size=0), así las notificaciones se añaden en índice 0, empujando nuestro widget. Solución: dummy entry en `_playerToMessage` via `_ensureDummyInPlayerToMessage()` — asegura `_playerToMessage.size >= 1`.
-    - **Fix 3 (runtime nm-toggle):** `_connectNmWatch()` escucha `changed::nm-enabled` y re-añade el dummy vía `GLib.idle_add` después de que notificationMedia termine su ciclo.
-    - **Módulo:** `dateMenuMedia/module.js` — `_injectWidget()`, `_sync()`, `_ensureDummyInPlayerToMessage()`, `_connectNmWatch()`, `disable()`
-  - [x] 1.5.A.13: Fix: the widget is transparent, At first glance, you don't notice it. I realized this because of the "No notifications" message—I could read it through the widget. The widget shouldn't be transparent. If the gradient (dmm-gradient-enabled) isn't used, it uses the same color for the background as the one used in the notifications (MessageView); I believe the color is: rgb(84, 84, 90) #54545A
-    - **Root cause:** CSS had `background-color: rgba(255, 255, 255, 0.06)` (6% opacity), and `_applyInlineStyles()` only set border-radius/gradient with no solid fallback.
-    - **Fix:** Removed transparent background from CSS. `_applyInlineStyles()` now sets `background-color:#54545A` when gradient is inactive, and uses gradient CSS when active.
-
-  - [x] 1.5.A.15: Multiple progress bar for each media file, showing their progress bar and duration when switching between media files. If you switching media, the progress bar for each media should be displayed. If no information is available, display an empty progress bar.
-  - Examine the style of the notifications (MessageView) and apply it to:
-  - [x] 1.5.A.16: Add margins to the widget media. Currently its margins are smaller than those of the notifications.
-    - **Fix:** Changed `border-radius: 6px` → `border-radius: 16px` to match notification `.message` style
-  - [x] 1.5.A.17: Increase the size of the text "player name" text in the media widget, which is a little smaller than the text title used in notifications.
-    - **Fix:** `.dmm-player-name` `font-size: 0.9em` → `1em`; `.dmm-artist` `font-size: 0.92em` → `0.95em`
-
-
-- Study the current implementation of:
-  - ./Gnome-Extensions/extension/modules/dateMenu/
-  - ./Gnome-Extensions/extension/modules/dateMenuMedia/
-  - ./Gnome-Extensions/extension/utils/mediaPlayer/
-  - ./Gnome-Extensions/extension/utils/mprisService.js
-
-  - [ ] 1.5.A.11: Bug: Sometimes a label appears that says "No notifications," even though there are some. It doesn't happen all the time. It's a somewhat subtle bug that occurs after a while; look into why it happens...
-
-- [x] 1.5.A.14: The progress bar doesn't work good in local players (web, local music); it's only seems to work good in GSconnect media
-
-- [x] 1.5.A.18: Base class `MediaWidgetBase` created at `extension/utils/mediaPlayer/mediaWidget.js`. dateMenuMedia `mediaWidget.js` refactored to extend it, reducing ~733 lines → ~285 lines. All functionality preserved (multi-player, CrossfadeArt, gradient, per-player progress, controls, slider). Dashboard port deferred to Phase 2.
-
-- [x] 1.5.A.19: Study ./code-references/dynamic-music-pill/, specifically Player Filter Mode and Running Players Detection. Port both to lidsol extension. Add as new "general" tab in View Switcher (end position). Should apply to both dateMenu and dateMenuMedia (media detection already works; this is for visual settings consistency with dynamic-music-pill).
-
-  - [x] 1.5.B.0: Improve album art rendering in ./Gnome-Extensions/extension/modules/dateMenu/ and ./Gnome-Extensions/extension/modules/dashboard/mediaWidget.js. ./Gnome-Extensions/extension/modules/dateMenuMedia/ displays correctly. Unify both implementations using OOP based on dateMenuWidget. Bug note: Lockscreen unlock turns topbar image black until next track. Avoid CSS in topbar widget (CSS triggers bug), but use CSS in dashboard widget
-  - [ ] 1.5.B.1: Album art update lag with fast track skipping (GSConnect)
-      BUG: When skipping forward rapidly, artwork doesn't update and displays previous track art. 
-      Works correctly when seeking backward. Normal playback unaffected. 
-      FIX: Ensure artwork cache clears before UI update on track change.
-  - [ ] 1.5.B.2: Progress bar update interval too slow
-      CURRENT: Updates every 3 seconds
-      REQUIRED: Update every 1 second
-  - [ ] 1.5.B.3: Progress bar jumps on media switch
-      BUG: When switching media, playhead resets to 0:00, then jumps to correct position after ~100ms.
-      REQUIRED: Display correct playhead position immediately without 0:00 intermediate state.
-      FIX: Load current playback position before rendering UI.
-  - [ ] 1.5.B.4: Fix dateMenu padding bug: abnormal padding on one side at login (reserves space for visualizer and art). Padding normalizes after playing/pausing any media.
-  - [ ] 1.5.B.5: Enable opacity in ./Gnome-Extensions/extension/modules/dateMenu/dateMenu.css (currently not rendering properly). First 14 lines disable default hover/active opacity to prevent overlap with at-a-glance opacity.
-
-- [ ] Phase 2: Dashboard improvements in ./Gnome-Extensions/extension/modules/dashboard/ (reference: ./code-references/gnome-extensions/widgets@aylur/extensions/dashBoard.js)
-  - [x] 2.1: Replace dashboard multimedia widget with shared MediaWidgetBase — `DashboardMediaWidget` (162 lines) now extends `MediaWidgetBase`, removing old `ProgressControl` + `PlayerView` + `DashboardMediaWidget` (487 lines). Self-contained MPRIS via `MprisService.getDefault()`, cover art via `St.Icon`/`GFileIcon`, `_makeControlButton` override for `dashboard-media-control-button` class. CSS updated for new `dashboard-media-time`/`dashboard-media-duration` classes. Added Aylur-style settings: layout style (0=vertical, 1=horizontal), cover width/height, cover roundness, show-text toggle, text-align (left/center/right).
-    - [x] 2.1.1: In ./Gnome-Extensions/prefs.js, there's an option on line 592 "Fade", but turning this switch on or off doesn't change anything. What is this option supposed to do?
-      - Ask whether or not to implement it; if so, proceed to implement the option.
-    - [x] 2.1.2: Increase the opacity of the album cover by 40%
-    - [ ] 2.1.3: Set the album cover quality to the highest possible in full style
-  - [x] 2.2: Add grid layout (example provided)
-
-
-#+BEGIN_EXAMPLE
-┌─────────────────┐┌────────────┐
-│System + Settings││ Clock      │
-└─────────────────┘└────────────┘
-┌─────────────────┐┌────────────┐
-│                 ││            │
-│                 ││            │
-│ Launcher        ││ Media      │
-│                 ││            │
-│                 ││            │
-│                 ││            │
-└─────────────────┘└────────────┘
-┌─────────────────┐┌────────────┐
-│System L..       ││ User       │
-└─────────────────┘└────────────┘
-#+END_EXAMPLE
-
-  - New `"type": "grid"` node in `dashboard-layout-json` → `St.Widget` + `Clutter.GridLayout` (`layout.hookup_style(grid)`), children `{widget, col, row, col_span, row_span}` with `x_expand/y_expand/x_align/y_align = FILL` for uniform cells. Auto-flow when col/row omitted (wraps by `columns`). Nested box/grid JSON still supported via `_parseGridChild()`. Old box-format JSON still renders (backward compat).
-  - Grid became the new default (replaces old box JSON), siguiendo el ASCII de la tarea y las correcciones del usuario: **System arriba del launcher (contiene Actions + Settings fusionados), solo el Clock arriba del media**. El `dashboard-layout-json` default final (4 filas × 3 cols) usa `system(0,0)`, `clock(1,0,col_span 2)`, `apps(0,1,row_span 2)`, `media(1,1,col_span 2,row_span 2)`, `levels(0,3)`, `user(1,3,col_span 2)`. Visual: `System|Clock` / `Apps|Media` / `Apps|Media` / `Levels|User`. (Versiones descartadas: box anidado `[system,settings]`, `settings(1,0)`, `settings` separado.) `SystemWidget` fusiona System Actions + Settings: `_button()` (SystemActions power-off/restart/logout/suspend) en `actionsBox` + `_appButton()` (WiFi/Bluetooth/Settings vía `Shell.AppSystem.lookup_app(...).activate()`). Keys `dashboard-system-layout` (0=stacked dos filas, 1=side-by-side una fila) y `dashboard-system-icon-size` (unificado, aplica a ambos grupos; ya no existen `dashboard-settings-icon-size` ni `dashboard-settings-vertical`). El `SettingsWidget` viejo y `_widgetList.settings` quedan solo por compat (layout JSON ya no usa `"widget":"settings"`; `SettingsWidget` usa `dashboard-system-icon-size`). Defaults ajustados: `dashboard-apps-rows` 3→2, `dashboard-apps-icon-size` 36→28 (launcher más pequeño), `dashboard-media-style` 1→2 (Full: cover llena el widget cuadrado), `.clock` font-size 48→64px.
-  - En full-screen mode (`dashboard-media-style = 2`) el cover **llena todo el widget**: `_coverContainer` y `_art` con `x_expand/y_expand = true` + `x_align/y_align = FILL`, `_syncCoverCSS` usa `width:100%; height:100%` (sin el offset `+40`). El widget es **cuadrado**: `_applyDimensions()` setea `min-width/min-height = max(coverW,coverH)+40` (default 200) para que su celda en el grid sea cuadrada. Ajustes posteriores: `dashboard-apps-icon-size` 42 → 36 → 28 (launcher más pequeño); `dashboard-levels-fixed-width` 250 → 200 (reduce ancho de la columna izquierda y del user widget, alineando la celda media a un cuadrado 200×200).
-  - New schema keys: `dashboard-grid-spacing` (int 0-60, 12), `dashboard-grid-columns` (int 1-6, 3), `dashboard-grid-homogeneous` (bool, false). Added to SETTINGS_KEYS in module.js.
-  - New "Grid Layout" group in prefs.js (`_buildDashboardDialog`): spacing spin, columns spin, homogeneous switch, "Reset Layout" button (`s.reset('dashboard-layout-json')`).
-  - CSS: `.dashboard .grid-container { padding: 4px }`.
-  - Requires logout/login to load (ESM cache).
-
-- Some widgets appear misaligned with inconsistent spacing. All separations and spacing must be uniform size. Consider future widget swapping capability (e.g., app launcher → photo widget); maintain consistent grid regardless.
-- [ ] 2.3 Reduce external container size. Ensure equal padding top/bottom and left/right.
-- [ ] 2.4 Add settings option to make external container transparent.
-- [ ] 2.5 Add icons to links. Create ./Gnome-Extensions/extension/modules/dashboard/icons/ directory with default icons. Use aylur's icon set.
-- [ ] 2.6 Enable icon and link customization (Reddit, GitHub, etc.).
-
-- [ ] Fase 3: Launcher (search-light pattern)
-  - **Superseded**: El launcher flotante search-light fue eliminado por 1.3.1 y reemplazado por la "vista de búsqueda" nativa (1.3.2). Los siguientes subtasks describen el launcher flotante histórico.
-  - [x] 3.0: Launcher flotante que roba la búsqueda del overview (patrón search-light)
-    - **search-light pattern**: Reparent `Main.overview.searchEntry` + `Main.overview.searchController` into custom `St.Widget` via `Main.layoutManager.addChrome()`. Reuses GNOME Shell's native search providers.
-    - **Gnofi approach abandoned** — build pipeline, TS/JSX bundle, gnim framework, and all schema keys removed.
-    - **Module structure (actual, post-1.3.2)**: `extension/modules/launcher/` — solo `module.js` (keybinding `launcher-hotkey` → modo búsqueda nativo + ocultar barra de búsqueda). `launcher.js` y `stylesheet.css` eliminados.
-    - **Schema + prefs (actual, post-1.3.1)**: 3 keys (`launcher-enabled`, `launcher-hotkey`, `launcher-hide-search`). Prefs en Widgets page via `_buildLauncherDialog()`.
-    - **Keybinding**: `Main.wm.addKeybinding(name, settings, Meta.KeyBindingFlags.NONE, Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW, handler)`. Previously had broken signature (`Shell.KeyBindingMode` + wrong param).
-    - **Wiring**: registered in `moduleLoader.js` as `{id: 'launcher', enabledKey: 'launcher-enabled', moduleClass: LauncherModule}`.
-    - **Module not loading** — after fixing `KeyBindingMode` → `Meta.KeyBindingFlags` and action mode param, requires logout/login (GNOME Shell ESM cache).
-  - [x] 3.1: Auto-close the laucher after launching an application or settings or etc.
-    - Patch `_searchResults.activateDefault` → calls `hide()` then original (covers Enter key)
-    - `global.stage.connect('notify::key-focus', ...)` → patches each focused result's `activate` to call `hide()` first (covers click/keyboard activation)
-    - Both patches restored in `_releaseUi()`
-  - [x] 3.2: Close the launcher when pressing Esc.
-    - `_connectStageEvents()` listens for `Clutter.KEY_Escape` on global stage → calls `hide()`
-  - [x] 3.3: Enable keyboard navegation (arrow keys) through search results, like the default search.
-    - `global.stage.connect('captured-event', ...)` in capture phase → handles Up/Down/Enter/Escape before search controller
-    - Down/Up: `_searchResults._moveSelection(delta)` + `EVENT_STOP`
-    - Enter: opacity 0 + `_searchResults.activateDefault()` + `EVENT_STOP`
-    - Escape: `hide()` + `EVENT_STOP`
-    - Non-navigation keys propagate normally
-  - [x] 3.4: Add position setting to configure launcher width and height.
-    - Schema: Added launcher-position-x (default 50 = center) and launcher-position-y (default 18 = current behavior), both 0–100%
-    - launcher.js: _updateSettings() reads posX/posY; _layout() now computes position as monitor.(x|y) + floor((monitor.(width|height) - widget.(width|height)) * pos(Pct) / 100)
-    - prefs.js: New "Posición" group with horizontal/vertical percentage spin buttons (step 5)
-- Schema compiled
-   - [ ] 3.5: Implement custom commands be like gnofi:
-     - [ ] 3.5.1: Add a "Commands" Preferences Group in settings with an "Add" button. Display commands in the section below.
-       - `launcher-commands` schema key (type `as`, format `"name|command"`)
-       - `_populateCommands()` builds a Gtk.ListBox with delete buttons per command
-       - Adw.MessageDialog for adding new commands (name + command entries)
-     - [ ] 3.5.2: Allow users to invoke custom commands by typing ":" in the launcher.
-       - Approach: `_search._text` text-changed handler detects text.startsWith(':')
-       - `_enterCommandsMode()`: shows `_commandsBox` (BinLayout overlay on `_contentStack`), hides `_search`, expands container
-       - `_exitCommandsMode()`: hides `_commandsBox`, shows `_search` if text remains, collapses if empty
-       - `_filterCommands(query)`: filters `_commands` by name/command matching query (case-insensitive)
-       - `_buildCommandsList(commands)`: creates St.Button per command with name + command label, supports click execution
-       - `_highlightCommand()`: applies `selected` pseudo-class on active item for keyboard nav
-       - Commands execute via `Gio.AppInfo.launch_default_for_uri` (URLs) or `GLib.spawn_command_line_async` (commands)
-       - Keyboard: stage-level handler stops Up/Down/Return/Escape in commands mode (before search controller)
-       - Escape: first press clears query (shows all commands), second press exits commands mode
-       - Entry handler returns EVENT_PROPAGATE in commands mode (passes through to stage handler)
-       - `_releaseUi()` destroys `_contentStack` (which destroys `_commandsBox` and `_commandsList`)
-       - Settings: `_updateSettings()` parses commands in `_parseCommands()`
-   - [x] 3.6: Add a toggle in settings to hide the Overview search bar (Type to search).
-  - [ ] 3.7: Replace the default search (Overview and App Drawer) with the launcher.
-  - [x] 3.8: Shadow too large and noticeable. Use the same shadow GNOME uses for quicksettings/dateMenu.
-  - [x] 3.9: Search bar too large when empty. Always preserves full settings size. Should initially be a "search bar" that expands on input.
-  - [x] 3.10: After searching in launcher, entering overview briefly displays "no results" message. Likely caused by launcher, only occurs after search.
-  - [ ] 3.11: When you do a search, the apps appear in a certain spot, and after a fraction of a second, you can see them shift to the right (padding).
-  - [ ] 3.12: Mejora la estética de los resultados de busqueda, usa exactamente el mismo estilo de la busqueda de gnome
-  - [ ] : Mejoras: animaciones
-
-- [ ] Fase 4: Battery Bar
-- [ ] Fase 5: stylushOSD
-- [ ] Fase 6: QuickSettingsTweaksModule
-- [ ] Fase 7: WorkspaceIndicator
-- [ ] Fase 8: Corrección de bugs
-- [ ] Fase 9: Mejoras en los ajustes
-- [ ] Fase 10: Desktop Widtets
-
-- (j) 
-  - WorkspaceIndicator
-    - Los atajos de teclado se sobrescriben cuando se activa el workspaceIndicator
-    - Bug al mover los workspace, con el espacio extra
-  - quicktex:
-    - Posibilidad de tener o no salto de línea cuando se inserta el texto
-
-- Próxima versión: Desktop Widgets
-
----
-
-
-- [ ] Fase 2 — Dashboard: Reemplazar MediaWidget
-widgets.js: El DashboardMediaWidget actual se reemplaza internamente:
-- Usa ExpandedPlayer (shared) en lugar del PlayerView actual
-- Usa PlayerSelector para switchear reproductores (mismo comportamiento actual con page indicators)
-- Mantiene layout/posición/size actual del contenedor en el dashboard JSON
-MprisService: El MprisService existente en utils/mprisService.js ya es bueno. Se puede mantener o reemplazar con MediaPlayerManager. Si se reemplaza, se actualizan los imports en los módulos que lo usan.
-
-
-
-** Objetivos antiguos
-
-/Progreso y objetivos antiguos (contenido que estaba a partir de la línea 179 del project.org original). Pendiente de reorganizar./
-
-*** IN-PROGRESS Módulos [4/11] [36%]
-**** IN-PROGRESS [#A] Dashboard [2/12]
-DEADLINE: <2026-07-09 Thu>
-Notas:
-- **Sincrónico vs asíncrono**: Gio.DBusProxy.new_sync() parece más simple
-  pero no espera a que el name-owner esté disponible. Usar new() + Promise
-  garantiza que las propiedades están cacheadas antes de acceder.
-- **GVariant a{sv}**: deepUnpack() desenrolla recursivamente, incluyendo
-  los v internos. Pero proxy.Metadata devuelve el GVariant crudo donde los
-  valores tipo v necesitan .deepUnpack() o .get_string() según el tipo.
-- **connectSignal vs signal_subscribe**: connectSignal en Gio.DBusProxy
-  es más simple y directo que signal_subscribe de Gio.DBus.session.
-- **can-play como guard**: No emitir player-added hasta que canPlay sea
-  true evita errores de "proxy no listo".
-- **Export en ESM**: GObject.registerClass() con export var puede fallar
-  si hay errores en tiempo de evaluación. Usar export { ... } explícito
-  al final del archivo es más fiable.
- 
-**** TODO [#B] Battery Bar :topbar:
-DEADLINE: <2026-07-11 Sat>
 [[./img/aylurs-battery.png]]
 
 - Descripción: Indicador alternativo de batería en el Top Bar.
@@ -385,53 +250,28 @@ DEADLINE: <2026-07-11 Sat>
   - Visibilidad de ícono y porcentaje.
   - Dimensiones.
   - Colores dinámicos configurables (batería baja, cargando, normal)
-**** IN-PROGRESS [#B] Date Menu (dinámico) [1/3] :topbar:
-DEADLINE: <2026-07-11 Sat>
-- Descripción: Basado en [[https://www.androidauthority.com/pixel-launcher-at-a-glance-widget-visibility-update-3597606/][el widget At a Glance de los Google Pixel]]. El texto del "Date Menu" cambia dinámicamente, muestra el contenido multimedia que se reproduce actualmente e indica de notificaciones.
-***** DONE Date Menu Formatter :topbar:
-[[./img/date-format.png]]
-
-- Descripción: Permite la personalización del formato de la fecha y hora en el panel.
-  - Aylur's Widget tiene un componente que permite personalizar esto, también se tomará como referencia el código de la extensión [[https://extensions.gnome.org/extension/4655/date-menu-formatter/][Date Menu Formatter de Marcin Jakubowski]]. Esta última compatible hasta GNOME 50, por lo que no debería ser difícil integrarla.  
-***** IN-PROGRESS Media Player
-[[./img/aylurs-player.png]]
-
-- Descripción: Controles multimedia integrados en el Date Menu ó Top Bar. El indicador no es visible al menos que se reproduzca contenido multimedia, tomando el lugar del Date Menu.
-  - Para usar como base, se pueden tomar en cuenta todas las siguientes implementaciones:
-    - [[https://extensions.gnome.org/extension/4928/mpris-label/][Media Label and Controls (por moon-0xff)]], compatible hasta GNOME 49.
-    - [[https://extensions.gnome.org/extension/9334/dynamic-music-pill/][Dynamic Music Pill (por andbal)]], compatible hasta GNOME 50.
-    - [[https://extensions.gnome.org/extension/4470/media-controls/][Media Controls (por Sakith B.)]], compatible hasta GNOME 49.
-    - [[https://extensions.gnome.org/extension/9184/advanced-media-controller/][Advanced Media Controller (por sanjai)]] compatible hasta GNOME 50.
-- Objetivos:
-- [ ] Mostrar información de pista.
-- [ ] Controles (anterior, pausa, siguiente)
-- [ ] Separar estrictamente el estado y la representación visual. 
-- [ ] Selección de reproductor preferido o descartados
-- [ ] Gestionar caché (portada de álbumes)
-- [ ] Widget de reproducción multimedia personalizable accesible desde el DateMenu
-***** TODO Notification Indicator
-- Descripción: Indicador de notificaciones (contador numérico). 
-**** IN-PROGRESS [#C] Desktop Widgets :shell:
-DEADLINE: <2026-07-18 Sat>
-***** IN-PROGRESS Image Widget
-***** Clock Widget
-***** Weather Widget
-**** IN-PROGRESS [#B] Workspace Indicator [2/3] :topbar:
-[[./img/aylurs-workspace.png]]
-- Descripción: Indicador de espacios de trabajo, ofrece una alternativa más configurable que la píldora nativa. Aylur's Widgets incluye un módulo indicador de espacios de trabajo, pero está diseñado para GNOME 44, en versiones posteriores del DE este indicador queda obsoleto.
-
-[[./img/spacebar.png]]
-  
-  - Pero, se puede tomar como base la extensión [[https://extensions.gnome.org/extension/5090/space-bar/][SpaceBar de luchrioh]], simplificarla, añadirle animaciones de transición entre espacios de trabajo e integrarla a LIDSoL's Widgets. Space Bar es compatible con GNOME 50, por lo que su integración debería ser sencilla.
-- [X] Integrar la extensión a LIDSoL's Widgets
-- [ ] Añadir una opción para usar el color de acento de GNOME como color de fondo del espacio activo.
-- [X] Añadir animaciones de transición cuando se cambia de espacio de trabajo.
-  - [X] Animación similar a la píldora nativa.
-  - [X] Animación más "agresiva"
-
-
+- [ ] "Incrustar" la barra/circunferencia en el system indicator, por ahora es un "elemento más" añadido a la barra.
+**** TODO 4.5 Start Icon
+DEADLINE: <2026-09-12 Sat>
+- [ ] Añadir la opción de launcher o dashboard (dialog) al start icon
+**** TODO 4.7 Top Bar Organized
+DEADLINE: <2026-09-16 Wed>
+- [ ] Bug: Al hacer uso del botón "restablecer orden predeterminado" todos los elementos /desaparecen/, al cerrar y abrir el dialog, aparecen nuevamente. Pero no se restablece el orden.
+  - [ ] Al hacer uso de esta opción, recargar, para eliminar aquellas cosas que ya no están, por ejemplo, una extensión que antes se usaba pero ya no, puede que quede el elemento aquí aunque ya no este realmente.
+*** TODO 5. General
+**** 5.1 multi idioma
+*** TODO 6. Backend 
+**** MPRIS
+- [ ] Mejorar y corrección de bugs del MPRIS
+    - [ ] 6.1 Retraso en la actualización de la carátula al saltar rápidamente de pista (GSConnect)
+      ERROR: Al avanzar rápidamente, la carátula no se actualiza y muestra la de la pista anterior.
+      Funciona correctamente al retroceder. La reproducción normal no se ve afectada.
+      SOLUCIÓN: Asegurarse de que se borre la caché de carátulas antes de actualizar la interfaz de usuario al cambiar de pista.
+  - [ ] 6.2 La barra de progreso da un salto al cambiar de contenido multimedia
+      ERROR: Al cambiar de contenido multimedia, el indicador de reproducción se reinicia a 0:00 y, a continuación, salta a la posición correcta tras unos 100 ms.
+      REQUISITO: Mostrar inmediatamente la posición correcta del indicador de reproducción sin pasar por el estado intermedio de 0:00.
+      SOLUCIÓN: Cargar la posición de reproducción actual antes de renderizar la interfaz de usuario.
 * 3. Arquitectura propuesta
-
 ** Core Framework
 *** Module Loader
 - Carga y descarga dinámica de módulos
@@ -558,8 +398,6 @@ glib-compile-schemas Gnome-Extensions/schemas/
 gnome-extensions enable/disable/prefs lidsol-widgets@lidsol
 journalctl -f -o cat /usr/bin/gnome-shell | grep 'LIDSoL'
 #+END_SRC
-
-
 * 4. Notas: lecciones y referencias
 
 ** Lecciones aprendidas

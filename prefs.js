@@ -25,10 +25,10 @@ import {
 const CATEGORIES = [
   {
     id: 'shell',
-    title: 'Shell',
-    icon: 'system-search-symbolic',
-    summary: 'Herramientas del sistema',
-    description: 'Lanzador, menú de apagado y notas rápidas.',
+    title: 'Herramientas',
+    icon: 'applications-utilities-symbolic',
+    summary: 'Herramientas de escritorio',
+    description: 'Dashboard personalizable, captura rápida de notas y ajustes a la busqueda y al lanzador.',
   },
   {
     id: 'quicksettings',
@@ -77,6 +77,7 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
   _buildPage(cat) {
     const page = new Adw.PreferencesPage();
     page.set_name(cat.id);
+    page.icon_name = cat.icon;
 
     const descGroup = new Adw.PreferencesGroup({
       title: cat.summary,
@@ -470,20 +471,14 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
   }
 
   _addShellModuleGroup(page) {
-    const dashGroup = new Adw.PreferencesGroup({
-      title: 'Dashboard',
-      description: 'Panel de inicio con widgets configurables (aplicaciones, reloj, multimedia, sistema, etc.).',
-    });
-    dashGroup.add(createModuleRow({
+    const group = new Adw.PreferencesGroup();
+    group.add(createModuleRow({
       settings: this._settings,
       bindKey: 'dashboard-enabled',
       title: 'Dashboard',
-      subtitle: 'Panel de inicio con acceso rápido a todo',
+      subtitle: 'Panel con widgets generales',
       onDetailed: () => this._openDialog('Dashboard', p => this._buildDashboardDialog(p)),
     }));
-    page.add(dashGroup);
-
-    const group = new Adw.PreferencesGroup();
     group.add(createModuleRow({
       settings: this._settings,
       bindKey: 'qt-enabled',
@@ -491,21 +486,14 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
       subtitle: 'Captura rápida de notas con atajo de teclado',
       onDetailed: () => this._openDialog('Quick Text', p => this._buildQuickTextDialog(p)),
     }));
-    page.add(group);
-
-    const launcherGroup = new Adw.PreferencesGroup({
-      title: 'Launcher',
-      description: 'Abre la búsqueda nativa del Overview con un atajo de teclado.',
-    });
-    launcherGroup.add(createModuleRow({
+    group.add(createModuleRow({
       settings: this._settings,
       bindKey: 'launcher-enabled',
       title: 'Launcher',
       subtitle: 'Atajo para abrir la búsqueda del Overview (modo búsqueda)',
       onDetailed: () => this._openDialog('Launcher', p => this._buildLauncherDialog(p)),
     }));
-    page.add(launcherGroup);
-
+    page.add(group);
   }
 
   _openDialog(title, buildFn) {

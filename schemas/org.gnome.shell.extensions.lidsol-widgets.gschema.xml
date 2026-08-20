@@ -1432,16 +1432,6 @@
       <summary>Columnas de la cuadrícula</summary>
       <description>Número de columnas usado para colocar automáticamente los widgets sin posición explícita</description>
     </key>
-    <key type="b" name="dashboard-grid-homogeneous">
-      <default>false</default>
-      <summary>Celdas homogéneas</summary>
-      <description>Hace que todas las columnas y filas tengan el mismo tamaño</description>
-    </key>
-
-    <key type="i" name="dashboard-read-config">
-      <default>0</default>
-      <summary>Contador de lectura de config</summary>
-    </key>
 
     <!-- ============================================================ -->
     <!--  Widget base properties: x/y align, x/y expand, w, h, bg    -->

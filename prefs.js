@@ -756,17 +756,6 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     shortcutRow.add_suffix(shortcutBtn);
     dashGroup.add(shortcutRow);
 
-    const readConfigRow = new Adw.ActionRow({
-      title: 'Read Config',
-      subtitle: 'Load config from dashboard.json',
-    });
-    const readConfigBtn = new Gtk.Button({ label: 'Apply', valign: Gtk.Align.CENTER });
-    readConfigBtn.connect('clicked', () => {
-      s.set_int('dashboard-read-config', s.get_int('dashboard-read-config') + 1);
-    });
-    readConfigRow.add_suffix(readConfigBtn);
-    dashGroup.add(readConfigRow);
-
     dashGroup.add(_makeAlignRow('X Align', 'dashboard-x-align'));
     dashGroup.add(_makeAlignRow('Y Align', 'dashboard-y-align'));
     dashGroup.add(_makeSpinRow('X Offset', 'dashboard-x-offset', -1000, 1000, 10));
@@ -780,7 +769,6 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     const gridGroup = new Adw.PreferencesGroup({ title: 'Grid Layout' });
     gridGroup.add(_makeSpinRow('Spacing', 'dashboard-grid-spacing', 0, 60, 1));
     gridGroup.add(_makeSpinRow('Columns', 'dashboard-grid-columns', 1, 6, 1));
-    gridGroup.add(_makeExpandRow('Homogeneous Cells', 'dashboard-grid-homogeneous'));
 
     const resetLayoutRow = new Adw.ActionRow({
       title: 'Reset Layout',

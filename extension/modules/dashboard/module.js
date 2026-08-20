@@ -26,7 +26,6 @@ const SETTINGS_KEYS = [
     'dashboard-layout-json',
     'dashboard-grid-spacing',
     'dashboard-grid-columns',
-    'dashboard-grid-homogeneous',
 ];
 
 export class DashboardModule {

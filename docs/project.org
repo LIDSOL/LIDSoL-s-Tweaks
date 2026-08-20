@@ -30,8 +30,8 @@ DEADLINE: <2026-08-21 Fri>
   - "Shell" era ambiguo (también abarca top bar y gestor de ventanas). Renombrada a **Herramientas** en `CATEGORIES` (prefs.js), con icono `applications-utilities-symbolic` (llave inglesa, `preferences-system-symbolic` / `system-search-symbolic` eran de ajustes/búsqueda). El `id` interno sigue siendo `shell`.
 - [X] 1.0.4 Mejorar la descripción
   - Header de la página: summary = "Herramientas de escritorio", description = "Dashboard personalizable, captura rápida de notas y launcher de búsqueda con atajo de teclado." (antes "Herramientas del sistema / Lanzador, menú de apagado y notas rápidas", que ya no correspondía a los módulos de la página).
-- [ ] 1.1.5  Evaluar si el botón "Read Config (load config from dashboard.json)" sigue siendo necesario. De no serlo, eliminarlo.  
-- [ ] 1.1.6  Eliminar el switch "Homogeneous Cells" y su código asociado.
+- [X] 1.1.5  Evaluar si el botón "Read Config (load config from dashboard.json)" sigue siendo necesario. De no serlo, eliminarlo.  
+- [X] 1.1.6  Eliminar el switch "Homogeneous Cells" y su código asociado.
 - [ ] 1.1.
 - [ ] 1.1.7  Media Player -> Prefer: eliminar esta opción y todo su código asociado. 
 - [ ] 1.1.8  Media Player: Implementar las opciones del switch Show Loop and Shuffle; deben de funcionar en local y GSconnect.

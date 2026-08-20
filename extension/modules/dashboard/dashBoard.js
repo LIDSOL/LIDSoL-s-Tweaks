@@ -190,13 +190,12 @@ class DashBoardModal extends ModalDialog.ModalDialog {
     _parseGrid(obj) {
         const spacing = this._settings.get_int('dashboard-grid-spacing');
         const columns = obj.columns || this._settings.get_int('dashboard-grid-columns');
-        const homogeneous = obj.homogeneous ?? this._settings.get_boolean('dashboard-grid-homogeneous');
 
         const layout = new Clutter.GridLayout({
             row_spacing: spacing,
             column_spacing: spacing,
-            row_homogeneous: homogeneous,
-            column_homogeneous: homogeneous,
+            row_homogeneous: false,
+            column_homogeneous: false,
         });
         const grid = new St.Widget({
             style_class: 'container grid-container',

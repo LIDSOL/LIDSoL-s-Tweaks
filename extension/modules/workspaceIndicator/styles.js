@@ -96,7 +96,17 @@ export class Styles {
         let content = `.space-bar {\n${this._getWorkspacesBarStyle()}}\n\n`;
         content += `.space-bar-workspace-label.active {\n${this._getActiveWorkspaceStyle()}}\n\n`;
         content += `.space-bar-workspace-label.inactive {\n${this._getInactiveWorkspaceStyle()}}\n\n`;
-        content += `.space-bar-workspace-label.inactive.empty {\n${this._getEmptyWorkspaceStyle()}}`;
+        content += `.space-bar-workspace-label.inactive.empty {\n${this._getEmptyWorkspaceStyle()}}\n\n`;
+        content += `.space-bar-ws-box-icons {\n  margin: 0 ${this._settings.workspaceMargin.value}px;\n}\n\n`;
+        content += `.space-bar-ws-label.active {\n${this._getActiveWsLabelStyle()}}\n\n`;
+        content += `.space-bar-ws-icons.active {\n${this._getActiveWsIconsStyle()}}\n\n`;
+        content += `.space-bar-ws-label.inactive {\n${this._getInactiveWsLabelStyle()}}\n\n`;
+        content += `.space-bar-ws-icons.inactive {\n${this._getInactiveWsIconsStyle()}}\n\n`;
+        content += `.space-bar-ws-label.inactive.empty {\n${this._getEmptyWsLabelStyle()}}\n\n`;
+        content += `.space-bar-ws-icons.inactive.empty {\n${this._getEmptyWsIconsStyle()}}\n\n`;
+        content += `.space-bar-app-icons {\n  spacing: 2px;\n}\n\n`;
+        content += `.space-bar-app-icon-wrapper {\n  border-radius: 3px;\n  padding: 2px;\n}\n\n`;
+        content += `.space-bar-app-icon-wrapper:hover {\n  background-color: rgba(255, 255, 255, 0.15);\n  transition: background-color 150ms ease;\n}`;
         return content;
     }
 
@@ -127,6 +137,7 @@ export class Styles {
             this._settings.activeWorkspaceBorderWidth,
             this._settings.activeWorkspacePaddingH,
             this._settings.activeWorkspacePaddingV,
+            this._settings.appIconsActiveBackgroundColor,
         ].forEach((setting) =>
             setting.subscribe(() => {
                 this._updateStyleSheet();
@@ -144,6 +155,7 @@ export class Styles {
             this._settings.inactiveWorkspaceBorderWidth,
             this._settings.inactiveWorkspacePaddingH,
             this._settings.inactiveWorkspacePaddingV,
+            this._settings.appIconsInactiveBackgroundColor,
         ].forEach((setting) =>
             setting.subscribe(() => {
                 this._updateStyleSheet();
@@ -161,6 +173,7 @@ export class Styles {
             this._settings.emptyWorkspaceBorderWidth,
             this._settings.emptyWorkspacePaddingH,
             this._settings.emptyWorkspacePaddingV,
+            this._settings.appIconsEmptyBackgroundColor,
         ].forEach((setting) =>
             setting.subscribe(() => {
                 this._updateStyleSheet();
@@ -240,5 +253,94 @@ export class Styles {
     _getAccentColor() {
         const name = this._interfaceSettings.get_string('accent-color');
         return ACCENT_COLORS[name] || ACCENT_COLORS.blue;
+    }
+
+    _accentToRgba(hex, alpha) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r},${g},${b},${alpha})`;
+    }
+
+    _getActiveWsLabelStyle() {
+        const useAccent = this._settings.useAccentColor.value;
+        const accentHex = useAccent ? this._getAccentColor() : null;
+        const bg = useAccent ? accentHex : this._settings.activeWorkspaceBackgroundColor.value;
+        const fg = useAccent ? '#F6F5F4' : this._settings.activeWorkspaceTextColor.value;
+        const border = useAccent ? accentHex : this._settings.activeWorkspaceBorderColor.value;
+        const size = this._settings.activeWorkspaceFontSize.value;
+        const weight = this._settings.activeWorkspaceFontWeight.value;
+        const radius = this._settings.activeWorkspaceBorderRadius.value;
+        const bwidth = this._settings.activeWorkspaceBorderWidth.value;
+        const padH = this._settings.activeWorkspacePaddingH.value;
+        const padV = this._settings.activeWorkspacePaddingV.value;
+        let style = `  background-color: ${bg};\n  color: ${fg};\n  border-style: solid;\n  border-color: ${border};\n  border-width: ${bwidth}px;\n  border-right-width: 0;\n  font-weight: ${weight};\n  border-radius: ${radius}px 0 0 ${radius}px;\n  padding: ${padV}px ${padH}px;\n`;
+        if (size >= 0)
+            style += `  font-size: ${size}pt;\n`;
+        return style;
+    }
+
+    _getActiveWsIconsStyle() {
+        const useAccent = this._settings.useAccentColor.value;
+        const accentHex = useAccent ? this._getAccentColor() : null;
+        const bg = useAccent ? this._accentToRgba(accentHex, 0.35) : this._settings.appIconsActiveBackgroundColor.value;
+        const border = useAccent ? accentHex : this._settings.activeWorkspaceBorderColor.value;
+        const radius = this._settings.activeWorkspaceBorderRadius.value;
+        const bwidth = this._settings.activeWorkspaceBorderWidth.value;
+        const padH = Math.max(0, this._settings.activeWorkspacePaddingH.value - 2);
+        const padV = this._settings.activeWorkspacePaddingV.value;
+        return `  background-color: ${bg};\n  border-style: solid;\n  border-color: ${border};\n  border-width: ${bwidth}px;\n  border-left-width: 0;\n  border-radius: 0 ${radius}px ${radius}px 0;\n  padding: ${padV}px ${padH}px;\n  min-width: 10px;\n`;
+    }
+
+    _getInactiveWsLabelStyle() {
+        const bg = this._settings.inactiveWorkspaceBackgroundColor.value;
+        const fg = this._settings.inactiveWorkspaceTextColor.value;
+        const border = this._settings.inactiveWorkspaceBorderColor.value;
+        const size = this._settings.inactiveWorkspaceFontSize.value;
+        const weight = this._settings.inactiveWorkspaceFontWeight.value;
+        const radius = this._settings.inactiveWorkspaceBorderRadius.value;
+        const bwidth = this._settings.inactiveWorkspaceBorderWidth.value;
+        const padH = this._settings.inactiveWorkspacePaddingH.value;
+        const padV = this._settings.inactiveWorkspacePaddingV.value;
+        let style = `  background-color: ${bg};\n  color: ${fg};\n  border-style: solid;\n  border-color: ${border};\n  border-width: ${bwidth}px;\n  border-right-width: 0;\n  font-weight: ${weight};\n  border-radius: ${radius}px 0 0 ${radius}px;\n  padding: ${padV}px ${padH}px;\n`;
+        if (size >= 0)
+            style += `  font-size: ${size}pt;\n`;
+        return style;
+    }
+
+    _getInactiveWsIconsStyle() {
+        const bg = this._settings.appIconsInactiveBackgroundColor.value;
+        const border = this._settings.inactiveWorkspaceBorderColor.value;
+        const radius = this._settings.inactiveWorkspaceBorderRadius.value;
+        const bwidth = this._settings.inactiveWorkspaceBorderWidth.value;
+        const padH = Math.max(0, this._settings.inactiveWorkspacePaddingH.value - 2);
+        const padV = this._settings.inactiveWorkspacePaddingV.value;
+        return `  background-color: ${bg};\n  border-style: solid;\n  border-color: ${border};\n  border-width: ${bwidth}px;\n  border-left-width: 0;\n  border-radius: 0 ${radius}px ${radius}px 0;\n  padding: ${padV}px ${padH}px;\n  min-width: 10px;\n`;
+    }
+
+    _getEmptyWsLabelStyle() {
+        const bg = this._settings.emptyWorkspaceBackgroundColor.value;
+        const fg = this._settings.emptyWorkspaceTextColor.value;
+        const border = this._settings.emptyWorkspaceBorderColor.value;
+        const size = this._settings.emptyWorkspaceFontSize.value;
+        const weight = this._settings.emptyWorkspaceFontWeight.value;
+        const radius = this._settings.emptyWorkspaceBorderRadius.value;
+        const bwidth = this._settings.emptyWorkspaceBorderWidth.value;
+        const padH = this._settings.emptyWorkspacePaddingH.value;
+        const padV = this._settings.emptyWorkspacePaddingV.value;
+        let style = `  background-color: ${bg};\n  color: ${fg};\n  border-style: solid;\n  border-color: ${border};\n  border-width: ${bwidth}px;\n  border-right-width: 0;\n  font-weight: ${weight};\n  border-radius: ${radius}px 0 0 ${radius}px;\n  padding: ${padV}px ${padH}px;\n`;
+        if (size >= 0)
+            style += `  font-size: ${size}pt;\n`;
+        return style;
+    }
+
+    _getEmptyWsIconsStyle() {
+        const bg = this._settings.appIconsEmptyBackgroundColor.value;
+        const border = this._settings.emptyWorkspaceBorderColor.value;
+        const radius = this._settings.emptyWorkspaceBorderRadius.value;
+        const bwidth = this._settings.emptyWorkspaceBorderWidth.value;
+        const padH = Math.max(0, this._settings.emptyWorkspacePaddingH.value - 2);
+        const padV = this._settings.emptyWorkspacePaddingV.value;
+        return `  background-color: ${bg};\n  border-style: solid;\n  border-color: ${border};\n  border-width: ${bwidth}px;\n  border-left-width: 0;\n  border-radius: 0 ${radius}px ${radius}px 0;\n  padding: ${padV}px ${padH}px;\n  min-width: 10px;\n`;
     }
 }

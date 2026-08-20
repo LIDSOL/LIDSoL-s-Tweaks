@@ -1,5 +1,6 @@
 import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
+import Shell from 'gi://Shell';
 import St from 'gi://St';
 import * as DND from 'resource:///org/gnome/shell/ui/dnd.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
@@ -14,6 +15,8 @@ import { WorkspacesBarMenu } from './workspacesBarMenu.js';
 
 const MAX_CLICK_TIME_DELTA = 300;
 const LONG_PRESS_DURATION = 500;
+const FOCUS_SCALE_REDUCTION = 0.15;
+const FOCUS_SCALE_DURATION = 200;
 
 const WorkspacesButton = GObject.registerClass(
     class WorkspacesButton extends PanelMenu.Button {
@@ -37,12 +40,21 @@ class WorkspaceBoxDragHandler {
     }
 
     acceptDrop(source) {
-        if (source instanceof WindowPreview)
+        if (source instanceof WindowPreview) {
             source.metaWindow.change_workspace_by_index(this._workspace.index, false);
+            return true;
+        }
+        if (source.windowObj) {
+            source.windowObj.change_workspace_by_index(this._workspace.index, false);
+            return true;
+        }
+        return false;
     }
 
     handleDragOver(source) {
-        return source instanceof WindowPreview ? DND.DragMotionResult.MOVE_DROP : DND.DragMotionResult.CONTINUE;
+        if (source instanceof WindowPreview || source.windowObj)
+            return DND.DragMotionResult.MOVE_DROP;
+        return DND.DragMotionResult.CONTINUE;
     }
 }
 
@@ -237,12 +249,20 @@ export class WorkspacesBar {
         this._settings.enableCustomLabel.subscribe(() => this._updateWorkspaces());
         this._settings.customLabelNamed.subscribe(() => this._updateWorkspaces());
         this._settings.customLabelUnnamed.subscribe(() => this._updateWorkspaces());
+        this._settings.showAppIcons.subscribe(() => this._updateWorkspaces());
         this._settings.indicatorStyle.subscribe(() => this._refreshTopBarConfiguration());
         this._settings.position.subscribe(() => this._refreshTopBarConfiguration());
         this._settings.positionIndex.subscribe(() => this._refreshTopBarConfiguration());
+        this._focusedWindowId = null;
+        this._focusSignalId = global.display.connect('notify::focus-window', () => this._onFocusWindowChanged());
+        this._prevWindowIds = '';
     }
 
     destroy() {
+        if (this._focusSignalId) {
+            global.display.disconnect(this._focusSignalId);
+            this._focusSignalId = null;
+        }
         this._button?.destroy();
         this._menu?.destroy();
         this._dragHandler.destroy();
@@ -333,12 +353,72 @@ export class WorkspacesBar {
             && this._prevActiveIndex >= 0
             && this._prevActiveIndex !== this._ws.currentIndex;
 
+        const currentWindowIds = this._computeWindowIds();
+        const windowsChanged = currentWindowIds !== this._prevWindowIds;
+        this._prevWindowIds = currentWindowIds;
+
+        if (windowsChanged) {
+            const oldIcons = this._collectExistingIcons();
+            if (oldIcons.length > 0) {
+                for (const icon of oldIcons) {
+                    icon.ease({
+                        opacity: 0,
+                        duration: 260,
+                        mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                    });
+                }
+                const timeout = new Timeout();
+                timeout.once(280).then(() => {
+                    this._rebuildWorkspacesBar(shouldAnimate, true);
+                    timeout.destroy();
+                });
+            } else {
+                this._rebuildWorkspacesBar(shouldAnimate, true);
+            }
+        } else {
+            this._rebuildWorkspacesBar(shouldAnimate, false);
+        }
+    }
+
+    _computeWindowIds() {
+        const ids = [];
+        for (let i = 0; i < this._ws.numberOfEnabledWorkspaces; i++) {
+            const workspace = this._ws.workspaces[i];
+            const windowIds = workspace.windows
+                .filter(w => !w.is_on_all_workspaces())
+                .map(w => w.get_id())
+                .sort();
+            ids.push(windowIds);
+        }
+        return JSON.stringify(ids);
+    }
+
+    _collectExistingIcons() {
+        const icons = [];
+        if (!this._wsBar)
+            return icons;
+        for (const wsBox of this._wsBar.get_children()) {
+            if (!wsBox.styleClass?.includes('space-bar-ws-box-icons'))
+                continue;
+            const contentBox = wsBox.get_child();
+            if (!contentBox || contentBox.get_n_children() < 2)
+                continue;
+            const iconsBox = contentBox.get_child_at_index(1);
+            if (!iconsBox)
+                continue;
+            for (const iconWrapper of iconsBox.get_children())
+                icons.push(iconWrapper);
+        }
+        return icons;
+    }
+
+    _rebuildWorkspacesBar(shouldAnimate, animateIcons = false) {
         this._wsBar?.destroy_all_children();
         this._dragHandler.wsBoxes = [];
         for (let ws_index = 0; ws_index < this._ws.numberOfEnabledWorkspaces; ++ws_index) {
             const workspace = this._ws.workspaces[ws_index];
             if (workspace.isVisible) {
-                const wsBox = this._createWsBox(workspace);
+                const wsBox = this._createWsBox(workspace, animateIcons);
                 this._wsBar?.add_child(wsBox);
                 this._dragHandler.wsBoxes.push({ workspace, wsBox });
                 if (shouldAnimate && workspace.index === this._ws.currentIndex)
@@ -386,7 +466,49 @@ export class WorkspacesBar {
         }
     }
 
-    _createWsBox(workspace) {
+    _onFocusWindowChanged() {
+        const focusedWin = global.display.get_focus_window();
+        const focusedId = focusedWin?.get_id() ?? null;
+        if (focusedId === this._focusedWindowId)
+            return;
+        this._focusedWindowId = focusedId;
+        this._applyFocusScale(true);
+    }
+
+    _applyFocusScale(animate) {
+        if (!this._wsBar)
+            return;
+        for (const wsBox of this._wsBar.get_children()) {
+            const content = wsBox.get_child();
+            if (!content)
+                continue;
+            const iconsBox = content.styleClass?.includes('space-bar-ws-icons')
+                ? content : null;
+            if (!iconsBox)
+                continue;
+            for (const iconWrapper of iconsBox.get_children()) {
+                const delegate = iconWrapper._delegate;
+                if (!delegate?.windowObj)
+                    continue;
+                const isFocused = delegate.windowObj.get_id() === this._focusedWindowId;
+                const scale = isFocused ? 1.0 : (1.0 - FOCUS_SCALE_REDUCTION);
+                iconWrapper.set_pivot_point(0.5, 0.5);
+                if (animate) {
+                    iconWrapper.ease({
+                        scale_x: scale,
+                        scale_y: scale,
+                        duration: FOCUS_SCALE_DURATION,
+                        mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                    });
+                } else {
+                    iconWrapper.scale_x = scale;
+                    iconWrapper.scale_y = scale;
+                }
+            }
+        }
+    }
+
+    _createWsBox(workspace, animateIcons = false) {
         const wsBox = new St.Bin({
             visible: true,
             reactive: true,
@@ -395,8 +517,26 @@ export class WorkspacesBar {
             styleClass: `workspace-box workspace-box-${workspace.index + 1}`,
         });
         wsBox._delegate = new WorkspaceBoxDragHandler(workspace);
-        const label = this._createLabel(workspace);
-        wsBox.set_child(label);
+
+        const showIcons = this._settings.showAppIcons.value;
+        const useIconsSection = showIcons && workspace.windows.length > 0;
+        const label = this._createLabel(workspace, useIconsSection);
+
+        if (useIconsSection) {
+            wsBox.styleClass += ' space-bar-ws-box-icons';
+            const contentBox = new St.BoxLayout({
+                xAlign: Clutter.ActorAlign.CENTER,
+            });
+            label.set_y_expand(true);
+            contentBox.add_child(label);
+            const iconsBox = this._createAppIcons(workspace, animateIcons);
+            iconsBox.set_y_expand(true);
+            contentBox.add_child(iconsBox);
+            wsBox.set_child(contentBox);
+        } else {
+            wsBox.set_child(label);
+        }
+
         let lastButton1PressEvent = null;
         wsBox.connect('button-press-event', (actor, event) => {
             switch (event.get_button()) {
@@ -451,10 +591,10 @@ export class WorkspacesBar {
         return wsBox;
     }
 
-    _createLabel(workspace) {
+    _createLabel(workspace, useIconsSection = false) {
         const label = new St.Label({
             yAlign: Clutter.ActorAlign.CENTER,
-            styleClass: 'space-bar-workspace-label',
+            styleClass: useIconsSection ? 'space-bar-ws-label' : 'space-bar-workspace-label',
         });
         if (workspace.index === this._ws.currentIndex)
             label.styleClass += ' active';
@@ -469,5 +609,70 @@ export class WorkspacesBar {
         if (text.trim() === '')
             label.styleClass += ' no-text';
         return label;
+    }
+
+    _createAppIcons(workspace, animate = false) {
+        const isActive = workspace.index === this._ws.currentIndex;
+        const isEmpty = !workspace.hasWindows;
+        let fontSize;
+        if (isActive)
+            fontSize = this._settings.activeWorkspaceFontSize.value;
+        else if (isEmpty)
+            fontSize = this._settings.emptyWorkspaceFontSize.value;
+        else
+            fontSize = this._settings.inactiveWorkspaceFontSize.value;
+        const iconSize = fontSize > 0 ? Math.round(fontSize * 16 / 12) : 16;
+        let iconClass = 'space-bar-ws-icons';
+        iconClass += isActive ? ' active' : ' inactive';
+        if (!isActive && isEmpty)
+            iconClass += ' empty';
+        const iconsBox = new St.BoxLayout({
+            styleClass: iconClass,
+            xAlign: Clutter.ActorAlign.CENTER,
+        });
+        const windowTracker = Shell.WindowTracker.get_default();
+        for (const win of workspace.windows) {
+            if (win.is_on_all_workspaces())
+                continue;
+            const app = windowTracker.get_window_app(win);
+            const iconWrapper = new St.Button({
+                reactive: true,
+                trackHover: true,
+                styleClass: 'space-bar-app-icon-wrapper',
+            });
+            const icon = app
+                ? app.create_icon_texture(iconSize)
+                : new St.Icon({ icon_name: 'image-missing-symbolic', icon_size: iconSize });
+            iconWrapper.set_child(icon);
+            iconWrapper._delegate = {
+                windowObj: win,
+                getDragActor() {
+                    const a = Shell.WindowTracker.get_default().get_window_app(win);
+                    return a ? a.create_icon_texture(iconSize) : new St.Icon({ icon_name: 'image-missing-symbolic', icon_size: iconSize });
+                },
+                getDragActorSource() {
+                    return iconWrapper;
+                },
+            };
+            DND.makeDraggable(iconWrapper, { restoreOnSuccess: true, manualMode: false });
+            if (animate) {
+                iconWrapper.set_pivot_point(0.5, 0.5);
+                iconWrapper.opacity = 0;
+                iconWrapper.set_scale(0.5, 0.5);
+                iconWrapper.ease({
+                    opacity: 255,
+                    duration: 300,
+                    mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                });
+                iconWrapper.ease({
+                    scale_x: 1,
+                    scale_y: 1,
+                    duration: 360,
+                    mode: Clutter.AnimationMode.EASE_OUT_BACK,
+                });
+            }
+            iconsBox.add_child(iconWrapper);
+        }
+        return iconsBox;
     }
 }

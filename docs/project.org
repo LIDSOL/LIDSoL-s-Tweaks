@@ -235,12 +235,23 @@ DEADLINE: <2026-09-15 Tue>
 **** NEXT 4.6 Workspace Indicator [40%]
 DEADLINE: <2026-08-20 Thu>
 - [X] 4.2.1 Bug: Es posible arrastrar un espacio de trabajo más allá de /añadir un nuevo espacio de trabajo/ (se muestra como un workspace con el símbolo "`+`"). Esto no debería ser posible. Provoca un bug en el cual el espacio de trabajo se mueve a la derecha de `+`, dejando un espacio hueco en el sitio en el cual antes estaba el workspace que se movió, esto no tiene efecto en los espacios de trabajo reales (nada se desplaza realmente).
-- [ ] 4.2.2 Feat: Usando como referencia Workspace [[https://gitlab.com/jguece/workspace-bar][Workspace Bar de jguece]], añadir la posibilidad de mostrar los programas abiertos en cada espacio de trabajo, y la posibilidad de tomar uno de esos programas y moverlos de workspace
+- [X] 4.2.2 Feat: Usando como referencia Workspace [[https://gitlab.com/jguece/workspace-bar][Workspace Bar de jguece]], añadir la posibilidad de mostrar los programas abiertos en cada espacio de trabajo, y la posibilidad de tomar uno de esos programas y moverlos de workspace
+  - Schema key: `ws-show-app-icons` (boolean, default: false). Cuando activo, cada wsBox muestra una fila de íconos de apps al lado del label del workspace.
+  - Schema keys: `ws-app-icons-active-background-color`, `ws-app-icons-inactive-background-color`, `ws-app-icons-empty-background-color` (colores de fondo configurables para los íconos por estado).
+  - `workspaces.js`: `_getWorkspaceState()` ahora incluye `windows` (array de `Meta.Window` via `getWindows()`).
+  - `workspacesBar.js`: Layout de dos secciones: `.space-bar-ws-label` (nombre) + `.space-bar-ws-icons` (íconos), cada una con su propio background. `_createAppIcons()` usa `Shell.WindowTracker` + `DND.makeDraggable()`.
+  - `styles.js`: CSS para `.space-bar-ws-label` (fondo del label, border-radius izquierdo) y `.space-bar-ws-icons` (fondo configurable, border-radius derecho). Los colores se regeneran al cambiar cualquier setting de apariencia.
+  - Prefs: toggle "Mostrar íconos de aplicaciones" en Comportamiento. Color pickers "Color de fondo (íconos)" en cada grupo de apariencia (activo/inactivo/vacío).
+  - Icon fade animation: fade-out (260ms) before rebuild only when windows change (diff-based). Pop-in (scale 0.5→1.0 + opacity, 300/360ms) only on newly added icons. Workspace switch uses only transition animation.
+  - Icon background colors: accent contrast mode uses `rgba(r,g,b,0.35)` for icon backgrounds when accent switch is ON.
 - [X] 4.2.4 Feat: Añadir una opción para usar el color de acento de GNOME como color de fondo del espacio activo.
   - Schema key: `ws-use-accent-color` (boolean, default: false). Cuando está activo, el fondo y borde del espacio activo usan el color de acento de GNOME (`org.gnome.desktop.interface` → `accent-color`), con mapeo a hex vía `ACCENT_COLORS` (blue, teal, green, yellow, orange, red, pink, purple, slate). El color de texto es siempre `#F6F5F4`. Los botones de color de fondo, texto y borde se deshabilitan en prefs. El color se actualiza dinámicamente al cambiar el acento en GNOME (señal `changed::accent-color`).
 - [X] 4.2.5 Bug: Sobre-escribe o borra los atajos de teclado por defecto (configurados desde gnome-control-center).
 - [ ] 4.2.6 Feat: Ocultar el Workspace Switcher en el overview.
-- [ ] 4.2.7 Bug: Movimiento anormal a la derecha e izquierda en los workspaces cuando se hace switch.
+- [ ] 4.2.7 Bug: Movimiento anormal a la derecha e izquierda en los workspaces cuando se hace switch. Este desplazamiento es consecuencia del espacio de trabajo enfocado, algo en su padding o en su margen lo causa. Y no debería pasar.
+- [ ] 4.2.8 Eliminar la opción "posición en el panel". Pues esto se configura desde el top bar organized integrado en la extensión.
+- [ ] 4.2.9 Limitar el tamaño de la fuente.
+- [ ] 4.2.10 Mejorar el nombrado inteligente (al cerrar el programa se mantiene el nombre).
 **** TODO 4.4 Battery Indicator
 DEADLINE: <2026-09-11 Fri>
 

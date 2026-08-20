@@ -143,6 +143,7 @@ export class Settings {
         this.alwaysShowNumbers = SettingsSubject.createBoolean(s, 'ws-always-show-numbers');
         this.showEmptyWorkspaces = SettingsSubject.createBoolean(s, 'ws-show-empty-workspaces');
         this.toggleOverview = SettingsSubject.createBoolean(s, 'ws-toggle-overview');
+        this.showAppIcons = SettingsSubject.createBoolean(s, 'ws-show-app-icons');
         this.smartWorkspaceNames = SettingsSubject.createBoolean(s, 'ws-smart-workspace-names');
         this.reevaluateSmartWorkspaceNames = SettingsSubject.createBoolean(s, 'ws-reevaluate-smart-workspace-names');
         this.enableActivateWorkspaceShortcuts = SettingsSubject.createBoolean(s, 'ws-enable-activate-workspace-shortcuts');
@@ -185,6 +186,9 @@ export class Settings {
 
         this.transitionAnimation = SettingsSubject.createString(s, 'ws-transition-animation');
         this.useAccentColor = SettingsSubject.createBoolean(s, 'ws-use-accent-color');
+        this.appIconsActiveBackgroundColor = SettingsSubject.createString(s, 'ws-app-icons-active-background-color');
+        this.appIconsInactiveBackgroundColor = SettingsSubject.createString(s, 'ws-app-icons-inactive-background-color');
+        this.appIconsEmptyBackgroundColor = SettingsSubject.createString(s, 'ws-app-icons-empty-background-color');
         this.applicationStyles = SettingsSubject.createString(s, 'ws-application-styles');
         this.customStylesEnabled = SettingsSubject.createBoolean(s, 'ws-custom-styles-enabled');
         this.customStylesFailed = SettingsSubject.createBoolean(s, 'ws-custom-styles-failed');

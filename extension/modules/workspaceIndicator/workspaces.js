@@ -352,6 +352,7 @@ export class Workspaces {
                 isEnabled: true,
                 isVisible: hasWindows || this._getIsEmptyButVisible(index),
                 hasWindows,
+                windows: hasWindows ? getWindows(workspace) : [],
                 index,
                 name: this._settings.workspaceNames.value[index],
             };
@@ -360,6 +361,7 @@ export class Workspaces {
             isEnabled: false,
             isVisible: false,
             hasWindows: false,
+            windows: [],
             index,
             name: this._settings.workspaceNames.value[index],
         };

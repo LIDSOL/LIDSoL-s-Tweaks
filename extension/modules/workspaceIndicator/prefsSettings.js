@@ -52,6 +52,8 @@ export class WorkspaceIndicatorPrefs {
         this._addToggle(group, { key: 'ws-always-show-numbers', title: 'Mostrar números siempre' });
         this._addToggle(group, { key: 'ws-show-empty-workspaces', title: 'Mostrar espacios vacíos' });
         this._addToggle(group, { key: 'ws-toggle-overview', title: 'Abrir vista general', subtitle: 'Al hacer clic en espacio activo o vacío' });
+        this._addToggle(group, { key: 'ws-show-app-icons', title: 'Mostrar íconos de aplicaciones',
+            subtitle: 'Muestra íconos de ventanas abiertas en cada espacio de trabajo (solo Barra de espacios)' });
 
         this._addCombo(group, {
             key: 'ws-position',
@@ -138,8 +140,9 @@ export class WorkspaceIndicatorPrefs {
         const bgColorRow = this._addColorButton(activeGroup, { key: 'ws-active-workspace-background-color', title: 'Color de fondo' });
         const textColorRow = this._addColorButton(activeGroup, { key: 'ws-active-workspace-text-color', title: 'Color de texto' });
         const borderColorRow = this._addColorButton(activeGroup, { key: 'ws-active-workspace-border-color', title: 'Color del borde' });
+        const iconsBgColorRow = this._addColorButton(activeGroup, { key: 'ws-app-icons-active-background-color', title: 'Color de fondo (íconos)' });
 
-        const colorRows = [bgColorRow, textColorRow, borderColorRow];
+        const colorRows = [bgColorRow, textColorRow, borderColorRow, iconsBgColorRow];
         const updateAccentSensitivity = () => {
             const accent = this._settings.get_boolean('ws-use-accent-color');
             for (const row of colorRows) {
@@ -167,6 +170,7 @@ export class WorkspaceIndicatorPrefs {
         this._addColorButton(inactiveGroup, { key: 'ws-inactive-workspace-background-color', title: 'Color de fondo' });
         this._addColorButton(inactiveGroup, { key: 'ws-inactive-workspace-text-color', title: 'Color de texto' });
         this._addColorButton(inactiveGroup, { key: 'ws-inactive-workspace-border-color', title: 'Color del borde' });
+        this._addColorButton(inactiveGroup, { key: 'ws-app-icons-inactive-background-color', title: 'Color de fondo (íconos)' });
         this._addSpinButton(inactiveGroup, { key: 'ws-inactive-workspace-font-size', title: 'Tamaño de fuente', lower: 0, upper: 255 });
         this._addCombo(inactiveGroup, {
             key: 'ws-inactive-workspace-font-weight',
@@ -185,6 +189,7 @@ export class WorkspaceIndicatorPrefs {
         this._addColorButton(emptyGroup, { key: 'ws-empty-workspace-background-color', title: 'Color de fondo' });
         this._addColorButton(emptyGroup, { key: 'ws-empty-workspace-text-color', title: 'Color de texto' });
         this._addColorButton(emptyGroup, { key: 'ws-empty-workspace-border-color', title: 'Color del borde' });
+        this._addColorButton(emptyGroup, { key: 'ws-app-icons-empty-background-color', title: 'Color de fondo (íconos)' });
         this._addSpinButton(emptyGroup, { key: 'ws-empty-workspace-font-size', title: 'Tamaño de fuente', lower: 0, upper: 255 });
         this._addCombo(emptyGroup, {
             key: 'ws-empty-workspace-font-weight',

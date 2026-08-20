@@ -135,6 +135,9 @@
     <key type="b" name="ws-toggle-overview">
       <default>true</default>
     </key>
+    <key type="b" name="ws-show-app-icons">
+      <default>false</default>
+    </key>
     <key type="s" name="ws-scroll-wheel">
       <choices>
         <choice value="panel" />
@@ -243,6 +246,16 @@
 
     <key type="b" name="ws-use-accent-color">
       <default>false</default>
+    </key>
+
+    <key type="s" name="ws-app-icons-active-background-color">
+      <default>'rgba(255,255,255,0.20)'</default>
+    </key>
+    <key type="s" name="ws-app-icons-inactive-background-color">
+      <default>'rgba(255,255,255,0.20)'</default>
+    </key>
+    <key type="s" name="ws-app-icons-empty-background-color">
+      <default>'rgba(255,255,255,0.20)'</default>
     </key>
 
     <key type="s" name="ws-active-workspace-background-color">

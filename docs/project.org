@@ -178,13 +178,13 @@ DEADLINE: <2026-09-15 Tue>
 - Referencia para el frontend: [[https://flathub.org/en/apps/io.github.amit9838.mousam][Mouseam en "modo widget"]]
   
 *** TODO 4. Top Bar [0%]
-- [ ] 4.1 Organizar este apartado en los siguientes grupos, cada grupo debe tener lo siguiente:
+- [X] 4.1 Organizar este apartado en los siguientes grupos, cada grupo debe tener lo siguiente:
   - General:
     - Top Bar Organizer
     - Panel Corners
   - Elementos del panel:
     - Start Icon
-    - Work space Indicator
+    - Workspace Indicator
     - Date Menu (borra el /at a Glance/ y coloca "Date Menu Tweaks").
     - Battery indicator
 **** TODO 4.1 Panel Corners

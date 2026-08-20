@@ -198,61 +198,12 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
   }
 
   _addTopbarModuleGroup(page) {
-    const group = new Adw.PreferencesGroup();
-    group.add(createModuleRow({
-      settings: this._settings,
-      bindKey: 'panel-corners-enabled',
-      title: 'Panel Corners',
-      subtitle: 'Esquinas redondeadas en el panel y la pantalla',
-      onDetailed: () => this._openDialog('Panel Corners', p => this._buildPanelCornersDialog(p)),
-    }));
-    group.add(createModuleRow({
-      settings: this._settings,
-      bindKey: 'workspace-indicator-enabled',
-      title: 'Workspace Indicator',
-      subtitle: 'Indicador de espacios de trabajo estilo Space Bar',
-      onDetailed: () => this._openDialog('Workspace Indicator', p => this._buildWorkspaceIndicatorDialog(p)),
-    }));
-    group.add(createModuleRow({
-      settings: this._settings,
-      bindKey: 'battery-indicator-enabled',
-      title: 'Battery Indicator',
-      subtitle: 'Círculo y/o barra personalizados para la batería en la barra superior',
-      onDetailed: () => this._openDialog('Battery Indicator', p => this._buildBatteryIndicatorDialog(p)),
-    }));
-    page.add(group);
-
-    const startGroup = new Adw.PreferencesGroup({
-      title: 'Start Icon',
-      description: 'Botón de inicio en el panel que abre el dashboard (y más adelante, el launcher).',
+    // ── General ──
+    const generalGroup = new Adw.PreferencesGroup({
+      title: 'General',
+      description: 'Organización y apariencia del panel.',
     });
-    startGroup.add(createModuleRow({
-      settings: this._settings,
-      bindKey: 'dashboard-button-enable',
-      title: 'Start Icon',
-      subtitle: 'Botón de panel que abre el dashboard',
-      onDetailed: () => this._openDialog('Start Icon', p => this._buildStartIconDialog(p)),
-    }));
-    page.add(startGroup);
-
-    const dmGroup = new Adw.PreferencesGroup({
-      title: 'Date Menu',
-      description: 'Formato personalizado del reloj del panel con indicador multimedia.',
-    });
-    dmGroup.add(createModuleRow({
-      settings: this._settings,
-      bindKey: 'dm-enabled',
-      title: 'Date Menu (At a Glance)',
-      subtitle: 'Reloj con formato personalizado e indicador multimedia',
-      onDetailed: () => this._openDialog('Date Menu', p => this._buildDateMenuDialog(p)),
-    }));
-    page.add(dmGroup);
-
-    const orgGroup = new Adw.PreferencesGroup({
-      title: 'Organización del panel',
-      description: 'Reordena y oculta elementos de la barra superior.',
-    });
-    orgGroup.add(createModuleRow({
+    generalGroup.add(createModuleRow({
       settings: this._settings,
       bindKey: 'tbo-enabled',
       title: 'Top Bar Organizer',
@@ -262,7 +213,49 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
           openTopBarOrganizerDialog(this._window, this._settings);
       },
     }));
-    page.add(orgGroup);
+    generalGroup.add(createModuleRow({
+      settings: this._settings,
+      bindKey: 'panel-corners-enabled',
+      title: 'Panel Corners',
+      subtitle: 'Esquinas redondeadas en el panel y la pantalla',
+      onDetailed: () => this._openDialog('Panel Corners', p => this._buildPanelCornersDialog(p)),
+    }));
+    page.add(generalGroup);
+
+    // ── Elementos del panel ──
+    const elementsGroup = new Adw.PreferencesGroup({
+      title: 'Elementos del panel',
+      description: 'Configuración de cada elemento en la barra superior.',
+    });
+    elementsGroup.add(createModuleRow({
+      settings: this._settings,
+      bindKey: 'dashboard-button-enable',
+      title: 'Start Icon',
+      subtitle: 'Botón de panel que abre el dashboard',
+      onDetailed: () => this._openDialog('Start Icon', p => this._buildStartIconDialog(p)),
+    }));
+    elementsGroup.add(createModuleRow({
+      settings: this._settings,
+      bindKey: 'workspace-indicator-enabled',
+      title: 'Workspace Indicator',
+      subtitle: 'Indicador de espacios de trabajo estilo Space Bar',
+      onDetailed: () => this._openDialog('Workspace Indicator', p => this._buildWorkspaceIndicatorDialog(p)),
+    }));
+    elementsGroup.add(createModuleRow({
+      settings: this._settings,
+      bindKey: 'dm-enabled',
+      title: 'Date Menu Tweaks',
+      subtitle: 'Formato personalizado del reloj del panel con indicador multimedia',
+      onDetailed: () => this._openDialog('Date Menu Tweaks', p => this._buildDateMenuDialog(p)),
+    }));
+    elementsGroup.add(createModuleRow({
+      settings: this._settings,
+      bindKey: 'battery-indicator-enabled',
+      title: 'Battery Indicator',
+      subtitle: 'Círculo y/o barra personalizados para la batería en la barra superior',
+      onDetailed: () => this._openDialog('Battery Indicator', p => this._buildBatteryIndicatorDialog(p)),
+    }));
+    page.add(elementsGroup);
   }
 
   _buildBatteryIndicatorDialog(page) {

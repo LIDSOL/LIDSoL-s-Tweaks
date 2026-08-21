@@ -465,22 +465,23 @@ class ClockWidget extends DashWidget {
         this._connect('vertical');
         this._connect('clock-size');
         this._connect('date-size');
+        this._connect('spacing');
 
         this.clock = this._label('clock');
         this.date = this._label('date');
         this.day = this._label('day');
 
-        const vbox = new St.BoxLayout({
+        this._vbox = new St.BoxLayout({
             vertical: true,
             y_align: Clutter.ActorAlign.CENTER,
             x_align: Clutter.ActorAlign.CENTER,
             y_expand: true,
             x_expand: true,
         });
-        vbox.add_child(this.day);
-        vbox.add_child(this.date);
+        this._vbox.add_child(this.day);
+        this._vbox.add_child(this.date);
         this.add_child(this.clock);
-        this.add_child(vbox);
+        this.add_child(this._vbox);
 
         this._timeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1000, () => {
             this._updateClock();
@@ -507,16 +508,21 @@ class ClockWidget extends DashWidget {
     _sync() {
         const vertical = this._settings.get_boolean('dashboard-clock-vertical');
         this.vertical = vertical;
-        // Landscape mode (vertical off) lays the time next to the date/day,
-        // which needs more room than the 150px CSS min-width; widen it so the
-        // time never gets clipped. Vertical mode keeps the CSS default.
-        this.set_style(vertical ? '' : 'min-width: 300px;');
 
-        // Font sizes, configurable via prefs (Time / Date).
-        this.clock.set_style(`font-size: ${this._settings.get_int('dashboard-clock-clock-size')}px;`);
-        this.date.set_style(`font-size: ${this._settings.get_int('dashboard-clock-date-size')}px;`);
+        const spacing = this._settings.get_int('dashboard-clock-spacing');
+        const clockSize = this._settings.get_int('dashboard-clock-clock-size');
+        const dateSize = this._settings.get_int('dashboard-clock-date-size');
 
-        super._sync();
+        const bg = this._settings.get_boolean('dashboard-clock-background');
+        this.style_class = `dash-widget clock-widget` +
+            (bg ? ' events-button' : '');
+
+        // Combine spacing into the inline style so CSS cannot override it.
+        const orient = vertical ? '' : 'min-width:300px;';
+        this.set_style(`${orient}spacing:${spacing}px;`);
+        this.clock.set_style(`font-size: ${clockSize}px;`);
+        this.date.set_style(`font-size: ${dateSize}px;`);
+        this.day.set_style(`font-size: ${dateSize}px;`);
     }
 
     _label(name) {

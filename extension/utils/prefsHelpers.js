@@ -219,8 +219,8 @@ export function createKeyboardShortcutRow({ settings, bindKey, title, subtitle }
     row.add_suffix(disabledLabel);
 
     const hasAccel = settings.get_strv(bindKey).length > 0;
-    disabledLabel.visible = hasAccel;
-    shortcutLabel.visible = !hasAccel;
+    disabledLabel.visible = !hasAccel;
+    shortcutLabel.visible = hasAccel;
 
     row.connect('activated', () => {
         const dialog = new Gtk.Dialog({

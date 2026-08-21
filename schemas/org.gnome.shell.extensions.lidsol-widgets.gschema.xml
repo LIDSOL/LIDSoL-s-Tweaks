@@ -1460,6 +1460,12 @@
     <key type="b" name="dashboard-clock-vertical"><default>false</default></key>
     <key type="i" name="dashboard-clock-clock-size"><default>64</default></key>
     <key type="i" name="dashboard-clock-date-size"><default>12</default></key>
+    <key type="i" name="dashboard-clock-spacing">
+      <default>0</default>
+      <range min="0" max="50"/>
+      <summary>Distancia entre reloj y fecha</summary>
+      <description>Espacio vertical u horizontal entre el reloj y la fecha en el widget Clock</description>
+    </key>
 
     <!-- Levels Widget -->
     <key type="i" name="dashboard-levels-x-align"><default>0</default></key>

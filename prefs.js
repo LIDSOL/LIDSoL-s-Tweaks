@@ -842,6 +842,7 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
       exp.add_row(_makeExpandRow('Vertical', 'dashboard-clock-vertical'));
       exp.add_row(_makeSpinRow('Time Size', 'dashboard-clock-clock-size', 8, 200, 2));
       exp.add_row(_makeSpinRow('Date Size', 'dashboard-clock-date-size', 8, 100, 1));
+      exp.add_row(_makeSpinRow('Spacing', 'dashboard-clock-spacing', 0, 50, 1));
     }));
 
     widgetsGroup.add(_makeWidgetExpander('apps', 'App Launcher', exp => {
@@ -912,7 +913,6 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
   _buildLauncherDialog(page) {
     const s = this._settings;
     const mainGroup = createGroup({ parent: page, title: 'Launcher', description: 'Abre la búsqueda nativa del Overview (modo búsqueda) con un atajo de teclado.' });
-    mainGroup.add(createSwitchRow({ settings: s, bindKey: 'launcher-enabled', title: 'Habilitar Launcher' }));
     mainGroup.add(createKeyboardShortcutRow({ settings: s, bindKey: 'launcher-hotkey', title: 'Atajo de teclado', subtitle: 'Combinación para abrir la búsqueda del Overview (modo búsqueda)' }));
     const overviewGroup = createGroup({ parent: page, title: 'Overview', description: 'Ajustes relacionados con la vista general' });
     overviewGroup.add(createSwitchRow({ settings: s, bindKey: 'launcher-hide-search', title: 'Ocultar barra de búsqueda', subtitle: 'Oculta el campo "Type to search" en el Overview. Aparece al empezar a escribir.' }));

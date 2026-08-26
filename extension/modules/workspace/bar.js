@@ -219,37 +219,28 @@ export class WorkspaceBar {
     }
 
     _insertContainer() {
-        let pos = this._ext.getPosition();
-        let posIndex = this._ext.getPositionIndex();
-        let box;
-        if (pos === 'center') box = Main.panel._centerBox;
-        else if (pos === 'right') box = Main.panel._rightBox;
-        else box = Main.panel._leftBox;
+        this._panelContainer = new St.Bin({
+            x_expand: true,
+            y_expand: true,
+        });
+        this._panelContainer.child = this._viewport;
 
-        let maxIndex = box.get_n_children();
-        box.insert_child_at_index(this._viewport, Math.min(posIndex, maxIndex));
+        Main.panel._leftBox.insert_child_at_index(this._panelContainer, 0);
+        Main.panel.statusArea['workspaceBar'] = { container: this._panelContainer };
     }
 
     _removeContainer() {
-        let parent = this._viewport.get_parent();
-        if (parent) parent.remove_child(this._viewport);
-    }
-
-    onPositionChanged() {
-        if (!this._viewport) return;
-        this._removeContainer();
-        this._insertContainer();
-        this._updateAvailableWidth();
+        if (this._panelContainer) {
+            let parent = this._panelContainer.get_parent();
+            if (parent) parent.remove_child(this._panelContainer);
+            this._panelContainer = null;
+        }
+        delete Main.panel.statusArea['workspaceBar'];
     }
 
     onSizeModeChanged() {
         if (!this._container) return;
         this._regenerateIcons();
-    }
-
-    onLeftMarginChanged() {
-        if (!this._viewport) return;
-        this._applyViewportWidth();
     }
 
     // Single entry point for every setting that changes how icons are drawn
@@ -361,16 +352,13 @@ export class WorkspaceBar {
         let panelW = panel.get_width();
         if (panelW <= 0) return;
 
-        // Sum the siblings in the SAME panel box the viewport lives in (left,
-        // center or right per the position setting) — not always _leftBox — so the
-        // width budget is right for center/right placements too.
-        let pos = this._ext.getPosition();
-        let box = pos === 'center' ? panel._centerBox
-            : pos === 'right' ? panel._rightBox
-            : panel._leftBox;
+        // Get the parent box dynamically (the container's parent is the panel box)
+        let box = this._panelContainer?.get_parent();
+        if (!box) return;
+
         let siblingsW = 0;
         for (let child of box.get_children()) {
-            if (child === this._viewport) continue;
+            if (child === this._panelContainer) continue;
             let [, natW] = child.get_preferred_width(-1);
             siblingsW += natW;
         }
@@ -383,14 +371,9 @@ export class WorkspaceBar {
         if (!this._viewport || !this._container || this._destroyed) return;
 
         let contentW = this._container.get_width();
-        let leftMargin = this._ext.getLeftMargin();
         let avail = this._availableWidth || 600;
 
-        // Without arrow strips reserved: natural content + left margin.
-        // When that exceeds the budget, fall back to the budget and let
-        // _updateOverlays reserve the strips and enable scrolling.
-        let desired = contentW + leftMargin;
-        let w = (contentW > 0 && desired <= avail) ? desired : avail;
+        let w = (contentW > 0 && contentW <= avail) ? contentW : avail;
 
         this._viewport.set_width(w);
         this._viewport.style = `width: ${w}px; min-width: ${w}px; max-width: ${w}px;`;
@@ -523,21 +506,19 @@ export class WorkspaceBar {
         let viewH = this._viewport.get_height();
         if (viewW <= 0 || viewH <= 0) return;
 
-        let leftMargin = this._ext.getLeftMargin();
         let contentW = this._realContentWidth();
 
-        // Overflow when the content is wider than the viewport minus the left margin.
+        // Overflow when the content is wider than the viewport.
         // Only then do we reserve the arrow strips; otherwise layout mirrors v1.
-        let availForContent = Math.max(0, viewW - leftMargin);
-        let hasOverflow = contentW > availForContent + OVERFLOW_TOLERANCE;
+        let hasOverflow = contentW > viewW + OVERFLOW_TOLERANCE;
 
         let clipX, clipW;
         if (hasOverflow) {
-            clipX = leftMargin + ARROW_STRIP_WIDTH;
+            clipX = ARROW_STRIP_WIDTH;
             clipW = Math.max(0, viewW - clipX - ARROW_STRIP_WIDTH);
         } else {
-            clipX = leftMargin;
-            clipW = Math.min(contentW > 0 ? contentW : availForContent, availForContent);
+            clipX = 0;
+            clipW = Math.min(contentW > 0 ? contentW : viewW, viewW);
         }
 
         this._clip.set_position(clipX, 0);
@@ -551,7 +532,7 @@ export class WorkspaceBar {
 
         let [, arrowH] = this._arrowLeft.get_preferred_height(-1);
         let yCenter = Math.max(0, Math.floor((viewH - arrowH) / 2));
-        this._arrowLeft.set_position(leftMargin, yCenter);
+        this._arrowLeft.set_position(0, yCenter);
         this._arrowRight.set_position(Math.max(0, viewW - ARROW_STRIP_WIDTH), yCenter);
 
         let maxOffset = Math.max(0, contentW - clipW);

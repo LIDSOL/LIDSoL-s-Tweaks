@@ -128,15 +128,6 @@ export class WorkspaceModule {
             this._generateAndApplyCSS();
             this._workspaceBar.onSizeModeChanged();
         }));
-        this._settingsIds.push(this._settings.connect('changed::wb-position', () => {
-            this._workspaceBar.onPositionChanged();
-        }));
-        this._settingsIds.push(this._settings.connect('changed::wb-position-index', () => {
-            this._workspaceBar.onPositionChanged();
-        }));
-        this._settingsIds.push(this._settings.connect('changed::wb-left-margin', () => {
-            this._workspaceBar.onLeftMarginChanged();
-        }));
         this._settingsIds.push(this._settings.connect('changed::wb-show-icons-background', () => {
             this._generateAndApplyCSS();
         }));
@@ -174,18 +165,6 @@ export class WorkspaceModule {
     getPreset() {
         let mode = this._settings.get_string('wb-size-mode');
         return SIZE_PRESETS[mode] || SIZE_PRESETS.medium;
-    }
-
-    getPosition() {
-        return this._settings.get_string('wb-position') || 'left';
-    }
-
-    getPositionIndex() {
-        return this._settings.get_int('wb-position-index');
-    }
-
-    getLeftMargin() {
-        return this._settings.get_int('wb-left-margin');
     }
 
     getShowIconsBackground() {

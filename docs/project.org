@@ -144,26 +144,26 @@ DEADLINE: <2026-09-15 Tue>
 ***** SOMEDAY Widget weather
 - Referencia para el frontend: [[https://flathub.org/en/apps/io.github.amit9838.mousam][Mouseam en "modo widget"]]
 *** [#A] 1.4 Top Bar
-**** TODO 1.4.1 Top Bar Organized
+**** NEXT 1.4.1 Top Bar Organized
 DEADLINE: <2026-08-26 Wed>
 - [ ] 1.4.1.1 Bug: Al hacer uso del botón "Restablecer valores predeterminados" todos los elementos /desaparecen/, al cerrar y abrir el dialog, nuevamente son visibles. No se restablece el orden.
 - [ ] 1.4.1.1 Feat: Al hacer uso del botón "Restablecer valores predeterminados", recargar los elementos del panel, para eliminar aquellos que ya no están. Por ejemplo, a veces permanecen en la lista elementos que ya no existen; como un indicador de una extensión que ya se eliminó, pero el elemento aún se muestra.
 - [ ] 1.4.1.3 Feat: Cada vez que se abre el dialog, recarga los elementos (para asegurar que no se muestra nada que no está realmente).
-- [ ] 1.4.1.4 Bug: Este tiene relación con 1.4.5.1, no se detecta el elemento del Workspace Bar
+- [x] 1.4.1.4 Bug: Este tiene relación con 1.4.5.1, no se puede "ordenar" el elemento del Workspace Bar. Muy posiblemente por entrar en conflicto con la opción de ubicación de este módulo. No aparece en la lista de elementos a ordenar.
 - [ ] 1.4.1.5 Feat: Recibe la señal de como se indica en 1.4.5.5.8; es decir, estos dos switch están sincronizados, se usa la función/clase de Top Bar.
 **** TODO 1.4.2 Panel Corners
 DEADLINE: <2026-08-27 Wed>
 - [ ] 1.4.2.1 Eliminar el modo debug (switch) de las opciones avanzadas, y todo el código asociado a esta opción.
 - [ ] 1.4.2.2 Añadir compatibilidad con la extension "blur shell"
 - [ ] 1.4.2.3
-**** TODO 1.4.3 Start Icon
+**** DONE 1.4.3 Start Icon
 DEADLINE: <2026-08-27 Wed>
-- [ ] 1.4.3.1 Eliminar esta feature, todo su código asociado y sus opciones de configuración en prefs.js
+- [x] 1.4.3.1 Eliminar esta feature, todo su código asociado y sus opciones de configuración en prefs.js
 **** TODO 1.4.4  
 DEADLINE: <2026-08-28 Wed>
-**** TODO 1.4.5 Work Space Bar
+**** NEXT 1.4.5 Work Space Bar
 DEADLINE: <2026-08-31 Wed>
-- [ ] 1.4.5.1 Eliminar las opciones de posición y todo su código asociado (se usará top bar organized para ello).
+- [x] 1.4.5.1 Eliminar las opciones de posición y todo su código asociado (se usará top bar organized para ello).
 - [ ] 1.4.5.2 Bug: No se muestra en top bar organized (relacionado con 1.4.1.4)
 - [ ] 1.4.5.2 Feat: Implementar la posibilidad de renombrar el espacio de trabajo (como en space bar).
 - [ ] 1.4.5.3 

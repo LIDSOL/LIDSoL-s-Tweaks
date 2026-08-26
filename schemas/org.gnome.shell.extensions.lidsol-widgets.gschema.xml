@@ -1627,24 +1627,6 @@
       <description>Controla tamaño de icono, fuente, espaciado y redondeo. Opciones: small, medium, large.</description>
     </key>
 
-    <key type="s" name="wb-position">
-      <default>'left'</default>
-      <summary>Posición en el panel</summary>
-      <description>Dónde colocar la barra de espacios en el panel superior. Opciones: left, center, right.</description>
-    </key>
-
-    <key type="i" name="wb-position-index">
-      <default>0</default>
-      <summary>Índice de posición en la caja</summary>
-      <description>Posición dentro de la caja del panel (left, center o right). 0 = primera posición.</description>
-    </key>
-
-    <key type="i" name="wb-left-margin">
-      <default>4</default>
-      <summary>Margen izquierdo</summary>
-      <description>Margen izquierdo en píxeles para el contenedor de la barra.</description>
-    </key>
-
     <key type="b" name="wb-show-icons-background">
       <default>true</default>
       <summary>Mostrar fondo de iconos</summary>

@@ -10,28 +10,6 @@ export class WorkspacePrefs {
     populateGroups(page) {
         const s = this._settings;
 
-        // ── Posición ──
-        const positionGroup = createGroup({
-            parent: page,
-            title: 'Posición',
-            description: 'Ubicación de la barra de espacios en el panel superior.',
-        });
-        positionGroup.add(createComboRow({
-            settings: s, bindKey: 'wb-position',
-            title: 'Posición', subtitle: 'Dónde colocar la barra de espacios en el panel',
-            options: { left: 'Izquierda', center: 'Centro', right: 'Derecha' },
-        }));
-        positionGroup.add(createSpinButtonRow({
-            settings: s, bindKey: 'wb-position-index',
-            title: 'Índice en la caja', subtitle: '0 = primero. Valores más altos lo desplazan más dentro de la caja.',
-            adjProps: { lower: 0, upper: 20, step: 1 },
-        }));
-        positionGroup.add(createSpinButtonRow({
-            settings: s, bindKey: 'wb-left-margin',
-            title: 'Margen izquierdo', subtitle: 'Desplazamiento horizontal en píxeles',
-            adjProps: { lower: 0, upper: 200, step: 1 },
-        }));
-
         // ── Apariencia ──
         const appearanceGroup = createGroup({
             parent: page,

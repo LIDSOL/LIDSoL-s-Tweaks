@@ -1,20 +1,15 @@
 'use strict';
 
 import Gio from 'gi://Gio';
-import GLib from 'gi://GLib';
+import Meta from 'gi://Meta';
+import Shell from 'gi://Shell';
 import St from 'gi://St';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
-import { DashBoardPanelButton } from './dashBoard.js';
+import { DashBoardModal } from './dashBoard.js';
 
 const SETTINGS_KEYS = [
     'dashboard-enabled',
-    'dashboard-button-enable',
-    'dashboard-button-show-icon',
-    'dashboard-button-icon-path',
-    'dashboard-button-label',
-    'dashboard-position',
-    'dashboard-offset',
     'dashboard-shortcut',
     'dashboard-x-align',
     'dashboard-y-align',
@@ -32,7 +27,7 @@ export class DashboardModule {
     constructor() {
         this._settings = null;
         this._extension = null;
-        this._panelButton = null;
+        this._dash = null;
         this._handlerIds = [];
     }
 
@@ -50,20 +45,24 @@ export class DashboardModule {
             })
         );
 
-        this._addPanelButton();
+        this._dash = new DashBoardModal(this._settings);
+        this._dash.connectObject(
+            'closed', () => { this._opened = false; },
+            'opened', () => { this._opened = true; },
+            this
+        );
+
+        Main.wm.addKeybinding('dashboard-shortcut', this._settings,
+            Meta.KeyBindingFlags.NONE,
+            Shell.ActionMode.ALL,
+            () => this._toggleDash());
     }
 
-    _addPanelButton() {
-        if (this._panelButton) {
-            this._panelButton.destroy();
-            this._panelButton = null;
-        }
-
-        this._panelButton = new DashBoardPanelButton(this._settings);
-        const pos = this._settings.get_int('dashboard-position');
-        const offset = this._settings.get_int('dashboard-offset');
-        const posNames = ['left', 'center', 'right'];
-        Main.panel.addToStatusArea('dashboard-button', this._panelButton, offset, posNames[pos]);
+    _toggleDash() {
+        if (this._opened)
+            this._dash.close();
+        else
+            this._dash.open();
     }
 
     _loadStylesheet() {
@@ -76,15 +75,17 @@ export class DashboardModule {
     }
 
     disable() {
+        Main.wm.removeKeybinding('dashboard-shortcut');
+
+        if (this._dash) {
+            this._dash.destroy();
+            this._dash = null;
+        }
+
         this._handlerIds.forEach(id => {
             if (this._settings) this._settings.disconnect(id);
         });
         this._handlerIds = [];
-
-        if (this._panelButton) {
-            this._panelButton.destroy();
-            this._panelButton = null;
-        }
 
         if (this._stylesheetFile) {
             const themeContext = St.ThemeContext.get_for_stage(global.stage);

@@ -228,13 +228,7 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
       title: 'Elementos del panel',
       description: 'Configuración de cada elemento en la barra superior.',
     });
-    elementsGroup.add(createModuleRow({
-      settings: this._settings,
-      bindKey: 'dashboard-button-enable',
-      title: 'Start Icon',
-      subtitle: 'Botón de panel que abre el dashboard',
-      onDetailed: () => this._openDialog('Start Icon', p => this._buildStartIconDialog(p)),
-    }));
+
     elementsGroup.add(createModuleRow({
       settings: this._settings,
       bindKey: 'workspace-indicator-enabled',
@@ -2152,10 +2146,10 @@ function openTopBarOrganizerDialog(parentWindow, settings) {
     }
   }
 
-  createDialog({
+    createDialog({
     window: parentWindow,
     title: 'Ordenar elementos de la barra superior',
-    childrenRequest: (page) => {
+    childrenRequest: (page, dialog) => {
       const group = new Adw.PreferencesGroup({
         title: 'Orden de la barra superior',
         description: 'Arrastra y suelta para reordenar los elementos entre cajas.',
@@ -2178,11 +2172,23 @@ function openTopBarOrganizerDialog(parentWindow, settings) {
         alert.set_close_response('cancel');
         alert.connect('response', (_dlg, response) => {
           if (response === 'reset') {
-            settings.reset('tbo-left-box-order');
-            settings.reset('tbo-center-box-order');
-            settings.reset('tbo-right-box-order');
-            settings.reset('tbo-hide');
-            settings.reset('tbo-show');
+            const leftDef = settings.get_strv('tbo-default-left-box-order');
+            const centerDef = settings.get_strv('tbo-default-center-box-order');
+            const rightDef = settings.get_strv('tbo-default-right-box-order');
+            if (leftDef.length === 0 && centerDef.length === 0 && rightDef.length === 0) {
+              dialog.close();
+              return;
+            }
+            settings.delay();
+            try {
+              settings.set_strv('tbo-left-box-order', leftDef);
+              settings.set_strv('tbo-center-box-order', centerDef);
+              settings.set_strv('tbo-right-box-order', rightDef);
+              settings.set_strv('tbo-hide', []);
+              settings.set_strv('tbo-show', []);
+            } finally {
+              settings.apply();
+            }
             _rebuildAll();
           }
         });

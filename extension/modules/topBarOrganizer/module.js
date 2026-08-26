@@ -88,6 +88,10 @@ export class TopBarOrganizerModule {
             right: this._getBoxOrder('right'),
         };
 
+        const isFirstTime = boxOrders.left.length === 0 &&
+            boxOrders.center.length === 0 &&
+            boxOrders.right.length === 0;
+
         const containerRoleMap = new Map();
         for (const role in Main.panel.statusArea) {
             const item = Main.panel.statusArea[role];
@@ -123,6 +127,12 @@ export class TopBarOrganizerModule {
         addNewItems(boxChildren.left, boxOrders.left, 'left');
         addNewItems(boxChildren.center, boxOrders.center, 'center');
         addNewItems(boxChildren.right, boxOrders.right, 'right');
+
+        if (isFirstTime) {
+            this._saveBoxOrder('default-left', boxOrders.left);
+            this._saveBoxOrder('default-center', boxOrders.center);
+            this._saveBoxOrder('default-right', boxOrders.right);
+        }
 
         this._saveBoxOrder('left', boxOrders.left);
         this._saveBoxOrder('center', boxOrders.center);

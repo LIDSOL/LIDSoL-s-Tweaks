@@ -993,6 +993,24 @@
       <description>Elementos de la barra superior que deben mostrarse forzosamente</description>
     </key>
 
+    <key type="as" name="tbo-default-left-box-order">
+      <default>[]</default>
+      <summary>Orden por defecto de la caja izquierda</summary>
+      <description>Orden original detectado de los elementos del panel izquierdo</description>
+    </key>
+
+    <key type="as" name="tbo-default-center-box-order">
+      <default>[]</default>
+      <summary>Orden por defecto de la caja central</summary>
+      <description>Orden original detectado de los elementos del panel central</description>
+    </key>
+
+    <key type="as" name="tbo-default-right-box-order">
+      <default>[]</default>
+      <summary>Orden por defecto de la caja derecha</summary>
+      <description>Orden original detectado de los elementos del panel derecho</description>
+    </key>
+
     <!-- Date Menu (At a Glance) -->
     <key type="b" name="dm-enabled">
       <default>false</default>
@@ -1347,39 +1365,11 @@
       <summary>Habilitar Dashboard</summary>
       <description>Activa el panel de inicio (Dashboard) con widgets configurables</description>
     </key>
-
-    <key type="b" name="dashboard-button-enable">
-      <default>true</default>
-      <summary>Mostrar botón en el panel</summary>
-      <description>Muestra el botón de Dashboard en la barra superior</description>
-    </key>
-    <key type="b" name="dashboard-button-show-icon">
-      <default>true</default>
-      <summary>Mostrar icono en el botón</summary>
-    </key>
-    <key type="s" name="dashboard-button-icon-path">
-      <default>""</default>
-      <summary>Ruta del icono personalizado</summary>
-    </key>
-    <key type="s" name="dashboard-button-label">
-      <default>"Dash"</default>
-      <summary>Etiqueta del botón</summary>
-    </key>
-    <key type="i" name="dashboard-position">
-      <range min="0" max="2"/>
-      <default>1</default>
-      <summary>Posición del botón</summary>
-      <description>0=izquierda, 1=centro, 2=derecha</description>
-    </key>
-    <key type="i" name="dashboard-offset">
-      <range min="0" max="100"/>
-      <default>0</default>
-      <summary>Desplazamiento en el panel</summary>
-    </key>
     <key type="as" name="dashboard-shortcut">
       <default><![CDATA[['<Ctrl><Super>d']]]></default>
       <summary>Atajo para abrir/cerrar Dashboard</summary>
     </key>
+
 
     <key type="i" name="dashboard-x-align">
       <range min="0" max="3"/>

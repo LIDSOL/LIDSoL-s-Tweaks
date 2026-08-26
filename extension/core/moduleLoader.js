@@ -15,6 +15,7 @@ import { UserAvatarDateMenuModule } from '../modules/userAvatarDateMenu/module.j
 import { DateMenuMediaModule } from '../modules/dateMenuMedia/module.js';
 import { LauncherModule } from '../modules/launcher/module.js';
 import { BatteryIndicatorModule } from '../modules/batteryIndicator/module.js';
+import { WorkspaceModule } from '../modules/workspace/module.js';
 
 const REGISTERED_MODULES = [
     {
@@ -106,6 +107,12 @@ const REGISTERED_MODULES = [
         name: 'Battery Indicator',
         enabledKey: 'battery-indicator-enabled',
         moduleClass: BatteryIndicatorModule
+    },
+    {
+        id: 'workspace',
+        name: 'Workspace Bar',
+        enabledKey: 'wb-enabled',
+        moduleClass: WorkspaceModule
     }
 ];
 

@@ -1,0 +1,76 @@
+
+.wsb-ws-btn-wrapper {
+    margin-right: 6px;
+    padding: 4px 0px 4px 0px;
+}
+
+.wsb-container-wrapper .wsb-ws-btn-wrapper:last-child {
+    margin-right: 0px;
+}
+
+.wsb-ws-num-wrapper {
+    background-color: rgba(255, 255, 255, 0.04);
+    border-radius: 8px 0px 0px 8px;
+    border-top-width: 2px;
+    border-right-width: 0px;
+    border-bottom-width: 2px;
+    border-left-width: 2px;
+    border-style: solid;
+    border-color: rgba(255, 255, 255, 0.15);
+    padding: 0 7px 0px 7px;
+}
+
+.wsb-ws-num-wrapper-active {
+    border-color: #3584e4;
+}
+
+.wsb-ws-num-label-elem {
+    font-size: 15px;
+}
+
+.wsb-icons-wrapper {
+    background-color: transparent;
+    border-style: solid;
+    border-color: rgba(255, 255, 255, 0.15);
+    padding: 0 5px 0px 5px;
+    min-width: 10px;
+    border-radius: 0px 8px 8px 0px;
+    border-top-width: 2px;
+    border-right-width: 2px;
+    border-bottom-width: 2px;
+    border-left-width: 0px;
+}
+
+.wsb-icons-wrapper-active {
+    border-color: #3584e4;
+}
+
+.wsb-single-icon-wrapper {
+    margin-right: 5px;
+}
+
+.wsb-icons-wrapper .wsb-single-icon-wrapper:last-child {
+    margin-right: 0px;
+}
+
+.wsb-ws-btn-drag-hover .wsb-icons-wrapper {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.wsb-ws-btn-drag-hover .wsb-ws-num-wrapper {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.wsb-insertion-indicator {
+    background-color: #3584e4;
+    border-radius: 2px;
+    min-width: 3px;
+}
+
+.wsb-overflow-arrow {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.55);
+    padding: 0 2px;
+}

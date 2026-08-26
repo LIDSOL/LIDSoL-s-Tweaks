@@ -9,6 +9,7 @@ import GLib from 'gi://GLib';
 
 import { ExtensionPreferences } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 import { WorkspaceIndicatorPrefs } from './extension/modules/workspaceIndicator/prefsSettings.js';
+import { WorkspacePrefs } from './extension/modules/workspace/prefsSettings.js';
 import {
   createModuleRow,
   createSwitchRow,
@@ -240,6 +241,13 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
       title: 'Workspace Indicator',
       subtitle: 'Indicador de espacios de trabajo estilo Space Bar',
       onDetailed: () => this._openDialog('Workspace Indicator', p => this._buildWorkspaceIndicatorDialog(p)),
+    }));
+    elementsGroup.add(createModuleRow({
+      settings: this._settings,
+      bindKey: 'wb-enabled',
+      title: 'Workspace Bar',
+      subtitle: 'Barra de espacios con iconos de ventanas (estilo Space Bar)',
+      onDetailed: () => this._openDialog('Workspace Bar', p => this._buildWorkspaceBarDialog(p)),
     }));
     elementsGroup.add(createModuleRow({
       settings: this._settings,
@@ -521,6 +529,11 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
 
   _buildWorkspaceIndicatorDialog(page) {
     const prefs = new WorkspaceIndicatorPrefs(this._settings);
+    prefs.populateGroups(page);
+  }
+
+  _buildWorkspaceBarDialog(page) {
+    const prefs = new WorkspacePrefs(this._settings);
     prefs.populateGroups(page);
   }
 

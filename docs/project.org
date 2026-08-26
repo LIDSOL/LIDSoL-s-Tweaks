@@ -1,63 +1,47 @@
 #+TITLE: Proyecto LIDSoL's Tweaks
-#+DATE: 2026-08-18
+#+DATE: 2026-08-25
 * 0. Introducción
-En este proyecto se propone estudiar y usar como base el código de diversas extensiones de GNOME con el propósito de modernizarlas y/o integrarlas en una única extensión compatible con GNOME Shell 50; el problema a resolver radica en la fragilidad de las extensiones, que dependen de APIs internas sujetas a cambios: las actualizaciones del escritorio terminan /rompiendo/ las extensiones. La arquitectura del proyecto debe facilitar su mantenimiento y se validará mediante métricas de rendimiento.
+Este proyecto propone estudiar y usar como base el código de diversas extensiones de GNOME con el objetivo de modernizarlas y/o integrarlas en una única extension compatible con GNOME Shell 50. El problema que se busca resolver (o mitigar) es la obsolescencia, las extensiones son frágiles, ya que dependen de APIs internas sujetas a cambios, como consecuencia, las actualizaciones del entorno de escritorio pueden provocar su incompatibilidad y anular su funcionalidad. Para solventar esto se diseñará una extensión cuya arquitectura facilite el mantenimiento.
 * 1. Objetivos
 ** Objetivos generales
-Diseñar, implementar y mantener una extensión modular para GNOME que reinterprete y modernice los componentes de extensiones obsoletas como [[https://extensions.gnome.org/extension/5338/aylurs-widgets/][Aylur's Widgets]] mediante una arquitectura que facilite el mantenimiento, adaptada a los cambios de API de GNOME Shell y GJS.
-- Garantizar compatibilidad total con GNOME 50 y 51.
+Diseñar, implementar y mantener una extensión modular para GNOME que modernice y re-interprete los componentes de extensiones obsoletas como [[https://extensions.gnome.org/extension/5338/aylurs-widgets/][Aylur's Widgets]] mediante una arquitectura que facilite el mantenimiento, adaptable a los cambios de API de GNOME Shell y GJS.
+- Garantizar compatibilidad total con GNOME 50 y GNOME 51.
 - Hacer los cambios necesarios para que los componentes sean estrictamente modulares.
-- Separar estrictamente la lógica de negocio con la capa de presentación.
+- Separar estrictamente la lógica de negocio de la capa de presentación.
 - Implementar Lazy Loading de módulos.
-- Diseñar e implementar un framework modular interno. Consolidad un backend reusable y extensible.
+- Diseñar e implementar un framework modular interno; consolidad un backend reusable y extensible.
 - Diseñar un backend MPRIS unificado y extensible.
-- Reducir listeners globales innecesarios y evitar memory leaks.
-- Validar consumo de CPU y memoria mediante profiling.
-- Optimizar el rendimiento y evitar degradación en animaciones del Shell.
+- Validad consumo de CPU y memoria mediante profiling.
+- Optimizar el rendimiento y evita degradación en animaciones del shell.
 - Documentar formalmente la arquitectura interna y contratos entre módulos.
+- Reducir listeners globales innecesarios y evitar memory leaks.
 - Minimizar conflictos con extensiones populares.
 - Publicar la extensión.
-** Objetivos específicos [0%]
-*** TODO 1. Herramientas de escritorio (Shell) [0%]
-**** NEXT 1.1 Dashboard
-***** TODO Tareas
-DEADLINE: <2026-08-22 Sat>
-- [X] 1.0.1 Colocar un ícono simbólico en la Page 1 (Shell) del View Switcher.
-  - Las categorías de `CATEGORIES` (prefs.js) ya definían `icon` (Shell = `system-search-symbolic`), pero nunca se aplicaba a las páginas, por lo que el `Adw.ViewSwitcher` no mostraba iconos. Fix: `page.icon_name = cat.icon;` en `_buildPage()` aplica el icono a todas las páginas.
-- [X] 1.0.2 Debe haber un solo Group para las tres opciones, dashboard, quick text y Launcher deben ser opciones "pegadas" entre sí, sin separación.
-  - `_addShellModuleGroup()` (prefs.js) usaba tres `Adw.PreferencesGroup` separados (Dashboard con título/descripción, Quick Text sin, Launcher con título/descripción), por lo que la página Shell mostraba tres bloques. Ahora hay un único group (sin título) con las tres filas de módulo pegadas.
-- [X] 1.0.3 Renombrar la sección ¿qué nombre sería más adecuado que Shell?
-  - "Shell" era ambiguo (también abarca top bar y gestor de ventanas). Renombrada a **Herramientas** en `CATEGORIES` (prefs.js), con icono `applications-utilities-symbolic` (llave inglesa, `preferences-system-symbolic` / `system-search-symbolic` eran de ajustes/búsqueda). El `id` interno sigue siendo `shell`.
-- [X] 1.0.4 Mejorar la descripción
-  - Header de la página: summary = "Herramientas de escritorio", description = "Dashboard personalizable, captura rápida de notas y launcher de búsqueda con atajo de teclado." (antes "Herramientas del sistema / Lanzador, menú de apagado y notas rápidas", que ya no correspondía a los módulos de la página).
-- [X] 1.1.5  Evaluar si el botón "Read Config (load config from dashboard.json)" sigue siendo necesario. De no serlo, eliminarlo.  
-- [X] 1.1.6  Eliminar el switch "Homogeneous Cells" y su código asociado.
-- [ ] 1.1.7  Media Player -> Prefer: eliminar esta opción y todo su código asociado. 
-- [ ] 1.1.8  Media Player: Implementar las opciones del switch Show Loop and Shuffle; deben de funcionar en local y GSconnect.
-- [ ] 1.1.9  Media player: El slider debe funcionar en reproductores locales (reproductores de música desde la terminal, GUI nativos, flatpak y web).
-- [ ] 1.1.10  Media player: El slider debe funcionar en GSConnect
-- [ ] 1.1.11  Media player:El conteo del tiempo (en avance de multimedia) va de 3 en 3, debe ser al segundo.
-- [X] 1.1.12  Clock: La distancia entre el reloj y la fecha debe poder modificarse, actualmente está /hardcodeada/. Debe ser válida tanto para el layout vertical como para el horizontal. No debe hacer desbordamiento.
-- [ ] 1.1.13 Clock: Al hacer click en el reloj se debe lanzar gnome-clocks y otro programa que el usuario elija.
-- [ ] 1.1.14 Settings & System: Las opciones de System deben mantenerse intactas. Pero hay que modificar Settings, para que estén en este orden y tengan:
-  - Settings (abrir los ajuste en general).
-  - Wi-Fi (abrir los ajustes de wi-fi)
-  - Bluetooth (abrir los ajustes de bluetooth)
-  - Night Ligth (activar y desactivar la luz nocturna)
-  - Dark Style (activar y desactivar el modo oscuro)
-  - Do Not Disturb (activar y desactivar el modo do not disturb)  
-- [ ] 1.1.15 Cambiar las preferencias por defecto a mi configuración actual
-- [ ] 1.1.16 Feat: Actualmente el dashboard aparece como un "cuadro de dialogo". Sería interesante explorar la posibilidad de moverlo "a la búsqueda", en vez de mostrar el texto "Type to search", mostrar el dashboard. De ser posible:
-  - [ ] 1.1.16.1 Añadir un Combo Row con la posibilidad de elegir: dashboard en "cuadro de diálogo" o en la búsqueda. 
-- [ ] 1.1.17 Cambiar el widget de launcher por un widget del tiempo (o explorar otras posibilidad)
-***** Notas
-- **Sincrónico vs asíncrono**: Gio.DBusProxy.new_sync() parece más simple pero no espera a que el name-owner esté disponible. Usar new() + Promise garantiza que las propiedades están cacheadas antes de acceder.
-- **GVariant a{sv}**: deepUnpack() desenrolla recursivamente, incluyendo los v internos. Pero proxy.Metadata devuelve el GVariant crudo donde los valores tipo v necesitan .deepUnpack() o .get_string() según el tipo.
-- **connectSignal vs signal_subscribe**: connectSignal en Gio.DBusProxy es más simple y directo que signal_subscribe de Gio.DBus.session.
-- **can-play como guard**: No emitir player-added hasta que canPlay sea true evita errores de "proxy no listo".
-- **Export en ESM**: GObject.registerClass() con export var puede fallar si hay errores en tiempo de evaluación. Usar export { ... } explícito al final del archivo es más fiable.
-**** TODO 1.2 Quick Text
-- Descripción: Un atajo de teclado (Super+i, aunque es personalizable) abre una ventana de diálogo desde la cual podemos escribir contenido que se insertará en algún alchivo de texto plano de nuestra preferencia; podemos configurar un prefijo o sufijo al texto insertado. Es útil para tomar notas rápidas, fragmentos de texto y anotar ideas; puede usarse como complemento a cualquier app de notas basada en texto plano. El nombre y la ruta de acceso al archivo de destino deben establecerse antes de utilizar la extensión y el archivo debe existir.
+** Objetivos específicos
+*** [#A] 1.1 Herramientas
+**** TODO 1.1.1 Dashboard
+DEADLINE: <2026-09-05 Sat>
+- [ ] 1.1.1.1 Media Player -> Prefer: eliminar esta opción y todo su código asociado.
+- [ ] 1.1.1.2 Media Player: Implementar las opciones del switch 'Show Loop and Shuffle'; deben de funcionar en local y GSconnect.
+- [ ] 1.1.1.3 Media player: El slider debe funcionar en reproductores locales (reproductores de música desde la terminal, GUI nativos, flatpak y web).
+- [ ] 1.1.1.4 El slider debe funcionar en GSConnect.
+- [ ] 1.1.1.5 Media player: El conteo del tiempo (en avance de multimedia) va de 3 en 3, animar el avance para evitar un salto brusco.
+- [x] 1.1.1.6 Clock: La distancia entre el reloj y la fecha debe poder modificarse, actualmente está /hardcodeada/. Debe ser válida tanto para el layout vertical como para el horizontal. No debe hacer desbordamiento.
+- [ ] 1.1.1.7 Clock: Al hacer click en el reloj se debe lanzar gnome-clocks, debe ser configurable para el usuario para seleccionar otro programa.
+- [ ] 1.1.1.8 Settings & System: Las opciones de System deben mantenerse intactas. Pero hay que modificar Settings, para que estén en este orden y tengan:
+    - Settings (abrir los ajuste en general).
+    - Wi-Fi (abrir los ajustes de wi-fi)
+    - Bluetooth (abrir los ajustes de bluetooth)
+    - Night Ligth (activar y desactivar la luz nocturna)
+    - Dark Style (activar y desactivar el modo oscuro)
+    - Do Not Disturb (activar y desactivar el modo do not disturb)  
+- [ ] 1.1.1.9 Feat: Actualmente el dashboard aparece como un "cuadro de dialogo". Sería interesante explorar la posibilidad de moverlo "a la búsqueda", en vez de mostrar el texto "Type to search", mostrar el dashboard. De ser posible:
+  - [ ] 1.1.1.9.1 Añadir un Combo Row con la posibilidad de elegir: dashboard en "cuadro de diálogo" o en la búsqueda.
+- [ ] 1.1.1.10 Cambiar el widget de launcher por un widget del tiempo (o explorar otras posibilidad)
+- [ ] 1.1.1.11 Cambiar las preferencias por defecto a mi configuración actual
+**** TODO 1.1.2 Quick Text
+DEADLINE: <2026-09-05 Wed>    
+- Descripción y objetivo: Un atajo de teclado (Super+i predeterminado, pero es configurable) abre una ventana de dialogo desde la cual podemos escribir contenido que se insertará en algún archivo de texto plano de nuestra preferencia, podemos configurar un prefijo o sufijo al texto insertado. Es útil para tomar notas rápidas, fragmentos de texto y anotar ideas, puede usarse como complemento a cualquier app de notas basada en texto plano. El nombre y la ruta de acceso al archivo de destino deben establecerse antes de utilizar la extensión y el archivo debe existir.
   - Se usa como base el código de la extensión *Quick Text* de *Brainstormtrooper*. Esta extensión es compatible hasta GNOME 47, por lo que será necesario darle mantenimiento para darle compatibilidad con GNOME 50.
     - [[https://github.com/brainstormtrooper/quicktext][QuickText (GitHub)]]
     - [[https://extensions.gnome.org/extension/5892/quick-text/][QuickText (Extension.Gnome)]]
@@ -67,36 +51,23 @@ DEADLINE: <2026-08-22 Sat>
 
 Para ello, se puede tomar como base la extensión [[https://github.com/boerdereinar/copyous][copyous]].
 
-***** TODO Tareas
-DEADLINE: <2026-08-21 Fri>
-- [ ] 1.2.1  Bug: Al abrir la ventana de Actions, no se ve el texto de las notas, se requiere hacer resize a la ventana para que recien ahí se vea el contenido de las notas.
-- [ ] 1.2.2  Feat: Implementar una acción en el botón de calendario de Actions.
-  - [ ] 1.2.2.1 Al pulsar el botón de calendario (new event), por defecto, abre el calendario (gnome-calendar), creando un evento usando el texto de la nota como título del evento.
-  - [ ] 1.2.2.2 Adicionalmente, en los ajustes, se debe poder cambiar la acción de New Event, se debe configurar un comando bash, esta será una acción personalizada (puede ser útil para mover el texto a otro archivo, crear un evento en ikhal u otro calendario basado en terminal, etcétera). Se pasa como input el texto de la nota seleccionada al comando. 
-- [ ] 1.2.3 Mejorar el ajuste de "Archivo de notas" 
-  - [ ] 1.2.3.1 Manda una notificación si no encuentra el archivo
-  - [ ] 1.2.3.2 Mejorar el selector del archivo
-***** Notas
-**** TODO 1.3 Launcher
-DEADLINE: <2026-08-23 Sun>
-- [X] 1.3.1  Refactor: Eliminar el launcher tipo spotlight, todas sus opciones en prefes (ancho, alto, animaciones, velocidad, ubicación, ...) y todo el código asociado.
-- [X] 1.3.2  Feat: Nueva implementación del launcher, en lugar de una ventana flotante, el atajo `launch-hotkey` abre la búsqueda nativa del Overview en un /Modo búsqueda/.
-  - `searchController._setSearchActive(true)` + foco en el entry, de modo que toda la interfaz de búsqueda se muestra aunque la barra esté oculta (`launcher-hide-search`). El atajo hace toggle: si hay búsqueda activa → `_closeSearchMode()` (solo oculta el overview, sin reset previo); si el overview está visible → entra en modo búsqueda; si no → lo abre y entra en modo búsqueda. La barra oculta aparece automáticamente al activarse la búsqueda (handler `notify::search-active` existente).
-  - Fix: la barra no reaparecía porque `_showSearchBar()` animaba a `height: this._searchEntry.height`, que es 0 tras colapsarla. Ahora usa la altura preferida (`get_preferred_height`).
-  - Feat: Esc cierra la vista (1 pulsación); handler `captured-event` en `global.stage` (fase capture, antes que el entry enfocado) → si la búsqueda se activó por el atajo (`_searchModeActive`), `Esc` hace `Main.overview.hide()` (equivalente a pulsar Super). Se usa *capture* porque el handler propio del entry (`_onKeyPress` → `reset()` + `EVENT_STOP`) se tragaba la primera pulsación. El flag `_searchModeActive` se pone en `_enterSearchMode()` y se limpia cuando `search-active` pasa a false.
-  - Atajo nativo "Search" (Settings → Keyboard Shortcuts → Launcher → Search): ese atajo lo maneja gnome-settings-daemon → D-Bus `FocusSearch` → `Main.overview.focusSearch()`, que solo abre el overview y enfoca el entry → con la barra oculta se veía "solo el overview". Se parchea `focusSearch` (hook `_setupFocusSearchHook`/`_teardownFocusSearchHook`) para que se comporte igual que el atajo de la extensión: un **toggle** que abre nuestra vista y también la cierra (`original()` + `_toggleSearchMode()`), sin gate de `launcher-hide-search`.
-  - Conflicto de atajos: si `launcher-hotkey` coincide con el atajo nativo de búsqueda (`org.gnome.settings-daemon.plugins.media-keys` → `search`), se detecta (`_collidesWithNativeSearch`) y no se registra el keybinding propio para evitar doble disparo (abrir→cerrar); en ese caso el atajo nativo ya actúa como toggle vía el hook, así que gana el comportamiento de la extensión. El registro se reevalúa al cambiar `launcher-hotkey` (señal `changed::launcher-hotkey`).
-  - Sin flash de "No results" al cerrar: antes se hacía `search.reset()` (limpia el texto → `_updateSearchProgress` muestra "No results") *antes* de ocultar, así que el mensaje se veía durante el fundido de salida. Ahora se oculta el overview primero; el reset ocurre en `vfunc_unmap` (ya invisible) → sin flash. Aplica a Esc, al toggle con el atajo de extensión y al atajo nativo.
-  - Leyenda al entrar: en lugar de ocultar todo, al entrar sin texto se muestra `_statusContainer` con el spinner parado y oculto (`visible=false`, para que no conserve su ranura de 64px vacía), un icono simbólico `system-search-symbolic` de 64px en la misma ranura que el spinner (sin `style_class` `search-entry-icon`, que lo encogía a ~1.091em vía CSS `icon-size`) y el texto localizado `_('Type to search')`, con la misma posición/tamaño/color que "Searching" (mismo widget `_statusText`, misma separación de 24px). El icono se oculta al empezar a escribir (signal `terms-changed`, `play()` nativo re-muestra el spinner) y `_updateSearchProgress()` nativo muestra "Searching…"/"No results".
-- [X] 1.3.3  Fix: Bug en la configuración del atajo de teclado. Siempre aparece desactivado, aunque si haya un atajo de teclado configurado. 
-- [ ] 1.3.4  Feat: Implementar comandos personalizados al /estilo gnofi/.
-  - [ ] 1.3.4.1 Añadir un PreferencesGroup, con un Group Title "comandos", el botón (Suffix) debe tener el texto "Añadir". Mostrar los comandos añadidos en la sección inferior. El objetivo es que en la búsqueda puedas escribir ":ejemplo", y esto accione un comando shell configurado.
-    - Clave de esquema `launcher-commands` (tipo `as`, formato `"nombre|comando"`)
-    - `_populateCommands()` crea un Gtk.ListBox con botones de eliminación para cada comando
-    - Adw.MessageDialog para añadir nuevos comandos (entradas de nombre + comando).
-**** TODO 1.5 stylushOSD      
-DEADLINE: <2026-08-25 Tue>
-**** SOMEDAY 1.4 Unclutter
+- [ ] 1.1.2.1 Bug: Al abrir la ventana de Actions, no se ve el texto de las notas, se requiere hacer resize a la ventana para que recien ahí se vea el contenido.
+- [ ] 1.1.2.2  Feat: Implementar una acción en el botón de calendario de Actions.
+  - [ ] 1.1.2.2.1 Al pulsar el botón de calendario (new event), por defecto, abre el calendario (gnome-calendar), creando un evento usando el texto de la nota como título del evento.
+  - [ ] 1.1.2.2.2 Adicionalmente, en los ajustes, se debe poder cambiar la acción de New Event, se debe configurar un comando bash, esta será una acción personalizada (puede ser útil para mover el texto a otro archivo, crear un evento en ikhal u otro calendario basado en terminal, etcétera). Se pasa como input el texto de la nota seleccionada al comando. 
+- [ ] 1.2.2.3 Mejorar el ajuste de "Archivo de notas" 
+  - [ ] 1.2.2.3.1 Manda una notificación si no encuentra el archivo
+  - [ ] 1.2.2.3.2 Mejorar el selector del archivo
+**** 1.1.3 Launcher
+DEADLINE: <2026-09-12 Sun>
+- [ ] 1.1.3.1 Feat: Implementar comandos personalizados al estilo /gnofi/.
+    - [ ] 1.1.3.1.1 Añadir un PreferencesGroup, con un Group Title "comandos", el botón Suffix debe tener la leyenda "Añadir". El objetivo es que en la búsqueda, al escribir ":ejemplo", se ejecute el comando configurado.
+      - Clave de esquema `launcher-commands` (tipo `as`, formato `"nombre|comando"`)
+      - `_populateCommands()` crea un Gtk.ListBox con botones de eliminación para cada comando
+      - Adw.MessageDialog para añadir nuevos comandos (entradas de nombre + comando).
+    - [ ] 1.1.3.1.2       
+**** 1.1.4
+**** SOMEDAY 1.1.5 Unclutter
 Basado en unclutter y copyus
 - Se debe abrir con un atajo de teclado o un hot point como en overview.
 - Se tienen tres vistas:
@@ -108,66 +79,63 @@ Basado en unclutter y copyus
   - Notes.
     - Esta sección tiene tres botones: añadir, vista general y buscar
     - Por defecto muestra la última nota o la vista general.
-    - Al añadir una nueva nota (botón) puedes escribir y añadirla (quicktext)
-*** TODO 2. Quick Settings [16%]
-- [ ] 2.0.1 Debe tener 3 áreas: sistema, toggles e indicators
-**** DONE 2.1 Avatar de usuario
-**** TODO 2.2 System Items Layout
-DEADLINE: <2026-08-26 Wed>
-- [ ] 2.2.1 Los elementos deben organizarse mediante "drag and drop" y no mediante botones, símil al organizador de elementos del top bar (implementado en los commits 7e16ea5, e09fc44, 9a3444b y 5025bfa.
-- [ ] 2.2.2 Añadir indicadores del sistema (monitor de recursos) a la sección de Items Layout: círculos que indiquen la cantidad de uso de recursos.
-**** TODO 2.3 Quick Toggles Layout
-DEADLINE: <2026-08-27 Thu>
-- [ ] 2.3.1 Los elementos deben organizarse mediante "drag an drop" y no mediante botones, símil al organizador de elementos del top bar (implementado en los commits 7e16ea5, e09fc44, 9a3444b y 5025bfa.
-- [ ] 2.3.2 Testing de las reglas de coincidencia: Constructor name, Regex de título, GTYpe name.
-- [ ] 2.3.3 Añadir la posibilidad de colocar opciones a los quick (por ejemplo, en caffeine, independiente al botón, hay una flecha que despliega un menú que permite controlar el tiempo de pantalla activa). Se deben poder añadir estas opciones, cada una puede ser un argumento al script.
-  - [ ] 2.3.4 Ejemplos de pre-configuración: syncthing y "caffeine"
-**** TODO 2.4 Overlay Mode
-DEADLINE: <2026-08-29 Sat>
-- [ ] 2.4.1 "Animaciones avanzadas" en el overlay. Esta opción integrarla en el dialog de overlay mode.
-- [ ] 2.4.2 Explorar la posibilidad de usar la animación por defecto (desplaza los toggles hacia abajo), pero controlarla, verificando que el contenido no se desborda, si se desborda, desplaza los toggles arriba y abajo para siempre ver el contenido.
-**** TODO 2.5 System Indicator
-DEADLINE: <2026-08-31 Mon>
+    - Al añadir una nueva nota (botón) puedes escribir y añadirla (quicktext)    
+*** [#B] 1.2 Quick Settings
+**** DONE 1.2.1 Avatar de usuario
+**** TODO 1.2.2 System Item Layout
+DEADLINE: <2026-09-05 Thu>
+- [ ] 1.2.2.1 Los elementos deben organizarse mediante "drag and drop" y no mediante botones, símil al organizador de elementos del top bar (implementado en los commits 7e16ea5, e09fc44, 9a3444b y 5025bfa.
+- [ ] 1.2.2.2 Propuesta: Añadir indicadores del sistema (monitor de recursos) a la sección de Items Layout: círculos que indiquen la cantidad de uso de recursos.
+**** TODO 1.2.3 Quick Toggles Layout
+DEADLINE: <2026-09-05 Thu>
+- [ ] 1.2.3.1 Los elementos deben organizarse mediante "drag an drop" y no mediante botones, símil al organizador de elementos del top bar (implementado en los commits 7e16ea5, e09fc44, 9a3444b y 5025bfa.
+- [ ] 1.2.3.2 Testing de las reglas de coincidencia: Constructor name, Regex de título, GTYpe name.
+- [ ] 1.2.3.3 Añadir la posibilidad de colocar opciones a los quick (por ejemplo, en caffeine, independiente al botón, hay una flecha que despliega un menú que permite controlar el tiempo de pantalla activa). Se deben poder añadir estas opciones, cada una puede ser un argumento al script.
+  - [ ] 1.2.3.4 Ejemplos de pre-configuración: syncthing y "caffeine"
+**** TODO 1.2.4 Overlay Mode
+DEADLINE: <2026-09-12 Sat>
+- [ ] 1.2.4.1 "Animaciones avanzadas" en el overlay. Esta opción integrarla en el dialog de overlay mode.
+- [ ] 1.2.4.2 Explorar la posibilidad de usar la animación por defecto (desplaza los toggles hacia abajo), pero controlarla, verificando que el contenido no se desborda, si se desborda, desplaza los toggles arriba y abajo para siempre ver el contenido.
+**** TODO 1.2.5 System Indicator
+DEADLINE: <2026-09-12 Sat>
 Tomando como referencia a Quick Settings Tweaks, implementar:
-- [ ] 2.5.1 Si el widget de media está en los quicksettings (tarea 3.2.1):
-  - [ ] Añadir el visualizer y el album art a los System Indicators.
-- [ ] 2.5.2 Accent Screen sharing indicador: Posibilidad de usar el color de acento en el indicador de "compartiendo pantalla"
-- [ ] 2.5.3 Accent screen recording indicator: Posibilidad de usar el acento de color en el indicador "grabando pantalla"
-- [ ] 2.5.4 Privacy indicator style: Default, accent, monochrome.
-- [ ] 2.5.5 Ordering and hiding: posibilidad de reordenar y ocultar los indicadores del sistema
-  - No debe interferir con el elemento 4.4 (battery indicator).
-  - Reorganización mediante switch y drag and drop
-**** TODO 2.6 Quick Settings Compact
-*** TODO 3. Widgets [0%]
-- [ ] 3.0.1: Dividirlo en tres áreas: Date Menu widget, Quick Settings Widgets y Background widgets
-**** TODO 3.1 Date Menu Widgets
-DEADLINE: <2026-09-02 Wed>
-- [ ] 3.1.1 Eliminar la opción User Avatar y todo su código asociado.
-  - [ ] 3.1.1.1 Escribir en Notas: lecciones y referencias una "entrada" de como se implementaba este widget, por si resulta útil a posteriori.
-- [ ] 3.1.2 Ocultar caja derecha (quick settings tweaks referencia)
-- [ ] 3.1.3 Ocultar caja izquierda (quick settings tweaks referencia)
-- [ ] 3.1.4 Permutar caja derecha e izquierda (aylur's referencia)
-- [ ] 3.1.5 Bug: De vez en cuando, aparece un mensaje en el área de notificaciones: "No notifications". No sucede todo el tiempo, solo aparece "sin razón aparente" y luego, nunca desaparece este mensaje aunque hayan notificaciones, apareciendo la leyenda en el fondo de las notificaciones. Es decir, el mensaje persiste aunque hayan notificaciones.
-- [ ] 3.1.6 Mejoras en el widget de Media del Date Menu.
-  - [ ] 3.1.6.1 La barra de progreso avanza cada 9 segundos. Sería bueno ver una animación de desplazamiento del indicador, para no ver el avance de forma brusca.
-  - [ ] 3.1.6.2 Cuando se cambia de medio gracias al switch, la barra de progreso se muestra en 0 y después avanza hasta el estado tiempo real de producción. También se debe implementar la animación de avance en este caso, para evitar "ese cambio brusco"
-**** TODO 3.2 Quick Settings Widgets
-DEADLINE: <2026-09-04 Fri>
-- [ ] 3.2.1 Implementación del widget multimedia en los quick settings, tomando como referencia a quick settins tweaks
+- [ ] 1.2.5.1 Ordering and hiding: posibilidad de reordenar y ocultar los indicadores del sistema
+  - No debe interferir con el elemento 4.4.7 (battery indicator); debe ser un elemento más.
+  - Reorganización mediante switch y drag and drop      
+- [ ] 1.2.5.2 Accent Screen sharing indicador: Posibilidad de usar el color de acento en el indicador de "compartiendo pantalla"  
+- [ ] 1.2.5.3 Accent screen recording indicator: Posibilidad de usar el acento de color en el indicador "grabando pantalla"  
+- [ ] 1.2.5.4 Privacy indicator style: Default, accent, monochrome. 
+- Si en el futuro, como se indica en [[https://blogs.gnome.org/shell-dev/2026/08/11/gnome-shell-design-dreams/][el blog de GNOME SHELL & Mutter]], el widget de multimedia se mueve a los quicksettings: se moverá el visualizer y album art a los System Indicators.
+**** TODO 1.2.6 Quick Settings Compact
+DEADLINE: <2026-09-12 Sat>    
+*** [#C] 1.3 Widgets
+**** TODO 1.3.1 Date Menu Widgets
+DEADLINE: <2026-09-05 Thu>
+- [ ] 1.3.1.1 Eliminar la opción User Avatar y todo su código asociado. Pero tomar notas sobre como insertar elementos en esta sección del date menu, puede resultar útil después.
+- [ ] 1.3.1.2 Bug: De vez en cuando, aparece la leyenda "No Notifications" en el Date Menu, incluso aunque sí hayan notificaciones, provocando que estas se superpongan a la leyenda; no sucede todo el tiempo, aparece la leyenda sin "razón aparente" y luego nunca desaparece, incluso si las extensiones son desactivadas; esto también hace que el botón "Borrar todo" no sea visible.
+- [ ] 1.3.1.3 Mejoras en el widget de Multimedia
+    - [ ] 1.3.1.3.1 La barra de progreso avanza cada 3 segundos, sería bueno ver una animación de desplazamiento del indicador, para no ver un avance brusco. 
+    - [ ] 1.3.1.3.2  Cuando se cambia de medio gracias al switch, la barra de progreso se muestra en 0 y después avanza hasta el estado tiempo real de producción. También se debe implementar la animación de avance en este caso, para evitar "ese cambio brusco"
+    - [ ] 1.3.1.3.3 Mejoras en MPRIS
+- [ ] 3.1.1.4 Ocultar caja derecha (quick settings tweaks referencia)
+- [ ] 3.1.1.5 Ocultar caja izquierda (quick settings tweaks referencia)
+- [ ] 3.1.1.6 Permutar caja derecha e izquierda (aylur's referencia) 
+**** TODO 1.3.2 Quick Settings Widgets
+DEADLINE: <2026-09-12 Thu>
+- [ ] 1.3.2.1 Implementación del widget multimedia en los quick settings, tomando como referencia a quick settins tweaks
   - Opción de mostrar el widget arriba o abajo de los toggles.
   - Opciones el widget en un dialog
   - Tomar como referencia el MPRIS de este widget para mejorar el de LIDSoL's Tweaks; relación con task 6
-- [ ] 3.2.2 Implementación del widget de notificaciones tomando como referencia quick settings tweaks.
-  - 3.2.2.1 Posibilidad de solo mostrar la última notificación/grupo de notificaciones, y mediante un botón en la parte inferior, muestra el resto de notificaciones usando el overlay mode, para evitar desbordamiento.
+- [ ] 1.3.2.2 Implementación del widget de notificaciones tomando como referencia quick settings tweaks.
+  - 3.2.1 Posibilidad de solo mostrar la última notificación/grupo de notificaciones, y mediante un botón en la parte inferior, muestra el resto de notificaciones usando el overlay mode, para evitar desbordamiento.
     - En el overlay mode muestra la scroll bar.
-**** TODO 3.3 Background Widgets
-- [ ] 3.3.0 Mejorar la posición, colocado de los widgets
-  - [ ] 3.3.0.1 Usar un grid, el widget puede ocupar una "celda/coordenada" dentro de ese grid. Si un widget ya lo ocupa, no es posible colocar otro más para evitar superposición (puede ser usado un algoritmo de exclusión mutua). 
-- [ ] 3.3.1 Posibilidad de mostrar y ocultar los widgets background mediante un atajo de teclado
-***** TODO 3.3.1 Animación fade.
+**** TODO 1.3.3 Background Widget
+DEADLINE: <2026-09-12 Thu>
+- [ ] 1.3.3.1 Dividirlo en tres áreas: Date Menu widget, Quick Settings Widgets y Background Widgets. Usar un grid, el widget puede ocupar una "celda/coordenada" dentro de ese grid. Si un widget ya lo ocupa, no es posible colocar otro más para evitar superposición.
+***** TODO 1.3.3.1 Animación fade.
 DEADLINE: <2026-09-15 Tue>
 Implementar una animación fade al pasar del desktop al overview, para que la transición no sea tan brusca. Para ello puedes estudiar la extensión "/desktop-icons-ng/", que muestra íconos en el escritorio, y ya implementa la animación que buscamos.
-***** TODO Widget Picture 
+***** TODO 1.3.3.2 Widget Picture 
 DEADLINE: <2026-09-15 Tue>
 ***** SOMEDAY Widget clock
 - Referencia para el frontend: [[https://flathub.org/en/apps/re.sonny.Retro][Widget clock]]
@@ -175,111 +143,161 @@ DEADLINE: <2026-09-15 Tue>
 - Referencia para el frontend: [[https://flathub.org/en/apps/dev.geopjr.Turntable][Turntable (media widget flatpak)]]
 ***** SOMEDAY Widget weather
 - Referencia para el frontend: [[https://flathub.org/en/apps/io.github.amit9838.mousam][Mouseam en "modo widget"]]
-  
-*** TODO 4. Top Bar [0%]
-- [X] 4.1 Organizar este apartado en los siguientes grupos, cada grupo debe tener lo siguiente:
-  - General:
-    - Top Bar Organizer
-    - Panel Corners
-  - Elementos del panel:
-    - Start Icon
-    - Workspace Indicator
-    - Date Menu (borra el /at a Glance/ y coloca "Date Menu Tweaks").
-    - Battery indicator
-**** TODO 4.1 Panel Corners
-DEADLINE: <2026-09-08 Tue>
-- [ ] 4.1.1 Eliminar el modo debug de las opciones avanzadas (switch). Pero deja la posibilidad de activarlo de manera más general.
-- [ ] 4.1.2 Añadir compatibilidad con la extensión "blur shell"
-**** TODO 4.2 Date Menu
-DEADLINE: <2026-09-15 Tue>
-- Descripción y objetivo: Basado en el widget [[https://support.google.com/android/answer/14883154][At a Glance]] de los Google Pixel. El texto de /Date Menu/ cambia dinámicamente, muestra el contenido multimedia en reproducción, muestra un contador de notificaciones, etcétera.
-***** TODO 4.2.1 Date Menu Formatter
-- Descripción y objetivo: Permite la personalización del formato de la fecha y hora en el panel.
-  - Aylur's Widget tiene un componente que permite personalizar esto, también se tomará como referencia el código de la extensión [[https://extensions.gnome.org/extension/4655/date-menu-formatter/][Date Menu Formatter de Marcin Jakubowski]]. Esta última compatible hasta GNOME 50, por lo que no debería ser difícil integrarla.
+*** [#A] 1.4 Top Bar
+**** TODO 1.4.1 Top Bar Organized
+DEADLINE: <2026-08-26 Wed>
+- [ ] 1.4.1.1 Bug: Al hacer uso del botón "Restablecer valores predeterminados" todos los elementos /desaparecen/, al cerrar y abrir el dialog, nuevamente son visibles. No se restablece el orden.
+- [ ] 1.4.1.1 Feat: Al hacer uso del botón "Restablecer valores predeterminados", recargar los elementos del panel, para eliminar aquellos que ya no están. Por ejemplo, a veces permanecen en la lista elementos que ya no existen; como un indicador de una extensión que ya se eliminó, pero el elemento aún se muestra.
+- [ ] 1.4.1.3 Feat: Cada vez que se abre el dialog, recarga los elementos (para asegurar que no se muestra nada que no está realmente).
+- [ ] 1.4.1.4 Bug: Este tiene relación con 1.4.5.1, no se detecta el elemento del Workspace Bar
+- [ ] 1.4.1.5 Feat: Recibe la señal de como se indica en 1.4.5.5.8; es decir, estos dos switch están sincronizados, se usa la función/clase de Top Bar.
+**** TODO 1.4.2 Panel Corners
+DEADLINE: <2026-08-27 Wed>
+- [ ] 1.4.2.1 Eliminar el modo debug (switch) de las opciones avanzadas, y todo el código asociado a esta opción.
+- [ ] 1.4.2.2 Añadir compatibilidad con la extension "blur shell"
+- [ ] 1.4.2.3
+**** TODO 1.4.3 Start Icon
+DEADLINE: <2026-08-27 Wed>
+- [ ] 1.4.3.1 Eliminar esta feature, todo su código asociado y sus opciones de configuración en prefs.js
+**** TODO 1.4.4  
+DEADLINE: <2026-08-28 Wed>
+**** TODO 1.4.5 Work Space Bar
+DEADLINE: <2026-08-31 Wed>
+- [ ] 1.4.5.1 Eliminar las opciones de posición y todo su código asociado (se usará top bar organized para ello).
+- [ ] 1.4.5.2 Bug: No se muestra en top bar organized (relacionado con 1.4.1.4)
+- [ ] 1.4.5.2 Feat: Implementar la posibilidad de renombrar el espacio de trabajo (como en space bar).
+- [ ] 1.4.5.3 
+- [ ] 1.4.5.4 Movimiento de workspaces como en workspaceIndicator
+- [ ] 1.4.5.5 Opciones de *Comportamiento*
+    - [ ] 1.4.5.5.1 Mostrar iconos de las aplicaciones (este switch debe mostrar u ocultar los iconos, para solo mostrar los nombres de los espacios de trabajo)
+    - [ ] 1.4.5.5.2 Click central cierra ventana (opción por defecto)
+    - [ ] 1.4.5.5.3 Mostrar números siempre
+    - [ ] 1.4.5.5.4 Scroll vertical (normal, invertido, desactivado)
+    - [ ] 1.4.5.5.5 Scroll horizontal (normal, invertido, desactivado)
+    - [ ] 1.4.5.5.6 Rueda del ratón (sobre el panel, sobre el indicador, desactivado)
+    - [ ] 1.4.5.5.7 Debounce 
+    - [ ] 1.4.5.5.6 Tiempo de debounce
+    - [ ] 1.4.5.5.8 Conservar indicador nativo (cuando se activa este módulo, manda un mensaje a top bar organized para ocultarlo). Relacionado con 1.4.1.5 
+    - [ ] 1.4.5.5.9  Mostrar espacios vacíos (+) (adaptarlo de space bar)
+- [ ] 1.4.5.6 Opciones de *Nombres inteligentes*
+    - Feat basada en space bar
+    - [ ] 1.4.5.6.1 Activar nombres inteligentes
+    - [ ] 1.4.5.6.1 Reevaluar nombres
+- [ ] 1.4.5.7 Opciones de *Apariencia*
+    - [ ] 1.4.5.7.1 Tamaño (opción por defecto), solo afecta a los iconos
+    - [ ] 1.4.5.7.2 Reducir opacidad de iconos nativos (opción por defecto)
+    - [ ] 1.4.5.7.3 Desaturar iconos inactivos (opción por defecto)
+    - [ ] 1.4.5.7.4 Habilitar animaciones (opción por defecto)
+    - [ ] 1.4.5.7.5 Efecto de escala de enfoque (opción por defecto)
+    - [ ] 1.4.5.7.6 Cantidad de reducción (opción por defecto)
+    - [ ] 1.4.5.7.7 Animación de transición (desvanecer, latido, deslizado+fundido, ninguna)
+    - [ ] 1.4.5.7.8 Padding de barra
+    - [ ] 1.4.5.7.9 Margen entre espacios
+    - [ ] 1.4.5.7.10 Mostrar fondo de iconos (opción por defecto)
+- [ ] 1.4.5.8 Opciones de *Espacio activo*
+    - [ ] 1.4.5.8.1 Usar color de acento de GNOME en el fondo (nombre e icono, en el fondo del icono debe usarse un color más oscuro para mejorar el contraste)
+    - [ ] 1.4.5.8.2 Usar color de acento de GNOME en el borde
+    - [ ] 1.4.5.8.3 Color de fondo
+    - [ ] 1.4.5.8.4 Color de texto
+    - [ ] 1.4.5.8.5 Color de borde
+    - [ ] 1.4.5.8.6 Color de fondo de iconos
+    - [ ] 1.4.5.8.7 Tamaño de fuente (nombre)
+    - [ ] 1.4.5.8.8 Grosor de fuente (nombre)
+    - [ ] 1.4.5.8.9 Radio de borde
+    - [ ] 1.4.5.8.10 Ancho de borde
+    - [ ] 1.4.5.8.11 Padding horizontal
+    - [ ] 1.4.5.8.12 Padding vertical
+- [ ] 1.4.5.9 Opciones de *Espacio inactivo*
+    - [ ] 1.4.5.9.1 Color de fondo
+    - [ ] 1.4.5.9.2 Color de texto
+    - [ ] 1.4.5.9.3 Color de borde
+    - [ ] 1.4.5.9.4 Color de fondo de iconos
+    - [ ] 1.4.5.9.5 Tamaño de fuente (nombre)
+    - [ ] 1.4.5.9.6 Grosor de fuente (nombre)
+    - [ ] 1.4.5.9.7 Radio de borde
+    - [ ] 1.4.5.9.8 Ancho de borde
+    - [ ] 1.4.5.9.9 Padding horizontal
+    - [ ] 1.4.5.9.10 Padding vertical
+- [ ] 1.4.5.10 Opciones de *Espacio vacío*
+    - [ ] 1.4.5.10.1 Color de fondo
+    - [ ] 1.4.5.10.2 Color de texto
+    - [ ] 1.4.5.10.3 Color de borde
+    - [ ] 1.4.5.10.4 Color de fondo de iconos
+    - [ ] 1.4.5.10.5 Tamaño de fuente (nombre)
+    - [ ] 1.4.5.10.6 Grosor de fuente (nombre)
+    - [ ] 1.4.5.10.7 Radio de borde
+    - [ ] 1.4.5.10.8 Ancho de borde
+    - [ ] 1.4.5.10.9 Padding horizontal
+    - [ ] 1.4.5.10.10 Padding vertical
+- [ ] 1.4.5.11 Opciones de *Atajos de teclado*
+    - [ ] 1.4.5.11.1 Super + 1, ..., 0 (Switch to workspace) 
+    - [ ] 1.4.5.11.2 Ir y volver
+    - [ ] 1.4.5.11.3 Super + Shift + 1, ..., 0 (Move windows to workspaces ...)
+    - [ ] 1.4.5.11.4 Mover espacio a la izquierda
+    - [ ] 1.4.5.11.5 Mover espacio a la derecha
+    - [ ] 1.4.5.11.6 Volver al espacio anterior
+    - [ ] 1.4.5.11.7 Ir al espacio vacío 
+    - [ ] 1.4.5.11.8 Abrir menú (para renombrar)
+**** 1.4.6 Date Menu Tweaks
+- Descripción y objetivo: Basado en el widget [[https://support.google.com/android/answer/14883154][At a Glance]] de los Google Pixel; el texto del /Date Menu/ cambia dinámicamente, muestra contenido multimedia en reproducción, muestra un contrador de notificaciones, etcétera.    
+***** TODO 1.4.6.1 Date Menu Formatter
+DEADLINE: <2026-09-01 Wed>
 [[./img/date-format.png]]
-
-- [ ] 4.2.1.1 Bug: Habilitar la opacidad en ./Gnome-Extensions/extension/modules/dateMenu/dateMenu.css, no se muestra correctamente. Las primeras 14 líneas desactivan la opacidad predeterminada en hover o active, esto con el objetivo de no superponer la opacidad nativa con la de /at-a-glance/. En teoría, con las líneas 20 a 32 debería de añadirse la opacidad en el date-menu, pero no es así.
-- [ ] 4.2.1.2 Bug: Espacio anómalo a un lado del date-menu (top bar, hora) al iniciar sesión (parece reservar espacio para el visualizador y la carátula). El relleno se normaliza después tras reproducir y pausar cualquier medio. 
-
-***** TODO 4.2.2 Progress Day
-- Descripción y objetivo: Usando como base [[https://github.com/ArcaEge/day-progress][day progres de ArcaEge]], añadir una barra o círculo de progreso en el date menu (no debe ser un ícono añadido, debe estar dentro el date meno, así como el indicador multimedia). Este remplaza o complementa la hora/fecha.
-- [ ] 4.2.2.1 En el Top Bar -> Date Menu; añadir debajo de "Multimedia", las opciones de Progress Day.
-- [ ] 4.2.2.2 Incluir en las opciones:
-  - Comportamiento:
-    - No mostrar barra(s)/círculo(s) de progreso.
-    - Mostrar barra(s)/circulo(s) de progreso junto con el reloj.
-    - Solo mostrar la barra(s)/circulo(s), remplazando el reloj/fecha (texto). Si esta opción está seleccionada, se deben bloquear los ajustes de formatos.
-  - Apariencia
-    - Time Elapsed
-    - Show Year Progress
-    - Shot Life progress
-    - Puede que sea mejor eliminar la opción "Stack Direction" y que siempre sea horizontal (siempre se desbordan en vertical)
-    - La posición queda descartada. Se debe poder controlar desde nuestro "Top bar organized", pues está en el date.
-  - Start Time, Reset Time, Year start date, life span. 
-- [ ] 4.2.2.4 Esto puede que interfiera con la disposición (vista multimedia, vista reloj, vista reloj+multimedia). Así que hay que tener cuidado de no romper estas opciones. Si se prefiere la barra de progreso por sobre el reloj (texto), las opciones de disposición, se deben comportar igual, pero en vez de mostrar el texto, mostrar la barra o barras.
-
-***** TODO 4.2.3 Media Player
-- Descripción y objetivo: Información de reproducción multimedia integrados en el Date Menu.
+- Descripción y objetivo: Permite personalizar el formato de fecha y hora en el panel.
+   - Aylur's Widget tiene un componente que permite personalizar esto, también se tomará como referencia el código de la extensión [[https://extensions.gnome.org/extension/4655/date-menu-formatter/][Date Menu Formatter de Marcin Jakubowski]]. Esta última compatible hasta GNOME 50, por lo que no debería ser difícil integrarla.
+- [ ] 1.4.6.1.1 Bug: Habilitar la opacidad en ./Gnome-Extensions/extension/modules/dateMenu/dateMenu.css; las primeras 14 líneas de este archivo desactivan la opacidad predeterminada en hover y active, esto con el objetivo de no superponer la opacidad nativa con la de /at-a-glance/. En teoría, con las líneas 20 a 32 debería de añadirse la opacidad en el Hover y Active, pero no está funcionando correctamente.
+- [ ] 1.4.6.1.2 Bug: Espacio anómalo a un lado del date menu (top bar, hora) al iniciar sesión (parece reservar espacio para el visualizador y la carátula). El relleno se normaliza tras reproducir y pausar cualquier medio (después de mostrar información multimedia).
+***** TODO 1.4.6.2 Progress Day
+DEADLINE: <2026-09-02 Wed>
+- Descripción y objetivo: Usando como base [[https://github.com/ArcaEge/day-progress][day progres de ArcaEge]], añadir una barra o círculo de progreso en el date menu (no debe ser un elemento añadido, debe estar dentro el date menu, así como el indicador multimedia). Este remplaza o complementa la hora/fecha.
+- [ ] 1.4.6.2.1 En el Top Bar -> Date Menu; añadir arriba de "Multimedia" las opciones del Progress Day. Las opciones a añadir:
+    - [ ] Comportamiento
+      - [ ] Combo Row con: 
+        - No mostrar barra(s)/círculo(s) de progreso.
+        - Mostrar barra(s)/circulo(s) de progreso junto con el reloj.
+        - Solo mostrar la barra(s)/circulo(s), remplazando el reloj/fecha (texto). Si esta opción está seleccionada, se deben bloquear los ajustes de formatos.
+    - [ ] Apariencia
+        - Time Elapsed
+        - Show Year Progress
+        - Show Life progress
+        - Eliminar u omitir la opción "Stack Direction", y que siempre sea horizontal (siempre se desbordan en vertical)
+    - [ ] Start Time, Reset Time, Year start date, life span.     
+- Esto puede que interfiera con la disposición (vista multimedia, vista reloj, vista reloj+multimedia). Así que hay que tener cuidado de no romper estas opciones. Si se prefiere la barra de progreso como remplazo del reloj (texto), se deben comportar igual la multimedia, pero en vez de mostrar el texto, mostrar la barra o barras.
+***** TODO 1.4.6.3 Media Player 
+DEADLINE: <2026-09-15 Wed>
+[[./img/aylurs-player.png]]
+- Descripción y objetivo: Información de reproducción multimedia integrada en el Date Menu.
   - Para usar como base, se pueden tomar en cuenta todas las siguientes implementaciones:
     - [[https://extensions.gnome.org/extension/4928/mpris-label/][Media Label and Controls (por moon-0xff)]], compatible hasta GNOME 49.
     - [[https://extensions.gnome.org/extension/9334/dynamic-music-pill/][Dynamic Music Pill (por andbal)]], compatible hasta GNOME 50.
     - [[https://extensions.gnome.org/extension/4470/media-controls/][Media Controls (por Sakith B.)]], compatible hasta GNOME 49.
     - [[https://extensions.gnome.org/extension/9184/advanced-media-controller/][Advanced Media Controller (por sanjai)]] compatible hasta GNOME 50.
 
-[[./img/aylurs-player.png]]
-
-- [ ] 4.2.3.1 Posibilidad de usar el album art o el ícono del proveedor.
-***** TODO 4.2.4 Notification Indicator
-- Descripción: Indicador de notificaciones (contador numérico). 
-**** NEXT 4.6 Workspace Indicator [40%]
-DEADLINE: <2026-08-20 Thu>
-- [X] 4.2.1 Bug: Es posible arrastrar un espacio de trabajo más allá de /añadir un nuevo espacio de trabajo/ (se muestra como un workspace con el símbolo "`+`"). Esto no debería ser posible. Provoca un bug en el cual el espacio de trabajo se mueve a la derecha de `+`, dejando un espacio hueco en el sitio en el cual antes estaba el workspace que se movió, esto no tiene efecto en los espacios de trabajo reales (nada se desplaza realmente).
-- [X] 4.2.2 Feat: Usando como referencia Workspace [[https://gitlab.com/jguece/workspace-bar][Workspace Bar de jguece]], añadir la posibilidad de mostrar los programas abiertos en cada espacio de trabajo, y la posibilidad de tomar uno de esos programas y moverlos de workspace
-  - Schema key: `ws-show-app-icons` (boolean, default: false). Cuando activo, cada wsBox muestra una fila de íconos de apps al lado del label del workspace.
-  - Schema keys: `ws-app-icons-active-background-color`, `ws-app-icons-inactive-background-color`, `ws-app-icons-empty-background-color` (colores de fondo configurables para los íconos por estado).
-  - `workspaces.js`: `_getWorkspaceState()` ahora incluye `windows` (array de `Meta.Window` via `getWindows()`).
-  - `workspacesBar.js`: Layout de dos secciones: `.space-bar-ws-label` (nombre) + `.space-bar-ws-icons` (íconos), cada una con su propio background. `_createAppIcons()` usa `Shell.WindowTracker` + `DND.makeDraggable()`.
-  - `styles.js`: CSS para `.space-bar-ws-label` (fondo del label, border-radius izquierdo) y `.space-bar-ws-icons` (fondo configurable, border-radius derecho). Los colores se regeneran al cambiar cualquier setting de apariencia.
-  - Prefs: toggle "Mostrar íconos de aplicaciones" en Comportamiento. Color pickers "Color de fondo (íconos)" en cada grupo de apariencia (activo/inactivo/vacío).
-  - Icon fade animation: fade-out (260ms) before rebuild only when windows change (diff-based). Pop-in (scale 0.5→1.0 + opacity, 300/360ms) only on newly added icons. Workspace switch uses only transition animation.
-  - Icon background colors: accent contrast mode uses `rgba(r,g,b,0.35)` for icon backgrounds when accent switch is ON.
-- [X] 4.2.4 Feat: Añadir una opción para usar el color de acento de GNOME como color de fondo del espacio activo.
-  - Schema key: `ws-use-accent-color` (boolean, default: false). Cuando está activo, el fondo y borde del espacio activo usan el color de acento de GNOME (`org.gnome.desktop.interface` → `accent-color`), con mapeo a hex vía `ACCENT_COLORS` (blue, teal, green, yellow, orange, red, pink, purple, slate). El color de texto es siempre `#F6F5F4`. Los botones de color de fondo, texto y borde se deshabilitan en prefs. El color se actualiza dinámicamente al cambiar el acento en GNOME (señal `changed::accent-color`).
-- [X] 4.2.5 Bug: Sobre-escribe o borra los atajos de teclado por defecto (configurados desde gnome-control-center).
-- [ ] 4.2.6 Feat: Ocultar el Workspace Switcher en el overview.
-- [ ] 4.2.7 Bug: Movimiento anormal a la derecha e izquierda en los workspaces cuando se hace switch. Este desplazamiento es consecuencia del espacio de trabajo enfocado, algo en su padding o en su margen lo causa. Y no debería pasar.
-- [ ] 4.2.8 Eliminar la opción "posición en el panel". Pues esto se configura desde el top bar organized integrado en la extensión.
-- [ ] 4.2.9 Limitar el tamaño de la fuente.
-- [ ] 4.2.10 Mejorar el nombrado inteligente (al cerrar el programa se mantiene el nombre).
-**** TODO 4.4 Battery Indicator
-DEADLINE: <2026-09-11 Fri>
-
+- [ ] 1.4.6.3.1 Opción de usar el icono del proveedor multimedia en lugar de la carátula del album.
+- [ ] 1.4.6.3.2 Mejoras en MPRIS
+***** TODO 1.4.6.3 Notifications Indicator
+**** TODO 1.4.7 Battery Indicator
+DEADLINE: <2026-09-15 Wed>
 [[./img/aylurs-battery.png]]
 
-- Descripción: Indicador alternativo de batería en el Top Bar.
+- Descripción y objetivo: Indicador alternativo de batería en el Top Bar.
   - Se toma como base uno de los módulos de Aylur's Widgets. Compatible hasta GNOME 44, por lo que será necesario darle mantenimiento para hacerlo compatible con GNOME 50.
+
 - Configuración:
   - Visibilidad de ícono y porcentaje.
   - Dimensiones.
   - Colores dinámicos configurables (batería baja, cargando, normal)
-- [ ] "Incrustar" la barra/circunferencia en el system indicator, por ahora es un "elemento más" añadido a la barra.
-**** TODO 4.5 Start Icon
-DEADLINE: <2026-09-12 Sat>
-- [ ] Añadir la opción de launcher o dashboard (dialog) al start icon
-**** TODO 4.7 Top Bar Organized
-DEADLINE: <2026-09-16 Wed>
-- [ ] Bug: Al hacer uso del botón "restablecer orden predeterminado" todos los elementos /desaparecen/, al cerrar y abrir el dialog, aparecen nuevamente. Pero no se restablece el orden.
-  - [ ] Al hacer uso de esta opción, recargar, para eliminar aquellas cosas que ya no están, por ejemplo, una extensión que antes se usaba pero ya no, puede que quede el elemento aquí aunque ya no este realmente.
-*** TODO 5. General
-**** 5.1 multi idioma
-*** TODO 6. Backend 
-**** MPRIS
+
+- [ ] 1.5.1 "Incrustar" la barra/circunferencia en el system indicator, por ahora es un "elemento más" añadido a la barra.
+*** [#B] 1.5 General
+**** 1.5.1 Multi-idioma
+**** 1.5.2 Backend MPRIS
 - [ ] Mejorar y corrección de bugs del MPRIS
-    - [ ] 6.1 Retraso en la actualización de la carátula al saltar rápidamente de pista (GSConnect)
+    - [ ] 1.5.2.1 Retraso en la actualización de la carátula al saltar rápidamente de pista (GSConnect)
       ERROR: Al avanzar rápidamente, la carátula no se actualiza y muestra la de la pista anterior.
       Funciona correctamente al retroceder. La reproducción normal no se ve afectada.
       SOLUCIÓN: Asegurarse de que se borre la caché de carátulas antes de actualizar la interfaz de usuario al cambiar de pista.
-  - [ ] 6.2 La barra de progreso da un salto al cambiar de contenido multimedia
+  - [ ] 1.5.2.2 La barra de progreso da un salto al cambiar de contenido multimedia
       ERROR: Al cambiar de contenido multimedia, el indicador de reproducción se reinicia a 0:00 y, a continuación, salta a la posición correcta tras unos 100 ms.
       REQUISITO: Mostrar inmediatamente la posición correcta del indicador de reproducción sin pasar por el estado intermedio de 0:00.
       SOLUCIÓN: Cargar la posición de reproducción actual antes de renderizar la interfaz de usuario.

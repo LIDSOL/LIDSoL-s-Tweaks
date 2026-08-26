@@ -1624,5 +1624,78 @@
       <summary>Color de fondo de la barra</summary>
       <description>Color CSS de fondo de la barra. Vacío usa el color por defecto.</description>
     </key>
+    <!-- Workspace Bar (space-bar style) -->
+    <key type="b" name="wb-enabled">
+      <default>false</default>
+      <summary>Habilitar Workspace Bar</summary>
+      <description>Barra de espacios de trabajo estilo Space Bar con iconos de ventanas</description>
+    </key>
+
+    <key type="s" name="wb-size-mode">
+      <default>'medium'</default>
+      <summary>Modo de tamaño</summary>
+      <description>Controla tamaño de icono, fuente, espaciado y redondeo. Opciones: small, medium, large.</description>
+    </key>
+
+    <key type="s" name="wb-position">
+      <default>'left'</default>
+      <summary>Posición en el panel</summary>
+      <description>Dónde colocar la barra de espacios en el panel superior. Opciones: left, center, right.</description>
+    </key>
+
+    <key type="i" name="wb-position-index">
+      <default>0</default>
+      <summary>Índice de posición en la caja</summary>
+      <description>Posición dentro de la caja del panel (left, center o right). 0 = primera posición.</description>
+    </key>
+
+    <key type="i" name="wb-left-margin">
+      <default>4</default>
+      <summary>Margen izquierdo</summary>
+      <description>Margen izquierdo en píxeles para el contenedor de la barra.</description>
+    </key>
+
+    <key type="b" name="wb-show-icons-background">
+      <default>true</default>
+      <summary>Mostrar fondo de iconos</summary>
+      <description>Cuando está activo, dibuja un fondo sutil detrás de los iconos de espacio.</description>
+    </key>
+
+    <key type="b" name="wb-enable-animations">
+      <default>false</default>
+      <summary>Habilitar animaciones</summary>
+      <description>Cuando está activo, los cambios de espacio e iconos se animan suavemente.</description>
+    </key>
+
+    <key type="b" name="wb-focus-scale-effect">
+      <default>true</default>
+      <summary>Efecto de escala de enfoque</summary>
+      <description>Cuando está activo, el icono de la ventana enfocada se muestra a tamaño completo mientras los iconos no enfocados se reducen ligeramente.</description>
+    </key>
+
+    <key type="i" name="wb-focus-scale-reduction">
+      <default>15</default>
+      <range min="5" max="95"/>
+      <summary>Reducción de escala de enfoque</summary>
+      <description>Porcentaje por el cual se reducen los iconos no enfocados (5 = apenas notable, 95 = casi invisible).</description>
+    </key>
+
+    <key type="b" name="wb-middle-click-close">
+      <default>false</default>
+      <summary>Clic central cierra ventana</summary>
+      <description>Cuando está activo, el clic central en un icono de app cierra esa ventana.</description>
+    </key>
+
+    <key type="b" name="wb-dim-inactive-icons">
+      <default>false</default>
+      <summary>Reducir opacidad de iconos inactivos</summary>
+      <description>Cuando está activo, el icono de todas las ventanas excepto la enfocada se muestra con opacidad reducida.</description>
+    </key>
+
+    <key type="b" name="wb-desaturate-inactive-icons">
+      <default>false</default>
+      <summary>Desaturar iconos inactivos</summary>
+      <description>Cuando está activo, el icono de todas las ventanas excepto la enfocada se muestra en escala de grises.</description>
+    </key>
   </schema>
 </schemalist>

@@ -124,6 +124,9 @@ export class WorkspaceIndicatorPrefs {
         this._addSpinButton(group, { key: 'ws-focus-scale-reduction', title: 'Cantidad de reducción',
             subtitle: 'Porcentaje por el cual se reducen los íconos no enfocados', lower: 5, upper: 40 });
 
+        this._addToggle(group, { key: 'ws-enable-animations', title: 'Habilitar animaciones de íconos',
+            subtitle: 'Anima suavemente aperturas, cierres, movimientos, creaciones y reordenamientos. Desactivar para actualizaciones instantáneas.' });
+
         this._addCombo(group, {
             key: 'ws-transition-animation',
             title: 'Animación de transición',

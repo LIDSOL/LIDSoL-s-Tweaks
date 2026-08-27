@@ -1,5 +1,6 @@
 import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
+import GLib from 'gi://GLib';
 import Shell from 'gi://Shell';
 import St from 'gi://St';
 import * as DND from 'resource:///org/gnome/shell/ui/dnd.js';
@@ -237,6 +238,7 @@ export class WorkspacesBar {
         this._dragHandler = new WorkspacesBarDragHandler(() => this._updateWorkspaces());
         this._touchTimeout = new Timeout();
         this._prevActiveIndex = -1;
+        this._suppressAnimations = false;
     }
 
     init() {
@@ -282,9 +284,12 @@ export class WorkspacesBar {
     _refreshTopBarConfiguration() {
         this._button?.destroy();
         this._menu?.destroy();
+        this._suppressAnimations = true;
+        this._prevActiveIndex = this._ws.currentIndex;
         this._initButton();
         this._menu = new WorkspacesBarMenu(this._extension, this._button.menu);
         this._menu.init();
+        this._suppressAnimations = false;
     }
 
     _initButton() {
@@ -354,7 +359,10 @@ export class WorkspacesBar {
     }
 
     _updateWorkspacesBar() {
-        const shouldAnimate = this._settings.transitionAnimation.value !== 'none'
+        const animsOn = this._settings.enableAnimations.value;
+        const shouldAnimate = animsOn
+            && !this._suppressAnimations
+            && this._settings.transitionAnimation.value !== 'none'
             && this._prevActiveIndex >= 0
             && this._prevActiveIndex !== this._ws.currentIndex;
 
@@ -362,27 +370,10 @@ export class WorkspacesBar {
         const windowsChanged = currentWindowIds !== this._prevWindowIds;
         this._prevWindowIds = currentWindowIds;
 
-        if (windowsChanged) {
-            const oldIcons = this._collectExistingIcons();
-            if (oldIcons.length > 0) {
-                for (const icon of oldIcons) {
-                    icon.ease({
-                        opacity: 0,
-                        duration: 260,
-                        mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-                    });
-                }
-                const timeout = new Timeout();
-                timeout.once(280).then(() => {
-                    this._rebuildWorkspacesBar(shouldAnimate, true);
-                    timeout.destroy();
-                });
-            } else {
-                this._rebuildWorkspacesBar(shouldAnimate, true);
-            }
-        } else {
-            this._rebuildWorkspacesBar(shouldAnimate, false);
-        }
+        // Rebuild immediately (no artificial wait/flash): fresh icons are
+        // spring-popped in and new workspace cells fade+pop in by _rebuild,
+        // while an off "enable animations" keeps everything instant.
+        this._rebuildWorkspacesBar(shouldAnimate, windowsChanged);
     }
 
     _computeWindowIds() {
@@ -402,12 +393,7 @@ export class WorkspacesBar {
         if (!this._wsBar)
             return icons;
         for (const wsBox of this._wsBar.get_children()) {
-            if (!wsBox.styleClass?.includes('space-bar-ws-box-icons'))
-                continue;
-            const contentBox = wsBox.get_child();
-            if (!contentBox || contentBox.get_n_children() < 2)
-                continue;
-            const iconsBox = contentBox.get_child_at_index(1);
+            const iconsBox = this._findIconsBox(wsBox);
             if (!iconsBox)
                 continue;
             for (const iconWrapper of iconsBox.get_children())
@@ -416,19 +402,153 @@ export class WorkspacesBar {
         return icons;
     }
 
+    _findIconsBox(wsBox) {
+        const content = wsBox.get_child();
+        if (!content)
+            return null;
+        if (content.styleClass?.includes?.('space-bar-ws-icons'))
+            return content;
+        if (content.get_children) {
+            for (const child of content.get_children()) {
+                if (child.styleClass?.includes?.('space-bar-ws-icons'))
+                    return child;
+            }
+        }
+        return null;
+    }
+
+    // Detach every displayed icon wrapper (keyed by windowId) from the bar so the
+    // coming full rebuild doesn't destroy them. Old x position is kept so the
+    // closing window's neighbours can slide into the freed slot.
+    _captureIcons() {
+        const map = new Map();
+        if (!this._wsBar)
+            return map;
+        for (const wsBox of this._wsBar.get_children()) {
+            const iconsBox = this._findIconsBox(wsBox);
+            if (!iconsBox)
+                continue;
+            const wsIndex = wsBox._delegate?._workspace?.index ?? -1;
+            for (const wrapper of iconsBox.get_children().slice()) {
+                const winId = wrapper._delegate?.windowObj?.get_id();
+                if (winId == null)
+                    continue;
+                // Local position within the icons row (immune to whole-bar
+                // re-centering), so only the affected row slides.
+                let oldX = 0;
+                try {
+                    oldX = wrapper.get_x();
+                } catch (_e) {}
+                wrapper.set_pivot_point(0.5, 0.5);
+                iconsBox.remove_child(wrapper);
+                map.set(winId, { wrapper, oldX, wsIndex });
+            }
+        }
+        return map;
+    }
+
+    // Fade + scale a closing window's icon out, then destroy it.
+    _animateIconOut(icon) {
+        if (!icon)
+            return;
+        if (!this._settings.enableAnimations.value || this._suppressAnimations) {
+            try { icon.destroy(); } catch (_e) {}
+            return;
+        }
+        icon.remove_all_transitions();
+        icon.set_pivot_point(0.5, 0.5);
+        icon.ease({
+            opacity: 0,
+            scale_x: 0.6,
+            scale_y: 0.6,
+            duration: 200,
+            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            onComplete: () => {
+                try { icon.destroy(); } catch (_e) {}
+            },
+        });
+    }
+
+    // Glide surviving icons from their previous x to the new layout x (which is
+    // only known once the rebuilt bar is allocated), so the rest "slide" to fill
+    // the gap left by a closed window.
+    _slideIconsIn(entries) {
+        if (!entries.length)
+            return;
+        const tryOnce = (attempt) => {
+            const first = this._wsBar?.get_children()[0];
+            if (!first) {
+                entries.forEach((e) => { try { e.wrapper.translation_x = 0; } catch (_e) {} });
+                return;
+            }
+            const alloc = first.get_allocation_box();
+            if ((alloc.x2 - alloc.x1) <= 0 && attempt < 10) {
+                GLib.timeout_add(GLib.PRIORITY_DEFAULT, 16, () => {
+                    tryOnce(attempt + 1);
+                    return GLib.SOURCE_REMOVE;
+                });
+                return;
+            }
+            for (const e of entries) {
+                if (!e.wrapper.get_parent())
+                    continue;
+                let newX = 0;
+                try {
+                    newX = e.wrapper.get_x();
+                } catch (_e) {}
+                const delta = e.oldX - newX;
+                if (Math.abs(delta) < 1) {
+                    e.wrapper.translation_x = 0;
+                    continue;
+                }
+                e.wrapper.translation_x = delta;
+                e.wrapper.ease({
+                    translation_x: 0,
+                    duration: 360,
+                    mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                });
+            }
+        };
+        tryOnce(0);
+    }
+
     _rebuildWorkspacesBar(shouldAnimate, animateIcons = false) {
+        const animsOn = this._settings.enableAnimations.value;
+        const oldCount = this._wsBar ? this._wsBar.get_children().length : 0;
+
+        // Detach current icon wrappers (preserving their actors + old x positions)
+        // so closed windows can fade out and survivors can slide into place.
+        const captured = this._captureIcons();
+        const reused = new Set();
+        const slideEntries = [];
+
         this._wsBar?.destroy_all_children();
         this._dragHandler.wsBoxes = [];
+        let newCount = 0;
         for (let ws_index = 0; ws_index < this._ws.numberOfEnabledWorkspaces; ++ws_index) {
             const workspace = this._ws.workspaces[ws_index];
             if (workspace.isVisible) {
-                const wsBox = this._createWsBox(workspace, animateIcons);
+                const wsBox = this._createWsBox(workspace, animateIcons, captured, reused, slideEntries);
                 this._wsBar?.add_child(wsBox);
                 this._dragHandler.wsBoxes.push({ workspace, wsBox });
+                newCount++;
                 if (shouldAnimate && workspace.index === this._ws.currentIndex)
                     this._animateEnter(wsBox, this._settings.transitionAnimation.value);
+                else if (animsOn && !this._suppressAnimations && newCount > oldCount)
+                    this._animateWorkspaceIn(wsBox);
             }
         }
+
+        // Icons captured but never reused belong to windows that closed → fade them out
+        // (or destroy immediately when animations are suppressed).
+        for (const [winId, entry] of captured) {
+            if (!reused.has(winId))
+                this._animateIconOut(entry.wrapper);
+        }
+
+        // Survivors glide from their old x to their new one.
+        if (animsOn && !this._suppressAnimations && slideEntries.length)
+            this._slideIconsIn(slideEntries);
         this._prevActiveIndex = this._ws.currentIndex;
         this._applyFocusScale(false);
     }
@@ -471,6 +591,31 @@ export class WorkspacesBar {
         }
     }
 
+    // Fade + spring pop-in an actor from a starting scale to full size.
+    _popIn(actor, startScale) {
+        actor.set_pivot_point(0.5, 0.5);
+        actor.opacity = 0;
+        actor.set_scale(startScale, startScale);
+        actor.ease({
+            opacity: 255,
+            duration: 300,
+            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+        });
+        actor.ease({
+            scale_x: 1,
+            scale_y: 1,
+            duration: 360,
+            mode: Clutter.AnimationMode.EASE_OUT_BACK,
+        });
+    }
+
+    // A freshly-added (usually trailing, dynamic) workspace cell fades + pops in.
+    _animateWorkspaceIn(wsBox) {
+        if (!wsBox || !this._settings.enableAnimations.value) return;
+        wsBox.remove_all_transitions();
+        this._popIn(wsBox, 0.7);
+    }
+
     _onFocusWindowChanged() {
         const focusedWin = global.display.get_focus_window();
         const focusedId = focusedWin?.get_id() ?? null;
@@ -510,7 +655,7 @@ export class WorkspacesBar {
                 iconWrapper.set_pivot_point(0.5, 0.5);
 
                 // Dim: apply opacity on the icon texture, not the wrapper
-                const iconTex = iconWrapper.get_child();
+                const iconTex = iconWrapper.get_first_child();
                 if (iconTex) {
                     const dimmed = this._settings.dimInactiveIcons.value && !isFocused;
                     const opacity = dimmed ? DIM_INACTIVE_OPACITY : 255;
@@ -561,7 +706,7 @@ export class WorkspacesBar {
         }
     }
 
-    _createWsBox(workspace, animateIcons = false) {
+    _createWsBox(workspace, animateIcons = false, captured = null, reused = null, slideEntries = null) {
         const wsBox = new St.Bin({
             visible: true,
             reactive: true,
@@ -582,7 +727,7 @@ export class WorkspacesBar {
             });
             label.set_y_expand(true);
             contentBox.add_child(label);
-            const iconsBox = this._createAppIcons(workspace, animateIcons);
+            const iconsBox = this._createAppIcons(workspace, animateIcons, captured, reused, slideEntries);
             iconsBox.set_y_expand(true);
             contentBox.add_child(iconsBox);
             wsBox.set_child(contentBox);
@@ -603,32 +748,53 @@ export class WorkspacesBar {
             return Clutter.EVENT_PROPAGATE;
         });
         wsBox.connect('button-release-event', (actor, event) => {
-            switch (event.get_button()) {
-                case 1:
-                    if (lastButton1PressEvent) {
-                        const delta = event.get_time() - lastButton1PressEvent.get_time();
-                        lastButton1PressEvent = null;
-                        if (delta <= MAX_CLICK_TIME_DELTA) {
-                            this._ws.switchTo(workspace.index, 'click-on-label');
-                            return Clutter.EVENT_STOP;
-                        }
+            const button = event.get_button();
+
+            // Only handle |a click on an app icon| for primary/middle buttons.
+            if (button === 1 || button === 2) {
+                const [x, y] = event.get_coords();
+                const stage = actor.get_stage();
+                let elem = stage.get_actor_at_pos(Clutter.PickMode.ALL, x, y);
+                let clickedWindowObj = null;
+                while (elem && elem !== actor) {
+                    if (elem._delegate?.windowObj) {
+                        clickedWindowObj = elem._delegate.windowObj;
+                        break;
                     }
-                    break;
-                case 2:
-                    if (this._settings.middleClickClose.value) {
-                        const [x, y] = event.get_coords();
-                        const stage = actor.get_stage();
-                        let elem = stage.get_actor_at_pos(Clutter.PickMode.ALL, x, y);
-                        while (elem && elem !== actor) {
-                            if (elem._delegate?.windowObj) {
-                                elem._delegate.windowObj.delete(global.get_current_time());
-                                return Clutter.EVENT_STOP;
-                            }
-                            elem = elem.get_parent();
-                        }
+                    elem = elem.get_parent();
+                }
+
+                if (button === 2) {
+                    // Middle click on an app icon (when enabled) closes that window.
+                    if (clickedWindowObj && this._settings.middleClickClose.value) {
+                        clickedWindowObj.delete(global.get_current_time());
+                        return Clutter.EVENT_STOP;
                     }
-                    break;
+                    return Clutter.EVENT_PROPAGATE;
+                }
+
+                if (button === 1 && lastButton1PressEvent) {
+                    const delta = event.get_time() - lastButton1PressEvent.get_time();
+                    lastButton1PressEvent = null;
+                    if (delta > MAX_CLICK_TIME_DELTA)
+                        return Clutter.EVENT_PROPAGATE;
+                    if (clickedWindowObj) {
+                        const focusedWindow = global.display.get_focus_window();
+                        if (focusedWindow && focusedWindow.get_id() === clickedWindowObj.get_id()) {
+                            Main.overview.hide();
+                        } else {
+                            if (workspace.index !== this._ws.currentIndex)
+                                this._ws.activate(workspace.index);
+                            clickedWindowObj.get_compositor_private()?.grab_key_focus();
+                            clickedWindowObj.activate(global.get_current_time());
+                        }
+                        return Clutter.EVENT_STOP;
+                    }
+                    this._ws.switchTo(workspace.index, 'click-on-label');
+                    return Clutter.EVENT_STOP;
+                }
             }
+
             return Clutter.EVENT_PROPAGATE;
         });
         let lastTouchBeginEvent = null;
@@ -679,7 +845,8 @@ export class WorkspacesBar {
         return label;
     }
 
-    _createAppIcons(workspace, animate = false) {
+    _createAppIcons(workspace, animate = false, captured = null, reused = null, slideEntries = null) {
+        const animateOn = animate && this._settings.enableAnimations.value && !this._suppressAnimations;
         const isActive = workspace.index === this._ws.currentIndex;
         const isEmpty = !workspace.hasWindows;
         const preset = ICON_PRESETS[this._settings.iconSizeMode.value] || ICON_PRESETS.medium;
@@ -694,16 +861,32 @@ export class WorkspacesBar {
         });
         const windowTracker = Shell.WindowTracker.get_default();
         for (const win of workspace.windows) {
+            const winId = win.get_id();
+            const entry = captured?.get(winId);
+            if (entry) {
+                if (reused) reused.add(winId);
+                const iconWrapper = entry.wrapper;
+                iconWrapper.remove_all_transitions();
+                iconWrapper.opacity = 255;
+                iconWrapper.set_scale(1, 1);
+                iconWrapper.translation_x = 0;
+                iconsBox.add_child(iconWrapper);
+                // Only slide icons that stayed in the same workspace row; a
+                // window moved to another workspace keeps its spot without sliding.
+                if (animateOn && entry.wsIndex === workspace.index)
+                    slideEntries?.push({ wrapper: iconWrapper, oldX: entry.oldX });
+                continue;
+            }
             const app = windowTracker.get_window_app(win);
-            const iconWrapper = new St.Button({
+            const iconWrapper = new St.BoxLayout({
                 reactive: true,
-                trackHover: true,
+                track_hover: true,
                 styleClass: 'space-bar-app-icon-wrapper',
             });
             const icon = app
                 ? app.create_icon_texture(iconSize)
                 : new St.Icon({ icon_name: 'image-missing-symbolic', icon_size: iconSize });
-            iconWrapper.set_child(icon);
+            iconWrapper.add_child(icon);
             iconWrapper._delegate = {
                 windowObj: win,
                 getDragActor() {
@@ -715,7 +898,7 @@ export class WorkspacesBar {
                 },
             };
             DND.makeDraggable(iconWrapper, { restoreOnSuccess: true, manualMode: false });
-            if (animate) {
+            if (animateOn) {
                 iconWrapper.set_pivot_point(0.5, 0.5);
                 iconWrapper.opacity = 0;
                 iconWrapper.set_scale(0.5, 0.5);

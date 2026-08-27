@@ -269,7 +269,7 @@
 
     <key type="i" name="ws-focus-scale-reduction">
       <default>15</default>
-      <range min="5" max="95"/>
+      <range min="5" max="40"/>
       <summary>Reducción de escala de enfoque</summary>
       <description>Porcentaje por el cual se reducen los iconos no enfocados (5 = apenas notable, 95 = casi invisible).</description>
     </key>
@@ -414,6 +414,12 @@
       <default>"fade"</default>
       <summary>Animación de transición entre espacios</summary>
       <description>Estilo de animación al cambiar de espacio de trabajo activo en el panel</description>
+    </key>
+
+    <key type="b" name="ws-enable-animations">
+      <default>true</default>
+      <summary>Habilitar animaciones</summary>
+      <description>Cuando está activo, los cambios de iconos y espacios se animan suavemente. Desactivar para actualizaciones instantáneas.</description>
     </key>
 
     <!-- Quick Text -->

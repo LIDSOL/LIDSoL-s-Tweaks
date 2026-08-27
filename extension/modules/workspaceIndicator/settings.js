@@ -192,6 +192,7 @@ export class Settings {
         this.emptyWorkspacePaddingV = SettingsSubject.createInt(s, 'ws-empty-workspace-padding-v');
 
         this.transitionAnimation = SettingsSubject.createString(s, 'ws-transition-animation');
+        this.enableAnimations = SettingsSubject.createBoolean(s, 'ws-enable-animations');
         this.useAccentColor = SettingsSubject.createBoolean(s, 'ws-use-accent-color');
         this.dimInactiveIcons = SettingsSubject.createBoolean(s, 'ws-dim-inactive-icons');
         this.desaturateInactiveIcons = SettingsSubject.createBoolean(s, 'ws-desaturate-inactive-icons');

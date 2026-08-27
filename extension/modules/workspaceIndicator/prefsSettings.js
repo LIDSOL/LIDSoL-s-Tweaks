@@ -54,6 +54,7 @@ export class WorkspaceIndicatorPrefs {
         this._addToggle(group, { key: 'ws-toggle-overview', title: 'Abrir vista general', subtitle: 'Al hacer clic en espacio activo o vacío' });
         this._addToggle(group, { key: 'ws-show-app-icons', title: 'Mostrar íconos de aplicaciones',
             subtitle: 'Muestra íconos de ventanas abiertas en cada espacio de trabajo (solo Barra de espacios)' });
+        this._addToggle(group, { key: 'ws-middle-click-close', title: 'Cerrar ventana con clic central' });
 
         this._addCombo(group, {
             key: 'ws-position',
@@ -106,6 +107,22 @@ export class WorkspaceIndicatorPrefs {
 
         this._addSpinButton(group, { key: 'ws-workspaces-bar-padding', title: 'Padding de la barra', lower: 0, upper: 255 });
         this._addSpinButton(group, { key: 'ws-workspace-margin', title: 'Margen entre espacios', lower: 0, upper: 255 });
+
+        this._addCombo(group, {
+            key: 'ws-icon-size-mode',
+            title: 'Tamaño de íconos',
+            options: { small: 'Pequeño (16px)', medium: 'Mediano (20px)', large: 'Grande (26px)' },
+        });
+
+        this._addToggle(group, { key: 'ws-dim-inactive-icons', title: 'Reducir opacidad de íconos inactivos',
+            subtitle: 'Muestra todos los íconos excepto el enfocado con opacidad reducida' });
+        this._addToggle(group, { key: 'ws-desaturate-inactive-icons', title: 'Desaturar íconos inactivos',
+            subtitle: 'Muestra todos los íconos excepto el enfocado en escala de grises' });
+
+        this._addToggle(group, { key: 'ws-focus-scale-effect', title: 'Efecto de escala de enfoque',
+            subtitle: 'Reduce ligeramente los íconos de apps no enfocadas con transición suave' });
+        this._addSpinButton(group, { key: 'ws-focus-scale-reduction', title: 'Cantidad de reducción',
+            subtitle: 'Porcentaje por el cual se reducen los íconos no enfocados', lower: 5, upper: 40 });
 
         this._addCombo(group, {
             key: 'ws-transition-animation',

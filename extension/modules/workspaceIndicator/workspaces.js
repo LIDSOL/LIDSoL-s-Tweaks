@@ -17,7 +17,7 @@ function getWindows(workspace) {
 
 function getNumberOfWindows(workspace) {
     const windows = workspace.list_windows();
-    return windows.filter((window) => !window.is_on_all_workspaces()).length;
+    return windows.filter((window) => !window.skipTaskbar).length;
 }
 
 export class Workspaces {

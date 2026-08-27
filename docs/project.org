@@ -164,7 +164,7 @@ DEADLINE: <2026-08-28 Wed>
 **** NEXT 1.4.5 Work Space Bar
 DEADLINE: <2026-08-31 Wed>
 - [x] 1.4.5.1 Eliminar las opciones de posición y todo su código asociado (se usará top bar organized para ello).
-- [ ] 1.4.5.2 Bug: No se muestra en top bar organized (relacionado con 1.4.1.4)
+- [x] 1.4.5.2 Bug: No se muestra en top bar organized (relacionado con 1.4.1.4)
 - [ ] 1.4.5.2 Feat: Implementar la posibilidad de renombrar el espacio de trabajo (como en space bar).
 - [ ] 1.4.5.3 
 - [ ] 1.4.5.4 Movimiento de workspaces como en workspaceIndicator
@@ -183,14 +183,14 @@ DEADLINE: <2026-08-31 Wed>
     - Feat basada en space bar
     - [ ] 1.4.5.6.1 Activar nombres inteligentes
     - [ ] 1.4.5.6.1 Reevaluar nombres
-- [ ] 1.4.5.7 Opciones de *Apariencia*
+- [-] 1.4.5.7 Opciones de *Apariencia*
     - [ ] 1.4.5.7.1 Tamaño (opción por defecto), solo afecta a los iconos
-    - [ ] 1.4.5.7.2 Reducir opacidad de iconos nativos (opción por defecto)
-    - [ ] 1.4.5.7.3 Desaturar iconos inactivos (opción por defecto)
-    - [ ] 1.4.5.7.4 Habilitar animaciones (opción por defecto)
-    - [ ] 1.4.5.7.5 Efecto de escala de enfoque (opción por defecto)
-    - [ ] 1.4.5.7.6 Cantidad de reducción (opción por defecto)
-    - [ ] 1.4.5.7.7 Animación de transición (desvanecer, latido, deslizado+fundido, ninguna)
+    - [x] 1.4.5.7.2 Reducir opacidad de iconos nativos (opción por defecto)
+    - [x] 1.4.5.7.3 Desaturar iconos inactivos (opción por defecto)
+    - [-] 1.4.5.7.4 Habilitar animaciones (opción por defecto)
+    - [x] 1.4.5.7.5 Efecto de escala de enfoque (opción por defecto)
+    - [x] 1.4.5.7.6 Cantidad de reducción (opción por defecto)
+    - [x] 1.4.5.7.7 Animación de transición (desvanecer, latido, deslizado+fundido, ninguna)
     - [ ] 1.4.5.7.8 Padding de barra
     - [ ] 1.4.5.7.9 Margen entre espacios
     - [ ] 1.4.5.7.10 Mostrar fondo de iconos (opción por defecto)

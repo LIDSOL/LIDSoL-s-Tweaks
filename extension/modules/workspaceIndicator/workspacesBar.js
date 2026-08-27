@@ -6,7 +6,7 @@ import * as DND from 'resource:///org/gnome/shell/ui/dnd.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import { WindowPreview } from 'resource:///org/gnome/shell/ui/windowPreview.js';
-import { Settings } from './settings.js';
+import { Settings, ICON_PRESETS } from './settings.js';
 import { Styles } from './styles.js';
 import { Workspaces } from './workspaces.js';
 import { Subject } from './subject.js';
@@ -15,8 +15,9 @@ import { WorkspacesBarMenu } from './workspacesBarMenu.js';
 
 const MAX_CLICK_TIME_DELTA = 300;
 const LONG_PRESS_DURATION = 500;
-const FOCUS_SCALE_REDUCTION = 0.15;
+const DESATURATE_EFFECT_NAME = 'wsb-desaturate';
 const FOCUS_SCALE_DURATION = 200;
+const DIM_INACTIVE_OPACITY = 128;
 
 const WorkspacesButton = GObject.registerClass(
     class WorkspacesButton extends PanelMenu.Button {
@@ -250,6 +251,10 @@ export class WorkspacesBar {
         this._settings.customLabelNamed.subscribe(() => this._updateWorkspaces());
         this._settings.customLabelUnnamed.subscribe(() => this._updateWorkspaces());
         this._settings.showAppIcons.subscribe(() => this._updateWorkspaces());
+        this._settings.dimInactiveIcons.subscribe(() => this._applyFocusScale(true));
+        this._settings.desaturateInactiveIcons.subscribe(() => this._applyFocusScale(true));
+        this._settings.focusScaleEffect.subscribe(() => this._applyFocusScale(true));
+        this._settings.focusScaleReduction.subscribe(() => this._applyFocusScale(true));
         this._settings.indicatorStyle.subscribe(() => this._refreshTopBarConfiguration());
         this._settings.position.subscribe(() => this._refreshTopBarConfiguration());
         this._settings.positionIndex.subscribe(() => this._refreshTopBarConfiguration());
@@ -385,7 +390,6 @@ export class WorkspacesBar {
         for (let i = 0; i < this._ws.numberOfEnabledWorkspaces; i++) {
             const workspace = this._ws.workspaces[i];
             const windowIds = workspace.windows
-                .filter(w => !w.is_on_all_workspaces())
                 .map(w => w.get_id())
                 .sort();
             ids.push(windowIds);
@@ -426,6 +430,7 @@ export class WorkspacesBar {
             }
         }
         this._prevActiveIndex = this._ws.currentIndex;
+        this._applyFocusScale(false);
     }
 
     _animateEnter(wsBox, style) {
@@ -482,8 +487,17 @@ export class WorkspacesBar {
             const content = wsBox.get_child();
             if (!content)
                 continue;
-            const iconsBox = content.styleClass?.includes('space-bar-ws-icons')
-                ? content : null;
+            let iconsBox = null;
+            if (content.styleClass?.includes?.('space-bar-ws-icons')) {
+                iconsBox = content;
+            } else if (content.get_children) {
+                for (const child of content.get_children()) {
+                    if (child.styleClass?.includes?.('space-bar-ws-icons')) {
+                        iconsBox = child;
+                        break;
+                    }
+                }
+            }
             if (!iconsBox)
                 continue;
             for (const iconWrapper of iconsBox.get_children()) {
@@ -491,8 +505,47 @@ export class WorkspacesBar {
                 if (!delegate?.windowObj)
                     continue;
                 const isFocused = delegate.windowObj.get_id() === this._focusedWindowId;
-                const scale = isFocused ? 1.0 : (1.0 - FOCUS_SCALE_REDUCTION);
+                const scale = (!this._settings.focusScaleEffect.value || isFocused)
+                    ? 1.0 : (1.0 - (this._settings.focusScaleReduction.value / 100));
                 iconWrapper.set_pivot_point(0.5, 0.5);
+
+                // Dim: apply opacity on the icon texture, not the wrapper
+                const iconTex = iconWrapper.get_child();
+                if (iconTex) {
+                    const dimmed = this._settings.dimInactiveIcons.value && !isFocused;
+                    const opacity = dimmed ? DIM_INACTIVE_OPACITY : 255;
+                    if (animate) {
+                        iconTex.ease({
+                            opacity,
+                            duration: FOCUS_SCALE_DURATION,
+                            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                        });
+                    } else {
+                        iconTex.opacity = opacity;
+                    }
+
+                    // Desaturate: Clutter.DesaturateEffect on icon texture
+                    const effect = iconTex.get_effect(DESATURATE_EFFECT_NAME);
+                    if (!this._settings.desaturateInactiveIcons.value) {
+                        if (effect) iconTex.remove_effect(effect);
+                    } else {
+                        let desatEffect = effect;
+                        if (!desatEffect) {
+                            desatEffect = new Clutter.DesaturateEffect({ factor: 0 });
+                            iconTex.add_effect_with_name(DESATURATE_EFFECT_NAME, desatEffect);
+                        }
+                        const factor = isFocused ? 0 : 1;
+                        if (animate) {
+                            iconTex.ease_property(`@effects.${DESATURATE_EFFECT_NAME}.factor`, factor, {
+                                duration: FOCUS_SCALE_DURATION,
+                                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                            });
+                        } else {
+                            desatEffect.factor = factor;
+                        }
+                    }
+                }
+
                 if (animate) {
                     iconWrapper.ease({
                         scale_x: scale,
@@ -560,6 +613,21 @@ export class WorkspacesBar {
                             return Clutter.EVENT_STOP;
                         }
                     }
+                    break;
+                case 2:
+                    if (this._settings.middleClickClose.value) {
+                        const [x, y] = event.get_coords();
+                        const stage = actor.get_stage();
+                        let elem = stage.get_actor_at_pos(Clutter.PickMode.ALL, x, y);
+                        while (elem && elem !== actor) {
+                            if (elem._delegate?.windowObj) {
+                                elem._delegate.windowObj.delete(global.get_current_time());
+                                return Clutter.EVENT_STOP;
+                            }
+                            elem = elem.get_parent();
+                        }
+                    }
+                    break;
             }
             return Clutter.EVENT_PROPAGATE;
         });
@@ -614,14 +682,8 @@ export class WorkspacesBar {
     _createAppIcons(workspace, animate = false) {
         const isActive = workspace.index === this._ws.currentIndex;
         const isEmpty = !workspace.hasWindows;
-        let fontSize;
-        if (isActive)
-            fontSize = this._settings.activeWorkspaceFontSize.value;
-        else if (isEmpty)
-            fontSize = this._settings.emptyWorkspaceFontSize.value;
-        else
-            fontSize = this._settings.inactiveWorkspaceFontSize.value;
-        const iconSize = fontSize > 0 ? Math.round(fontSize * 16 / 12) : 16;
+        const preset = ICON_PRESETS[this._settings.iconSizeMode.value] || ICON_PRESETS.medium;
+        const iconSize = preset.iconSize;
         let iconClass = 'space-bar-ws-icons';
         iconClass += isActive ? ' active' : ' inactive';
         if (!isActive && isEmpty)
@@ -632,8 +694,6 @@ export class WorkspacesBar {
         });
         const windowTracker = Shell.WindowTracker.get_default();
         for (const win of workspace.windows) {
-            if (win.is_on_all_workspaces())
-                continue;
             const app = windowTracker.get_window_app(win);
             const iconWrapper = new St.Button({
                 reactive: true,

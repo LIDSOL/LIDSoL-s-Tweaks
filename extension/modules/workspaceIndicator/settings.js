@@ -1,5 +1,11 @@
 import Gio from 'gi://Gio';
 
+export const ICON_PRESETS = {
+    small:  { iconSize: 16, fontSize: 12, numSpacing: 5, btnSpacing: 4, vertSpacing: 3, roundness: 6, borderWidth: 2, iconSpacing: 3, wrapperSpacing: 4 },
+    medium: { iconSize: 20, fontSize: 15, numSpacing: 7, btnSpacing: 6, vertSpacing: 4, roundness: 8, borderWidth: 2, iconSpacing: 5, wrapperSpacing: 5 },
+    large:  { iconSize: 26, fontSize: 19, numSpacing: 9, btnSpacing: 8, vertSpacing: 5, roundness: 10, borderWidth: 2, iconSpacing: 6, wrapperSpacing: 6 },
+};
+
 class SettingsSubject {
     static _subjects = [];
 
@@ -154,6 +160,7 @@ export class Settings {
         // Appearance
         this.workspacesBarPadding = SettingsSubject.createInt(s, 'ws-workspaces-bar-padding');
         this.workspaceMargin = SettingsSubject.createInt(s, 'ws-workspace-margin');
+        this.iconSizeMode = SettingsSubject.createString(s, 'ws-icon-size-mode');
         this.activeWorkspaceBackgroundColor = SettingsSubject.createString(s, 'ws-active-workspace-background-color');
         this.activeWorkspaceTextColor = SettingsSubject.createString(s, 'ws-active-workspace-text-color');
         this.activeWorkspaceBorderColor = SettingsSubject.createString(s, 'ws-active-workspace-border-color');
@@ -186,6 +193,11 @@ export class Settings {
 
         this.transitionAnimation = SettingsSubject.createString(s, 'ws-transition-animation');
         this.useAccentColor = SettingsSubject.createBoolean(s, 'ws-use-accent-color');
+        this.dimInactiveIcons = SettingsSubject.createBoolean(s, 'ws-dim-inactive-icons');
+        this.desaturateInactiveIcons = SettingsSubject.createBoolean(s, 'ws-desaturate-inactive-icons');
+        this.focusScaleEffect = SettingsSubject.createBoolean(s, 'ws-focus-scale-effect');
+        this.focusScaleReduction = SettingsSubject.createInt(s, 'ws-focus-scale-reduction');
+        this.middleClickClose = SettingsSubject.createBoolean(s, 'ws-middle-click-close');
         this.appIconsActiveBackgroundColor = SettingsSubject.createString(s, 'ws-app-icons-active-background-color');
         this.appIconsInactiveBackgroundColor = SettingsSubject.createString(s, 'ws-app-icons-inactive-background-color');
         this.appIconsEmptyBackgroundColor = SettingsSubject.createString(s, 'ws-app-icons-empty-background-color');

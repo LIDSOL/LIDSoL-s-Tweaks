@@ -244,6 +244,40 @@
       <default>4</default>
     </key>
 
+    <key type="s" name="ws-icon-size-mode">
+      <choices>
+        <choice value="small" />
+        <choice value="medium" />
+        <choice value="large" />
+      </choices>
+      <default>'medium'</default>
+    </key>
+
+    <key type="b" name="ws-dim-inactive-icons">
+      <default>false</default>
+    </key>
+
+    <key type="b" name="ws-desaturate-inactive-icons">
+      <default>false</default>
+    </key>
+
+    <key type="b" name="ws-focus-scale-effect">
+      <default>true</default>
+      <summary>Efecto de escala de enfoque</summary>
+      <description>Cuando está activo, el icono de la ventana enfocada se muestra a tamaño completo mientras los iconos no enfocados se reducen ligeramente.</description>
+    </key>
+
+    <key type="i" name="ws-focus-scale-reduction">
+      <default>15</default>
+      <range min="5" max="95"/>
+      <summary>Reducción de escala de enfoque</summary>
+      <description>Porcentaje por el cual se reducen los iconos no enfocados (5 = apenas notable, 95 = casi invisible).</description>
+    </key>
+
+    <key type="b" name="ws-middle-click-close">
+      <default>false</default>
+    </key>
+
     <key type="b" name="ws-use-accent-color">
       <default>false</default>
     </key>
@@ -259,13 +293,13 @@
     </key>
 
     <key type="s" name="ws-active-workspace-background-color">
-      <default>'rgba(255,255,255,0.3)'</default>
+      <default>'rgba(255,255,255,0.04)'</default>
     </key>
     <key type="s" name="ws-active-workspace-text-color">
       <default>'rgba(255,255,255,1)'</default>
     </key>
     <key type="s" name="ws-active-workspace-border-color">
-      <default>'rgba(0,0,0,0)'</default>
+      <default>'rgba(255,255,255,0.15)'</default>
     </key>
     <key type="i" name="ws-active-workspace-font-size">
       <default>-1</default>
@@ -279,26 +313,26 @@
       <default>"700"</default>
     </key>
     <key type="i" name="ws-active-workspace-border-radius">
-      <default>4</default>
-    </key>
-    <key type="i" name="ws-active-workspace-border-width">
-      <default>0</default>
-    </key>
-    <key type="i" name="ws-active-workspace-padding-h">
       <default>8</default>
     </key>
+    <key type="i" name="ws-active-workspace-border-width">
+      <default>2</default>
+    </key>
+    <key type="i" name="ws-active-workspace-padding-h">
+      <default>7</default>
+    </key>
     <key type="i" name="ws-active-workspace-padding-v">
-      <default>3</default>
+      <default>4</default>
     </key>
 
     <key type="s" name="ws-inactive-workspace-background-color">
-      <default>'rgba(0,0,0,0)'</default>
+      <default>'rgba(255,255,255,0.04)'</default>
     </key>
     <key type="s" name="ws-inactive-workspace-text-color">
-      <default>'rgba(255,255,255,1)'</default>
+      <default>'rgba(255,255,255,0.7)'</default>
     </key>
     <key type="s" name="ws-inactive-workspace-border-color">
-      <default>'rgba(0,0,0,0)'</default>
+      <default>'rgba(255,255,255,0.15)'</default>
     </key>
     <key type="i" name="ws-inactive-workspace-font-size">
       <default>-1</default>
@@ -312,16 +346,16 @@
       <default>"700"</default>
     </key>
     <key type="i" name="ws-inactive-workspace-border-radius">
-      <default>4</default>
-    </key>
-    <key type="i" name="ws-inactive-workspace-border-width">
-      <default>0</default>
-    </key>
-    <key type="i" name="ws-inactive-workspace-padding-h">
       <default>8</default>
     </key>
+    <key type="i" name="ws-inactive-workspace-border-width">
+      <default>2</default>
+    </key>
+    <key type="i" name="ws-inactive-workspace-padding-h">
+      <default>7</default>
+    </key>
     <key type="i" name="ws-inactive-workspace-padding-v">
-      <default>3</default>
+      <default>4</default>
     </key>
 
     <key type="s" name="ws-empty-workspace-background-color">

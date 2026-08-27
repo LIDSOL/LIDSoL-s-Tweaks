@@ -119,7 +119,7 @@ export class Styles {
     }
 
     _registerSettingChanges() {
-        [this._settings.workspacesBarPadding].forEach((setting) =>
+        [this._settings.workspacesBarPadding, this._settings.iconSizeMode].forEach((setting) =>
             setting.subscribe(() => {
                 this._updateStyleSheet();
                 this._workspacesBarUpdateNotifier.notify();

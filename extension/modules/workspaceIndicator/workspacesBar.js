@@ -226,7 +226,8 @@ class WorkspacesBarDragHandler {
 export class WorkspacesBar {
     constructor(extension) {
         this._extension = extension;
-        this._name = `${extension.metadata.name}`;
+        this._name = 'lidsol-workspace-indicator';
+        this._label = 'Workspace Indicator';
         this._settings = Settings.getInstance();
         this._styles = Styles.getInstance();
         this._ws = Workspaces.getInstance();
@@ -258,8 +259,6 @@ export class WorkspacesBar {
         this._settings.focusScaleEffect.subscribe(() => this._applyFocusScale(true));
         this._settings.focusScaleReduction.subscribe(() => this._applyFocusScale(true));
         this._settings.indicatorStyle.subscribe(() => this._refreshTopBarConfiguration());
-        this._settings.position.subscribe(() => this._refreshTopBarConfiguration());
-        this._settings.positionIndex.subscribe(() => this._refreshTopBarConfiguration());
         this._focusedWindowId = null;
         this._focusSignalId = global.display.connect('notify::focus-window', () => this._onFocusWindowChanged());
         this._prevWindowIds = '';
@@ -293,7 +292,7 @@ export class WorkspacesBar {
     }
 
     _initButton() {
-        this._button = new WorkspacesButton(0.5, this._name);
+        this._button = new WorkspacesButton(0.5, this._label);
         this._buttonSubject.next(this._button);
         this._button.styleClass = 'panel-button space-bar';
         switch (this._settings.indicatorStyle.value) {
@@ -304,12 +303,7 @@ export class WorkspacesBar {
                 this._initWorkspacesBar();
                 break;
         }
-        Main.panel.addToStatusArea(
-            this._name,
-            this._button,
-            this._settings.positionIndex.value,
-            this._settings.position.value,
-        );
+        Main.panel.addToStatusArea(this._name, this._button);
         this._updateWorkspaces();
     }
 

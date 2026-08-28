@@ -236,7 +236,8 @@ class WorkspacesBarDragHandler {
 export class WorkspaceBar {
     constructor(extension) {
         this._extension = extension;
-        this._name = `${extension.metadata.name}`;
+        this._name = 'lidsol-workspace-indicator';
+        this._label = 'Workspace Indicator';
         this._settings = Settings.getInstance();
         this._styles = Styles.getInstance();
         this._ws = Workspaces.getInstance();
@@ -288,7 +289,6 @@ export class WorkspaceBar {
 
     init() {
         this._createContainer();
-        this._insertContainer();
         this._initButton();
         this._menu = new WorkspacesBarMenu(this._extension, this._button.menu);
         this._menu.init();
@@ -309,8 +309,6 @@ export class WorkspaceBar {
         this._settings.focusScaleEffect.subscribe(() => this._applyFocusScale(true));
         this._settings.focusScaleReduction.subscribe(() => this._applyFocusScale(true));
         this._settings.indicatorStyle.subscribe(() => this._refreshTopBarConfiguration());
-        this._settings.position.subscribe(() => this._refreshTopBarConfiguration());
-        this._settings.positionIndex.subscribe(() => this._refreshTopBarConfiguration());
 
         // Focus tracking
         this._focusSignalId = global.display.connect('notify::focus-window', () => this._onFocusWindowChanged());
@@ -360,19 +358,14 @@ export class WorkspaceBar {
     // ── Panel button & container creation ─────────────────────────────
 
     _initButton() {
-        this._button = new WorkspacesButton(0.5, this._name);
+        this._button = new WorkspacesButton(0.5, this._label);
         this._buttonSubject.next(this._button);
         this._button.styleClass = 'panel-button space-bar';
         this._button._clickGesture.set_enabled(false);
         this._button._delegate = this._dragHandler;
         this._button.trackHover = false;
         this._button.add_child(this._viewport);
-        Main.panel.addToStatusArea(
-            this._name,
-            this._button,
-            this._settings.positionIndex.value,
-            this._settings.position.value,
-        );
+        Main.panel.addToStatusArea(this._name, this._button);
     }
 
     _createContainer() {
@@ -393,15 +386,6 @@ export class WorkspaceBar {
         this._viewport.connect('scroll-event', (_v, event) => this._onScrollEvent(event));
     }
 
-    _insertContainer() {
-        const pos = this._settings.position.value;
-        const posIndex = this._settings.positionIndex.value;
-        const box = pos === 'center' ? Main.panel._centerBox
-            : pos === 'right' ? Main.panel._rightBox
-            : Main.panel._leftBox;
-        box.insert_child_at_index(this._viewport, Math.min(posIndex, box.get_n_children()));
-    }
-
     _refreshTopBarConfiguration() {
         this._removeInsertionIndicator();
         this._unregisterGapDragMonitor();
@@ -411,7 +395,6 @@ export class WorkspaceBar {
         this._suppressAnimations = true;
         this._prevActiveIndex = this._ws.currentIndex;
         this._createContainer();
-        this._insertContainer();
         this._initButton();
         this._menu = new WorkspacesBarMenu(this._extension, this._button.menu);
         this._menu.init();

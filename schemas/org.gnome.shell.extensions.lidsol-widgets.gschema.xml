@@ -111,21 +111,6 @@
     <key type="s" name="ws-custom-label-unnamed">
       <default>'Workspace {{number}}'</default>
     </key>
-    <key type="s" name="ws-position">
-      <choices>
-        <choice value="left" />
-        <choice value="center" />
-        <choice value="right" />
-      </choices>
-      <default>"left"</default>
-    </key>
-    <key type="b" name="ws-system-workspace-indicator">
-      <default>false</default>
-    </key>
-    <key type="i" name="ws-position-index">
-      <range min="0" max="100" />
-      <default>1</default>
-    </key>
     <key type="b" name="ws-always-show-numbers">
       <default>false</default>
     </key>

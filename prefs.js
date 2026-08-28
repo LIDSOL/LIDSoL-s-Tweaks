@@ -1889,17 +1889,19 @@ const TOP_BAR_ITEM_NAMES = {
   screencastIndicator: 'Grabación de pantalla',
   remoteAccessIndicator: 'Acceso remoto',
   appindicatorContainer: 'Indicadores de aplicación',
+  'lidsol-workspace-indicator': 'Workspace Indicator',
 };
 
 const TOP_BAR_ITEM_ICONS = {
   appMenu: 'application-x-executable-symbolic',
-  dateMenu: 'office-calendar-symbolic',
+  dateMenu: 'preferences-system-time-symbolic',
   activities: 'view-grid-symbolic',
   quickSettings: 'emblem-system-symbolic',
   a11y: 'preferences-desktop-accessibility-symbolic',
   keyboard: 'input-keyboard-symbolic',
   screencastIndicator: 'media-record-symbolic',
   remoteAccessIndicator: 'network-server-symbolic',
+  'lidsol-workspace-indicator': 'preferences-desktop-multitasking-symbolic',
 };
 
 function getTopBarItemName(role) {
@@ -1997,12 +1999,11 @@ function openTopBarOrganizerDialog(parentWindow, settings) {
         if (!currentHide.includes(item))
           currentHide.push(item);
       }
-      settings.delay();
       try {
         settings.set_strv('tbo-hide', currentHide);
         settings.set_strv('tbo-show', currentShow);
-      } finally {
-        settings.apply();
+      } catch (e) {
+        console.error('[TBO] error toggling hide/show:', e);
       }
     });
     row.add_suffix(hideSwitch);
@@ -2107,15 +2108,19 @@ function openTopBarOrganizerDialog(parentWindow, settings) {
       if (child instanceof TopBarOrganizerRow)
         items.push(child._item);
     }
-    settings.delay();
     try {
       settings.set_strv(key, items);
-    } finally {
-      settings.apply();
+    } catch (e) {
+      console.error('[TBO] error saving box order:', e);
     }
   }
 
   function _saveBothListBoxOrders(listBoxA, listBoxB, settings) {
+    // listBoxA is the source list box, listBoxB is the destination list box.
+    // Save the destination box order FIRST, then the source, so that when the
+    // module's `changed` handler runs `saveNewTopBarItems`, the moved item is
+    // already present in the destination box order and is NOT re-added to its
+    // original box (which would corrupt the order / duplicate items).
     const keyA = listBoxA.boxOrder;
     const keyB = listBoxB.boxOrder;
     const itemsA = [];
@@ -2128,12 +2133,11 @@ function openTopBarOrganizerDialog(parentWindow, settings) {
       if (child instanceof TopBarOrganizerRow)
         itemsB.push(child._item);
     }
-    settings.delay();
     try {
-      settings.set_strv(keyA, itemsA);
       settings.set_strv(keyB, itemsB);
-    } finally {
-      settings.apply();
+      settings.set_strv(keyA, itemsA);
+    } catch (e) {
+      console.error('[TBO] error saving box orders:', e);
     }
   }
 
@@ -2159,40 +2163,54 @@ function openTopBarOrganizerDialog(parentWindow, settings) {
       const resetBtn = Gtk.Button.new_from_icon_name('view-refresh-symbolic');
       resetBtn.has_frame = false;
       resetBtn.valign = Gtk.Align.CENTER;
-      resetBtn.tooltip_text = 'Restablecer valores predeterminados';
-      resetBtn.connect('clicked', () => {
+      resetBtn.tooltip_text = 'Actualizar barra: mostrar solo los elementos actuales';
+
+      const showAlert = (heading, body) => {
         const alert = new Adw.AlertDialog({
-          heading: 'Restablecer orden predeterminado',
-          body: 'Se perderán todos los cambios en el orden y visibilidad de la barra superior.',
+          heading,
+          body,
         });
-        alert.add_response('cancel', 'Cancelar');
-        alert.add_response('reset', 'Restablecer');
-        alert.set_response_appearance('reset', Adw.ResponseAppearance.DESTRUCTIVE);
-        alert.set_default_response('cancel');
-        alert.set_close_response('cancel');
-        alert.connect('response', (_dlg, response) => {
-          if (response === 'reset') {
-            const leftDef = settings.get_strv('tbo-default-left-box-order');
-            const centerDef = settings.get_strv('tbo-default-center-box-order');
-            const rightDef = settings.get_strv('tbo-default-right-box-order');
-            if (leftDef.length === 0 && centerDef.length === 0 && rightDef.length === 0) {
-              dialog.close();
+        alert.add_response('ok', 'Aceptar');
+        alert.set_default_response('ok');
+        alert.set_close_response('ok');
+        alert.present(parentWindow);
+      };
+
+      resetBtn.connect('clicked', () => {
+        const dbusName = 'org.gnome.Shell.Extensions.LidSolWidgets';
+        const dbusPath = '/org/gnome/Shell/Extensions/LidSolWidgets';
+        Gio.DBus.session.call(
+          dbusName,
+          dbusPath,
+          dbusName,
+          'CleanTopBar',
+          null,
+          new GLib.VariantType('(b)'),
+          Gio.DBusCallFlags.NONE,
+          -1,
+          null,
+          (conn, res) => {
+            let changed = false;
+            try {
+              const reply = conn.call_finish(res);
+              changed = reply.deep_unpack()[0];
+            } catch (e) {
+              console.error('[TBO] no ha sido posible actualizar la barra:', e);
+              showAlert(
+                'No se pudo actualizar la barra',
+                'El módulo "Top Bar Organizer" no está activo. Activa el módulo e inténtalo de nuevo.'
+              );
               return;
             }
-            settings.delay();
-            try {
-              settings.set_strv('tbo-left-box-order', leftDef);
-              settings.set_strv('tbo-center-box-order', centerDef);
-              settings.set_strv('tbo-right-box-order', rightDef);
-              settings.set_strv('tbo-hide', []);
-              settings.set_strv('tbo-show', []);
-            } finally {
-              settings.apply();
-            }
             _rebuildAll();
+            showAlert(
+              changed ? 'Barra actualizada' : 'Sin cambios',
+              changed
+                ? 'La barra ahora muestra solo los elementos actuales.'
+                : 'Todos los elementos guardados ya son los actuales.'
+            );
           }
-        });
-        alert.present(parentWindow);
+        );
       });
       const headerBox = new Gtk.Box({ spacing: 4 });
       headerBox.append(resetBtn);
@@ -2238,6 +2256,39 @@ function openTopBarOrganizerDialog(parentWindow, settings) {
           _populateListBox(listBox, box, settings);
         }
       }
+
+      const currentRoles = () => {
+        const roles = new Set();
+        for (const box of ['left', 'center', 'right'])
+          for (const role of getOrder(box))
+            roles.add(role);
+        return roles;
+      };
+
+      const knownRoles = currentRoles();
+      const refreshKeys = [
+        'tbo-left-box-order',
+        'tbo-center-box-order',
+        'tbo-right-box-order',
+        'tbo-hide',
+        'tbo-show',
+      ];
+      const refreshHandlerIds = refreshKeys.map((key) =>
+        settings.connect(`changed::${key}`, () => {
+          const roles = currentRoles();
+          for (const role of roles) {
+            if (!knownRoles.has(role)) {
+              knownRoles.add(role);
+              _rebuildAll();
+              return;
+            }
+          }
+        })
+      );
+      dialog.connect('closed', () => {
+        for (const id of refreshHandlerIds)
+          settings.disconnect(id);
+      });
     },
   });
 }

@@ -56,21 +56,14 @@ export class WorkspaceIndicatorPrefs {
             subtitle: 'Muestra íconos de ventanas abiertas en cada espacio de trabajo (solo Barra de espacios)' });
         this._addToggle(group, { key: 'ws-middle-click-close', title: 'Cerrar ventana con clic central' });
 
-        this._addCombo(group, {
-            key: 'ws-position',
-            title: 'Posición en el panel',
-            options: { left: 'Izquierda', center: 'Centro', right: 'Derecha' },
-        });
-        this._addSpinButton(group, { key: 'ws-position-index', title: 'Índice de posición', lower: 0, upper: 100 });
-
-        this._addToggle(group, { key: 'ws-system-workspace-indicator', title: 'Conservar indicador nativo' });
+        this._addNativeIndicatorToggle(group);
 
         this._addCombo(group, {
             key: 'ws-scroll-wheel',
             title: 'Rueda del ratón',
             options: { panel: 'Sobre el panel', 'workspaces-bar': 'Sobre el indicador', disabled: 'Desactivado' },
         });
-        this._addToggle(group, { key: 'ws-scroll-wheel-debounce', title: 'Debounce' });
+        this._addToggle(group, { key: 'ws-scroll-wheel-debounce', title: 'Debounce', subtitle: 'Evita que un giro rápido de la rueda "salte" varios espacios a la vez (o que un scroll accidental cambie de espacio muchas veces)' });
         this._addSpinButton(group, { key: 'ws-scroll-wheel-debounce-time', title: 'Tiempo de debounce (ms)', lower: 0, upper: 2000, step: 50 });
         this._addCombo(group, {
             key: 'ws-scroll-wheel-vertical',
@@ -101,10 +94,73 @@ export class WorkspaceIndicatorPrefs {
         page.add(smartGroup);
     }
 
+    // "Conservar indicador nativo": mirrored onto Top Bar Organizer's own
+    // mechanism (tbo-hide/tbo-show) for the `activities` role, so both switches
+    // behave as one. Disabled unless Top Bar Organizer (tbo-enabled) is on.
+    _addNativeIndicatorToggle(group) {
+        const row = new Adw.ActionRow({
+            title: 'Conservar indicador nativo',
+            subtitle: 'Mantiene visible el botón Actividades del sistema (gestionado por Top Bar Organizer)',
+        });
+        group.add(row);
+
+        const toggle = new Gtk.Switch({ valign: Gtk.Align.CENTER });
+        row.add_suffix(toggle);
+        row.activatable_widget = toggle;
+
+        const getHide = () => {
+            try { return this._settings.get_strv('tbo-hide'); }
+            catch (e) { return []; }
+        };
+        const getShow = () => {
+            try { return this._settings.get_strv('tbo-show'); }
+            catch (e) { return []; }
+        };
+        const isHidden = () => getHide().includes('activities');
+        const isTboOn = () => {
+            try { return this._settings.get_boolean('tbo-enabled'); }
+            catch (e) { return false; }
+        };
+
+        const refresh = () => {
+            toggle.set_active(!isHidden());
+            toggle.set_sensitive(isTboOn());
+        };
+        refresh();
+        this._settings.connect('changed::tbo-hide', refresh);
+        this._settings.connect('changed::tbo-show', refresh);
+        this._settings.connect('changed::tbo-enabled', refresh);
+
+        toggle.connect('notify::active', () => {
+            if (!toggle.sensitive)
+                return;
+            const hide = getHide();
+            const show = getShow();
+            if (toggle.active) {
+                const hi = hide.indexOf('activities');
+                if (hi !== -1)
+                    hide.splice(hi, 1);
+                if (!show.includes('activities'))
+                    show.push('activities');
+            } else {
+                const si = show.indexOf('activities');
+                if (si !== -1)
+                    show.splice(si, 1);
+                if (!hide.includes('activities'))
+                    hide.push('activities');
+            }
+            try {
+                this._settings.set_strv('tbo-hide', hide);
+                this._settings.set_strv('tbo-show', show);
+            } catch (e) {
+                console.error('[WI] error toggling native indicator:', e);
+            }
+        });
+    }
+
     _addAppearanceGroup(page) {
         const group = new Adw.PreferencesGroup();
         group.set_title('Apariencia');
-
         this._addSpinButton(group, { key: 'ws-workspaces-bar-padding', title: 'Padding de la barra', lower: 0, upper: 255 });
         this._addSpinButton(group, { key: 'ws-workspace-margin', title: 'Margen entre espacios', lower: 0, upper: 255 });
 

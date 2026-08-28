@@ -144,13 +144,13 @@ DEADLINE: <2026-09-15 Tue>
 ***** SOMEDAY Widget weather
 - Referencia para el frontend: [[https://flathub.org/en/apps/io.github.amit9838.mousam][Mouseam en "modo widget"]]
 *** [#A] 1.4 Top Bar
-**** NEXT 1.4.1 Top Bar Organized
+**** DONE 1.4.1 Top Bar Organized
 DEADLINE: <2026-08-26 Wed>
-- [ ] 1.4.1.1 Bug: Al hacer uso del botón "Restablecer valores predeterminados" todos los elementos /desaparecen/, al cerrar y abrir el dialog, nuevamente son visibles. No se restablece el orden.
-- [ ] 1.4.1.1 Feat: Al hacer uso del botón "Restablecer valores predeterminados", recargar los elementos del panel, para eliminar aquellos que ya no están. Por ejemplo, a veces permanecen en la lista elementos que ya no existen; como un indicador de una extensión que ya se eliminó, pero el elemento aún se muestra.
-- [ ] 1.4.1.3 Feat: Cada vez que se abre el dialog, recarga los elementos (para asegurar que no se muestra nada que no está realmente).
+- [x] 1.4.1.1 Bug: Al hacer uso del botón "Restablecer valores predeterminados" todos los elementos /desaparecen/, al cerrar y abrir el dialog, nuevamente son visibles. No se restablece el orden.
+- [x] 1.4.1.1 Feat: Al hacer uso del botón "Restablecer valores predeterminados", recargar los elementos del panel, para eliminar aquellos que ya no están. Por ejemplo, a veces permanecen en la lista elementos que ya no existen; como un indicador de una extensión que ya se eliminó, pero el elemento aún se muestra. Solución: el botón ahora "limpia la barra": vía D-Bus (`org.gnome.Shell.Extensions.LidSolWidgets.CleanTopBar`) pide al módulo `_cleanTopBar()` que reconstruya los `tbo-*-box-order`/`tbo-hide`/`tbo-show` únicamente con los elementos vivos de la barra, y luego el dialog se reconstruye.
+- [x] 1.4.1.3 Feat: Cada vez que se abre el dialog, recarga los elementos (para asegurar que no se muestra nada que no está realmente). Solución adoptada: limpieza **manual** vía el botón de actualizar (1.4.1.1); NO se poda automáticamente en cada evento (prefs no accede a `Main.panel`, así que la limpieza se delega al módulo del shell vía D-Bus).
 - [x] 1.4.1.4 Bug: Este tiene relación con 1.4.5.1, no se puede "ordenar" el elemento del Workspace Bar. Muy posiblemente por entrar en conflicto con la opción de ubicación de este módulo. No aparece en la lista de elementos a ordenar.
-- [ ] 1.4.1.5 Feat: Recibe la señal de como se indica en 1.4.5.5.8; es decir, estos dos switch están sincronizados, se usa la función/clase de Top Bar.
+- [x] 1.4.1.5 Feat: Recibe la señal de como se indica en 1.4.5.5.8; es decir, estos dos switch están sincronizados, se usa la función/clase de Top Bar.
 **** TODO 1.4.2 Panel Corners
 DEADLINE: <2026-08-27 Wed>
 - [ ] 1.4.2.1 Eliminar el modo debug (switch) de las opciones avanzadas, y todo el código asociado a esta opción.
@@ -168,17 +168,17 @@ DEADLINE: <2026-08-31 Wed>
 - [x] 1.4.5.2 Feat: Implementar la posibilidad de renombrar el espacio de trabajo (como en space bar).
 - [ ] 1.4.5.3 
 - [x] 1.4.5.4 Movimiento de workspaces como en workspaceIndicator
-- [ ] 1.4.5.5 Opciones de *Comportamiento*
+- [x] 1.4.5.5 Opciones de *Comportamiento*
     - [x] 1.4.5.5.1 Mostrar iconos de las aplicaciones (este switch debe mostrar u ocultar los iconos, para solo mostrar los nombres de los espacios de trabajo)
     - [x] 1.4.5.5.2 Click central cierra ventana (opción por defecto)
-    - [ ] 1.4.5.5.3 Mostrar números siempre
-    - [ ] 1.4.5.5.4 Scroll vertical (normal, invertido, desactivado)
-    - [ ] 1.4.5.5.5 Scroll horizontal (normal, invertido, desactivado)
-    - [ ] 1.4.5.5.6 Rueda del ratón (sobre el panel, sobre el indicador, desactivado)
-    - [ ] 1.4.5.5.7 Debounce 
-    - [ ] 1.4.5.5.6 Tiempo de debounce
-    - [ ] 1.4.5.5.8 Conservar indicador nativo (cuando se activa este módulo, manda un mensaje a top bar organized para ocultarlo). Relacionado con 1.4.1.5 
-    - [ ] 1.4.5.5.9  Mostrar espacios vacíos (+) (adaptarlo de space bar)
+    - [x] 1.4.5.5.3 Mostrar números siempre
+    - [x] 1.4.5.5.4 Scroll vertical (normal, invertido, desactivado)
+    - [x] 1.4.5.5.5 Scroll horizontal (normal, invertido, desactivado)
+    - [x] 1.4.5.5.6 Rueda del ratón (sobre el panel, sobre el indicador, desactivado)
+    - [x] 1.4.5.5.7 Debounce 
+    - [x] 1.4.5.5.6 Tiempo de debounce
+    - [x] 1.4.5.5.8 Conservar indicador nativo (cuando se activa este módulo, manda un mensaje a top bar organized para ocultarlo). Relacionado con 1.4.1.5 
+    - [x] 1.4.5.5.9  Mostrar espacios vacíos (+) (adaptarlo de space bar)
 - [x] 1.4.5.6 Opciones de *Nombres inteligentes*
     - Feat basada en space bar
     - [x] 1.4.5.6.1 Activar nombres inteligentes
@@ -441,6 +441,18 @@ journalctl -f -o cat /usr/bin/gnome-shell | grep 'LIDSoL'
 - **Quick Text dual-process**: Diálogo modal en St/Clutter (dentro del Shell), ventana Actions en Gtk/Adw (proceso separado vía `Util.spawn()`). El subproceso necesita shebang `#!/usr/bin/gjs -m`.
 - **Background Clock**: NO monkey-patchear `BackgroundManager.prototype._createBackgroundActor`. Usar `Main.layoutManager._backgroundGroup.add_child()`.
 - **JS getters vs GObject properties**: No definir `get canPlay() { }` en una clase `GObject.registerClass` que ya declara `'can-play'` como `GObject.ParamSpec.boolean(READWRITE)`. El getter JS shadowea la propiedad GObject y como no tiene setter, `this.canPlay = value` lanza `TypeError: setting getter-only property`. La señal `notify::can-play` nunca se emite, rompiendo cualquier código que dependa de ella. Siempre verificar que no haya conflicto entre `Properties:` del `registerClass` y getters/setters del prototipo.
+
+*** Lecciones de Top Bar Organizer (1.4.1)
+
+- **prefs.js no puede leer el estado vivo de la barra** (proceso GTK separado, sin `Main.panel`). Para que el dialog "solo muestre lo que existe", el trabajo se delega al módulo del shell vía **D-Bus**: prefs expone el botón "actualizar", llama a `org.gnome.Shell.Extensions.LidSolWidgets.CleanTopBar` (método exportado por `TopBarOrganizerModule`), el módulo reconstruye los `tbo-*-box-order`/`tbo-hide`/`tbo-show` y el dialog se reconstruye en el callback.
+- **D-Bus IMPORTANTE — exportar el objeto en la MISMA conexión que posee el nombre**: si usas `Gio.bus_own_name(...)` (crea una conexión PRIVADA interna) y exportas con `Gio.DBus.session.export_object(...)` (conexión COMPARTIDA), son conexiones DISTINTAS → el nombre resuelve a una y el objeto está exportado en la otra → las llamadas fallan (`"No se pudo actualizar la barra"` aunque el módulo esté activo; el botón de "Actualizar barra" falló hasta fix 2026-08). Solución correcta: exportar dentro del **`bus_acquired_handler`** de `bus_own_name`, usando la conexión que recibe ese callback (`connection.export_object(path, iface, methodHandler)`), y guardar `this._dbusConnection = connection` para hacer `unexport_object` en `disable()`.
+- **`Main.panel.statusArea[role]` persiste tras deshabilitar un módulo**: p.ej. `disable()` de batteryIndicator destruye el container pero NO borra `statusArea['lidsol-battery-indicator']`. Por eso comprobar solo `statusArea[role]?.container instanceof St.Bin` NO basta → hay que verificar que el container sea hijo vivo de `_leftBox/_centerBox/_rightBox` (como hace `_cleanTopBar()`).
+- **`saveNewTopBarItems` solo añade, nunca borra** → los roles obsoletos quedan guardados. `_cleanTopBar()` reconstruye los órdenes directamente desde los containers vivos de cada box (con reverse en el box derecho, RTL) y filtra `hide/show`; escribe con comparación `JSON.stringify` para evitar loops de señal.
+- **Comunicación prefs → shell**: en este proyecto la limpieza es **manual** (botón) y no automática; se usó D-Bus para tener un call-and-response determinista (prefs espera la llamada para `_rebuildAll()`), evitando claves GSettings `tbo-clean` con patrón de sentinela frágil.
+- **CRÍTICO — un throw en `enable()` mata TODO el módulo**: `ModuleLoader._enableModule` envuelve `moduleInstance.enable()` en `try/catch` (moduleLoader.js); si `enable()` lanza (p.ej. el setup D-Bus `Gio.bus_own_name`/`Gio.DBus.session.export_object` falla), NO se registra el módulo y **nunca** se enganchan el patch de `Panel._addToPanelBox` ni las conexiones `changed::` → la barra no reordena ni oculta (regresión 2026-08). Lección: el bloque D-Bus debe ir **DESPUÉS** del wiring esencial (patch + conexiones + `_handleNewItemsAndOrderTopBar()`) y envuelto en `try/catch` para que un fallo de D-Bus NUNCA deshabilite la barra.
+- **El role de `statusArea` NO debe ser el nombre visible de la extensión**: el Workspace Indicator usaba `extension.metadata.name` ("LIDSoL's Tweaks") como role → en el dialog TBO se mostraba un item "LIDSoL's Tweaks" y roles duplicados obsoletos quedaban guardados en los `tbo-*-box-order`. Fix: usar un role estable y único (`'lidsol-workspace-indicator'`) y mapear a nombre amigable en `TOP_BAR_ITEM_NAMES`/`TOP_BAR_ITEM_ICONS` de prefs.js. Además `_saveNewTopBarItems` ahora deduplica (`[...new Set(...)]`) cada box-order antes de guardar.
+- **Roles obsoletos**: roles muertos acaban guardados en los `tbo-*` (aquí `"LIDSoL's Tweaks"` y `'workspaceBar'`). `_removeObsoleteRoles()` los filtra de todos los `tbo-*` keys de forma automática (no hace falta el botón de actualizar). El role nuevo del workspace indicator debe quedar también en `DEFAULT_BOX_BY_ROLE = { 'lidsol-workspace-indicator': 'left' }` para que se coloque en la caja izquierda por defecto (si no, `addToStatusArea` sin box lo pondría en la derecha y `addNewItems` lo guardaría ahí).
+- **El ícono del dialog debe existir en el sistema**: `desktop-symbolic` NO existe → ícono en blanco. Usar uno real (`preferences-desktop-multitasking-symbolic`). `_saveNewTopBarItems` también escribía `default-left/center/right` que NO existen en el schema (throw si `isFirstTime`); se eliminaron esas escrituras muertas.
 
 *** Lecciones de Overlay Mode (Quick Settings)
 

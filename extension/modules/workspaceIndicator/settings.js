@@ -137,9 +137,6 @@ export class Settings {
         this.enableCustomLabelInMenus = SettingsSubject.createBoolean(s, 'ws-enable-custom-label-in-menu');
         this.customLabelNamed = SettingsSubject.createString(s, 'ws-custom-label-named');
         this.customLabelUnnamed = SettingsSubject.createString(s, 'ws-custom-label-unnamed');
-        this.position = SettingsSubject.createString(s, 'ws-position');
-        this.systemWorkspaceIndicator = SettingsSubject.createBoolean(s, 'ws-system-workspace-indicator');
-        this.positionIndex = SettingsSubject.createInt(s, 'ws-position-index');
         this.scrollWheel = SettingsSubject.createString(s, 'ws-scroll-wheel');
         this.scrollWheelDebounce = SettingsSubject.createBoolean(s, 'ws-scroll-wheel-debounce');
         this.scrollWheelDebounceTime = SettingsSubject.createInt(s, 'ws-scroll-wheel-debounce-time');

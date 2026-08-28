@@ -1,7 +1,6 @@
 'use strict';
 
 import { Settings } from './settings.js';
-import { TopBarAdjustments } from './topBarAdjustments.js';
 import { Workspaces } from './workspaces.js';
 import { KeyBindings } from './keyBindings.js';
 import { Styles } from './styles.js';
@@ -21,7 +20,6 @@ export class WorkspaceIndicatorModule {
         this._gsettings = gsettings;
         this._extension = extension;
         Settings.init(gsettings);
-        TopBarAdjustments.init();
         Workspaces.init();
         KeyBindings.init();
         Styles.init();
@@ -34,7 +32,6 @@ export class WorkspaceIndicatorModule {
     disable() {
         destroyAllHooks();
         Settings.destroy();
-        TopBarAdjustments.destroy();
         Workspaces.destroy();
         KeyBindings.destroy();
         Styles.destroy();

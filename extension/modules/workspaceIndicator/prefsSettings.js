@@ -163,10 +163,12 @@ export class WorkspaceIndicatorPrefs {
         group.set_title('Apariencia');
         this._addSpinButton(group, { key: 'ws-workspaces-bar-padding', title: 'Padding de la barra', lower: 0, upper: 255 });
         this._addSpinButton(group, { key: 'ws-workspace-margin', title: 'Margen entre espacios', lower: 0, upper: 255 });
+        this._addSpinButton(group, { key: 'ws-workspace-name-icons-spacing', title: 'Espacio nombre/íconos', subtitle: 'Separa el nombre del workspace de sus íconos', lower: 0, upper: 255 });
 
         this._addCombo(group, {
             key: 'ws-icon-size-mode',
             title: 'Tamaño de íconos',
+            subtitle: 'Controla el tamaño de los íconos y de la fuente',
             options: { small: 'Pequeño (16px)', medium: 'Mediano (20px)', large: 'Grande (26px)' },
         });
 
@@ -202,7 +204,7 @@ export class WorkspaceIndicatorPrefs {
 
         const accentRow = new Adw.ActionRow({
             title: 'Usar color de acento de GNOME',
-            subtitle: 'Fondo y borde usan el color de acento del sistema. Texto siempre #F6F5F4.',
+            subtitle: 'El borde usa el color de acento del sistema; el fondo, un tono oscuro derivado de ese color. Texto siempre #F6F5F4.',
         });
         const accentSwitch = new Gtk.Switch({
             active: this._settings.get_boolean('ws-use-accent-color'),
@@ -216,9 +218,8 @@ export class WorkspaceIndicatorPrefs {
         const bgColorRow = this._addColorButton(activeGroup, { key: 'ws-active-workspace-background-color', title: 'Color de fondo' });
         const textColorRow = this._addColorButton(activeGroup, { key: 'ws-active-workspace-text-color', title: 'Color de texto' });
         const borderColorRow = this._addColorButton(activeGroup, { key: 'ws-active-workspace-border-color', title: 'Color del borde' });
-        const iconsBgColorRow = this._addColorButton(activeGroup, { key: 'ws-app-icons-active-background-color', title: 'Color de fondo (íconos)' });
 
-        const colorRows = [bgColorRow, textColorRow, borderColorRow, iconsBgColorRow];
+        const colorRows = [bgColorRow, textColorRow, borderColorRow];
         const updateAccentSensitivity = () => {
             const accent = this._settings.get_boolean('ws-use-accent-color');
             for (const row of colorRows) {
@@ -228,7 +229,6 @@ export class WorkspaceIndicatorPrefs {
         updateAccentSensitivity();
         this._settings.connect('changed::ws-use-accent-color', updateAccentSensitivity);
 
-        this._addSpinButton(activeGroup, { key: 'ws-active-workspace-font-size', title: 'Tamaño de fuente', lower: 0, upper: 255 });
         this._addCombo(activeGroup, {
             key: 'ws-active-workspace-font-weight',
             title: 'Grosor de fuente',
@@ -246,8 +246,6 @@ export class WorkspaceIndicatorPrefs {
         this._addColorButton(inactiveGroup, { key: 'ws-inactive-workspace-background-color', title: 'Color de fondo' });
         this._addColorButton(inactiveGroup, { key: 'ws-inactive-workspace-text-color', title: 'Color de texto' });
         this._addColorButton(inactiveGroup, { key: 'ws-inactive-workspace-border-color', title: 'Color del borde' });
-        this._addColorButton(inactiveGroup, { key: 'ws-app-icons-inactive-background-color', title: 'Color de fondo (íconos)' });
-        this._addSpinButton(inactiveGroup, { key: 'ws-inactive-workspace-font-size', title: 'Tamaño de fuente', lower: 0, upper: 255 });
         this._addCombo(inactiveGroup, {
             key: 'ws-inactive-workspace-font-weight',
             title: 'Grosor de fuente',
@@ -265,8 +263,6 @@ export class WorkspaceIndicatorPrefs {
         this._addColorButton(emptyGroup, { key: 'ws-empty-workspace-background-color', title: 'Color de fondo' });
         this._addColorButton(emptyGroup, { key: 'ws-empty-workspace-text-color', title: 'Color de texto' });
         this._addColorButton(emptyGroup, { key: 'ws-empty-workspace-border-color', title: 'Color del borde' });
-        this._addColorButton(emptyGroup, { key: 'ws-app-icons-empty-background-color', title: 'Color de fondo (íconos)' });
-        this._addSpinButton(emptyGroup, { key: 'ws-empty-workspace-font-size', title: 'Tamaño de fuente', lower: 0, upper: 255 });
         this._addCombo(emptyGroup, {
             key: 'ws-empty-workspace-font-weight',
             title: 'Grosor de fuente',

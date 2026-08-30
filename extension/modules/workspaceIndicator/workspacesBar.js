@@ -522,7 +522,13 @@ export class WorkspacesBar {
         for (let ws_index = 0; ws_index < this._ws.numberOfEnabledWorkspaces; ++ws_index) {
             const workspace = this._ws.workspaces[ws_index];
             if (workspace.isVisible) {
-                const wsBox = this._createWsBox(workspace, animateIcons, captured, reused, slideEntries);
+                let wsBox;
+                try {
+                    wsBox = this._createWsBox(workspace, animateIcons, captured, reused, slideEntries);
+                } catch (e) {
+                    console.error(`[WI] failed to build workspace box #${ws_index + 1}:`, e);
+                    continue;
+                }
                 this._wsBar?.add_child(wsBox);
                 this._dragHandler.wsBoxes.push({ workspace, wsBox });
                 newCount++;
@@ -714,10 +720,23 @@ export class WorkspacesBar {
         const useIconsSection = showIcons && workspace.windows.length > 0;
         const label = this._createLabel(workspace, useIconsSection);
 
+        if (workspace.index === this._ws.currentIndex)
+            wsBox.styleClass += ' active';
+        else if (workspace.windows.length === 0)
+            wsBox.styleClass += ' empty';
+        else
+            wsBox.styleClass += ' inactive';
+
         if (useIconsSection) {
             wsBox.styleClass += ' space-bar-ws-box-icons';
+            let contentState = ' inactive';
+            if (workspace.index === this._ws.currentIndex)
+                contentState = ' active';
+            else if (workspace.windows.length === 0)
+                contentState = ' inactive empty';
             const contentBox = new St.BoxLayout({
                 xAlign: Clutter.ActorAlign.CENTER,
+                styleClass: 'space-bar-ws-content' + contentState,
             });
             label.set_y_expand(true);
             contentBox.add_child(label);

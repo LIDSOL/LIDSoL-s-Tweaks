@@ -161,12 +161,12 @@ DEADLINE: <2026-08-27 Wed>
 - [x] 1.4.3.1 Eliminar esta feature, todo su código asociado y sus opciones de configuración en prefs.js
 **** TODO 1.4.4  
 DEADLINE: <2026-08-28 Wed>
-**** NEXT 1.4.5 Work Space Bar
+**** NEXT 1.4.5 workspaceIndicator
 DEADLINE: <2026-08-31 Wed>
 - [x] 1.4.5.1 Eliminar las opciones de posición y todo su código asociado (se usará top bar organized para ello).
 - [x] 1.4.5.2 Bug: No se muestra en top bar organized (relacionado con 1.4.1.4)
 - [x] 1.4.5.2 Feat: Implementar la posibilidad de renombrar el espacio de trabajo (como en space bar).
-- [ ] 1.4.5.3 
+- [ ] 1.4.5.3 Añadir la posibilidad de arrastrar un elemento del topbar a un espacio de trabajo o un lugar intermedio para abrir un nuevo espacio de trabajo. 
 - [x] 1.4.5.4 Movimiento de workspaces como en workspaceIndicator
 - [x] 1.4.5.5 Opciones de *Comportamiento*
     - [x] 1.4.5.5.1 Mostrar iconos de las aplicaciones (este switch debe mostrar u ocultar los iconos, para solo mostrar los nombres de los espacios de trabajo)
@@ -183,8 +183,8 @@ DEADLINE: <2026-08-31 Wed>
     - Feat basada en space bar
     - [x] 1.4.5.6.1 Activar nombres inteligentes
     - [x] 1.4.5.6.1 Reevaluar nombres
-- [-] 1.4.5.7 Opciones de *Apariencia*
-    - [ ] 1.4.5.7.1 Tamaño (opción por defecto), solo afecta a los iconos
+- [x] 1.4.5.7 Opciones de *Apariencia*
+    - [x] 1.4.5.7.1 Tamaño (opción por defecto)
     - [x] 1.4.5.7.2 Reducir opacidad de iconos nativos (opción por defecto)
     - [x] 1.4.5.7.3 Desaturar iconos inactivos (opción por defecto)
     - [x] 1.4.5.7.4 Habilitar animaciones (opción por defecto)
@@ -194,41 +194,38 @@ DEADLINE: <2026-08-31 Wed>
     - [x] 1.4.5.7.8 Padding de barra
     - [x] 1.4.5.7.9 Margen entre espacios
     - [x] 1.4.5.7.10 Mostrar fondo de iconos (opción por defecto)
-- [ ] 1.4.5.8 Opciones de *Espacio activo*
-    - [ ] 1.4.5.8.1 Usar color de acento de GNOME en el fondo (nombre e icono, en el fondo del icono debe usarse un color más oscuro para mejorar el contraste)
-    - [ ] 1.4.5.8.2 Usar color de acento de GNOME en el borde
-    - [ ] 1.4.5.8.3 Color de fondo
-    - [ ] 1.4.5.8.4 Color de texto
-    - [ ] 1.4.5.8.5 Color de borde
-    - [ ] 1.4.5.8.6 Color de fondo de iconos
-    - [ ] 1.4.5.8.7 Tamaño de fuente (nombre)
-    - [ ] 1.4.5.8.8 Grosor de fuente (nombre)
-    - [ ] 1.4.5.8.9 Radio de borde
-    - [ ] 1.4.5.8.10 Ancho de borde
-    - [ ] 1.4.5.8.11 Padding horizontal
-    - [ ] 1.4.5.8.12 Padding vertical
-- [ ] 1.4.5.9 Opciones de *Espacio inactivo*
-    - [ ] 1.4.5.9.1 Color de fondo
-    - [ ] 1.4.5.9.2 Color de texto
-    - [ ] 1.4.5.9.3 Color de borde
-    - [ ] 1.4.5.9.4 Color de fondo de iconos
-    - [ ] 1.4.5.9.5 Tamaño de fuente (nombre)
-    - [ ] 1.4.5.9.6 Grosor de fuente (nombre)
-    - [ ] 1.4.5.9.7 Radio de borde
-    - [ ] 1.4.5.9.8 Ancho de borde
-    - [ ] 1.4.5.9.9 Padding horizontal
-    - [ ] 1.4.5.9.10 Padding vertical
-- [ ] 1.4.5.10 Opciones de *Espacio vacío*
-    - [ ] 1.4.5.10.1 Color de fondo
-    - [ ] 1.4.5.10.2 Color de texto
-    - [ ] 1.4.5.10.3 Color de borde
-    - [ ] 1.4.5.10.4 Color de fondo de iconos
-    - [ ] 1.4.5.10.5 Tamaño de fuente (nombre)
-    - [ ] 1.4.5.10.6 Grosor de fuente (nombre)
-    - [ ] 1.4.5.10.7 Radio de borde
-    - [ ] 1.4.5.10.8 Ancho de borde
-    - [ ] 1.4.5.10.9 Padding horizontal
-    - [ ] 1.4.5.10.10 Padding vertical
+- [x] 1.4.5.8 Opciones de *Espacio activo*
+    - [x] 1.4.5.8.1 Usar color de acento de GNOME en el fondo (nombre e icono, en el fondo del icono debe usarse un color más oscuro para mejorar el contraste)
+    - [x] 1.4.5.8.2 Usar color de acento de GNOME en el borde
+    - [x] 1.4.5.8.3 Color de fondo
+    - [x] 1.4.5.8.4 Color de texto
+    - [x] 1.4.5.8.5 Color de borde
+    - [x] 1.4.5.8.6 Color de fondo de iconos
+    - [x] 1.4.5.8.8 Grosor de fuente (nombre)
+    - [x] 1.4.5.8.9 Radio de borde
+    - [x] 1.4.5.8.10 Ancho de borde
+    - [x] 1.4.5.8.11 Padding horizontal
+    - [x] 1.4.5.8.12 Padding vertical
+- [x] 1.4.5.9 Opciones de *Espacio inactivo*
+    - [x] 1.4.5.9.1 Color de fondo
+    - [x] 1.4.5.9.2 Color de texto
+    - [x] 1.4.5.9.3 Color de borde
+    - [x] 1.4.5.9.4 Color de fondo de iconos
+    - [x] 1.4.5.9.6 Grosor de fuente (nombre)
+    - [x] 1.4.5.9.7 Radio de borde
+    - [x] 1.4.5.9.8 Ancho de borde
+    - [x] 1.4.5.9.9 Padding horizontal
+    - [x] 1.4.5.9.10 Padding vertical
+- [x] 1.4.5.10 Opciones de *Espacio vacío*
+    - [x] 1.4.5.10.1 Color de fondo
+    - [x] 1.4.5.10.2 Color de texto
+    - [x] 1.4.5.10.3 Color de borde
+    - [x] 1.4.5.10.4 Color de fondo de iconos
+    - [x] 1.4.5.10.6 Grosor de fuente (nombre)
+    - [x] 1.4.5.10.7 Radio de borde
+    - [x] 1.4.5.10.8 Ancho de borde
+    - [x] 1.4.5.10.9 Padding horizontal
+    - [x] 1.4.5.10.10 Padding vertical
 - [ ] 1.4.5.11 Opciones de *Atajos de teclado*
     - [ ] 1.4.5.11.1 Super + 1, ..., 0 (Switch to workspace) 
     - [ ] 1.4.5.11.2 Ir y volver
@@ -238,6 +235,7 @@ DEADLINE: <2026-08-31 Wed>
     - [ ] 1.4.5.11.6 Volver al espacio anterior
     - [ ] 1.4.5.11.7 Ir al espacio vacío 
     - [ ] 1.4.5.11.8 Abrir menú (para renombrar)
+- [ ] Configurar las opciones predeterminadas.
 **** 1.4.6 Date Menu Tweaks
 - Descripción y objetivo: Basado en el widget [[https://support.google.com/android/answer/14883154][At a Glance]] de los Google Pixel; el texto del /Date Menu/ cambia dinámicamente, muestra contenido multimedia en reproducción, muestra un contrador de notificaciones, etcétera.    
 ***** TODO 1.4.6.1 Date Menu Formatter

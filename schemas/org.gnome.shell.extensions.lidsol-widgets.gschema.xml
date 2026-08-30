@@ -228,6 +228,9 @@
     <key type="i" name="ws-workspace-margin">
       <default>4</default>
     </key>
+    <key type="i" name="ws-workspace-name-icons-spacing">
+      <default>8</default>
+    </key>
 
     <key type="s" name="ws-icon-size-mode">
       <choices>
@@ -265,16 +268,6 @@
 
     <key type="b" name="ws-use-accent-color">
       <default>false</default>
-    </key>
-
-    <key type="s" name="ws-app-icons-active-background-color">
-      <default>'rgba(255,255,255,0.20)'</default>
-    </key>
-    <key type="s" name="ws-app-icons-inactive-background-color">
-      <default>'rgba(255,255,255,0.20)'</default>
-    </key>
-    <key type="s" name="ws-app-icons-empty-background-color">
-      <default>'rgba(255,255,255,0.20)'</default>
     </key>
 
     <key type="s" name="ws-active-workspace-background-color">

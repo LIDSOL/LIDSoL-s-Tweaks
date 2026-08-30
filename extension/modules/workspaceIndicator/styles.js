@@ -206,7 +206,7 @@ export class Styles {
         const margin = this._settings.workspaceMargin.value;
         const useAccent = this._settings.useAccentColor.value;
         const accentHex = useAccent ? this._getAccentColor() : null;
-        const bg = useAccent ? this._getAccentBgColor() : this._settings.activeWorkspaceBackgroundColor.value;
+        const bg = useAccent ? accentHex : this._settings.activeWorkspaceBackgroundColor.value;
         const fg = useAccent ? '#F6F5F4' : this._settings.activeWorkspaceTextColor.value;
         const border = useAccent ? accentHex : this._settings.activeWorkspaceBorderColor.value;
         const size = ICON_PRESETS[this._settings.iconSizeMode.value].fontSize;

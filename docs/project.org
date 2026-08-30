@@ -235,6 +235,8 @@ DEADLINE: <2026-08-31 Wed>
     - [ ] 1.4.5.11.6 Volver al espacio anterior
     - [ ] 1.4.5.11.7 Ir al espacio vacío 
     - [ ] 1.4.5.11.8 Abrir menú (para renombrar)
+- [x] Configuración para el acento de color, si se muestra los iconos, el color difiere del bg al borde, si no se muestran los iconos, se usa el color del acento tanto en borde como bg.
+- [ ] Deshabilitar las opciones referentes a iconos si el switch para mostrarlos está desactivado.
 - [ ] Configurar las opciones predeterminadas.
 **** 1.4.6 Date Menu Tweaks
 - Descripción y objetivo: Basado en el widget [[https://support.google.com/android/answer/14883154][At a Glance]] de los Google Pixel; el texto del /Date Menu/ cambia dinámicamente, muestra contenido multimedia en reproducción, muestra un contrador de notificaciones, etcétera.    

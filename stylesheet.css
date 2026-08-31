@@ -1,7 +1,7 @@
 
 .wsb-ws-btn-wrapper {
-    margin-right: 6px;
-    padding: 4px 0px 4px 0px;
+    margin-right: 4px;
+    padding: 3px 0px 3px 0px;
 }
 
 .wsb-container-wrapper .wsb-ws-btn-wrapper:last-child {
@@ -10,31 +10,31 @@
 
 .wsb-ws-num-wrapper {
     background-color: rgba(255, 255, 255, 0.04);
-    border-radius: 8px 0px 0px 8px;
+    border-radius: 6px 0px 0px 6px;
     border-top-width: 2px;
     border-right-width: 0px;
     border-bottom-width: 2px;
     border-left-width: 2px;
     border-style: solid;
     border-color: rgba(255, 255, 255, 0.15);
-    padding: 0 7px 0px 7px;
+    padding: 0 5px 0px 5px;
 }
 
 .wsb-ws-num-wrapper-active {
-    border-color: #6f8396;
+    border-color: #9141ac;
 }
 
 .wsb-ws-num-label-elem {
-    font-size: 15px;
+    font-size: 12px;
 }
 
 .wsb-icons-wrapper {
     background-color: rgba(255, 255, 255, 0.20);
     border-style: solid;
     border-color: rgba(255, 255, 255, 0.15);
-    padding: 0 5px 0px 5px;
-    min-width: 10px;
-    border-radius: 0px 8px 8px 0px;
+    padding: 0 4px 0px 4px;
+    min-width: 8px;
+    border-radius: 0px 6px 6px 0px;
     border-top-width: 2px;
     border-right-width: 2px;
     border-bottom-width: 2px;
@@ -42,11 +42,11 @@
 }
 
 .wsb-icons-wrapper-active {
-    border-color: #6f8396;
+    border-color: #9141ac;
 }
 
 .wsb-single-icon-wrapper {
-    margin-right: 5px;
+    margin-right: 3px;
 }
 
 .wsb-icons-wrapper .wsb-single-icon-wrapper:last-child {
@@ -64,7 +64,7 @@
 }
 
 .wsb-insertion-indicator {
-    background-color: #6f8396;
+    background-color: #9141ac;
     border-radius: 2px;
     min-width: 3px;
 }

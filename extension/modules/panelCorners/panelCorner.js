@@ -18,7 +18,6 @@ export class PanelCorners {
     }
 
     update() {
-        this._log('updating panel corners...');
         this.remove();
 
         Main.panel._leftCorner = new PanelCorner(
@@ -30,8 +29,6 @@ export class PanelCorners {
 
         this._updateCorner(Main.panel._leftCorner);
         this._updateCorner(Main.panel._rightCorner);
-
-        this._log('corners updated.');
     }
 
     _updateCorner(corner) {
@@ -70,11 +67,6 @@ export class PanelCorners {
         corner.removeConnections();
         Main.panel.remove_child(corner);
         corner.destroy();
-    }
-
-    _log(str) {
-        if (this._settings.DEBUG.get())
-            console.log(`[LIDSoL - Panel Corners] ${str}`);
     }
 }
 

@@ -20,7 +20,6 @@ const Keys = ([
     { type: SettingType.DOUBLE, name: 'screen-corner-opacity' },
 
     { type: SettingType.BOOLEAN, name: 'force-extension-values' },
-    { type: SettingType.BOOLEAN, name: 'debug' },
 ]);
 
 export class PanelCornersModule {
@@ -37,8 +36,6 @@ export class PanelCornersModule {
         this._settings._settings = gsettings;
         
         this._connections = new SignalManager();
-
-        this._log('starting up...');
 
         this._connections.connect(
             Main.layoutManager,
@@ -100,10 +97,8 @@ export class PanelCornersModule {
     }
 
     _update() {
-        this._log('updating corners...');
         this._panelCorners?.update();
         this._screenCorners?.update();
-        this._log('corners updated.');
     }
 
     _remove() {
@@ -114,16 +109,10 @@ export class PanelCornersModule {
     disable() {
         this._remove();
         this._connections.disconnectAll();
-        this._log('module disabled.');
         this._panelCorners = null;
         this._screenCorners = null;
         this._connections = null;
         this._settings = null;
-    }
-
-    _log(str) {
-        if (this._settings?.DEBUG?.get())
-            console.log(`[LIDSoL - Panel Corners] ${str}`);
     }
 }
 

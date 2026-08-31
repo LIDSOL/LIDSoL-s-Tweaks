@@ -21,8 +21,6 @@ export class ScreenCorners {
     }
 
     update() {
-        this._log('updating screen corners...');
-
         const layoutManager = Main.layoutManager;
         this.remove();
 
@@ -44,7 +42,6 @@ export class ScreenCorners {
                 });
             }
         }
-        this._log('corners updated.');
     }
 
     remove() {
@@ -60,11 +57,6 @@ export class ScreenCorners {
             });
 
         layoutManager._screenCorners = [];
-    }
-
-    _log(str) {
-        if (this._settings.DEBUG.get())
-            console.log(`[LIDSoL - Screen Corners] ${str}`);
     }
 }
 

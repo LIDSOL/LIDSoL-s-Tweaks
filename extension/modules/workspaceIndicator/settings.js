@@ -2,7 +2,7 @@ import Gio from 'gi://Gio';
 
 export const ICON_PRESETS = {
     small:  { iconSize: 16, fontSize: 9 },
-    medium: { iconSize: 20, fontSize: 12 },
+    medium: { iconSize: 20, fontSize: 11 },
     large:  { iconSize: 26, fontSize: 14 },
 };
 

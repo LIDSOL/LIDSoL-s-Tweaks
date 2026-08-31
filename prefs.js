@@ -518,7 +518,6 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     screenGroup.add(createSpinButtonRow({ settings: s, bindKey: 'screen-corner-opacity', title: 'Opacidad', adjProps: { lower: 0, upper: 1, step: 0.1, digits: 2 } }));
     const advGroup = createGroup({ parent: page, title: 'Opciones avanzadas' });
     advGroup.add(createSwitchRow({ settings: s, bindKey: 'force-extension-values', title: 'Forzar valores de la extensión', subtitle: 'Sobreescribe las preferencias del tema actual' }));
-    advGroup.add(createSwitchRow({ settings: s, bindKey: 'debug', title: 'Modo debug', subtitle: 'Activa logs más verbosos' }));
   }
 
   _buildWorkspaceIndicatorDialog(page) {

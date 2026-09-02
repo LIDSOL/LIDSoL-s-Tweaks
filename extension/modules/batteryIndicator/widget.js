@@ -1,7 +1,6 @@
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 import Clutter from 'gi://Clutter';
-import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import { PACKAGE_VERSION } from 'resource:///org/gnome/shell/misc/config.js';
 import { BatteryCircleIcon } from './drawicon.js';
 
@@ -108,15 +107,13 @@ class BatteryLevelBar extends St.DrawingArea {
 });
 
 export const BatteryIndicatorWidget = GObject.registerClass(
-class BatteryIndicatorWidget extends PanelMenu.Button {
+class BatteryIndicatorWidget extends St.BoxLayout {
     _init(settings) {
-        super._init(0, 'Battery Indicator', true);
+        super._init({
+            y_align: Clutter.ActorAlign.CENTER,
+            style_class: 'lidsol-battery-indicator',
+        });
         this._settings = settings;
-        this.reactive = false;
-        this.add_style_class_name('lidsol-battery-indicator');
-
-        this._box = new St.BoxLayout({ y_align: Clutter.ActorAlign.CENTER });
-        this.add_child(this._box);
 
         this._circle = null;
         this._bar = null;
@@ -164,9 +161,9 @@ class BatteryIndicatorWidget extends PanelMenu.Button {
                 y_align: Clutter.ActorAlign.CENTER,
             });
 
-        if (this._circle) this._box.add_child(this._circle);
-        if (this._bar) this._box.add_child(this._bar);
-        if (this._label) this._box.add_child(this._label);
+        if (this._circle) this.add_child(this._circle);
+        if (this._bar) this.add_child(this._bar);
+        if (this._label) this.add_child(this._label);
     }
 
     _updateBarSettings() {
@@ -180,7 +177,7 @@ class BatteryIndicatorWidget extends PanelMenu.Button {
     }
 
     sync(proxy) {
-        if (!proxy || !proxy.IsPresent) {
+        if (!proxy || proxy.IsPresent === false) {
             this.hide();
             return;
         }

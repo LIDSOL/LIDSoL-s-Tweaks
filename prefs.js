@@ -265,7 +265,7 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
 
     const mainGroup = new Adw.PreferencesGroup({
       title: 'Estilo',
-      description: 'Configura el estilo del indicador en la barra superior.',
+      description: 'Configura el estilo del indicador de batería.',
     });
     const styleOptions = {
       'circle': 'Círculo',
@@ -278,14 +278,6 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     mainGroup.add(createSwitchRow({
       settings: s, bindKey: 'bi-show-percentage',
       title: 'Mostrar porcentaje', subtitle: 'Muestra el porcentaje junto al indicador',
-    }));
-    mainGroup.add(createSpinButtonRow({
-      settings: s, bindKey: 'bi-position', title: 'Posición', subtitle: '0=izquierda, 1=centro, 2=derecha',
-      adjProps: { lower: 0, upper: 2, step: 1 },
-    }));
-    mainGroup.add(createSpinButtonRow({
-      settings: s, bindKey: 'bi-offset', title: 'Desplazamiento', subtitle: 'Orden dentro de la sección',
-      adjProps: { lower: 0, upper: 100, step: 1 },
     }));
     page.add(mainGroup);
 

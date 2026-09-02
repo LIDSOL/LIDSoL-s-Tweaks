@@ -1573,24 +1573,13 @@
         <choice value="both"/>
       </choices>
       <default>"circle"</default>
-      <summary>Estilo del indicador en la barra superior</summary>
+      <summary>Estilo del indicador</summary>
       <description>Círculo, barra, o ambos</description>
     </key>
     <key name="bi-show-percentage" type="b">
       <default>false</default>
       <summary>Mostrar porcentaje</summary>
       <description>Muestra el porcentaje de batería junto al indicador</description>
-    </key>
-    <key name="bi-position" type="i">
-      <range min="0" max="2"/>
-      <default>2</default>
-      <summary>Posición en la barra superior</summary>
-      <description>0=izquierda, 1=centro, 2=derecha</description>
-    </key>
-    <key name="bi-offset" type="i">
-      <range min="0" max="100"/>
-      <default>0</default>
-      <summary>Desplazamiento en la barra</summary>
     </key>
     <key name="bi-bar-width" type="i">
       <default>80</default>

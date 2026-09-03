@@ -1,9 +1,9 @@
 'use strict';
 
 import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
 import St from 'gi://St';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
-import * as Util from 'resource:///org/gnome/shell/misc/util.js';
 
 const PREFS_TERM_SEPARATOR = '|';
 const DEFAULT_ICON = 'utilities-terminal-symbolic';
@@ -109,7 +109,16 @@ export class LauncherSearchProvider {
         const [command] = this._findByNames([id]);
         if (!command)
             return;
-        Util.spawnCommandLine(command.command);
+        try {
+            GLib.spawn_async(
+                GLib.get_home_dir(),
+                ['/bin/sh', '-c', command.command],
+                null,
+                GLib.SpawnFlags.SEARCH_PATH | GLib.SpawnFlags.DO_NOT_REAP_CHILD,
+                null, null);
+        } catch (e) {
+            log(`[LIDSoL] Failed to run launcher command: ${e}`);
+        }
         Main.overview.hide();
     }
 

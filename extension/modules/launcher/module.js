@@ -7,6 +7,8 @@ import Shell from 'gi://Shell';
 import Gio from 'gi://Gio';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
+import { LauncherSearchProvider } from './searchProvider.js';
+
 export class LauncherModule {
     constructor() {
         this._settings = null;
@@ -26,6 +28,8 @@ export class LauncherModule {
         this._searchResults = null;
         this._focusSearchPatched = false;
         this._hotkeyChangedId = 0;
+        this._searchProvider = null;
+        this._searchController = null;
     }
 
     enable(gsettings, extension) {
@@ -51,9 +55,12 @@ export class LauncherModule {
         // search, requiring a second press to close the overview).
         this._stageKeyPressId =
             global.stage.connect('captured-event', this._onStageKeyPress.bind(this));
+
+        this._registerSearchProvider();
     }
 
     disable() {
+        this._unregisterSearchProvider();
         this._unregisterKeybinding();
         if (this._hotkeyChangedId) {
             this._settings.disconnect(this._hotkeyChangedId);
@@ -71,6 +78,32 @@ export class LauncherModule {
         this._destroySearchBarHiding();
         this._settings = null;
         this._extension = null;
+    }
+
+    // ── Custom command search provider ─────────────────────────────
+
+    _registerSearchProvider() {
+        try {
+            this._searchController = Main.overview?.searchController;
+            if (!this._searchController || !this._searchController.addProvider)
+                return;
+            this._searchProvider = new LauncherSearchProvider(this._settings);
+            this._searchController.addProvider(this._searchProvider);
+        } catch (e) {
+            log(`[LIDSoL] Failed to register launcher search provider: ${e}`);
+        }
+    }
+
+    _unregisterSearchProvider() {
+        try {
+            if (this._searchProvider && this._searchController) {
+                this._searchController.removeProvider(this._searchProvider);
+                this._searchProvider = null;
+                this._searchController = null;
+            }
+        } catch (e) {
+            log(`[LIDSoL] Failed to unregister launcher search provider: ${e}`);
+        }
     }
 
     _onStageKeyPress(actor, event) {

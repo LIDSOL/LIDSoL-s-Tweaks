@@ -1559,6 +1559,16 @@
       <summary>Ocultar barra de búsqueda del Overview</summary>
       <description>Oculta el campo "Type to search" en el Overview. Aparece al empezar a escribir.</description>
     </key>
+    <key type="as" name="launcher-commands">
+      <default><![CDATA[[]]]></default>
+      <summary>Comandos personalizados</summary>
+      <description>Lista de "nombre|comando" ejecutables desde la búsqueda escribiendo :nombre</description>
+    </key>
+    <key type="s" name="launcher-provider-icon">
+      <default>'utilities-terminal-symbolic'</default>
+      <summary>Icono del proveedor de búsqueda</summary>
+      <description>Icono simbólico mostrado como cabecera de la categoría 'Comandos' en la búsqueda del Overview</description>
+    </key>
 
     <!-- Battery Indicator -->
     <key type="b" name="battery-indicator-enabled">

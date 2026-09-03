@@ -19,7 +19,7 @@ Diseñar, implementar y mantener una extensión modular para GNOME que modernice
 - Publicar la extensión.
 ** Objetivos específicos
 *** [#A] 1.1 Herramientas
-**** TODO 1.1.1 Dashboard
+**** NEXT 1.1.1 Dashboard
 DEADLINE: <2026-09-05 Sat>
 - [ ] 1.1.1.1 Media Player -> Prefer: eliminar esta opción y todo su código asociado.
 - [ ] 1.1.1.2 Media Player: Implementar las opciones del switch 'Show Loop and Shuffle'; deben de funcionar en local y GSconnect.
@@ -58,15 +58,14 @@ Para ello, se puede tomar como base la extensión [[https://github.com/boerderei
 - [ ] 1.2.2.3 Mejorar el ajuste de "Archivo de notas" 
   - [ ] 1.2.2.3.1 Manda una notificación si no encuentra el archivo
   - [ ] 1.2.2.3.2 Mejorar el selector del archivo
-**** 1.1.3 Launcher
+**** NEXT 1.1.3 Launcher
 DEADLINE: <2026-09-12 Sun>
-- [ ] 1.1.3.1 Feat: Implementar comandos personalizados al estilo /gnofi/.
-    - [ ] 1.1.3.1.1 Añadir un PreferencesGroup, con un Group Title "comandos", el botón Suffix debe tener la leyenda "Añadir". El objetivo es que en la búsqueda, al escribir ":ejemplo", se ejecute el comando configurado.
-      - Clave de esquema `launcher-commands` (tipo `as`, formato `"nombre|comando"`)
-      - `_populateCommands()` crea un Gtk.ListBox con botones de eliminación para cada comando
-      - Adw.MessageDialog para añadir nuevos comandos (entradas de nombre + comando).
-    - [ ] 1.1.3.1.2       
-**** 1.1.4
+- [x] 1.1.3.1 Feat: Implementar comandos personalizados al estilo /gnofi/.
+  - [x] 1.1.3.1.1 Añadir un PreferencesGroup, con un Group Title "comandos", el botón Suffix debe tener la leyenda "Añadir". El objetivo es que en la búsqueda, al escribir ":ejemplo", se ejecute el comando configurado.
+    - Clave de esquema `launcher-commands` (tipo `as`, formato `"nombre|comando"`)
+    - `_populateCommands()` crea un Gtk.ListBox con botones de eliminación para cada comando
+    - Adw.MessageDialog para añadir nuevos comandos (entradas de nombre + comando).
+  - [ ] 1.1.3.2 Cambiar la animación cuando la barras de búsqueda está oculta. 
 **** SOMEDAY 1.1.5 Unclutter
 Basado en unclutter y copyus
 - Se debe abrir con un atajo de teclado o un hot point como en overview.
@@ -169,75 +168,76 @@ DEADLINE: <2026-08-31 Wed>
 - [ ] 1.4.5.3 Añadir la posibilidad de arrastrar un elemento del topbar a un espacio de trabajo o un lugar intermedio para abrir un nuevo espacio de trabajo. 
 - [x] 1.4.5.4 Movimiento de workspaces como en workspaceIndicator
 - [x] 1.4.5.5 Opciones de *Comportamiento*
-    - [x] 1.4.5.5.1 Mostrar iconos de las aplicaciones (este switch debe mostrar u ocultar los iconos, para solo mostrar los nombres de los espacios de trabajo)
-    - [x] 1.4.5.5.2 Click central cierra ventana (opción por defecto)
-    - [x] 1.4.5.5.3 Mostrar números siempre
-    - [x] 1.4.5.5.4 Scroll vertical (normal, invertido, desactivado)
-    - [x] 1.4.5.5.5 Scroll horizontal (normal, invertido, desactivado)
-    - [x] 1.4.5.5.6 Rueda del ratón (sobre el panel, sobre el indicador, desactivado)
-    - [x] 1.4.5.5.7 Debounce 
-    - [x] 1.4.5.5.6 Tiempo de debounce
-    - [x] 1.4.5.5.8 Conservar indicador nativo (cuando se activa este módulo, manda un mensaje a top bar organized para ocultarlo). Relacionado con 1.4.1.5 
-    - [x] 1.4.5.5.9  Mostrar espacios vacíos (+) (adaptarlo de space bar)
+  - [x] 1.4.5.5.1 Mostrar iconos de las aplicaciones (este switch debe mostrar u ocultar los iconos, para solo mostrar los nombres de los espacios de trabajo)
+  - [x] 1.4.5.5.2 Click central cierra ventana (opción por defecto)
+  - [x] 1.4.5.5.3 Mostrar números siempre
+  - [x] 1.4.5.5.4 Scroll vertical (normal, invertido, desactivado)
+  - [x] 1.4.5.5.5 Scroll horizontal (normal, invertido, desactivado)
+  - [x] 1.4.5.5.6 Rueda del ratón (sobre el panel, sobre el indicador, desactivado)
+  - [x] 1.4.5.5.7 Debounce 
+  - [x] 1.4.5.5.6 Tiempo de debounce
+  - [x] 1.4.5.5.8 Conservar indicador nativo (cuando se activa este módulo, manda un mensaje a top bar organized para ocultarlo). Relacionado con 1.4.1.5 
+  - [x] 1.4.5.5.9  Mostrar espacios vacíos (+) (adaptarlo de space bar)
 - [x] 1.4.5.6 Opciones de *Nombres inteligentes*
-    - Feat basada en space bar
-    - [x] 1.4.5.6.1 Activar nombres inteligentes
-    - [x] 1.4.5.6.1 Reevaluar nombres
+  - Feat basada en space bar
+  - [x] 1.4.5.6.1 Activar nombres inteligentes
+  - [x] 1.4.5.6.1 Reevaluar nombres
 - [x] 1.4.5.7 Opciones de *Apariencia*
-    - [x] 1.4.5.7.1 Tamaño (opción por defecto)
-    - [x] 1.4.5.7.2 Reducir opacidad de iconos nativos (opción por defecto)
-    - [x] 1.4.5.7.3 Desaturar iconos inactivos (opción por defecto)
-    - [x] 1.4.5.7.4 Habilitar animaciones (opción por defecto)
-    - [x] 1.4.5.7.5 Efecto de escala de enfoque (opción por defecto)
-    - [x] 1.4.5.7.6 Cantidad de reducción (opción por defecto)
-    - [x] 1.4.5.7.7 Animación de transición (desvanecer, latido, deslizado+fundido, ninguna)
-    - [x] 1.4.5.7.8 Padding de barra
-    - [x] 1.4.5.7.9 Margen entre espacios
-    - [x] 1.4.5.7.10 Mostrar fondo de iconos (opción por defecto)
+  - [x] 1.4.5.7.1 Tamaño (opción por defecto)
+  - [x] 1.4.5.7.2 Reducir opacidad de iconos nativos (opción por defecto)
+  - [x] 1.4.5.7.3 Desaturar iconos inactivos (opción por defecto)
+  - [x] 1.4.5.7.4 Habilitar animaciones (opción por defecto)
+  - [x] 1.4.5.7.5 Efecto de escala de enfoque (opción por defecto)
+  - [x] 1.4.5.7.6 Cantidad de reducción (opción por defecto)
+  - [x] 1.4.5.7.7 Animación de transición (desvanecer, latido, deslizado+fundido, ninguna)
+  - [x] 1.4.5.7.8 Padding de barra
+  - [x] 1.4.5.7.9 Margen entre espacios
+  - [x] 1.4.5.7.10 Mostrar fondo de iconos (opción por defecto)
 - [x] 1.4.5.8 Opciones de *Espacio activo*
-    - [x] 1.4.5.8.1 Usar color de acento de GNOME en el fondo (nombre e icono, en el fondo del icono debe usarse un color más oscuro para mejorar el contraste)
-    - [x] 1.4.5.8.2 Usar color de acento de GNOME en el borde
-    - [x] 1.4.5.8.3 Color de fondo
-    - [x] 1.4.5.8.4 Color de texto
-    - [x] 1.4.5.8.5 Color de borde
-    - [x] 1.4.5.8.6 Color de fondo de iconos
-    - [x] 1.4.5.8.8 Grosor de fuente (nombre)
-    - [x] 1.4.5.8.9 Radio de borde
-    - [x] 1.4.5.8.10 Ancho de borde
-    - [x] 1.4.5.8.11 Padding horizontal
-    - [x] 1.4.5.8.12 Padding vertical
+  - [x] 1.4.5.8.1 Usar color de acento de GNOME en el fondo (nombre e icono, en el fondo del icono debe usarse un color más oscuro para mejorar el contraste)
+  - [x] 1.4.5.8.2 Usar color de acento de GNOME en el borde
+  - [x] 1.4.5.8.3 Color de fondo
+  - [x] 1.4.5.8.4 Color de texto
+  - [x] 1.4.5.8.5 Color de borde
+  - [x] 1.4.5.8.6 Color de fondo de iconos
+  - [x] 1.4.5.8.8 Grosor de fuente (nombre)
+  - [x] 1.4.5.8.9 Radio de borde
+  - [x] 1.4.5.8.10 Ancho de borde
+  - [x] 1.4.5.8.11 Padding horizontal
+  - [x] 1.4.5.8.12 Padding vertical
 - [x] 1.4.5.9 Opciones de *Espacio inactivo*
-    - [x] 1.4.5.9.1 Color de fondo
-    - [x] 1.4.5.9.2 Color de texto
-    - [x] 1.4.5.9.3 Color de borde
-    - [x] 1.4.5.9.4 Color de fondo de iconos
-    - [x] 1.4.5.9.6 Grosor de fuente (nombre)
-    - [x] 1.4.5.9.7 Radio de borde
-    - [x] 1.4.5.9.8 Ancho de borde
-    - [x] 1.4.5.9.9 Padding horizontal
-    - [x] 1.4.5.9.10 Padding vertical
+  - [x] 1.4.5.9.1 Color de fondo
+  - [x] 1.4.5.9.2 Color de texto
+  - [x] 1.4.5.9.3 Color de borde
+  - [x] 1.4.5.9.4 Color de fondo de iconos
+  - [x] 1.4.5.9.6 Grosor de fuente (nombre)
+  - [x] 1.4.5.9.7 Radio de borde
+  - [x] 1.4.5.9.8 Ancho de borde
+  - [x] 1.4.5.9.9 Padding horizontal
+  - [x] 1.4.5.9.10 Padding vertical
 - [x] 1.4.5.10 Opciones de *Espacio vacío*
-    - [x] 1.4.5.10.1 Color de fondo
-    - [x] 1.4.5.10.2 Color de texto
-    - [x] 1.4.5.10.3 Color de borde
-    - [x] 1.4.5.10.4 Color de fondo de iconos
-    - [x] 1.4.5.10.6 Grosor de fuente (nombre)
-    - [x] 1.4.5.10.7 Radio de borde
-    - [x] 1.4.5.10.8 Ancho de borde
-    - [x] 1.4.5.10.9 Padding horizontal
-    - [x] 1.4.5.10.10 Padding vertical
+  - [x] 1.4.5.10.1 Color de fondo
+  - [x] 1.4.5.10.2 Color de texto
+  - [x] 1.4.5.10.3 Color de borde
+  - [x] 1.4.5.10.4 Color de fondo de iconos
+  - [x] 1.4.5.10.6 Grosor de fuente (nombre)
+  - [x] 1.4.5.10.7 Radio de borde
+  - [x] 1.4.5.10.8 Ancho de borde
+  - [x] 1.4.5.10.9 Padding horizontal
+  - [x] 1.4.5.10.10 Padding vertical
 - [ ] 1.4.5.11 Opciones de *Atajos de teclado*
-    - [ ] 1.4.5.11.1 Super + 1, ..., 0 (Switch to workspace) 
-    - [ ] 1.4.5.11.2 Ir y volver
-    - [ ] 1.4.5.11.3 Super + Shift + 1, ..., 0 (Move windows to workspaces ...)
-    - [ ] 1.4.5.11.4 Mover espacio a la izquierda
-    - [ ] 1.4.5.11.5 Mover espacio a la derecha
-    - [ ] 1.4.5.11.6 Volver al espacio anterior
-    - [ ] 1.4.5.11.7 Ir al espacio vacío 
-    - [ ] 1.4.5.11.8 Abrir menú (para renombrar)
+  - [ ] 1.4.5.11.1 Super + 1, ..., 0 (Switch to workspace) 
+  - [ ] 1.4.5.11.2 Ir y volver
+  - [ ] 1.4.5.11.3 Super + Shift + 1, ..., 0 (Move windows to workspaces ...)
+  - [ ] 1.4.5.11.4 Mover espacio a la izquierda
+  - [ ] 1.4.5.11.5 Mover espacio a la derecha
+  - [ ] 1.4.5.11.6 Volver al espacio anterior
+  - [ ] 1.4.5.11.7 Ir al espacio vacío 
+  - [ ] 1.4.5.11.8 Abrir menú (para renombrar)
 - [x] Configuración para el acento de color, si se muestra los iconos, el color difiere del bg al borde, si no se muestran los iconos, se usa el color del acento tanto en borde como bg.
 - [ ] Deshabilitar las opciones referentes a iconos si el switch para mostrarlos está desactivado.
 - [ ] Bug en múltiples monitores, no aparece el workspace de los monitores externos.
+- [ ] Cuando se tienen los íconos activos, el bg que difiere del borde también debe aplicar a los indicadores de espacio de trabajo que no tiene aplicaciones abiertas. Cuando te colocas en un espacio de trabajo sin iconos, el borde y el bg son iguales.
 - [ ] Configurar las opciones predeterminadas.
 **** 1.4.6 Date Menu Tweaks
 - Descripción y objetivo: Basado en el widget [[https://support.google.com/android/answer/14883154][At a Glance]] de los Google Pixel; el texto del /Date Menu/ cambia dinámicamente, muestra contenido multimedia en reproducción, muestra un contrador de notificaciones, etcétera.    

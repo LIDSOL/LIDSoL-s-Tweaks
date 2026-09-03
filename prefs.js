@@ -913,50 +913,39 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     const s = this._settings;
     const mainGroup = createGroup({ parent: page, title: 'Launcher', description: 'Abre la búsqueda nativa del Overview (modo búsqueda) con un atajo de teclado.' });
     mainGroup.add(createKeyboardShortcutRow({ settings: s, bindKey: 'launcher-hotkey', title: 'Atajo de teclado', subtitle: 'Combinación para abrir la búsqueda del Overview (modo búsqueda)' }));
-
-    const iconRow = new Adw.ActionRow({ title: 'Icono de la categoría', subtitle: 'Nombre del icono simbólico de la categoría "Comandos" en la búsqueda' });
-    const iconBox = new Gtk.Box({ spacing: 14, valign: Gtk.Align.CENTER });
-    const iconPreview = Gtk.Image.new_from_icon_name(s.get_string('launcher-provider-icon') || 'utilities-terminal-symbolic');
-    iconPreview.pixel_size = 20;
-    const iconEntry = new Gtk.Entry({ text: s.get_string('launcher-provider-icon'), valign: Gtk.Align.CENTER, hexpand: true });
-    const iconApply = () => {
-      const name = iconEntry.get_text().trim() || 'utilities-terminal-symbolic';
-      iconPreview.icon_name = name;
-      s.set_string('launcher-provider-icon', name);
-    };
-    iconEntry.connect('changed', () => {
-      iconPreview.icon_name = iconEntry.get_text().trim() || 'utilities-terminal-symbolic';
-    });
-    const iconFocus = new Gtk.EventControllerFocus();
-    iconFocus.connect('leave', iconApply);
-    iconEntry.add_controller(iconFocus);
-    iconEntry.connect('activate', iconApply);
-    iconBox.append(iconPreview);
-    iconBox.append(iconEntry);
-    iconRow.add_suffix(iconBox);
-    iconRow.activatable_widget = iconEntry;
-    mainGroup.add(iconRow);
-    const iconRefLink = new Gtk.LinkButton({
-      uri: 'https://gitlab.gnome.org/GNOME/adwaita-icon-theme/-/tree/master/Adwaita/symbolic',
-      label: 'Más iconos',
-      valign: Gtk.Align.CENTER,
-    });
-    const iconRefRow = new Adw.ActionRow({
-      title: 'Sugerencias',
-      subtitle: 'utilities-terminal-symbolic, system-search-symbolic, starred-symbolic, audio-headphones-symbolic, …',
-    });
-    iconRefRow.add_suffix(iconRefLink);
-    mainGroup.add(iconRefRow);
     const overviewGroup = createGroup({ parent: page, title: 'Overview', description: 'Ajustes relacionados con la vista general' });
     overviewGroup.add(createSwitchRow({ settings: s, bindKey: 'launcher-hide-search', title: 'Ocultar barra de búsqueda', subtitle: 'Oculta el campo "Type to search" en el Overview. Aparece al empezar a escribir.' }));
 
     const cmdGroup = createGroup({ parent: page, title: 'Comandos', description: 'Comandos ejecutables desde la búsqueda escribiendo ":nombre"' });
     const addBtn = new Gtk.Button({ label: 'Añadir' });
-    addBtn.connect('clicked', () => this._addLauncherCommandDialog(s, cmdList));
+    addBtn.connect('clicked', () => this._addLauncherCommandDialog(s, cmdList, null));
     cmdGroup.set_header_suffix(addBtn);
     const cmdList = new Gtk.ListBox({ selection_mode: Gtk.SelectionMode.NONE, css_classes: ['boxed-list'] });
     cmdGroup.add(cmdList);
     this._populateLauncherCommands(cmdList, s);
+  }
+
+  _parseLauncherCommand(entry) {
+    const parts = entry.split('|');
+    const name = parts[0].trim();
+    if (!name)
+      return null;
+    let command;
+    let icon = '';
+    if (parts.length >= 3) {
+      icon = parts[parts.length - 1].trim();
+      command = parts.slice(1, -1).join('|').trim();
+    } else {
+      command = parts[1] ? parts[1].trim() : '';
+    }
+    if (!command)
+      return null;
+    return { name, command, icon };
+  }
+
+  _serializeLauncherCommand(name, command, icon) {
+    const iconPart = icon && icon.trim() ? icon.trim() : '';
+    return `${name.trim()}|${command.trim()}|${iconPart}`;
   }
 
   _populateLauncherCommands(listBox, s) {
@@ -965,21 +954,32 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
 
     const entries = s.get_strv('launcher-commands') || [];
     entries.forEach((entry, index) => {
-      const sep = entry.indexOf('|');
-      const name = sep < 0 ? entry : entry.slice(0, sep).trim();
-      const command = sep < 0 ? '' : entry.slice(sep + 1).trim();
+      let name = entry;
+      let icon = '';
+      const parsed = this._parseLauncherCommand(entry);
+      if (parsed) {
+        name = parsed.name;
+        icon = parsed.icon;
+      }
 
       const row = new Gtk.ListBoxRow();
       const box = new Gtk.Box({ spacing: 12, margin_start: 8, margin_end: 8, margin_top: 6, margin_bottom: 6 });
+      const iconImage = Gtk.Image.new_from_icon_name(icon || 'utilities-terminal-symbolic');
+      iconImage.pixel_size = 20;
+      iconImage.valign = Gtk.Align.CENTER;
+      box.append(iconImage);
       const labels = new Gtk.Box({ orientation: Gtk.Orientation.VERTICAL, hexpand: true });
       const nameLabel = new Gtk.Label({ label: `:${name}`, xalign: 0, halign: Gtk.Align.START });
       nameLabel.add_css_class('title-4');
-      const cmdLabel = new Gtk.Label({ label: command, xalign: 0, halign: Gtk.Align.START, ellipsize: Pango.EllipsizeMode.MIDDLE });
+      const cmdLabel = new Gtk.Label({ label: parsed ? parsed.command : '', xalign: 0, halign: Gtk.Align.START, ellipsize: Pango.EllipsizeMode.MIDDLE });
       cmdLabel.add_css_class('dim-label');
       labels.append(nameLabel);
       labels.append(cmdLabel);
       box.append(labels);
-      const delBtn = new Gtk.Button({ icon_name: 'user-trash-symbolic', css_classes: ['flat', 'error'], valign: Gtk.Align.CENTER });
+      const editBtn = new Gtk.Button({ icon_name: 'document-edit-symbolic', css_classes: ['flat'], valign: Gtk.Align.CENTER, tooltip_text: 'Editar' });
+      editBtn.connect('clicked', () => this._addLauncherCommandDialog(s, listBox, index));
+      box.append(editBtn);
+      const delBtn = new Gtk.Button({ icon_name: 'user-trash-symbolic', css_classes: ['flat', 'error'], valign: Gtk.Align.CENTER, tooltip_text: 'Eliminar' });
       delBtn.connect('clicked', () => {
         const next = s.get_strv('launcher-commands') || [];
         next.splice(index, 1);
@@ -992,28 +992,58 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     });
   }
 
-  _addLauncherCommandDialog(s, listBox) {
+  _addLauncherCommandDialog(s, listBox, editIndex) {
+    const isEdit = editIndex !== null && editIndex !== undefined;
+    const commands = s.get_strv('launcher-commands') || [];
+    const existing = isEdit ? this._parseLauncherCommand(commands[editIndex] || '') : null;
+
     const dialog = new Adw.MessageDialog({
-      heading: 'Añadir comando',
+      heading: isEdit ? 'Editar comando' : 'Añadir comando',
       body: 'Al escribir ":$nombre" en la búsqueda se ejecutará el comando.',
       modal: true,
       transient_for: this._getWindow(),
     });
 
     const content = new Gtk.Box({ orientation: Gtk.Orientation.VERTICAL, spacing: 12, margin_top: 8 });
-    const nameEntry = new Gtk.Entry({ placeholder_text: 'Nombre (sin ":")' });
-    const cmdEntry = new Gtk.Entry({ placeholder_text: 'Comando de bash (ej: notify-send "Hola")' });
+    const nameEntry = new Gtk.Entry({ placeholder_text: 'Nombre (sin ":")', text: existing ? existing.name : '' });
+    const cmdEntry = new Gtk.Entry({ placeholder_text: 'Comando de bash (ej: notify-send "Hola")', text: existing ? existing.command : '' });
+
+    const iconRow = new Adw.ActionRow({ title: 'Icono', subtitle: 'Nombre del icono simbólico (vacío = predeterminado)' });
+    const iconBox = new Gtk.Box({ spacing: 14, valign: Gtk.Align.CENTER });
+    const iconPreview = Gtk.Image.new_from_icon_name((existing && existing.icon) || 'utilities-terminal-symbolic');
+    iconPreview.pixel_size = 20;
+    const iconEntry = new Gtk.Entry({ text: existing ? existing.icon : '', valign: Gtk.Align.CENTER, hexpand: true });
+    iconEntry.connect('changed', () => {
+      iconPreview.icon_name = iconEntry.get_text().trim() || 'utilities-terminal-symbolic';
+    });
+    iconBox.append(iconPreview);
+    iconBox.append(iconEntry);
+    iconRow.add_suffix(iconBox);
+    iconRow.activatable_widget = iconEntry;
+    const iconRefLink = new Gtk.LinkButton({
+      uri: 'https://gitlab.gnome.org/GNOME/adwaita-icon-theme/-/tree/master/Adwaita/symbolic',
+      label: 'Más iconos',
+      valign: Gtk.Align.CENTER,
+    });
+    const iconRefRow = new Adw.ActionRow({
+      title: 'Sugerencias',
+      subtitle: 'utilities-terminal-symbolic, system-search-symbolic, starred-symbolic, audio-headphones-symbolic, …',
+    });
+    iconRefRow.add_suffix(iconRefLink);
+
     content.append(nameEntry);
     content.append(cmdEntry);
+    content.append(iconRow);
+    content.append(iconRefRow);
     dialog.set_extra_child(content);
 
-    const addResponse = 'add';
+    const saveResponse = 'save';
     dialog.add_response('cancel', 'Cancelar');
-    dialog.add_response(addResponse, 'Añadir');
-    dialog.set_response_appearance(addResponse, Adw.ResponseAppearance.SUGGESTED);
-    dialog.set_default_response(addResponse);
+    dialog.add_response(saveResponse, isEdit ? 'Guardar' : 'Añadir');
+    dialog.set_response_appearance(saveResponse, Adw.ResponseAppearance.SUGGESTED);
+    dialog.set_default_response(saveResponse);
     dialog.connect('response', (_dlg, response) => {
-      if (response !== addResponse) {
+      if (response !== saveResponse) {
         dialog.close();
         return;
       }
@@ -1021,7 +1051,11 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
       const command = cmdEntry.get_text().trim();
       if (name && command) {
         const next = s.get_strv('launcher-commands') || [];
-        next.push(`${name}|${command}`);
+        const serialized = this._serializeLauncherCommand(name, command, iconEntry.get_text());
+        if (isEdit)
+          next[editIndex] = serialized;
+        else
+          next.push(serialized);
         s.set_strv('launcher-commands', next);
         this._populateLauncherCommands(listBox, s);
       }

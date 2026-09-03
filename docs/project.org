@@ -1000,5 +1000,4 @@ The widget should be injected into the date menu's **right column** (above the c
    - `dmm-text-position` (int: 0=top, 1=bottom)
    - `dmm-show-volume` (bool)
    - `dmm-show-loop-shuffle` (bool)
-   - `dmm-fade` (bool)
-     
+   - `dmm-fade` (bool)     

@@ -28,22 +28,35 @@ export class LauncherSearchProvider {
         };
     }
 
-    _getIcon() {
-        return this._settings.get_string('launcher-provider-icon') || DEFAULT_ICON;
-    }
-
     _getCommands() {
         const commands = [];
         this._settings.get_strv('launcher-commands').forEach(entry => {
-            const idx = entry.indexOf(PREFS_TERM_SEPARATOR);
-            if (idx < 0)
-                return;
-            const name = entry.slice(0, idx).trim();
-            const command = entry.slice(idx + 1).trim();
-            if (name && command)
-                commands.push({ name, command });
+            const command = this._parseCommand(entry);
+            if (command)
+                commands.push(command);
         });
         return commands;
+    }
+
+    // Parses a stored entry of the form "nombre|comando|icono".
+    // The command may itself contain '|', so the icon is taken from the
+    // last field and the command is the join of the middle fields.
+    _parseCommand(entry) {
+        const parts = entry.split(PREFS_TERM_SEPARATOR);
+        const name = parts[0].trim();
+        if (!name)
+            return null;
+        let command;
+        let icon = '';
+        if (parts.length >= 3) {
+            icon = parts[parts.length - 1].trim();
+            command = parts.slice(1, -1).join(PREFS_TERM_SEPARATOR).trim();
+        } else {
+            command = parts[1] ? parts[1].trim() : '';
+        }
+        if (!command)
+            return null;
+        return { name, command, icon };
     }
 
     _findByNames(names) {
@@ -75,13 +88,12 @@ export class LauncherSearchProvider {
     }
 
     async getResultMetas(ids) {
-        const iconName = this._getIcon();
         return this._findByNames(ids).map(c => ({
             id: c.name,
             name: c.name,
             description: c.command,
             createIcon: size => new St.Icon({
-                icon_name: iconName,
+                icon_name: c.icon || DEFAULT_ICON,
                 icon_size: size,
             }),
         }));

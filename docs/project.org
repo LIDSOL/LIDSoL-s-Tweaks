@@ -95,14 +95,12 @@ DEADLINE: <2026-09-26 Sat>
 *** NEXT [#A] 2. Quick Settings
 DEADLINE: <2026-09-26 Sat>
 **** DONE 2.1 Avatar de usuario.
-**** NEXT [#B] 2.2 Quick Settings 
+**** NEXT [#B] 2.2 System Items Layout
 DEADLINE: <2026-09-26 Sat>
-- [ ] 2.2.1: Los elementos deben organizarse mediante "drag and drop" y no mediante botones, símil al organizador de elementos del top bar (implementado en los commits 7e16ea5, e09fc44, 9a3444b y 5025bfa.
-- [-] 2.2.3: Prefs.js/ [1/2]
-  - [ ] 2.2.3.1 Cambiar los schemas para tener una buena configuración por defecto.
-  - [X] 2.2.3.2 Las configuraciones debe estar dentro del módulo, para ir reduciendo el tamaño de `prefs.js`.
-- [ ] 2.2.3: Propuesta a evaluar: Añadir indicadores del sistema (monitor de recursos) a la sección de Items Layout: círculos que indiquen la cantidad de uso de recursos.
-**** TODO [#A] 2.3 Quick Toggles Layout
+- [x] 2.2.1: Los elementos deben organizarse mediante "drag and drop" y no mediante botones, símil al organizador de elementos del top bar (implementado en los commits 7e16ea5, e09fc44, 9a3444b y 5025bfa.
+- [ ] 2.2.3: Cambiar los schemas para tener una buena configuración por defecto.
+- [x] 2.2.2: Las configuraciones del módulo viven en `extension/modules/quickSettingsTweaks/prefsSettings.js` (y el Avatar en `userAvatar/prefsSettings.js`), delegando desde `prefs.js`.
+**** NEXT [#A] 2.3 Quick Toggles Layout
 DEADLINE: <2026-09-26 Sat>
 - [ ] 2.3.1 Los elementos deben organizarse mediante "drag an drop" y no mediante botones, símil al organizador de elementos del top bar (implementado en los commits 7e16ea5, e09fc44, 9a3444b y 5025bfa.
 - [ ] 2.3.2 Testing de las reglas de coincidencia: Constructor name, Regex de título, GTYpe name.
@@ -110,15 +108,9 @@ DEADLINE: <2026-09-26 Sat>
 - [ ] 2.3.3 Añadir toggles personalizados pre-configurados:
   - [ ] 2.3.3.1 Remplazo a "caffeine"
   - [ ] 2.3.3.2 Syncthing
-- [ ] 2.3.4: Prefs.js/ [0/2]
-  - [ ] 2.3.4.1 Cambiar los schemas para tener una buena configuración por defecto.
-  - [ ] 2.3.4.2 Las configuraciones debe estar dentro del módulo, para ir reduciendo el tamaño de `prefs.js`.   
-**** TODO [#C] 2.4 Overlay Mode
+**** NEXT [#C] 2.4 Overlay Mode
 DEADLINE: <2026-09-26 Sat>
 - [ ] 2.4.1 Usar la animación por defecto pero modificada, de tal forma que, se desplazan los toggles no solo hacia abajo (animación nativa) si no hacia arriba, para evitar el desbordamiento y siempre ver el contenido. En la forma nativa, hay veces en la cual el contenido se desborda y no es posible visualizarlo.
-- [ ] 2.4.2 /Prefs,js/
-  - [ ] 2.4.2.1 Cambiar los schemas para tener una buena configuración por defecto.
-  - [ ] 2.4.2.2 Cambiar los schemas para tener una buena configuración por defecto.
 **** TODO [#C] 2.5 System Indicador
 DEADLINE: <2026-09-26 Sat>
 - Tomando como referencia Quick Settings Tweaks, implementar:
@@ -147,12 +139,13 @@ DEADLINE: <2026-09-26 Sat>
 DEADLINE: <2026-09-26 Sat>
 - [ ] 1.3.1.2 Bug: De vez en cuando, aparece la leyenda "No Notifications" en el Date Menu, incluso aunque sí hayan notificaciones, provocando que estas se superpongan a la leyenda; no sucede todo el tiempo, aparece la leyenda sin "razón aparente" y luego nunca desaparece, incluso si las extensiones son desactivadas; esto también hace que el botón "Borrar todo" no sea visible.
 - [ ] 1.3.1.3 Mejoras en el widget de Multimedia
-    - [ ] 1.3.1.3.1 La barra de progreso avanza cada 3 segundos, sería bueno ver una animación de desplazamiento del indicador, para no ver un avance brusco. 
-    - [ ] 1.3.1.3.2  Cuando se cambia de medio gracias al switch, la barra de progreso se muestra en 0 y después avanza hasta el estado tiempo real de producción. También se debe implementar la animación de avance en este caso, para evitar "ese cambio brusco"
-    - [ ] 1.3.1.3.3 Mejoras en MPRIS
+  - [ ] 1.3.1.3.1 La barra de progreso avanza cada 3 segundos, sería bueno ver una animación de desplazamiento del indicador, para no ver un avance brusco. 
+  - [ ] 1.3.1.3.2  Cuando se cambia de medio gracias al switch, la barra de progreso se muestra en 0 y después avanza hasta el estado tiempo real de producción. También se debe implementar la animación de avance en este caso, para evitar "ese cambio brusco"
+  - [ ] 1.3.1.3.3 Mejoras en MPRIS
 - [ ] 3.1.1.4 Ocultar caja derecha (quick settings tweaks referencia)
 - [ ] 3.1.1.5 Ocultar caja izquierda (quick settings tweaks referencia)
-- [ ] 3.1.1.6 Permutar caja derecha e izquierda (aylur's referencia) 
+- [ ] 3.1.1.6 Permutar caja derecha e izquierda (aylur's referencia)
+- [ ] 3.1.1.7 mediaPlayer.js está spameando en el journal.
 **** TODO [#C] 3.3 Desktop Widgets
 DEADLINE: <2026-09-26 Sat>
 - [ ] 1.3.3.1 Dividirlo en tres áreas: Date Menu widget, Quick Settings Widgets y Background Widgets. Usar un grid, el widget puede ocupar una "celda/coordenada" dentro de ese grid. Si un widget ya lo ocupa, no es posible colocar otro más para evitar superposición.

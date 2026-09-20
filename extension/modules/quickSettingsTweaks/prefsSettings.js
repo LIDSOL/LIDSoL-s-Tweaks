@@ -4,6 +4,7 @@ import Adw from 'gi://Adw';
 import Gdk from 'gi://Gdk';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
+import GObject from 'gi://GObject';
 import Gtk from 'gi://Gtk';
 
 import {
@@ -214,33 +215,11 @@ export class QuickSettingsPrefs {
     openSystemItemsDialog() {
         const parentWindow = this._window;
         const settings = this._settings;
-        let dialog = null;
-        let rebuild = null;
-
-        const getOrder = () => {
-            try { return settings.get_strv('qst-system-items-order'); }
-            catch (e) { return [...SYSTEM_ITEM_DEFAULT_ORDER]; }
-        };
-        const saveOrder = (order) => {
-            settings.set_strv('qst-system-items-order', order);
-        };
-        const moveItem = (name, direction) => {
-            const order = getOrder();
-            const idx = order.indexOf(name);
-            if (idx === -1) return;
-            const target = idx + direction;
-            if (target < 0 || target >= order.length) return;
-            order.splice(idx, 1);
-            order.splice(target, 0, name);
-            saveOrder(order);
-        };
 
         createDialog({
             window: parentWindow,
             title: 'Ordenar elementos del sistema',
-            childrenRequest: (page, dlg) => {
-                dialog = dlg;
-
+            childrenRequest: (page) => {
                 const masterGroup = new Adw.PreferencesGroup({
                     title: 'Sistema',
                     description: 'Controla la visibilidad y el orden de los botones del área de sistema en el menú de ajustes rápidos.',
@@ -263,86 +242,52 @@ export class QuickSettingsPrefs {
 
                 const orderGroup = new Adw.PreferencesGroup({
                     title: 'Orden y visibilidad',
-                    description: 'Usa las flechas para reordenar. El switch oculta el elemento.',
+                    description: 'Arrastra y suelta para reordenar. El switch oculta el elemento.',
                 });
                 page.add(orderGroup);
-                const rows = [];
 
-                rebuild = () => {
-                    for (const r of rows) orderGroup.remove(r);
-                    rows.length = 0;
-
-                    const headerBox = new Gtk.Box({ spacing: 4 });
-                    const resetBtn = Gtk.Button.new_from_icon_name('view-refresh-symbolic');
-                    resetBtn.has_frame = false;
-                    resetBtn.valign = Gtk.Align.CENTER;
-                    resetBtn.tooltip_text = 'Restablecer orden predeterminado';
-                    resetBtn.connect('clicked', () => {
-                        const alert = new Adw.AlertDialog({
-                            heading: 'Restablecer orden predeterminado',
-                            body: 'Se perderán todos los cambios en el orden y visibilidad de los elementos del sistema. ¿Continuar?',
-                        });
-                        alert.add_response('cancel', 'Cancelar');
-                        alert.add_response('reset', 'Restablecer');
-                        alert.set_response_appearance('reset', Adw.ResponseAppearance.DESTRUCTIVE);
-                        alert.set_default_response('cancel');
-                        alert.set_close_response('cancel');
-                        alert.connect('response', (_dlg, response) => {
-                            if (response === 'reset') {
-                                settings.reset('qst-system-items-order');
-                                for (const key of Object.values(SYSTEM_ITEM_HIDE_KEYS))
-                                    settings.reset(key);
-                                rebuild();
-                            }
-                        });
-                        alert.present(parentWindow);
+                const headerBox = new Gtk.Box({ spacing: 4 });
+                const resetBtn = Gtk.Button.new_from_icon_name('view-refresh-symbolic');
+                resetBtn.has_frame = false;
+                resetBtn.valign = Gtk.Align.CENTER;
+                resetBtn.tooltip_text = 'Restablecer orden predeterminado';
+                resetBtn.connect('clicked', () => {
+                    const alert = new Adw.AlertDialog({
+                        heading: 'Restablecer orden predeterminado',
+                        body: 'Se perderán todos los cambios en el orden y visibilidad de los elementos del sistema. ¿Continuar?',
                     });
-                    headerBox.append(resetBtn);
-                    orderGroup.header_suffix = headerBox;
-
-                    const order = getOrder();
-                    const addRow = (name) => {
-                        const title = SYSTEM_ITEM_NAMES[name] || name;
-                        const isSpacer = name === 'laptopSpacer' || name === 'desktopSpacer';
-                        const row = new Adw.ActionRow({ title, activatable: false });
-
-                        const icon = Gtk.Image.new_from_icon_name(
-                            SYSTEM_ITEM_ICONS[name] || 'emblem-system-symbolic');
-                        icon.pixel_size = 18;
-                        icon.margin_start = 4;
-                        icon.margin_end = 4;
-                        row.add_prefix(icon);
-
-                        const upBtn = Gtk.Button.new_from_icon_name('go-up-symbolic');
-                        upBtn.has_frame = false;
-                        upBtn.valign = Gtk.Align.CENTER;
-                        upBtn.tooltip_text = 'Mover arriba';
-                        upBtn.connect('clicked', () => { moveItem(name, -1); rebuild(); });
-                        row.add_prefix(upBtn);
-
-                        const downBtn = Gtk.Button.new_from_icon_name('go-down-symbolic');
-                        downBtn.has_frame = false;
-                        downBtn.valign = Gtk.Align.CENTER;
-                        downBtn.tooltip_text = 'Mover abajo';
-                        downBtn.connect('clicked', () => { moveItem(name, 1); rebuild(); });
-                        row.add_prefix(downBtn);
-
-                        if (!isSpacer) {
-                            const hideKey = SYSTEM_ITEM_HIDE_KEYS[name];
-                            const hideSwitch = new Gtk.Switch({
-                                active: !settings.get_boolean(hideKey),
-                                valign: Gtk.Align.CENTER,
-                            });
-                            settings.bind(hideKey, hideSwitch, 'active',
-                                Gio.SettingsBindFlags.INVERT_BOOLEAN);
-                            row.add_suffix(hideSwitch);
+                    alert.add_response('cancel', 'Cancelar');
+                    alert.add_response('reset', 'Restablecer');
+                    alert.set_response_appearance('reset', Adw.ResponseAppearance.DESTRUCTIVE);
+                    alert.set_default_response('cancel');
+                    alert.set_close_response('cancel');
+                    alert.connect('response', (_dlg, response) => {
+                        if (response === 'reset') {
+                            settings.reset('qst-system-items-order');
+                            for (const key of Object.values(SYSTEM_ITEM_HIDE_KEYS))
+                                settings.reset(key);
+                            rebuild();
                         }
+                    });
+                    alert.present(parentWindow);
+                });
+                headerBox.append(resetBtn);
+                orderGroup.header_suffix = headerBox;
 
-                        rows.push(row);
-                        orderGroup.add(row);
-                    };
-                    for (const name of order) addRow(name);
+                const listBox = new Gtk.ListBox({
+                    selection_mode: Gtk.SelectionMode.NONE,
+                    show_separators: true,
+                });
+                listBox.add_css_class('boxed-list');
+                listBox.set_placeholder(new SystemItemsPlaceholder());
+                orderGroup.add(listBox);
+
+                const rebuild = () => {
+                    listBox.remove_all();
+                    _populateListBox(listBox, settings);
                 };
+
+                _addListBoxDropTarget(listBox, settings);
                 rebuild();
             },
         });
@@ -660,3 +605,175 @@ const SYSTEM_ITEM_HIDE_KEYS = {
     lock: 'qst-system-items-hide-lock',
     shutdown: 'qst-system-items-hide-shutdown',
 };
+
+const SystemItemsRow = GObject.registerClass({
+    GTypeName: 'LidSolSystemItemsRow',
+}, class SystemItemsRow extends Adw.ActionRow { });
+
+// Visual placeholder for empty lists (DnD handled by list-level DropTarget)
+const SystemItemsPlaceholder = GObject.registerClass({
+    GTypeName: 'LidSolSystemItemsPlaceholder',
+}, class SystemItemsPlaceholder extends Gtk.Box {
+    _init(params = {}) {
+        super._init(params);
+        this.set_orientation(Gtk.Orientation.VERTICAL);
+        this.set_hexpand(true);
+        this.set_vexpand(true);
+
+        const label = new Gtk.Label({
+            label: 'Arrastra elementos aquí',
+            sensitive: false,
+            opacity: 0.5,
+            margin_top: 16,
+            margin_bottom: 16,
+            halign: Gtk.Align.CENTER,
+            valign: Gtk.Align.CENTER,
+        });
+        this.append(label);
+    }
+});
+
+function getOrder(settings) {
+    try { return settings.get_strv('qst-system-items-order'); }
+    catch (e) { return [...SYSTEM_ITEM_DEFAULT_ORDER]; }
+}
+
+// Libera la fila reemplazada dejando que el GC de GJS recoja el widget huérfano
+// (GTK moderno ya no expone Gtk.Widget.destroy()).
+
+function _createRow(name, settings) {
+    const row = new SystemItemsRow();
+    row._item = name;
+    const isSpacer = name === 'laptopSpacer' || name === 'desktopSpacer';
+    row.set_title(SYSTEM_ITEM_NAMES[name] || name);
+
+    const icon = Gtk.Image.new_from_icon_name(
+        SYSTEM_ITEM_ICONS[name] || 'emblem-system-symbolic');
+    icon.pixel_size = 18;
+    icon.margin_start = 4;
+    icon.margin_end = 4;
+    row.add_prefix(icon);
+
+    const dragHandle = Gtk.Image.new_from_icon_name('list-drag-handle-symbolic');
+    dragHandle.pixel_size = 14;
+    dragHandle.margin_start = 4;
+    dragHandle.margin_end = 6;
+    dragHandle.opacity = 0.5;
+    row.add_prefix(dragHandle);
+
+    if (!isSpacer) {
+        const hideKey = SYSTEM_ITEM_HIDE_KEYS[name];
+        const hideSwitch = new Gtk.Switch({
+            active: !settings.get_boolean(hideKey),
+            valign: Gtk.Align.CENTER,
+        });
+        settings.bind(hideKey, hideSwitch, 'active',
+            Gio.SettingsBindFlags.INVERT_BOOLEAN);
+        row.add_suffix(hideSwitch);
+    }
+
+    const dragSource = new Gtk.DragSource({ actions: Gdk.DragAction.MOVE });
+    dragSource.connect('prepare', (_src, _x, _y) => {
+        const val = new GObject.Value();
+        val.init(SystemItemsRow.$gtype);
+        val.set_object(row);
+        return Gdk.ContentProvider.new_for_value(val);
+    });
+    dragSource.connect('drag-begin', (_src, drag) => {
+        const alloc = row.get_allocation();
+        const iconBox = new Gtk.ListBox();
+        iconBox.set_size_request(alloc.width, alloc.height);
+        const ghostRow = new Gtk.ListBoxRow();
+        const ghostLabel = new Gtk.Label({
+            label: row.get_title(),
+            margin_start: 8,
+            margin_end: 8,
+            margin_top: 4,
+            margin_bottom: 4,
+            xalign: 0,
+        });
+        ghostRow.set_child(ghostLabel);
+        iconBox.append(ghostRow);
+        iconBox.drag_highlight_row(ghostRow);
+        const dragIcon = Gtk.DragIcon.get_for_drag(drag);
+        if (dragIcon) dragIcon.set_child(iconBox);
+    });
+    row.add_controller(dragSource);
+
+    const dropTarget = new Gtk.DropTarget({
+        actions: Gdk.DragAction.MOVE,
+        formats: Gdk.ContentFormats.new_for_gtype(SystemItemsRow.$gtype),
+    });
+    dropTarget.connect('drop', (_trg, value, _x, _y) => {
+        return _handleDrop(value, row, settings);
+    });
+    row.add_controller(dropTarget);
+
+    return row;
+}
+
+function _handleDrop(value, targetRow, settings) {
+    if (!(value instanceof SystemItemsRow))
+        return false;
+    if (value === targetRow)
+        return false;
+
+    const list = value.get_parent();
+    if (!list || list !== targetRow.get_parent())
+        return false;
+
+    const name = value._item;
+    const sourceIndex = value.get_index();
+    const targetBeforeRemove = targetRow.get_index();
+    list.remove(value);
+
+    const newRow = _createRow(name, settings);
+    const insertIndex = sourceIndex < targetBeforeRemove
+        ? targetRow.get_index() + 1
+        : targetRow.get_index();
+    list.insert(newRow, insertIndex);
+    _saveListBoxOrder(list, settings);
+
+    return true;
+}
+
+function _addListBoxDropTarget(listBox, settings) {
+    const dropTarget = new Gtk.DropTarget({
+        actions: Gdk.DragAction.MOVE,
+        formats: Gdk.ContentFormats.new_for_gtype(SystemItemsRow.$gtype),
+    });
+    dropTarget.connect('drop', (_trg, value, _x, _y) => {
+        if (!(value instanceof SystemItemsRow))
+            return false;
+        const src = value.get_parent();
+        if (!src)
+            return false;
+        const name = value._item;
+        src.remove(value);
+        const newRow = _createRow(name, settings);
+        listBox.append(newRow);
+        _saveListBoxOrder(listBox, settings);
+        return true;
+    });
+    listBox.add_controller(dropTarget);
+}
+
+function _saveListBoxOrder(listBox, settings) {
+    const items = [];
+    for (const child of listBox) {
+        if (child instanceof SystemItemsRow)
+            items.push(child._item);
+    }
+    try {
+        settings.set_strv('qst-system-items-order', items);
+    } catch (e) {
+        console.error('[LIDSoL] error saving system items order:', e);
+    }
+}
+
+function _populateListBox(listBox, settings) {
+    const order = getOrder(settings);
+    for (const name of order) {
+        listBox.append(_createRow(name, settings));
+    }
+}

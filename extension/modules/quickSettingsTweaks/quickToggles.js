@@ -12,6 +12,7 @@ import {
     SystemIndicator,
 } from 'resource:///org/gnome/shell/ui/quickSettings.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import Maid from '../../core/maid.js';
 import { QuickSettingsToggleTracker } from '../../utils/childrenTracker.js';
 import * as ToggleOrderItem from './toggleOrderItem.js';
@@ -35,6 +36,21 @@ const LidSolQuickToggle = GObject.registerClass({
     }
 });
 
+// Toggle con flecha + menú de opciones (2.3.3, símil Caffeine).
+// El botón principal sigue siendo un switch ON/OFF; la flecha abre el menú.
+const LidSolQuickMenuToggle = GObject.registerClass({
+    GTypeName: 'LidSolQuickMenuToggle',
+}, class LidSolQuickMenuToggle extends QuickMenuToggle {
+    constructor(title, icon) {
+        super({
+            title: title || '',
+            iconName: icon || 'preferences-other-symbolic',
+            toggleMode: true,
+            menuEnabled: true,
+        });
+    }
+});
+
 const LidSolToggleIndicator = GObject.registerClass({
     GTypeName: 'LidSolToggleIndicator',
 }, class LidSolToggleIndicator extends SystemIndicator {
@@ -49,7 +65,10 @@ const LidSolToggleIndicator = GObject.registerClass({
         this._indicator = this._addIndicator();
         this._indicator.iconName = config.icon || 'preferences-other-symbolic';
 
-        this.toggle = new LidSolQuickToggle(config.friendlyName, config.icon);
+        const hasOptions = Array.isArray(config.options) && config.options.length > 0;
+        this.toggle = hasOptions
+            ? new LidSolQuickMenuToggle(config.friendlyName, config.icon)
+            : new LidSolQuickToggle(config.friendlyName, config.icon);
         this.quickSettingsItems.push(this.toggle);
 
         this.toggle.bind_property('checked', this._indicator, 'visible',
@@ -82,6 +101,10 @@ const LidSolToggleIndicator = GObject.registerClass({
             this._onToggleClicked();
         });
 
+        // ── Menú de opciones (2.3.3, símil Caffeine) ───────────
+        if (hasOptions)
+            this._buildOptionsMenu();
+
         // ── Check command / sync ────────────────────────────────
         if (config.checkCommand?.trim()) {
             this._setupCheckSync();
@@ -100,6 +123,38 @@ const LidSolToggleIndicator = GObject.registerClass({
                 this._commandTimeoutIds.push(timeoutId);
             }
         }
+    }
+
+    // 2.3.3 — Construye el menú de opciones (flecha del toggle).
+    // GNOME 50 parenta `menu.actor` al overlay de quick settings, por lo que
+    // el menú debe destruirse explícitamente junto con el toggle.
+    _buildOptionsMenu() {
+        const cfg = this._config;
+        const toggle = this.toggle;
+        const menu = toggle.menu;
+        if (!menu) return;
+
+        menu.setHeader(cfg.icon || 'preferences-other-symbolic',
+            cfg.friendlyName || '', null);
+
+        const section = new PopupMenu.PopupMenuSection();
+        for (const opt of cfg.options || []) {
+            if (!opt?.label?.trim() && !opt?.command?.trim()) continue;
+            const label = opt.label?.trim() || opt.command.trim();
+            const item = new PopupMenu.PopupImageMenuItem(label,
+                cfg.icon || 'preferences-other-symbolic');
+            item.connect('activate', () => {
+                executeCommand(opt.command, `custom-option:${label}`);
+                if (cfg.closeMenu)
+                    Main.panel.closeQuickSettings();
+            });
+            section.addMenuItem(item);
+        }
+        menu.addMenuItem(section);
+
+        toggle.connect('destroy', () => {
+            try { toggle.menu?.destroy(); } catch (_) {}
+        });
     }
 
     _onToggleClicked() {

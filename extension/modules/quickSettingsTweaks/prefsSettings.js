@@ -320,6 +320,7 @@ function getSubtitle(item) {
     const parts = [];
     if (item.constructorName) parts.push(`ctor: ${item.constructorName}`);
     if (item.titleRegex) parts.push(`regex: ${item.titleRegex}`);
+    if (item.options?.length) parts.push(`${item.options.length} opciones`);
     return parts.join(', ') || 'Toggle personalizado';
 }
 function getIconName(item) {
@@ -341,11 +342,23 @@ function serializeToList(list) {
                 dict[key] = GLib.Variant.new_variant(GLib.Variant.new_string(value));
             else if (typeof value === 'number')
                 dict[key] = GLib.Variant.new_variant(GLib.Variant.new_int32(value));
-            else if (Array.isArray(value))
-                dict[key] = GLib.Variant.new_variant(GLib.Variant.new_strv(value));
+            else if (Array.isArray(value)) {
+                if (value.every(v => v && typeof v === 'object'))
+                    dict[key] = GLib.Variant.new_variant(serializeOptionsList(value));
+                else
+                    dict[key] = GLib.Variant.new_variant(GLib.Variant.new_strv(value));
+            }
         }
         return dict;
     });
+}
+
+// 2.3.3 — Opciones del menú: [{ label, command }, ...] → aa{sv}
+function serializeOptionsList(options) {
+    return new GLib.Variant('aa{sv}', options.map(op => ({
+        label: GLib.Variant.new_variant(GLib.Variant.new_string(String(op.label ?? ''))),
+        command: GLib.Variant.new_variant(GLib.Variant.new_string(String(op.command ?? ''))),
+    })));
 }
 function saveItem(item, rows) {
     item.friendlyName = rows.nameRow.get_text();
@@ -367,6 +380,10 @@ function saveItem(item, rows) {
     item.checkExitCode = rows.checkExitCodeSwitch.active;
     item.commandSync = rows.commandSyncSwitch.active;
     item.pollInterval = rows.pollIntervalSpin.value;
+    item.options = rows.options.map(o => ({
+        label: o.labelEntry.get_text(),
+        command: o.cmdEntry.get_text(),
+    }));
 }
 
 function newItemDefaults() {
@@ -378,6 +395,7 @@ function newItemDefaults() {
         initialState: 2, runAtBoot: false, delayTime: 3,
         buttonClick: 2, showIndicator: false, closeMenu: false,
         checkExitCode: false, commandSync: false, pollInterval: 10,
+        options: [],
     };
 }
 
@@ -442,6 +460,64 @@ function buildEditFormRows(page, item, rootWindow) {
     rows.checkRegexRow.add_suffix(rows.checkRegexEntry);
     rows.checkRegexRow.activatable_widget = rows.checkRegexEntry;
     cmdGroup.add(rows.checkRegexRow);
+
+    // ── Opciones del menú (2.3.3, símil Caffeine) ─────────────
+    const optsGroup = new Adw.PreferencesGroup({
+        title: 'Opciones del menú',
+        description: 'Agrega opciones accesibles desde la flecha del toggle (como Caffeine: 15/30/1 h/∞). Cada opción ejecuta su propio comando.',
+    });
+    page.add(optsGroup);
+
+    rows.options = [];
+    const addBtnRow = new Adw.ActionRow({ title: 'Añadir opción', activatable: true });
+    const addIcon = Gtk.Image.new_from_icon_name('list-add');
+    addIcon.pixel_size = 14;
+    addBtnRow.add_suffix(addIcon);
+    const moveAddBtnToEnd = () => {
+        try { optsGroup.remove(addBtnRow); } catch (_) {}
+        optsGroup.add(addBtnRow);
+    };
+    const addOptionRow = (opt = {}) => {
+        const labelEntry = new Adw.EntryRow({ title: 'Etiqueta' });
+        labelEntry.set_text(opt.label || '');
+        optsGroup.add(labelEntry);
+
+        const cmdEntry = new Gtk.Entry({
+            text: opt.command || '',
+            valign: Gtk.Align.CENTER,
+            hexpand: true,
+        });
+        const cmdRow = new Adw.ActionRow({
+            title: 'Comando',
+            subtitle: 'Comando bash completo (p. ej. caffeine 15)',
+        });
+        const delBtn = Gtk.Button.new_from_icon_name('user-trash-symbolic');
+        delBtn.has_frame = false;
+        delBtn.valign = Gtk.Align.CENTER;
+        delBtn.tooltip_text = 'Eliminar opción';
+        const cmdBox = new Gtk.Box({ spacing: 6, valign: Gtk.Align.CENTER });
+        cmdBox.append(cmdEntry);
+        cmdBox.append(delBtn);
+        cmdRow.add_suffix(cmdBox);
+        cmdRow.activatable_widget = cmdEntry;
+        optsGroup.add(cmdRow);
+
+        const entry = { labelEntry, cmdEntry, cmdRow };
+        rows.options.push(entry);
+        delBtn.connect('clicked', () => {
+            try { optsGroup.remove(entry.labelEntry); } catch (_) {}
+            try { optsGroup.remove(entry.cmdRow); } catch (_) {}
+            const idx = rows.options.indexOf(entry);
+            if (idx !== -1) rows.options.splice(idx, 1);
+            moveAddBtnToEnd();
+        });
+        moveAddBtnToEnd();
+    };
+    addBtnRow.connect('activated', () => addOptionRow());
+    for (const opt of item.options || [])
+        addOptionRow(opt);
+    moveAddBtnToEnd();
+
     const startupGroup = new Adw.PreferencesGroup({ title: 'Comportamiento de inicio' });
     page.add(startupGroup);
     const initialStateOptions = new Gtk.StringList();

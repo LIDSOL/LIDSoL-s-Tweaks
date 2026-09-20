@@ -98,9 +98,9 @@ DEADLINE: <2026-09-26 Sat>
 **** NEXT [#B] 2.2 Quick Settings 
 DEADLINE: <2026-09-26 Sat>
 - [ ] 2.2.1: Los elementos deben organizarse mediante "drag and drop" y no mediante botones, símil al organizador de elementos del top bar (implementado en los commits 7e16ea5, e09fc44, 9a3444b y 5025bfa.
-- [ ] 2.2.3: Prefs.js/ [0/2]
+- [-] 2.2.3: Prefs.js/ [1/2]
   - [ ] 2.2.3.1 Cambiar los schemas para tener una buena configuración por defecto.
-  - [ ] 2.2.3.2 Las configuraciones debe estar dentro del módulo, para ir reduciendo el tamaño de `prefs.js`.
+  - [X] 2.2.3.2 Las configuraciones debe estar dentro del módulo, para ir reduciendo el tamaño de `prefs.js`.
 - [ ] 2.2.3: Propuesta a evaluar: Añadir indicadores del sistema (monitor de recursos) a la sección de Items Layout: círculos que indiquen la cantidad de uso de recursos.
 **** TODO [#A] 2.3 Quick Toggles Layout
 DEADLINE: <2026-09-26 Sat>

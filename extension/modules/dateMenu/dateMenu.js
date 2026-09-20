@@ -55,7 +55,7 @@ export class AtAGlanceIndicator {
         // Container: [art(if left), vis(if left), textBox, vis(if right), art(if right)]
         this._container = new St.BoxLayout({
             style_class: 'at-a-glance-indicator',
-            vertical: false,
+            orientation: Clutter.Orientation.HORIZONTAL,
             x_align: Clutter.ActorAlign.CENTER,
             y_align: Clutter.ActorAlign.CENTER,
             reactive: true,
@@ -84,7 +84,7 @@ export class AtAGlanceIndicator {
 
         // Text wrapper: clock + track info
         this._textBox = new St.BoxLayout({
-            vertical: false,
+            orientation: Clutter.Orientation.HORIZONTAL,
             x_align: Clutter.ActorAlign.CENTER,
             y_align: Clutter.ActorAlign.CENTER,
         });

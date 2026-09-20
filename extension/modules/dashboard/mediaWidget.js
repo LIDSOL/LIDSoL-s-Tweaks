@@ -132,7 +132,7 @@ var DashboardMediaWidget = GObject.registerClass({
     );
 
     this._infoCol = new St.BoxLayout({
-      vertical: true,
+      orientation: Clutter.Orientation.VERTICAL,
       style_class: 'dashboard-media-info',
       x_expand: true,
     });
@@ -346,7 +346,7 @@ var DashboardMediaWidget = GObject.registerClass({
     this._progress.x_align = Clutter.ActorAlign.FILL;
     this._controls.x_align = Clutter.ActorAlign.END;
 
-    this._bodyRow.vertical = true;
+    this._bodyRow.orientation = Clutter.Orientation.VERTICAL;
     this._bodyRow.x_align = Clutter.ActorAlign.FILL;
     this._bodyRow.x_expand = true;
     this._bodyRow.y_expand = true;
@@ -362,7 +362,7 @@ var DashboardMediaWidget = GObject.registerClass({
     const isFull = style === 2;
 
     if (style === 0) {
-      this._bodyRow.vertical = true;
+      this._bodyRow.orientation = Clutter.Orientation.VERTICAL;
 
       this._bodyRow.add_child(this._spacerTop);
       this._bodyRow.add_child(this._coverContainer);
@@ -392,7 +392,7 @@ var DashboardMediaWidget = GObject.registerClass({
 
       this._syncCoverCSS();
     } else if (style === 1) {
-      this._bodyRow.vertical = false;
+      this._bodyRow.orientation = Clutter.Orientation.HORIZONTAL;
       this._bodyRow.x_align = Clutter.ActorAlign.FILL;
       this._bodyRow.x_expand = true;
 
@@ -429,7 +429,7 @@ var DashboardMediaWidget = GObject.registerClass({
 
       this._syncCoverCSS();
     } else if (isFull) {
-      this._bodyRow.vertical = true;
+      this._bodyRow.orientation = Clutter.Orientation.VERTICAL;
 
       // Full style: the widget (with its container) is scaled by Cover
       // Width / Cover Height as a percentage of its default size (100x100 =

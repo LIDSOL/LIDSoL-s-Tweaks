@@ -66,7 +66,7 @@ export class UserAvatarDateMenuModule {
 
     _buildWidget() {
         this._widget = new St.BoxLayout({
-            vertical: true,
+            orientation: Clutter.Orientation.VERTICAL,
             style_class: 'uadm-user-box',
             x_align: Clutter.ActorAlign.CENTER,
             y_align: Clutter.ActorAlign.START,
@@ -91,7 +91,7 @@ export class UserAvatarDateMenuModule {
         }
 
         const nameBox = new St.BoxLayout({
-            vertical: false,
+            orientation: Clutter.Orientation.HORIZONTAL,
             x_align: Clutter.ActorAlign.CENTER,
             style_class: 'uadm-name-box',
         });

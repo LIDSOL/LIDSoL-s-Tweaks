@@ -27,7 +27,7 @@ export const MediaWidgetBase = GObject.registerClass(
     class MediaWidgetBase extends St.BoxLayout {
         _init(settings, mpris) {
             super._init({
-                vertical: true,
+                orientation: Clutter.Orientation.VERTICAL,
                 x_expand: true,
                 visible: true,
             });
@@ -187,7 +187,6 @@ export const MediaWidgetBase = GObject.registerClass(
                         this._timeLabel.text = formatTime(pos);
                     }
                 },
-                'scroll-event', () => Clutter.EVENT_STOP,
                 this
             );
 

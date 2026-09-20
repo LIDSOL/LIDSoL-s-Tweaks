@@ -167,7 +167,8 @@ class UserWidget extends DashWidget {
     }
 
     _sync() {
-        this.vertical = this._settings.get_boolean('dashboard-user-vertical');
+        this._vertical = this._settings.get_boolean('dashboard-user-vertical');
+        this.orientation = this._vertical ? Clutter.Orientation.VERTICAL : Clutter.Orientation.HORIZONTAL;
         this._buildUI();
         this._hasBackground = this._settings.get_boolean('dashboard-user-background');
         this.style_class = `dash-widget user-widget` +
@@ -189,8 +190,8 @@ class UserWidget extends DashWidget {
         const iconHeight = this._settings.get_int('dashboard-user-icon-height');
 
         const userBtn = new St.Button({
-            x_align: this.vertical ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.END,
-            y_align: this.vertical ? Clutter.ActorAlign.END : Clutter.ActorAlign.CENTER,
+            x_align: this._vertical ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.END,
+            y_align: this._vertical ? Clutter.ActorAlign.END : Clutter.ActorAlign.CENTER,
             x_expand: true,
             y_expand: true,
             style_class: 'user-icon-button button',
@@ -211,10 +212,10 @@ class UserWidget extends DashWidget {
             major >= 46 ? 'gnome-users-panel.desktop' : 'gnome-user-accounts-panel.desktop');
 
         const textBox = new St.BoxLayout({
-            vertical: true,
+            orientation: Clutter.Orientation.VERTICAL,
             style_class: 'text-box',
-            y_align: this.vertical ? Clutter.ActorAlign.START : Clutter.ActorAlign.CENTER,
-            x_align: this.vertical ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.START,
+            y_align: this._vertical ? Clutter.ActorAlign.START : Clutter.ActorAlign.CENTER,
+            x_align: this._vertical ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.START,
             x_expand: true,
             y_expand: true,
         });
@@ -223,7 +224,7 @@ class UserWidget extends DashWidget {
             this._nameLabel = new St.Label({
                 style_class: 'user-name',
                 y_align: Clutter.ActorAlign.END,
-                x_align: this.vertical ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.START,
+                x_align: this._vertical ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.START,
                 text: this._user.get_real_name() || GLib.get_real_name(),
             });
             textBox.add_child(this._nameLabel);
@@ -232,7 +233,7 @@ class UserWidget extends DashWidget {
         this._greetingLabel = new St.Label({
             style_class: 'greetings',
             y_align: Clutter.ActorAlign.START,
-            x_align: this.vertical ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.START,
+            x_align: this._vertical ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.START,
             text: _getGreeting(),
         });
         textBox.add_child(this._greetingLabel);
@@ -241,7 +242,7 @@ class UserWidget extends DashWidget {
         const textSpacing = this._settings.get_int('dashboard-user-text-spacing');
         if (textSpacing > 0) {
             const spacer = new St.BoxLayout({
-                style: this.vertical
+                style: this._vertical
                     ? `min-height: ${textSpacing}px;`
                     : `min-width: ${textSpacing}px;`,
             });
@@ -343,7 +344,7 @@ const LevelsBox = GObject.registerClass(
 class LevelsBox extends St.BoxLayout {
     _init(settings, parentDialog = null) {
         super._init({
-            vertical: true,
+            orientation: Clutter.Orientation.VERTICAL,
             style_class: 'levels-box',
             x_expand: true,
             y_expand: true,
@@ -472,7 +473,7 @@ class ClockWidget extends DashWidget {
         this.day = this._label('day');
 
         this._vbox = new St.BoxLayout({
-            vertical: true,
+            orientation: Clutter.Orientation.VERTICAL,
             y_align: Clutter.ActorAlign.CENTER,
             x_align: Clutter.ActorAlign.CENTER,
             y_expand: true,
@@ -507,7 +508,8 @@ class ClockWidget extends DashWidget {
 
     _sync() {
         const vertical = this._settings.get_boolean('dashboard-clock-vertical');
-        this.vertical = vertical;
+        this._vertical = vertical;
+        this.orientation = this._vertical ? Clutter.Orientation.VERTICAL : Clutter.Orientation.HORIZONTAL;
 
         const spacing = this._settings.get_int('dashboard-clock-spacing');
         const clockSize = this._settings.get_int('dashboard-clock-clock-size');
@@ -606,7 +608,8 @@ export var AppsWidget = GObject.registerClass(
 class AppsWidget extends DashWidget {
     _init(settings, parentDialog) {
         super._init(settings, 'apps', parentDialog);
-        this.vertical = true;
+        this._vertical = true;
+        this.orientation = Clutter.Orientation.VERTICAL;
         this._connect('rows');
         this._connect('cols');
         AppFavorites.getAppFavorites().connectObject('changed', this._sync.bind(this), this);
@@ -705,7 +708,8 @@ class SystemWidget extends DashWidget {
         const layout = this._settings.get_int('dashboard-system-layout');
 
         this.destroy_all_children();
-        this.vertical = true;
+        this._vertical = true;
+        this.orientation = Clutter.Orientation.VERTICAL;
 
         const actionsBox = new St.BoxLayout({
             style_class: 'container',

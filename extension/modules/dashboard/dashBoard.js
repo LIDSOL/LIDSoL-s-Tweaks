@@ -135,7 +135,7 @@ class DashBoardModal extends ModalDialog.ModalDialog {
             user: () => new UserWidget(this._settings, this),
         };
 
-        this._mainBox = new St.BoxLayout({ vertical: true });
+        this._mainBox = new St.BoxLayout({ orientation: Clutter.Orientation.VERTICAL });
         try {
             const layout = JSON.parse(this._settings.get_string('dashboard-layout-json'));
             this._mainBox = this._parseJson(layout);
@@ -159,7 +159,7 @@ class DashBoardModal extends ModalDialog.ModalDialog {
             return this._parseGrid(obj);
         const box = new St.BoxLayout({
             style_class: 'container',
-            vertical: obj.vertical || false,
+            orientation: obj.vertical ? Clutter.Orientation.VERTICAL : Clutter.Orientation.HORIZONTAL,
             y_expand: obj.y_expand || false,
             x_expand: obj.x_expand || false,
             y_align: this._parseAlign(obj.y_align),

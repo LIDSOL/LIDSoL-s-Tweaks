@@ -90,7 +90,7 @@ export class QuickTextModule {
             counter.set_text(`${entry.get_text().length}/${maxLenMulti}`);
         });
 
-        const box = new St.BoxLayout({width: 400, vertical: true});
+        const box = new St.BoxLayout({width: 400, orientation: Clutter.Orientation.VERTICAL});
         box.add_child(scrollView);
         box.add_child(counter);
         content.add_child(box);

@@ -40,7 +40,7 @@ export const MediaWidget = GObject.registerClass(
             bodyRow.add_child(this._art);
 
             const infoCol = new St.BoxLayout({
-                vertical: true,
+                orientation: Clutter.Orientation.VERTICAL,
                 style_class: 'dmm-info',
                 x_expand: true,
             });

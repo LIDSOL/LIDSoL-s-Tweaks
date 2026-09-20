@@ -141,8 +141,8 @@ class UsageLevel extends St.BoxLayout {
             x_expand: true,
             y_expand: true,
         });
-        if (vertical)
-            this.vertical = true;
+        this._vertical = !!vertical;
+        this.orientation = this._vertical ? Clutter.Orientation.VERTICAL : Clutter.Orientation.HORIZONTAL;
         this.colorSwitchValues = [25, 50, 75];
 
         this.icon = new St.Icon({reactive: true, track_hover: true, icon_size: 16});
@@ -186,11 +186,10 @@ class UsageLevel extends St.BoxLayout {
     }
 
     _buildUI() {
-        if (this.vertical) {
+        if (this._vertical) {
             this.add_child(this.label);
             this.add_child(this.level);
             this.add_child(this.icon);
-            this.vertical = true;
             this.label.style = 'text-align: center';
             this.x_align = Clutter.ActorAlign.CENTER;
             this.x_expand = true;

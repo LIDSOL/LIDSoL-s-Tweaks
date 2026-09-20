@@ -121,7 +121,6 @@ export class QuickSettingsPrefs {
     openToggleOrderDialog() {
         const parentWindow = this._window;
         const settings = this._settings;
-        let dialog = null;
         let rebuild = null;
         const getList = () => {
             try { return settings.get_value('qst-toggles-order').recursiveUnpack(); }
@@ -137,76 +136,68 @@ export class QuickSettingsPrefs {
                 const list = getList(); list.push(savedItem); saveList(list); rebuild();
             });
         };
-        dialog = createDialog({
+        createDialog({
             window: parentWindow,
             title: 'Ordenar y ocultar toggles',
-            childrenRequest: (page, dlg) => {
-                dialog = dlg;
-                const group = new Adw.PreferencesGroup({ title: 'Toggles', description: 'Usa las flechas para reordenar. El switch oculta.' });
+            childrenRequest: (page) => {
+                const group = new Adw.PreferencesGroup({
+                    title: 'Toggles',
+                    description: 'Arrastra y suelta para reordenar. El switch oculta.',
+                });
                 page.add(group);
-                const rows = [];
-                rebuild = () => {
-                    for (const r of rows) group.remove(r);
-                    rows.length = 0;
-                    const headerBox = new Gtk.Box({ spacing: 4 });
-                    const newBtn = new Gtk.Button({ has_frame: true, valign: Gtk.Align.CENTER });
-                    newBtn.add_css_class('lidsol-new-item-btn');
-                    const s = new Gtk.CssProvider();
-                    s.load_from_string('.lidsol-new-item-btn { padding: 8px 8px; min-height: 0; }');
-                    newBtn.get_style_context().add_provider(s, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
-                    const c = new Gtk.Box(); newBtn.child = c;
-                    new Gtk.Image({ icon_name: 'list-add', pixel_size: 12, margin_end: 6 }).insert_before(c, null);
-                    new Gtk.Label({ label: 'Nuevo Toggle' }).insert_before(c, null);
-                    newBtn.connect('clicked', addNewItem);
-                    headerBox.append(newBtn);
-                    const resetBtn = Gtk.Button.new_from_icon_name('view-refresh-symbolic');
-                    resetBtn.has_frame = false; resetBtn.valign = Gtk.Align.CENTER;
-                    resetBtn.tooltip_text = 'Restablecer valores predeterminados';
-                    resetBtn.connect('clicked', () => {
-                        const alert = new Adw.AlertDialog({
-                            heading: 'Restablecer valores predeterminados',
-                            body: 'Se perderán todos los cambios realizados en los toggles personalizados. ¿Continuar?',
-                        });
-                        alert.add_response('cancel', 'Cancelar');
-                        alert.add_response('reset', 'Restablecer');
-                        alert.set_response_appearance('reset', Adw.ResponseAppearance.DESTRUCTIVE);
-                        alert.set_default_response('cancel');
-                        alert.set_close_response('cancel');
-                        alert.connect('response', (_dlg, response) => {
-                            if (response === 'reset') {
-                                settings.reset('qst-toggles-order');
-                                rebuild();
-                            }
-                        });
-                        alert.present(parentWindow);
+
+                const headerBox = new Gtk.Box({ spacing: 4 });
+                const newBtn = new Gtk.Button({ has_frame: true, valign: Gtk.Align.CENTER });
+                newBtn.add_css_class('lidsol-new-item-btn');
+                const s = new Gtk.CssProvider();
+                s.load_from_string('.lidsol-new-item-btn { padding: 8px 8px; min-height: 0; }');
+                newBtn.get_style_context().add_provider(s, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
+                const c = new Gtk.Box(); newBtn.child = c;
+                new Gtk.Image({ icon_name: 'list-add', pixel_size: 12, margin_end: 6 }).insert_before(c, null);
+                new Gtk.Label({ label: 'Nuevo Toggle' }).insert_before(c, null);
+                newBtn.connect('clicked', addNewItem);
+                headerBox.append(newBtn);
+                const resetBtn = Gtk.Button.new_from_icon_name('view-refresh-symbolic');
+                resetBtn.has_frame = false; resetBtn.valign = Gtk.Align.CENTER;
+                resetBtn.tooltip_text = 'Restablecer valores predeterminados';
+                resetBtn.connect('clicked', () => {
+                    const alert = new Adw.AlertDialog({
+                        heading: 'Restablecer valores predeterminados',
+                        body: 'Se perderán todos los cambios realizados en los toggles personalizados. ¿Continuar?',
                     });
-                    headerBox.append(resetBtn);
-                    group.header_suffix = headerBox;
-                    const list = getList();
-                    const addRow = (item) => {
-                        const row = new Adw.ActionRow({ title: getDisplayName(item), subtitle: getSubtitle(item), activatable: false });
-                        const icon = Gtk.Image.new_from_icon_name(getIconName(item));
-                        icon.pixel_size = 18; icon.margin_start = 4; icon.margin_end = 4;
-                        row.add_prefix(icon);
-                        addMoveButtons(row, list, item, saveList, rebuild);
-                        const hideSwitch = new Gtk.Switch({ active: !item.hide, valign: Gtk.Align.CENTER });
-                        hideSwitch.connect('notify::active', () => { item.hide = !hideSwitch.active; saveList(list); rebuild(); });
-                        row.add_suffix(hideSwitch);
-                        if (!item.isSystem && !item.nonOrdered) {
-                            const editBtn = Gtk.Button.new_from_icon_name('document-edit-symbolic');
-                            editBtn.has_frame = false; editBtn.valign = Gtk.Align.CENTER;
-                            editBtn.connect('clicked', () => { openEditDialog(parentWindow, settings, item, () => { saveList(list); rebuild(); }); });
-                            row.add_suffix(editBtn);
-                            const delBtn = Gtk.Button.new_from_icon_name('user-trash-symbolic');
-                            delBtn.has_frame = false; delBtn.valign = Gtk.Align.CENTER; delBtn.tooltip_text = 'Eliminar toggle';
-                            delBtn.connect('clicked', () => { const idx = list.indexOf(item); list.splice(idx, 1); saveList(list); rebuild(); });
-                            row.add_suffix(delBtn);
+                    alert.add_response('cancel', 'Cancelar');
+                    alert.add_response('reset', 'Restablecer');
+                    alert.set_response_appearance('reset', Adw.ResponseAppearance.DESTRUCTIVE);
+                    alert.set_default_response('cancel');
+                    alert.set_close_response('cancel');
+                    alert.connect('response', (_dlg, response) => {
+                        if (response === 'reset') {
+                            settings.reset('qst-toggles-order');
+                            rebuild();
                         }
-                        rows.push(row);
-                        group.add(row);
-                    };
-                    for (const item of list) addRow(item);
+                    });
+                    alert.present(parentWindow);
+                });
+                headerBox.append(resetBtn);
+                group.header_suffix = headerBox;
+
+                const listBox = new Gtk.ListBox({
+                    selection_mode: Gtk.SelectionMode.NONE,
+                    show_separators: true,
+                });
+                listBox.add_css_class('boxed-list');
+                listBox.set_placeholder(new QuickTogglesPlaceholder());
+                group.add(listBox);
+
+                rebuild = () => {
+                    listBox.remove_all();
+                    const list = getList();
+                    const ctx = { window: parentWindow, settings, list, saveList, getList, rebuild };
+                    for (const item of list)
+                        listBox.append(_qtCreateRow(item, ctx));
                 };
+
+                _qtAddListBoxDropTarget(listBox, getList, saveList, rebuild);
                 rebuild();
             },
         });
@@ -356,39 +347,6 @@ function serializeToList(list) {
         return dict;
     });
 }
-function shouldShow(item) { return true; }
-function moveBlocking(_list, _moving, _movingIndex, _target, _targetIndex) { return false; }
-function skip(list, _moving, _movingIndex, target, _targetIndex) { return shouldShow(target); }
-
-function moveItem(list, item, offset) {
-    const idx = list.indexOf(item);
-    if (idx === -1 || offset === 0) return false;
-    const sign = Math.sign(offset);
-    let targetIndex = idx;
-    for (let count = Math.abs(offset); count > 0;) {
-        if (targetIndex <= 0 && sign === -1) break;
-        if (targetIndex >= (list.length - 1) && sign === 1) break;
-        if (moveBlocking(list, item, idx, list[targetIndex], targetIndex)) break;
-        targetIndex += sign;
-        if (skip(list, item, idx, list[targetIndex], targetIndex)) count--;
-    }
-    if (idx === targetIndex) return false;
-    list.splice(idx, 1);
-    list.splice(targetIndex, 0, item);
-    return true;
-}
-
-function addMoveButtons(row, list, item, saveList, rebuild) {
-    const upBtn = Gtk.Button.new_from_icon_name('go-up-symbolic');
-    upBtn.has_frame = false; upBtn.valign = Gtk.Align.CENTER; upBtn.tooltip_text = 'Mover arriba';
-    upBtn.connect('clicked', () => { if (moveItem(list, item, -1)) { saveList(list); rebuild(); } });
-    const downBtn = Gtk.Button.new_from_icon_name('go-down-symbolic');
-    downBtn.has_frame = false; downBtn.valign = Gtk.Align.CENTER; downBtn.tooltip_text = 'Mover abajo';
-    downBtn.connect('clicked', () => { if (moveItem(list, item, 1)) { saveList(list); rebuild(); } });
-    row.add_prefix(downBtn);
-    row.add_prefix(upBtn);
-}
-
 function saveItem(item, rows) {
     item.friendlyName = rows.nameRow.get_text();
     item.icon = rows.iconEntry ? rows.iconEntry.get_text() : '';
@@ -567,6 +525,167 @@ function getNextName(list) {
         if (!list.find(item => item.friendlyName === name)) return name;
         nth++;
     }
+}
+
+// ── Reordenamiento por arrastre (símil System Items Layout) ─────────
+
+const QuickTogglesRow = GObject.registerClass({
+    GTypeName: 'LidSolQuickTogglesRow',
+}, class QuickTogglesRow extends Adw.ActionRow { });
+
+// Placeholder visual para listas vacías (el DnD lo maneja el DropTarget de la lista)
+const QuickTogglesPlaceholder = GObject.registerClass({
+    GTypeName: 'LidSolQuickTogglesPlaceholder',
+}, class QuickTogglesPlaceholder extends Gtk.Box {
+    _init(params = {}) {
+        super._init(params);
+        this.set_orientation(Gtk.Orientation.VERTICAL);
+        this.set_hexpand(true);
+        this.set_vexpand(true);
+
+        const label = new Gtk.Label({
+            label: 'Arrastra elementos aquí',
+            sensitive: false,
+            opacity: 0.5,
+            margin_top: 16,
+            margin_bottom: 16,
+            halign: Gtk.Align.CENTER,
+            valign: Gtk.Align.CENTER,
+        });
+        this.append(label);
+    }
+});
+
+function _qtCreateRow(item, ctx) {
+    const { window, settings, list, saveList, getList, rebuild } = ctx;
+    const row = new QuickTogglesRow();
+    row._item = item;
+    row.set_title(getDisplayName(item));
+    row.set_subtitle(getSubtitle(item));
+    row.activatable = false;
+
+    const icon = Gtk.Image.new_from_icon_name(getIconName(item));
+    icon.pixel_size = 18;
+    icon.margin_start = 4;
+    icon.margin_end = 4;
+    row.add_prefix(icon);
+
+    const dragHandle = Gtk.Image.new_from_icon_name('list-drag-handle-symbolic');
+    dragHandle.pixel_size = 14;
+    dragHandle.margin_start = 4;
+    dragHandle.margin_end = 6;
+    dragHandle.opacity = 0.5;
+    row.add_prefix(dragHandle);
+
+    const hideSwitch = new Gtk.Switch({ active: !item.hide, valign: Gtk.Align.CENTER });
+    hideSwitch.connect('notify::active', () => {
+        item.hide = !hideSwitch.active;
+        saveList(list);
+        rebuild();
+    });
+    row.add_suffix(hideSwitch);
+
+    if (!item.isSystem && !item.nonOrdered) {
+        const editBtn = Gtk.Button.new_from_icon_name('document-edit-symbolic');
+        editBtn.has_frame = false; editBtn.valign = Gtk.Align.CENTER;
+        editBtn.connect('clicked', () => { openEditDialog(window, settings, item, () => { saveList(list); rebuild(); }); });
+        row.add_suffix(editBtn);
+        const delBtn = Gtk.Button.new_from_icon_name('user-trash-symbolic');
+        delBtn.has_frame = false; delBtn.valign = Gtk.Align.CENTER; delBtn.tooltip_text = 'Eliminar toggle';
+        delBtn.connect('clicked', () => { const idx = list.indexOf(item); list.splice(idx, 1); saveList(list); rebuild(); });
+        row.add_suffix(delBtn);
+    }
+
+    const dragSource = new Gtk.DragSource({ actions: Gdk.DragAction.MOVE });
+    dragSource.connect('prepare', (_src, _x, _y) => {
+        const val = new GObject.Value();
+        val.init(QuickTogglesRow.$gtype);
+        val.set_object(row);
+        return Gdk.ContentProvider.new_for_value(val);
+    });
+    dragSource.connect('drag-begin', (_src, drag) => {
+        const alloc = row.get_allocation();
+        const iconBox = new Gtk.ListBox();
+        iconBox.set_size_request(alloc.width, alloc.height);
+        const ghostRow = new Gtk.ListBoxRow();
+        const ghostLabel = new Gtk.Label({
+            label: row.get_title(),
+            margin_start: 8,
+            margin_end: 8,
+            margin_top: 4,
+            margin_bottom: 4,
+            xalign: 0,
+        });
+        ghostRow.set_child(ghostLabel);
+        iconBox.append(ghostRow);
+        iconBox.drag_highlight_row(ghostRow);
+        const dragIcon = Gtk.DragIcon.get_for_drag(drag);
+        if (dragIcon) dragIcon.set_child(iconBox);
+    });
+    row.add_controller(dragSource);
+
+    const dropTarget = new Gtk.DropTarget({
+        actions: Gdk.DragAction.MOVE,
+        formats: Gdk.ContentFormats.new_for_gtype(QuickTogglesRow.$gtype),
+    });
+    dropTarget.connect('drop', (_trg, value, _x, _y) => {
+        return _qtHandleDrop(value, row, getList, saveList, rebuild);
+    });
+    row.add_controller(dropTarget);
+
+    return row;
+}
+
+function _qtHandleDrop(value, targetRow, getList, saveList, rebuild) {
+    if (!(value instanceof QuickTogglesRow))
+        return false;
+    if (value === targetRow)
+        return false;
+
+    const listContainer = value.get_parent();
+    if (!listContainer || listContainer !== targetRow.get_parent())
+        return false;
+
+    // El array se puebla siempre en orden, así que índice de fila == índice del array
+    // (no se compara por identidad de objeto: getList() re-desempaqueta objetos nuevos).
+    const list = getList();
+    const sourceIndex = value.get_index();
+    const targetIndex = targetRow.get_index();
+    if (sourceIndex >= list.length || targetIndex >= list.length)
+        return false;
+
+    const [item] = list.splice(sourceIndex, 1);
+    list.splice(targetIndex, 0, item);
+    saveList(list);
+    rebuild();
+    return true;
+}
+
+function _qtAddListBoxDropTarget(listBox, getList, saveList, rebuild) {
+    const dropTarget = new Gtk.DropTarget({
+        actions: Gdk.DragAction.MOVE,
+        formats: Gdk.ContentFormats.new_for_gtype(QuickTogglesRow.$gtype),
+    });
+    dropTarget.connect('drop', (_trg, value, _x, _y) => {
+        if (!(value instanceof QuickTogglesRow))
+            return false;
+        const src = value.get_parent();
+        if (!src)
+            return false;
+
+        const list = getList();
+        if (list.length === 0)
+            return false;
+        const sourceIndex = value.get_index();
+        if (sourceIndex >= list.length)
+            return false;
+        const [item] = list.splice(sourceIndex, 1);
+        list.push(item);
+        saveList(list);
+        rebuild();
+        return true;
+    });
+    listBox.add_controller(dropTarget);
 }
 
 // ══════════════════════════════════════════════════════════════════

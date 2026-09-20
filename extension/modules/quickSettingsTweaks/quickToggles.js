@@ -471,10 +471,13 @@ export class QuickTogglesFeature {
             this._gsettings.set_strv(`qst-custom-kb-${kbSlot}`, ['']);
         }
 
+        // Registrar ANTES de inyectar en el grid: el tracker emite onToggleCreated
+        // síncronamente en child-added, y el lookup por identidad requiere que el
+        // toggle ya esté en _customToggles (ver _onToggleCreated).
+        this._customToggles.push({ item, indicator, toggle, maid, kbSlot, kbRegistered });
+
         // Register in Quick Settings
         Main.panel.statusArea.quickSettings.addExternalIndicator(indicator);
-
-        this._customToggles.push({ item, indicator, toggle, maid, kbSlot, kbRegistered });
     }
 
     // ── Reload ─────────────────────────────────────────────────
@@ -538,8 +541,14 @@ export class QuickTogglesFeature {
     }
 
     _onToggleCreated(maid, toggle) {
-        const rule = this._order.find(item => ToggleOrderItem.toggleMatch(item, toggle))
-            || this._unordered;
+        // Los toggles personalizados se resuelven por identidad: tienen reglas de
+        // coincidencia vacías y no deben caer en el catch-all de "Otros toggles"
+        // (si `_unordered.hide` está activo, no deben ocultarse).
+        const customToggle = this._customToggles.find(c => c.toggle === toggle);
+        const rule = customToggle
+            ? customToggle.item
+            : this._order.find(item => ToggleOrderItem.toggleMatch(item, toggle))
+                || this._unordered;
         const matched = rule ? (rule.constructorName || rule.friendlyName || 'nonOrdered') : 'none';
         const willHide = rule?.hide ? ' (HIDING)' : ' (visible)';
         log(`[LIDSoL QST] _onToggleCreated: toggle=${toggle.constructor?.name || '?'} matched=${matched}${willHide}`);

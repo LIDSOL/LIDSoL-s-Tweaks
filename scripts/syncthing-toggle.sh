@@ -8,16 +8,18 @@
 #   ./syncthing-toggle.sh status   → stdout "running"|"stopped", exit 0|1
 #   ./syncthing-toggle.sh on       → inicia syncthing
 #   ./syncthing-toggle.sh off      → detiene syncthing
+#   ./syncthing-toggle.sh fail     → simula fallo (exit 1, para checkExitCode)
 
 SCRIPT_NAME="$(basename "$0")"
 
 usage() {
-    echo "Uso: $SCRIPT_NAME {status|on|off}"
+    echo "Uso: $SCRIPT_NAME {status|on|off|fail}"
     echo ""
     echo "  status   Verifica si syncthing está activo"
     echo "           stdout: 'running' (exit 0) | 'stopped' (exit 1)"
     echo "  on       Inicia syncthing (systemd --user o directo)"
     echo "  off      Detiene syncthing"
+    echo "  fail     Simula un fallo (exit 1) para probar checkExitCode"
     exit 1
 }
 
@@ -25,7 +27,9 @@ CMD="${1:-status}"
 
 case "$CMD" in
     status)
-        if pgrep -x syncthing >/dev/null 2>&1; then
+        # Estado real: systemd --user primero, pgrep como respaldo
+        state=$(systemctl --user is-active syncthing 2>/dev/null || echo "unknown")
+        if [[ "$state" == "active" ]] || pgrep -x syncthing >/dev/null 2>&1; then
             echo "running"
             exit 0
         else
@@ -48,6 +52,10 @@ case "$CMD" in
         else
             pkill -x syncthing 2>/dev/null && echo "Syncthing detenido" || echo "Syncthing no estaba en ejecución"
         fi
+        ;;
+    fail)
+        echo "fallo simulado"
+        exit 1
         ;;
     *)
         usage

@@ -353,11 +353,12 @@ function serializeToList(list) {
     });
 }
 
-// 2.3.3 — Opciones del menú: [{ label, command }, ...] → aa{sv}
+// 2.3.3 — Opciones del menú: [{ label, command, icon }, ...] → aa{sv}
 function serializeOptionsList(options) {
     return new GLib.Variant('aa{sv}', options.map(op => ({
         label: GLib.Variant.new_variant(GLib.Variant.new_string(String(op.label ?? ''))),
         command: GLib.Variant.new_variant(GLib.Variant.new_string(String(op.command ?? ''))),
+        icon: GLib.Variant.new_variant(GLib.Variant.new_string(String(op.icon ?? ''))),
     })));
 }
 function saveItem(item, rows) {
@@ -383,6 +384,7 @@ function saveItem(item, rows) {
     item.options = rows.options.map(o => ({
         label: o.labelEntry.get_text(),
         command: o.cmdEntry.get_text(),
+        icon: o.iconRow.get_text(),
     }));
 }
 
@@ -461,52 +463,57 @@ function buildEditFormRows(page, item, rootWindow) {
     rows.checkRegexRow.activatable_widget = rows.checkRegexEntry;
     cmdGroup.add(rows.checkRegexRow);
 
-    // ── Opciones del menú (2.3.3, símil Caffeine) ─────────────
+    // ── Opciones del menú ──
     const optsGroup = new Adw.PreferencesGroup({
         title: 'Opciones del menú',
-        description: 'Agrega opciones accesibles desde la flecha del toggle (como Caffeine: 15/30/1 h/∞). Cada opción ejecuta su propio comando.',
+        description: 'Etiqueta, comando e icono de cada opción del menú.',
     });
     page.add(optsGroup);
 
     rows.options = [];
-    const addBtnRow = new Adw.ActionRow({ title: 'Añadir opción', activatable: true });
-    const addIcon = Gtk.Image.new_from_icon_name('list-add');
-    addIcon.pixel_size = 14;
-    addBtnRow.add_suffix(addIcon);
+    const addBtnRow = new Adw.ButtonRow({ title: 'Añadir opción' });
+    addBtnRow.start_icon_name = 'list-add-symbolic';
     const moveAddBtnToEnd = () => {
         try { optsGroup.remove(addBtnRow); } catch (_) {}
         optsGroup.add(addBtnRow);
     };
     const addOptionRow = (opt = {}) => {
+        // Etiqueta: nombre que se muestra en el menú.
         const labelEntry = new Adw.EntryRow({ title: 'Etiqueta' });
         labelEntry.set_text(opt.label || '');
         optsGroup.add(labelEntry);
 
-        const cmdEntry = new Gtk.Entry({
-            text: opt.command || '',
-            valign: Gtk.Align.CENTER,
-            hexpand: true,
-        });
-        const cmdRow = new Adw.ActionRow({
-            title: 'Comando',
-            subtitle: 'Comando bash completo (p. ej. caffeine 15)',
-        });
+        // Comando: comando a ejecutar al pulsar la opción.
+        const cmdEntry = new Adw.EntryRow({ title: 'Comando' });
+        cmdEntry.set_text(opt.command || '');
+        optsGroup.add(cmdEntry);
+
+        // Icono: icono personalizado de la opción + vista previa + trash.
+        const iconRow = new Adw.EntryRow({ title: 'Icono' });
+        iconRow.set_text(opt.icon || '');
+        const iconPreview = Gtk.Image.new_from_icon_name(
+            opt.icon?.trim() || 'preferences-other-symbolic');
+        iconPreview.pixel_size = 20;
+        iconPreview.valign = Gtk.Align.CENTER;
         const delBtn = Gtk.Button.new_from_icon_name('user-trash-symbolic');
         delBtn.has_frame = false;
-        delBtn.valign = Gtk.Align.CENTER;
         delBtn.tooltip_text = 'Eliminar opción';
-        const cmdBox = new Gtk.Box({ spacing: 6, valign: Gtk.Align.CENTER });
-        cmdBox.append(cmdEntry);
-        cmdBox.append(delBtn);
-        cmdRow.add_suffix(cmdBox);
-        cmdRow.activatable_widget = cmdEntry;
-        optsGroup.add(cmdRow);
+        const suffixBox = new Gtk.Box({ spacing: 6, valign: Gtk.Align.CENTER });
+        suffixBox.append(iconPreview);
+        suffixBox.append(delBtn);
+        iconRow.add_suffix(suffixBox);
+        optsGroup.add(iconRow);
 
-        const entry = { labelEntry, cmdEntry, cmdRow };
+        const entry = { labelEntry, cmdEntry, iconRow };
         rows.options.push(entry);
+        iconRow.connect('notify::text', () => {
+            iconPreview.icon_name =
+                iconRow.get_text().trim() || 'preferences-other-symbolic';
+        });
         delBtn.connect('clicked', () => {
-            try { optsGroup.remove(entry.labelEntry); } catch (_) {}
-            try { optsGroup.remove(entry.cmdRow); } catch (_) {}
+            for (const row of [entry.labelEntry, entry.cmdEntry, entry.iconRow]) {
+                try { optsGroup.remove(row); } catch (_) {}
+            }
             const idx = rows.options.indexOf(entry);
             if (idx !== -1) rows.options.splice(idx, 1);
             moveAddBtnToEnd();

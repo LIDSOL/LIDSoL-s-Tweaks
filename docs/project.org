@@ -94,24 +94,24 @@ DEADLINE: <2026-09-26 Sat>
     - Al añadir una nueva nota (botón) puedes escribir y añadirla (quicktext).   
 *** NEXT [#A] 2. Quick Settings
 DEADLINE: <2026-09-26 Sat>
+- [ ] 2.2.0: Cambiar los schemas para tener una buena configuración por defecto.
 **** DONE 2.1 Avatar de usuario. [%]
-**** NEXT [#B] 2.2 System Items Layout [2/3]
-DEADLINE: <2026-09-26 Sat>
+**** DONE 2.2 System Items Layout [2/2]
+DEADLINE: <2026-09-21 Sat>
 - [X] 2.2.1: Los elementos deben organizarse mediante "drag and drop" y no mediante botones, símil al organizador de elementos del top bar (implementado en los commits 7e16ea5, e09fc44, 9a3444b y 5025bfa.
-- [ ] 2.2.3: Cambiar los schemas para tener una buena configuración por defecto.
 - [X] 2.2.2: Las configuraciones del módulo viven en `extension/modules/quickSettingsTweaks/prefsSettings.js` (y el Avatar en `userAvatar/prefsSettings.js`), delegando desde `prefs.js`.
-**** NEXT [#A] 2.3 Quick Toggles Layout [3/6]
-DEADLINE: <2026-09-26 Sat>
+**** NEXT [#A] 2.3 Quick Toggles Layout [4/6]
+DEADLINE: <2026-09-21 Sat>
 - [X] 2.3.1 Los elementos deben organizarse mediante "drag and drop" y no mediante botones, símil al organizador de elementos del top bar (implementado en los commits 7e16ea5, e09fc44, 9a3444b y 5025bfa.
-- [ ] 2.3.2 Testing de las reglas de coincidencia: Constructor name, Regex de título, GTYpe name.
+- [X] 2.3.2 Testing de las reglas de coincidencia: Constructor name, Regex de título, GTYpe name.
 - [X] 2.3.3 Añadir la posibilidad de colocar opciones a los quick (por ejemplo, en caffeine, independiente al botón, hay una flecha que despliega un menú dentro del toggle que permite controlar el tiempo de pantalla activa). Se deben poder añadir estas opciones, cada una puede ser un argumento al script.
-- [ ] 2.3.3 Añadir toggles personalizados pre-configurados:
+- [-] 2.3.3 Añadir toggles personalizados pre-configurados:
   - [ ] 2.3.3.1 Remplazo a "caffeine"
   - [ ] 2.3.3.2 Syncthing
 - [X] 2.3.4 El Switch de "Otros Toggles" también oculta los toggles personalizados que el usuario configura. Esto no debería suceder. 
-- [ ] 2.3.5 Fix a *Opciones de menu* de Quick Toggles Layouts.
+- [X] 2.3.5 Fix a *Opciones de menu* de Quick Toggles Layouts.
 **** NEXT [#C] 2.4 Overlay Mode
-DEADLINE: <2026-09-26 Sat>
+DEADLINE: <2026-09-21 Sat>
 - [ ] 2.4.1 Usar la animación por defecto pero modificada, de tal forma que, se desplazan los toggles no solo hacia abajo (animación nativa) si no hacia arriba, para evitar el desbordamiento y siempre ver el contenido. En la forma nativa, hay veces en la cual el contenido se desborda y no es posible visualizarlo.
 **** TODO [#C] 2.5 System Indicador
 DEADLINE: <2026-09-26 Sat>

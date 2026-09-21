@@ -6,6 +6,7 @@ import Gio from 'gi://Gio';
 import Gtk from 'gi://Gtk';
 import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
+import St from 'gi://St';
 import {
     QuickToggle,
     QuickMenuToggle,
@@ -38,6 +39,9 @@ const LidSolQuickToggle = GObject.registerClass({
 
 // Toggle con flecha + menú de opciones (2.3.3, símil Caffeine).
 // El botón principal sigue siendo un switch ON/OFF; la flecha abre el menú.
+// toggleMode:false (como Caffeine): el runtime gestiona el estado explícitamente,
+// por lo que cuerpo y flecha comparten SIEMPRE el mismo `checked`. Cuando el
+// toggle está apagado, la flecha no muestra estado activo.
 const LidSolQuickMenuToggle = GObject.registerClass({
     GTypeName: 'LidSolQuickMenuToggle',
 }, class LidSolQuickMenuToggle extends QuickMenuToggle {
@@ -45,7 +49,7 @@ const LidSolQuickMenuToggle = GObject.registerClass({
         super({
             title: title || '',
             iconName: icon || 'preferences-other-symbolic',
-            toggleMode: true,
+            toggleMode: false,
             menuEnabled: true,
         });
     }
@@ -71,8 +75,13 @@ const LidSolToggleIndicator = GObject.registerClass({
             : new LidSolQuickToggle(config.friendlyName, config.icon);
         this.quickSettingsItems.push(this.toggle);
 
-        this.toggle.bind_property('checked', this._indicator, 'visible',
-            GObject.BindingFlags.SYNC_CREATE);
+        // Con flip de menú-toggle explícito (toggleMode:false): clic en el cuerpo
+        // emite 'clicked' y nosotros invertimos el estado; la flecha sigue a `checked`.
+        if (hasOptions) {
+            this.toggle.connect('clicked', () => {
+                this.toggle.checked = !this.toggle.checked;
+            });
+        }
 
         // ── Initial state: 0=On, 1=Off, 2=Previous, 3=Command output ──
         const initState = config.initialState ?? 2;
@@ -93,11 +102,12 @@ const LidSolToggleIndicator = GObject.registerClass({
         // initState 3 is handled in _setupCheckSync (delayed check)
         _toggleState[this._stateId] = this.toggle.checked;
 
-        if (!config.showIndicator)
-            this._indicator.visible = false;
+        // Estado visual inicial del indicador (tras fijar el estado inicial)
+        this._updateIndicatorVisibility();
 
         // ── Toggle click handler ────────────────────────────────
         this._toggleSignalId = this.toggle.connect('notify::checked', () => {
+            this._updateIndicatorVisibility();
             this._onToggleClicked();
         });
 
@@ -125,6 +135,13 @@ const LidSolToggleIndicator = GObject.registerClass({
         }
     }
 
+    // El indicador es autoridad visual del estado (símil Caffeine):
+    // visible solo si el usuario lo activó Y el toggle está activo.
+    // Se actualiza en cada notify::checked, cubriendo clic, teclado y check-sync.
+    _updateIndicatorVisibility() {
+        this._indicator.visible = !!this._config.showIndicator && this.toggle.checked;
+    }
+
     // 2.3.3 — Construye el menú de opciones (flecha del toggle).
     // GNOME 50 parenta `menu.actor` al overlay de quick settings, por lo que
     // el menú debe destruirse explícitamente junto con el toggle.
@@ -138,11 +155,17 @@ const LidSolToggleIndicator = GObject.registerClass({
             cfg.friendlyName || '', null);
 
         const section = new PopupMenu.PopupMenuSection();
+        const iconTheme = new St.IconTheme(); // patrón Caffeine: validar antes de crear el item
         for (const opt of cfg.options || []) {
             if (!opt?.label?.trim() && !opt?.command?.trim()) continue;
             const label = opt.label?.trim() || opt.command.trim();
-            const item = new PopupMenu.PopupImageMenuItem(label,
-                cfg.icon || 'preferences-other-symbolic');
+            const rawIcon = opt.icon?.trim() || cfg.icon || '';
+            // Si el nombre no existe en el tema, se usa el genérico (nunca dejar el item sin icono).
+            const iconName = rawIcon && iconTheme.has_icon(rawIcon)
+                ? rawIcon
+                : 'preferences-other-symbolic';
+            log(`[LIDSoL QST] Menu option "${label}" icon="${iconName}" (from opt.icon="${opt.icon || ''}")`);
+            const item = new PopupMenu.PopupImageMenuItem(label, iconName);
             item.connect('activate', () => {
                 executeCommand(opt.command, `custom-option:${label}`);
                 if (cfg.closeMenu)

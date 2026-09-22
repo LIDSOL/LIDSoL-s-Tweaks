@@ -475,6 +475,18 @@ journalctl -f -o cat /usr/bin/gnome-shell | grep 'LIDSoL'
 
 *** Lecciones de Overlay Mode (Quick Settings)
 
+- **2.4.1 (nativo + reparto)**: se eliminó el enfoque de constraints/flyout/dialog. La animación
+  nativa (easing de altura + fade + dim) se conserva intacta y solo se parchea `QuickSettingsLayout`.
+  `QuickSettingsLayout` es una clase JS registrada **no exportada**: se obtiene con
+  `grid.layout_manager.constructor` y se subclasea (`GObject.registerClass(class X extends ...)`)
+  sobreescribiendo solo `vfunc_allocate`. Al sustituir `grid.layout_manager` se recrean los child
+  metas (column-span vuelve a 1): **capturar los spans antes** y reaplicarlos tras el reemplazo y al
+  restaurar en `disable()`. La altura total (`vfunc_get_preferred_height`) no cambia → no se toca.
+- **GNOME 51**: `QuickToggleMenu.open(params)` delega en `PopupMenuBase.open`, que emite
+  `open-state-changed` ANTES de montar la animación nativa (en 50.5 se emitía después). Cualquier
+  código que cancele/reemplace la animación nativa desde esa señal (el overlay antiguo) pierde la
+  animación. El reparto no escucha la señal: detecta la fila activa por `menu.actor.visible` en el
+  propio `vfunc_allocate` (idéntico en 50.5 y main).
 - El overlay (`QuickSettingsMenu._overlay`) necesita coordenadas stage-absolutas. Vincular constraints a `menu.box` da coordenadas relativas al padre → overlay aparece en x=0.
 - Usar `menu._boxPointer` como source de `Clutter.BindConstraint` para ambos ejes (X e Y).
 - `_xconstraint.offset` debe actualizarse en `_onOpen()` y en el handler `notify::height`, igual que `_yconstraint.offset`.

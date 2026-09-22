@@ -8,11 +8,8 @@ import GObject from 'gi://GObject';
 import Gtk from 'gi://Gtk';
 
 import {
-    createComboRow,
     createDialog,
-    createGroup,
     createModuleRow,
-    createSpinButtonRow,
     enableDragAutoScroll,
 } from '../../utils/prefsHelpers.js';
 import { UserAvatarPrefs } from '../userAvatar/prefsSettings.js';
@@ -60,63 +57,9 @@ export class QuickSettingsPrefs {
             settings: this._settings,
             bindKey: 'qst-overlay-menu-enabled',
             title: 'Overlay Mode',
-            subtitle: 'Muestra los menús como superposición sobre los ajustes rápidos (útil en pantallas pequeñas)',
-            onDetailed: () => {
-                if (this._window && this._settings)
-                    this.openOverlayMenuDialog();
-            },
+            subtitle: 'Muestra los menús superpuestos desplazando los ajustes rápidos hacia arriba y abajo, sin desbordamiento',
         }));
         page.add(togglesGroup);
-    }
-
-    openOverlayMenuDialog() {
-        const s = this._settings;
-        createDialog({
-            window: this._window,
-            title: 'Overlay Mode',
-            childrenRequest: (page) => {
-                const group = createGroup({
-                    parent: page,
-                    title: 'Overlay Mode',
-                    description: 'Al activarlo, los menús de toggles con opciones se muestran superpuestos sobre los ajustes rápidos. Corrige el desbordamiento en pantallas pequeñas.',
-                });
-                group.add(createSpinButtonRow({
-                    settings: s,
-                    bindKey: 'qst-overlay-menu-width',
-                    title: 'Ancho del overlay',
-                    subtitle: 'Ancho en píxeles (0 = sin ajuste)',
-                    adjProps: { lower: 0, upper: 2048, step: 10 },
-                }));
-                group.add(createSpinButtonRow({
-                    settings: s,
-                    bindKey: 'qst-overlay-menu-animate-duration',
-                    title: 'Duración de animación',
-                    subtitle: 'Milisegundos (0 = sin animación)',
-                    adjProps: { lower: 0, upper: 4000, step: 50 },
-                }));
-                group.add(createComboRow({
-                    settings: s,
-                    bindKey: 'qst-overlay-menu-animate-style',
-                    title: 'Estilo de animación',
-                    subtitle: 'Cómo aparece el menú superpuesto',
-                    options: {
-                        flyout: 'Flyout (se expande desde el toggle)',
-                        dialog: 'Diálogo (escala desde el centro)',
-                    },
-                }));
-                group.add(createComboRow({
-                    settings: s,
-                    bindKey: 'qst-overlay-menu-overflow-anchor',
-                    title: 'Anclaje por desbordamiento',
-                    subtitle: 'Si el menú es más alto que la ventana de ajustes',
-                    options: {
-                        top: 'Arriba',
-                        center: 'Centro',
-                        bottom: 'Abajo',
-                    },
-                }));
-            },
-        });
     }
 
     openToggleOrderDialog() {

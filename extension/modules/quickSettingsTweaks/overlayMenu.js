@@ -2,23 +2,37 @@
 
 import Clutter from 'gi://Clutter';
 import GLib from 'gi://GLib';
-import {
-    QuickSlider,
-} from 'resource:///org/gnome/shell/ui/quickSettings.js';
+import GObject from 'gi://GObject';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
-import * as AdvAni from '../../utils/advani.js';
-import Maid from '../../core/maid.js';
-import { QuickSettingsMenuTracker } from '../../utils/childrenTracker.js';
+
+const LOG_PREFIX = '[LIDSoL Overlay]';
+
+// 2.4.1 — Overlay Mode con desplazamiento nativo arriba/abajo.
+//
+// Se conserva la animación nativa del shell (QuickToggleMenu.open(): easing de la
+// altura del actor + fade del contenido + dim de los quicks) y solo se parchea el
+// layout del grid para REPARTIR el hueco que reserva el overlay:
+//
+//   nativo :  tras la fila del toggle activo  se añade siempre `y += overlayHeight`
+//   reparto:  `upShift` px hacia arriba (filas superiores) + `downShift` hacia abajo
+//
+// Con `upShift = min(overlayHeight, altura de las filas superiores)`, el hueco queda
+// centrado en el toggle pulsado: las opciones aparecen donde estaba el toggle y nada
+// se desborda por abajo (caso extremo: toggle en la última fila → todo el hueco
+// arriba; toggle en la primera → comportamiento nativo).
+//
+// No se escucha `open-state-changed` (en GNOME 51 cambió el orden de emisión, antes
+// de montar la animación): el layout detecta la fila activa por `menu.actor.visible`
+// frame a frame, igual en GNOME 50.5 y 51.
 
 export class OverlayMenuFeature {
     constructor() {
-        this._tracker = null;
-        this._maid = new Maid();
         this._gsettings = null;
         this._enabled = false;
         this._signalIds = [];
-        this._yconstraint = null;
-        this._xconstraint = null;
+        this._grid = null;
+        this._originalLayout = null;
+        this._spans = null;
     }
 
     enable(gsettings) {
@@ -26,136 +40,55 @@ export class OverlayMenuFeature {
         this._loadSettings();
 
         // Connect handlers BEFORE the enabled check so they stay alive
-        // even when overlay is disabled, allowing re-enable via settings
+        // even when overlay is disabled, allowing re-enable via settings.
         this._connectHandlers();
         if (!this._enabled) return;
 
         const qs = Main.panel.statusArea.quickSettings;
         if (!qs || !qs.menu) return;
-
-        const menu = qs.menu;
-        const grid = menu._grid;
-        if (!menu._overlay || !grid) return;
-
-        // Y constraint: bind overlay Y to box pointer
-        this._yconstraint = new Clutter.BindConstraint({
-            coordinate: Clutter.BindCoordinate.Y,
-            source: menu._boxPointer,
-        });
-
-        // X constraint: bind overlay X to box pointer (same as Y)
-        // Using menu.box would give coordinates relative to its parent,
-        // not stage-absolute, causing the overlay to appear at x=0
-        this._xconstraint = new Clutter.BindConstraint({
-            coordinate: Clutter.BindCoordinate.X,
-            source: menu._boxPointer,
-        });
-
-        // Disable default overlay container constraint
-        const overlayConstraints = menu._overlay.get_constraints();
-        if (overlayConstraints[0]) {
-            this._defaultOverlayConstraint = overlayConstraints[0];
-            this._defaultOverlayConstraint.enabled = false;
-        }
-        menu._overlay.add_constraint(this._yconstraint);
-        menu._overlay.add_constraint(this._xconstraint);
-
-        // Disable grid placeholder height sync
-        if (grid.layout_manager && grid.layout_manager._overlay) {
-            const gridConstraints = grid.layout_manager._overlay.get_constraints();
-            if (gridConstraints[0]) {
-                this._defaultGridConstraint = gridConstraints[0];
-                this._defaultGridConstraint.enabled = false;
-            }
+        if (!qs.menu._overlay) {
+            log(`${LOG_PREFIX} quick settings menu sin overlay; se omite`);
+            return;
         }
 
-        // Start tracking toggle menus
-        this._tracker = new QuickSettingsMenuTracker();
-        this._tracker.onMenuCreated = (maid, m) => this._onMenuCreated(maid, m);
-        this._tracker.onMenuOpen = (maid, m, isOpen) => this._onOpen(maid, m, isOpen);
-        this._tracker.load();
+        const grid = qs.menu._grid;
+        if (!grid || !grid.layout_manager) {
+            log(`${LOG_PREFIX} grid del menú no disponible; se omite`);
+            return;
+        }
+
+        this._grid = grid;
+        this._originalLayout = grid.layout_manager;
+        this._applyRepartitionedLayout();
     }
 
     disable() {
         this._disconnectHandlers();
 
-        if (this._tracker) {
-            // Restore individual menu constraints
-            for (const menu of this._tracker.menus) {
-                try {
-                    menu.actor.x_expand = true;
-                    const constraints = menu.actor.get_constraints();
-                    if (constraints[0]) constraints[0].enabled = true;
-                } catch (e) {
-                    log('[LIDSoL Overlay] Error restoring menu constraint:', e);
-                }
-            }
-            this._tracker.unload();
-            this._tracker = null;
+        if (this._grid && this._originalLayout) {
+            // Reemplazar el layout vuelve a crear los child metas (column-span a 1):
+            // restaurar el layout nativo y reaplicar los spans capturados.
+            this._grid.layout_manager = this._originalLayout;
+            if (this._spans)
+                this._restoreSpans(this._originalLayout);
+            this._grid.queue_relayout();
         }
-
-        const qs = Main.panel.statusArea.quickSettings;
-        if (qs && qs.menu) {
-            const menu = qs.menu;
-            // Restore overlay container constraint
-            if (this._defaultOverlayConstraint) {
-                this._defaultOverlayConstraint.enabled = true;
-                this._defaultOverlayConstraint = null;
-            }
-            // Restore grid constraint
-            if (this._defaultGridConstraint) {
-                this._defaultGridConstraint.enabled = true;
-                this._defaultGridConstraint = null;
-            }
-            // Remove custom constraints
-            if (this._yconstraint) {
-                try { menu._overlay.remove_constraint(this._yconstraint); } catch (_) {}
-                this._yconstraint = null;
-            }
-            if (this._xconstraint) {
-                try { menu._overlay.remove_constraint(this._xconstraint); } catch (_) {}
-                this._xconstraint = null;
-            }
-        }
-
-        this._maid.clear();
+        this._grid = null;
+        this._originalLayout = null;
+        this._spans = null;
         this._gsettings = null;
     }
 
     _loadSettings() {
         this._enabled = this._gsettings.get_boolean('qst-overlay-menu-enabled');
-        this._width = this._gsettings.get_int('qst-overlay-menu-width');
-        this._duration = this._gsettings.get_int('qst-overlay-menu-animate-duration');
-        this._animationStyle = this._gsettings.get_string('qst-overlay-menu-animate-style');
-        this._overflowAnchor = this._gsettings.get_string('qst-overlay-menu-overflow-anchor');
     }
 
     _connectHandlers() {
-        // Keys that require a full reload (disable+enable)
-        const reloadKeys = [
-            'qst-overlay-menu-enabled',
-            'qst-overlay-menu-width',
-        ];
-        for (const key of reloadKeys) {
-            const id = this._gsettings.connect(`changed::${key}`, () => {
-                this._loadSettings();
-                this._scheduleReload();
-            });
-            this._signalIds.push(id);
-        }
-
-        // Keys that only need settings refresh (live)
-        const liveKeys = [
-            'qst-overlay-menu-animate-duration',
-            'qst-overlay-menu-animate-style',
-            'qst-overlay-menu-overflow-anchor',
-        ];
-        for (const key of liveKeys) {
-            const id = this._gsettings.connect(`changed::${key}`, () => {
-                this._loadSettings();
-            });
-            this._signalIds.push(id);
-        }
+        const id = this._gsettings.connect('changed::qst-overlay-menu-enabled', () => {
+            this._loadSettings();
+            this._scheduleReload();
+        });
+        this._signalIds.push(id);
     }
 
     _disconnectHandlers() {
@@ -178,122 +111,116 @@ export class OverlayMenuFeature {
         });
     }
 
-    _getCoords(menu) {
-        menu.actor.height = -1;
-        let [outerHeight] = menu.actor.get_preferred_height(-1);
-        const targetWidth = menu.actor.width - menu.box.marginLeft - menu.box.marginRight;
-        const targetHeight = outerHeight - menu.box.marginTop;
+    // ── Reparto del hueco del overlay ────────────────────────────────────
+    //
+    // `QuickSettingsLayout` es una clase JS registrada NO exportada: se obtiene con
+    // `grid.layout_manager.constructor`. Se crea una subclase que sobreescribe solo
+    // `vfunc_allocate` (el resto —preferred height, agrupación en filas, spans— se
+    // hereda) y se sustituye el layout_manager del grid por una instancia de ella.
+    //
+    // La altura TOTAL del grid no cambia (misma preferred height), así que no se
+    // toca `vfunc_get_preferred_height`.
 
-        const qs = Main.panel.statusArea.quickSettings;
-        const qsBox = qs.menu.box;
-        const grid = qs.menu._grid;
+    _applyRepartitionedLayout() {
+        const grid = this._grid;
+        const nativeLayout = this._originalLayout;
+        if (nativeLayout._lidsolRepartitioned)
+            return;
 
-        let offsetY;
-        if (qsBox.height < targetHeight && this._overflowAnchor !== 'center') {
-            offsetY = this._overflowAnchor === 'top' ? 0 : qsBox.height - targetHeight;
-        } else {
-            offsetY = Math.floor((qsBox.height - targetHeight) / 2);
+        const NativeLayout = nativeLayout.constructor;
+        if (!NativeLayout)
+            return;
+
+        // Capturar los column-span ANTES de reemplazar (se recrean los child metas).
+        const spans = [];
+        for (const child of grid) {
+            const meta = nativeLayout.get_child_meta(grid, child);
+            spans.push([child, meta.columnSpan]);
         }
+        this._spans = spans;
 
-        const isSlider = menu.sourceActor instanceof QuickSlider;
-        const sourceHeight = Math.floor(menu.sourceActor.height + 0.5);
-        const sourceBaseWidth = Math.floor(menu.sourceActor.width + 0.5);
-        const sourceWidth = isSlider ? sourceHeight : sourceBaseWidth;
-        const sourceBaseX = Math.floor(grid.x + menu.sourceActor.x + 0.5);
-        const sourceY = Math.floor(grid.y + menu.sourceActor.y + 0.5);
-        const sourceX = sourceBaseX + (isSlider ? (sourceBaseWidth - sourceWidth) : 0);
-        const offsetX = Math.floor((qsBox.width - targetWidth) / 2);
+        const LayoutWithRepartition = GObject.registerClass(
+            class LayoutWithRepartition extends NativeLayout {
+                vfunc_allocate(container, box) {
+                    const rows = this._getRows(container);
 
-        return {
-            outerHeight,
-            targetHeight,
-            targetWidth,
-            sourceX,
-            sourceY,
-            sourceHeight,
-            sourceWidth,
-            offsetY,
-            offsetX,
-        };
-    }
+                    const [, overlayHeight] =
+                        this._overlay.get_preferred_height(box.get_width());
 
-    _onOpen(_maid, menu, isOpen) {
-        if (!isOpen || !this._duration) {
-            menu.actor.set_easing_duration(0);
-        } else {
-            menu.actor.remove_all_transitions();
-        }
-        if (!isOpen) return;
+                    const availWidth =
+                        box.get_width() - (this.nColumns - 1) * this.column_spacing;
+                    const childWidth = Math.floor(availWidth / this.nColumns);
 
-        const coords = this._getCoords(menu);
-        if (this._yconstraint)
-            this._yconstraint.offset = coords.offsetY;
-        if (this._xconstraint)
-            this._xconstraint.offset = coords.offsetX;
+                    this._overlay.allocate_available_size(
+                        0, 0, box.get_width(), overlayHeight);
 
-        if (this._duration) {
-            // Fade in the content
-            menu.box.opacity = 0;
-            menu.box.ease({
-                opacity: 255,
-                duration: Math.floor(this._duration / 3),
+                    const isRtl =
+                        container.text_direction === Clutter.TextDirection.RTL;
+
+                    // Fila del toggle con el menú abierto (-1 si ninguno: allocate
+                    // idéntico al nativo, sin sesgo).
+                    let activeIndex = -1;
+                    for (let i = 0; i < rows.length; i++) {
+                        if (rows[i].some(c => c.menu?.actor.visible)) {
+                            activeIndex = i;
+                            break;
+                        }
+                    }
+
+                    // upShift: porción del hueco absorbida por las filas superiores
+                    // (limitada al espacio que realmente ocupan); downShift = el resto.
+                    let upShift = 0;
+                    if (activeIndex !== -1) {
+                        let spaceAbove = 0;
+                        for (let i = 0; i < activeIndex; i++) {
+                            const [, rowNat] = this._getRowHeight(rows[i]);
+                            spaceAbove += rowNat + this.row_spacing;
+                        }
+                        upShift = Math.min(overlayHeight, spaceAbove);
+                    }
+
+                    const childBox = new Clutter.ActorBox();
+                    let y = box.y1 - upShift;
+                    rows.forEach(row => {
+                        const [, rowNat] = this._getRowHeight(row);
+
+                        let lineIndex = 0;
+                        row.forEach(child => {
+                            const colSpan = this._getColSpan(container, child);
+                            const width = childWidth * colSpan +
+                                this.column_spacing * (colSpan - 1);
+                            let x =
+                                box.x1 + lineIndex * (childWidth + this.column_spacing);
+                            if (isRtl)
+                                x = box.x2 - width - x;
+
+                            childBox.set_origin(x, y);
+                            childBox.set_size(width, rowNat);
+                            child.allocate(childBox);
+
+                            lineIndex = (lineIndex + colSpan) % this.nColumns;
+                        });
+
+                        y += rowNat + this.row_spacing;
+
+                        if (row.some(c => c.menu?.actor.visible))
+                            y += overlayHeight;
+                    });
+                }
             });
 
-            if (this._animationStyle === 'flyout') {
-                // Animate from source toggle position/size with custom overshoot bezier
-                menu.box.translation_x = Math.floor(
-                    coords.sourceX - coords.offsetX + menu.box.marginLeft);
-                menu.box.translation_y = Math.floor(
-                    coords.sourceY - coords.offsetY + menu.box.marginTop);
-                menu.box.scale_x = coords.sourceWidth / coords.targetWidth;
-                menu.box.scale_y = coords.sourceHeight / coords.targetHeight;
-                AdvAni.ease(menu.box, {
-                    translation_x: 0,
-                    translation_y: 0,
-                    scale_x: 1,
-                    scale_y: 1,
-                    mode: AdvAni.AdvAnimationMode.LowBackover,
-                    duration: this._duration,
-                });
-            } else if (this._animationStyle === 'dialog') {
-                // Scale up from center with custom overshoot bezier
-                menu.box.translation_x = 0.2 * coords.targetWidth * 0.5;
-                menu.box.translation_y = 0.2 * coords.targetHeight * 0.5;
-                menu.box.scale_x = 0.8;
-                menu.box.scale_y = 0.8;
-                AdvAni.ease(menu.box, {
-                    translation_x: 0,
-                    translation_y: 0,
-                    scale_x: 1,
-                    scale_y: 1,
-                    mode: AdvAni.AdvAnimationMode.MiddleBackover,
-                    duration: this._duration,
-                });
-            }
-        }
+        const repartitioned = new LayoutWithRepartition(nativeLayout._overlay, {
+            nColumns: nativeLayout.nColumns,
+        });
+        repartitioned._lidsolRepartitioned = true;
+
+        grid.layout_manager = repartitioned;
+        this._restoreSpans(repartitioned);
+        grid.queue_relayout();
     }
 
-    _onMenuCreated(maid, menu) {
-        // Disable individual menu's first constraint (usually a width/position constraint)
-        const constraints = menu.actor.get_constraints();
-        if (constraints[0]) {
-            constraints[0].enabled = false;
-        }
-
-        if (this._width) {
-            menu.actor.width = this._width;
-            menu.actor.x_expand = false;
-            menu.actor.x_align = Clutter.ActorAlign.CENTER;
-        }
-
-        // Recalculate Y offset when menu height changes
-        maid.connectJob(menu.box, 'notify::height', () => {
-            if (!menu.isOpen) return;
-            const coords = this._getCoords(menu);
-            if (this._yconstraint)
-                this._yconstraint.offset = coords.offsetY;
-            if (this._xconstraint)
-                this._xconstraint.offset = coords.offsetX;
-        });
+    _restoreSpans(layout) {
+        for (const [child, span] of this._spans)
+            layout.child_set_property(this._grid, child, 'column-span', span);
     }
 }

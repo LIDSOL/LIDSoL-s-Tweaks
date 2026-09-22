@@ -495,6 +495,7 @@ journalctl -f -o cat /usr/bin/gnome-shell | grep 'LIDSoL'
 - **Siempre conectar handlers GSettings ANTES del early return de `enabled`**, si no, al deshabilitar/re-habilitar el módulo nunca se vuelven a conectar las señales y el toggle queda muerto.
 - Separar claves GSettings en dos grupos: las que requieren `disable()+enable()` (reload) y las que solo necesitan `_loadSettings()` (live: duration, style, overflow anchor).
 - `_scheduleReload()` debe capturar `this._gsettings` en variable local antes de llamar a `disable()`, porque `disable()` lo setea a `null`. Sino `enable(this._gsettings)` recibe `null` y crashea.
+- **GObject.registerClass NO admite re-registrar una clase con el mismo nombre en el proceso**: GJS lanza `Type name 'Gjs_<Nombre>' is already registered` aunque la expresión de clase sea nueva (verificado con `gjs -m`; nombres distintos OK). `_applyRepartitionedLayout()` lo hacía en cada `enable()` → al desactivar el módulo (o alternar overlay OFF→ON vía `_scheduleReload`) y re-activar, el throw escapaba de `QuickSettingsTweaksModule.enable()` (sin try/catch) hasta `ModuleLoader._enableModule`, que lo captura y NO registra el módulo → imposible recargarlo hasta reiniciar la shell. Fix: cachear la subclase registrada en un `WeakMap` por constructor del layout nativo (`_repartitionedLayoutCache`) — registrar UNA vez, reutilizar en re-enables.
 
 *** Lecciones de System Items Layout
 

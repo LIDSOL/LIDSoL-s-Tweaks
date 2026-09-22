@@ -7,6 +7,12 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
 const LOG_PREFIX = '[LIDSoL Overlay]';
 
+// Cache de la subclase de layout registrada, por constructor del layout nativo:
+// evita volver a registrar una clase GObject con el mismo nombre en el proceso
+// (GJS lanza "Type name ... is already registered") al re-enablear el módulo o
+// al alternar el overlay OFF→ON.
+const _repartitionedLayoutCache = new WeakMap();
+
 // 2.4.1 — Overlay Mode con desplazamiento nativo arriba/abajo.
 //
 // Se conserva la animación nativa del shell (QuickToggleMenu.open(): easing de la
@@ -139,75 +145,83 @@ export class OverlayMenuFeature {
         }
         this._spans = spans;
 
-        const LayoutWithRepartition = GObject.registerClass(
-            class LayoutWithRepartition extends NativeLayout {
-                vfunc_allocate(container, box) {
-                    const rows = this._getRows(container);
+        // Registrar la subclase del layout UNA sola vez por constructor nativo:
+        // GJS lanza "Type name 'Gjs_LayoutWithRepartition' is already registered"
+        // si se vuelve a registrar una clase con el mismo nombre dentro del
+        // proceso, lo que impedía recargar el módulo/toggle (OFF→ON).
+        let LayoutWithRepartition = _repartitionedLayoutCache.get(NativeLayout);
+        if (!LayoutWithRepartition) {
+            LayoutWithRepartition = GObject.registerClass(
+                class LayoutWithRepartition extends NativeLayout {
+                    vfunc_allocate(container, box) {
+                        const rows = this._getRows(container);
 
-                    const [, overlayHeight] =
-                        this._overlay.get_preferred_height(box.get_width());
+                        const [, overlayHeight] =
+                            this._overlay.get_preferred_height(box.get_width());
 
-                    const availWidth =
-                        box.get_width() - (this.nColumns - 1) * this.column_spacing;
-                    const childWidth = Math.floor(availWidth / this.nColumns);
+                        const availWidth =
+                            box.get_width() - (this.nColumns - 1) * this.column_spacing;
+                        const childWidth = Math.floor(availWidth / this.nColumns);
 
-                    this._overlay.allocate_available_size(
-                        0, 0, box.get_width(), overlayHeight);
+                        this._overlay.allocate_available_size(
+                            0, 0, box.get_width(), overlayHeight);
 
-                    const isRtl =
-                        container.text_direction === Clutter.TextDirection.RTL;
+                        const isRtl =
+                            container.text_direction === Clutter.TextDirection.RTL;
 
-                    // Fila del toggle con el menú abierto (-1 si ninguno: allocate
-                    // idéntico al nativo, sin sesgo).
-                    let activeIndex = -1;
-                    for (let i = 0; i < rows.length; i++) {
-                        if (rows[i].some(c => c.menu?.actor.visible)) {
-                            activeIndex = i;
-                            break;
+                        // Fila del toggle con el menú abierto (-1 si ninguno: allocate
+                        // idéntico al nativo, sin sesgo).
+                        let activeIndex = -1;
+                        for (let i = 0; i < rows.length; i++) {
+                            if (rows[i].some(c => c.menu?.actor.visible)) {
+                                activeIndex = i;
+                                break;
+                            }
                         }
-                    }
 
-                    // upShift: porción del hueco absorbida por las filas superiores
-                    // (limitada al espacio que realmente ocupan); downShift = el resto.
-                    let upShift = 0;
-                    if (activeIndex !== -1) {
-                        let spaceAbove = 0;
-                        for (let i = 0; i < activeIndex; i++) {
-                            const [, rowNat] = this._getRowHeight(rows[i]);
-                            spaceAbove += rowNat + this.row_spacing;
+                        // upShift: porción del hueco absorbida por las filas superiores
+                        // (limitada al espacio que realmente ocupan); downShift = el resto.
+                        let upShift = 0;
+                        if (activeIndex !== -1) {
+                            let spaceAbove = 0;
+                            for (let i = 0; i < activeIndex; i++) {
+                                const [, rowNat] = this._getRowHeight(rows[i]);
+                                spaceAbove += rowNat + this.row_spacing;
+                            }
+                            upShift = Math.min(overlayHeight, spaceAbove);
                         }
-                        upShift = Math.min(overlayHeight, spaceAbove);
-                    }
 
-                    const childBox = new Clutter.ActorBox();
-                    let y = box.y1 - upShift;
-                    rows.forEach(row => {
-                        const [, rowNat] = this._getRowHeight(row);
+                        const childBox = new Clutter.ActorBox();
+                        let y = box.y1 - upShift;
+                        rows.forEach(row => {
+                            const [, rowNat] = this._getRowHeight(row);
 
-                        let lineIndex = 0;
-                        row.forEach(child => {
-                            const colSpan = this._getColSpan(container, child);
-                            const width = childWidth * colSpan +
-                                this.column_spacing * (colSpan - 1);
-                            let x =
-                                box.x1 + lineIndex * (childWidth + this.column_spacing);
-                            if (isRtl)
-                                x = box.x2 - width - x;
+                            let lineIndex = 0;
+                            row.forEach(child => {
+                                const colSpan = this._getColSpan(container, child);
+                                const width = childWidth * colSpan +
+                                    this.column_spacing * (colSpan - 1);
+                                let x =
+                                    box.x1 + lineIndex * (childWidth + this.column_spacing);
+                                if (isRtl)
+                                    x = box.x2 - width - x;
 
-                            childBox.set_origin(x, y);
-                            childBox.set_size(width, rowNat);
-                            child.allocate(childBox);
+                                childBox.set_origin(x, y);
+                                childBox.set_size(width, rowNat);
+                                child.allocate(childBox);
 
-                            lineIndex = (lineIndex + colSpan) % this.nColumns;
+                                lineIndex = (lineIndex + colSpan) % this.nColumns;
+                            });
+
+                            y += rowNat + this.row_spacing;
+
+                            if (row.some(c => c.menu?.actor.visible))
+                                y += overlayHeight;
                         });
-
-                        y += rowNat + this.row_spacing;
-
-                        if (row.some(c => c.menu?.actor.visible))
-                            y += overlayHeight;
-                    });
-                }
-            });
+                    }
+                });
+            _repartitionedLayoutCache.set(NativeLayout, LayoutWithRepartition);
+        }
 
         const repartitioned = new LayoutWithRepartition(nativeLayout._overlay, {
             nColumns: nativeLayout.nColumns,

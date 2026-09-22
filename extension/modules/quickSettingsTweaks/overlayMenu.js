@@ -184,55 +184,95 @@ export class OverlayMenuFeature {
                 class LayoutWithAccordion extends NativeLayout {
                     // ── Sesión de apertura ────────────────────────────────
                     //
-                    // state capturado UNA vez por apertura:
-                    //   rows:             filas SIN el placeholder (fila espaciadora)
-                    //   naturalHeights[]: alturas naturales por fila (una sola vez)
-                    //   activeIndex:      fila del toggle pulsado (menú visible)
-                    //   clipped[]:        hijos con clip_to_allocation activado
-                    //   progress:         0..1 (cerrado→abierto), ANIMADO
-                    //   closing:          true cuando el menú se está cerrando
-                    //   ease / timerId:   animador del progreso (easeOutCubic)
+                    // 2.4.1.2: la membresía de filas es LIVE, no se congela. La
+                    // leyenda dinámica "N Background Apps" (quick-toggle del grid,
+                    // `visible = !isLocked && (menu.isOpen || nBackgroundApps > 0)`)
+                    // puede aparecer/desaparecer en mitad de una sesión (el proxy
+                    // DBus es async). Congelar rows la dejaba fuera del contenedor:
+                    // el preferred (filas congeladas sin ella) era más corto que el
+                    // allocate (native live) → overflow → "fuera + sin fondo", y sin
+                    // relayout posterior quedaba estable. Se congela SOLO lo que no
+                    // puede cambiar, por IDENTIDAD de hijo:
+                    //   heights:     WeakMap hijo → [minH, natH] (una vez por hijo)
+                    //   activeChild: el hijo cuyo menú está visible (identidad)
+                    //   clipped:     Set de hijos con clip_to_allocation activado
+                    //   progress:    0..1 (cerrado→abierto), ANIMADO
+                    //   closing:     true cuando el menú se está cerrando
+                    //   ease/timerId: animador del progreso (easeOutCubic)
+                    //   lastH:       última altura del overlay (detección de cierre)
 
-                    _lidsolBeginSession(container, rowsAll) {
+                    _lidsolStripPlaceholder(rowsAll) {
+                        const placeholder = this._container?.get_first_child();
+                        return rowsAll
+                            .map(r => r.filter(c => c !== placeholder))
+                            .filter(r => r.length > 0);
+                    }
+
+                    // Altura natural máxima de la fila, cacheada por hijo (una sola
+                    // medida por hijo/sesión; los que aparecen a mitad —la leyenda—
+                    // se cachean en su primer frame). Nunca se mide por frame.
+                    _lidsolRowNatHeight(children, session) {
+                        let nat = 0;
+                        for (const c of children) {
+                            let h = session.heights.get(c);
+                            if (h === undefined) {
+                                h = c.get_preferred_height(-1);
+                                session.heights.set(c, h);
+                            }
+                            nat = Math.max(nat, h[1]);
+                        }
+                        return nat;
+                    }
+
+                    _lidsolLiveActiveIndex(rows, activeChild) {
+                        for (let i = 0; i < rows.length; i++) {
+                            if (rows[i].includes(activeChild))
+                                return i;
+                        }
+                        return -1;
+                    }
+
+                    _lidsolBeginSession(container, rows) {
                         if (this._lidsolSession)
                             this._lidsolEndSession();
 
-                        const placeholder = container.get_first_child();
-                        const rows = rowsAll
-                            .map(r => r.filter(c => c !== placeholder))
-                            .filter(r => r.length > 0);
-
-                        let activeIndex = -1;
-                        for (let i = 0; i < rows.length; i++) {
-                            if (rows[i].some(c => c.menu?.actor.visible)) {
-                                activeIndex = i;
-                                break;
+                        let activeChild = null;
+                        for (const row of rows) {
+                            for (const c of row) {
+                                if (c.menu?.actor.visible) {
+                                    activeChild = c;
+                                    break;
+                                }
                             }
+                            if (activeChild)
+                                break;
                         }
-                        if (activeIndex === -1)
+                        if (!activeChild)
                             return null;
 
-                        const naturalHeights = rows.map(r => this._getRowHeight(r)[1]);
-                        const clipped = [];
+                        const heights = new WeakMap();
+                        const clipped = new Set();
 
-                        for (let i = 0; i < rows.length; i++) {
-                            if (i === activeIndex)
-                                continue;
-                            for (const c of rows[i]) {
-                                try { c.clip_to_allocation = true; } catch (_) {}
-                                clipped.push(c);
+                        for (const row of rows) {
+                            const isActive = row.includes(activeChild);
+                            for (const c of row) {
+                                if (!isActive) {
+                                    try { c.clip_to_allocation = true; } catch (_) {}
+                                    clipped.add(c);
+                                }
+                                heights.set(c, c.get_preferred_height(-1));
                             }
                         }
 
                         const session = {
-                            rows,
-                            naturalHeights,
-                            activeIndex,
+                            heights,
+                            activeChild,
                             clipped,
                             progress: 0,
                             closing: false,
                             ease: null,
                             timerId: 0,
+                            lastH: 0,
                         };
                         this._lidsolSession = session;
                         this._lidsolStartEase(session, 1, MENU_EASE_MS);
@@ -252,6 +292,12 @@ export class OverlayMenuFeature {
                             try { c.clip_to_allocation = false; } catch (_) {}
                             c.opacity = 255;
                         }
+
+                        // 2.4.1.2: forzar un relayout para que el dimensionado
+                        // nativo (filas live, leyenda incluida) se aplique SIEMPRE
+                        // al terminar la sesión, aunque no llegue otro evento que
+                        // lo dispare (evita el contenedor corto persistente).
+                        try { this._container?.queue_relayout(); } catch (_) {}
                     }
 
                     // Anima el progreso hacia `target` (1 = abierto, 0 = cerrado) con
@@ -299,16 +345,23 @@ export class OverlayMenuFeature {
                             this._overlay.get_preferred_height(forWidth);
                         const p = session.progress;
 
+                        // Filas LIVE (misma fuente que vfunc_allocate): si la
+                        // leyenda de background apps es visible, su fila cuenta
+                        // SIEMPRE → el contenedor nunca se queda corto.
+                        const rows = this._lidsolStripPlaceholder(
+                            this._getRows(container));
+                        const activeIndex =
+                            this._lidsolLiveActiveIndex(rows, session.activeChild);
+
                         let minH = 0;
                         let natH = 0;
-                        for (let i = 0; i < session.rows.length; i++) {
-                            const active = i === session.activeIndex;
-                            const h = active
-                                ? session.naturalHeights[i]
-                                : session.naturalHeights[i] * (1 - p);
+                        for (let i = 0; i < rows.length; i++) {
+                            const active = i === activeIndex;
+                            const rowNat = this._lidsolRowNatHeight(rows[i], session);
+                            const h = active ? rowNat : rowNat * (1 - p);
                             minH += h;
                             natH += h;
-                            if (i < session.rows.length - 1) {
+                            if (i < rows.length - 1) {
                                 const sp = this.row_spacing * (active ? 1 : 1 - p);
                                 minH += sp;
                                 natH += sp;
@@ -329,25 +382,31 @@ export class OverlayMenuFeature {
                             0, 0, box.get_width(), overlayHeight);
 
                         const rowsAll = this._getRows(container);
+                        const sessionRows =
+                            this._lidsolStripPlaceholder(rowsAll);
 
-                        // Fila con algún menú visible (-1 si ninguno).
-                        let openRow = -1;
-                        for (let i = 0; i < rowsAll.length; i++) {
-                            if (rowsAll[i].some(c => c.menu?.actor.visible)) {
-                                openRow = i;
-                                break;
+                        // Hijo con algún menú visible (null si ninguno).
+                        let openChild = null;
+                        for (const row of sessionRows) {
+                            for (const c of row) {
+                                if (c.menu?.actor.visible) {
+                                    openChild = c;
+                                    break;
+                                }
                             }
+                            if (openChild)
+                                break;
                         }
 
                         let session = this._lidsolSession;
 
                         if (!session) {
-                            if (openRow === -1) {
+                            if (!openChild) {
                                 this._lidsolAllocateNative(
                                     container, box, rowsAll, overlayHeight);
                                 return;
                             }
-                            session = this._lidsolBeginSession(container, rowsAll);
+                            session = this._lidsolBeginSession(container, sessionRows);
                             if (!session) {
                                 // Sin fila visible tras filtrar el placeholder
                                 // (salvaguarda): comportamiento nativo.
@@ -357,30 +416,24 @@ export class OverlayMenuFeature {
                             }
                         }
 
-                        // Si la fila visible cambió (otro toggle), re-empezar sesión.
-                        if (openRow !== -1) {
-                            let liveActive = -1;
-                            for (let i = 0; i < session.rows.length; i++) {
-                                if (session.rows[i].some(c => c.menu?.actor.visible)) {
-                                    liveActive = i;
-                                    break;
-                                }
+                        // Si el toggle activo cambió (otro menú), re-empezar sesión
+                        // por IDENTIDAD (cubre también abrir la leyenda de Bg Apps).
+                        if (openChild && openChild !== session.activeChild) {
+                            this._lidsolEndSession();
+                            session = this._lidsolBeginSession(container, sessionRows);
+                            if (!session) {
+                                this._lidsolAllocateNative(
+                                    container, box, rowsAll, overlayHeight);
+                                return;
                             }
-                            if (liveActive !== -1 && liveActive !== session.activeIndex) {
-                                this._lidsolEndSession();
-                                session = this._lidsolBeginSession(container, rowsAll);
-                                if (!session) {
-                                    this._lidsolAllocateNative(
-                                        container, box, rowsAll, overlayHeight);
-                                    return;
-                                }
-                            }
+                        } else if (openChild) {
+                            session.activeChild = openChild;
                         }
 
                         // Detección de cierre: menú oculto o altura del menú bajando
                         // (la fase final del close nativo: fades el contenido y luego
                         // baja la altura del actor antes de ocultarlo).
-                        if (openRow === -1 || overlayHeight < session.lastH) {
+                        if (!openChild || overlayHeight < session.lastH) {
                             if (!session.closing)
                                 this._lidsolStartEase(session, 0, MENU_EASE_MS);
                             session.closing = true;
@@ -438,10 +491,17 @@ export class OverlayMenuFeature {
 
                     // allocate "acordeón + fade": filas no activas colapsan su altura
                     // y opacidad con el progreso; la fila activa queda natural.
+                    // Membresía LIVE: la leyenda de Bg Apps se pliega DENTRO del
+                    // contenedor (nunca queda fuera) y siempre recibe allocation.
                     _lidsolAllocateSession(container, box, session) {
                         const isRtl =
                             container.text_direction === Clutter.TextDirection.RTL;
                         const p = session.progress;
+
+                        const rows = this._lidsolStripPlaceholder(
+                            this._getRows(container));
+                        const activeIndex =
+                            this._lidsolLiveActiveIndex(rows, session.activeChild);
 
                         const availWidth =
                             box.get_width() - (this.nColumns - 1) * this.column_spacing;
@@ -449,16 +509,20 @@ export class OverlayMenuFeature {
                         const childBox = new Clutter.ActorBox();
                         let y = box.y1;
 
-                        session.rows.forEach((row, i) => {
-                            const active = i === session.activeIndex;
-                            const rowH = active
-                                ? session.naturalHeights[i]
-                                : session.naturalHeights[i] * (1 - p);
+                        rows.forEach((row, i) => {
+                            const active = i === activeIndex;
+                            const rowNat = this._lidsolRowNatHeight(row, session);
+                            const rowH = active ? rowNat : rowNat * (1 - p);
 
                             let lineIndex = 0;
                             row.forEach(child => {
-                                if (!active)
+                                if (!active) {
                                     child.opacity = Math.round(255 * (1 - p));
+                                    if (!session.clipped.has(child)) {
+                                        try { child.clip_to_allocation = true; } catch (_) {}
+                                        session.clipped.add(child);
+                                    }
+                                }
 
                                 const colSpan = this._getColSpan(container, child);
                                 const width = childWidth * colSpan +
@@ -475,7 +539,7 @@ export class OverlayMenuFeature {
                                 lineIndex = (lineIndex + colSpan) % this.nColumns;
                             });
 
-                            y += rowH + (i < session.rows.length - 1
+                            y += rowH + (i < rows.length - 1
                                 ? this.row_spacing * (active ? 1 : 1 - p)
                                 : 0);
                         });

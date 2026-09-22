@@ -111,10 +111,11 @@ DEADLINE: <2026-09-21 Sat>
 - [X] 2.3.4 El Switch de "Otros Toggles" también oculta los toggles personalizados que el usuario configura. Esto no debería suceder. 
 - [X] 2.3.5 Fix a *Opciones de menu* de Quick Toggles Layouts.
 **** NEXT [#C] 2.4 Overlay Mode
-DEADLINE: <2026-09-21 Sat>
+DEADLINE: <2026-09-22 Tue>
 - [ ] 2.4.1 Usar la animación por defecto pero modificada, de tal forma que, se desplazan los toggles no solo hacia abajo (animación nativa) si no hacia arriba, para evitar el desbordamiento y siempre ver el contenido. En la forma nativa, hay veces en la cual el contenido se desborda y no es posible visualizarlo.
+  - [ ] 2.4.1.1 Mejorar la animación de regreso.
+  - [ ] 2.4.1.2 Background App queda fuera del contenedor, queda sin fondo después del regreso (cerrar menu de quick toggle).
 **** TODO [#C] 2.5 System Indicador
-DEADLINE: <2026-09-26 Sat>
 - Tomando como referencia Quick Settings Tweaks, implementar:
 - [ ] 2.5.1 Ordering and hiding: posibilidad de reordenar y ocultar los indicadores del sistema
   - No debe interferir con el elemento 4.4.7 (battery indicator); debe ser un elemento más.
@@ -164,7 +165,7 @@ DEADLINE: <2026-09-15 Tue>
 - Referencia para el frontend: [[https://flathub.org/en/apps/io.github.amit9838.mousam][Mouseam en "modo widget"]]
 *** TODO [#A] 4. Top Bar
 **** TODO [#A] 4.1 Top Bar Organized [0%] 
-DEADLINE: <2026-09-19 Sat>
+DEADLINE: <2026-09-24 Thu>
 - [ ] 4.1.0 /Prefs.js/
   - [ ] 4.1.0.1 Mover los ajustes de /Prefs.js/ a un archivo de configuración en el directorio del módulo.
   - [ ] 4.1.0.2 Cambiar los schemas para tener una buena configuración por defecto.
@@ -174,10 +175,12 @@ DEADLINE: <2026-09-19 Sat>
 - [x] 4.1.4 Bug: Este tiene relación con 4.3.1, no se puede "ordenar" el elemento del Workspace Bar. Muy posiblemente por entrar en conflicto con la opción de ubicación de este módulo. No aparece en la lista de elementos a ordenar.
 - [x] 4.1.5 Feat: Recibe la señal de como se indica en 4.3.5.8; es decir, estos dos switch están sincronizados, se usa la función/clase de Top Bar.
 **** TODO [#A] 4.2 Panel Corners [0%]
+DEADLINE: <2026-09-24 Thu>
 - [ ] 4.2.1 Eliminar el modo debug (switch) de las opciones avanzadas, y todo el código asociado a esta opción.
 - [ ] 4.2.2 Añadir compatibilidad con la extensión "blur shell".
 - [ ] 4.2.3 Añadir compatibilidad con el color del panel.
 **** TODO [#A] 4.3 Workspace Indicator [0%]
+DEADLINE: <2026-09-24 Thu>
 - [x] 4.3.1 Eliminar las opciones de posición y todo su código asociado (se usará top bar organized para ello).
 - [x] 4.3.2 Bug: No se muestra en top bar organized (relacionado con 1.4.1.4)
 - [x] 4.3.2 Feat: Implementar la posibilidad de renombrar el espacio de trabajo (como en space bar).
@@ -448,7 +451,6 @@ gnome-extensions enable/disable/prefs lidsol-widgets@lidsol
 journalctl -f -o cat /usr/bin/gnome-shell | grep 'LIDSoL'
 #+END_SRC
 * 4. Notas: lecciones y referencias
-
 ** Lecciones aprendidas
 
 - **prefs.js vacío → crash**: `fillPreferencesWindow()` debe agregar al menos un widget. Si no, GNOME falla con "Extension did not provide any UI".
@@ -518,6 +520,7 @@ journalctl -f -o cat /usr/bin/gnome-shell | grep 'LIDSoL'
 - Separar claves GSettings en dos grupos: las que requieren `disable()+enable()` (reload) y las que solo necesitan `_loadSettings()` (live: duration, style, overflow anchor).
 - `_scheduleReload()` debe capturar `this._gsettings` en variable local antes de llamar a `disable()`, porque `disable()` lo setea a `null`. Sino `enable(this._gsettings)` recibe `null` y crashea.
 - **GObject.registerClass NO admite re-registrar una clase con el mismo nombre en el proceso**: GJS lanza `Type name 'Gjs_<Nombre>' is already registered` aunque la expresión de clase sea nueva (verificado con `gjs -m`; nombres distintos OK). `_applyAccordionLayout()` lo hacía en cada `enable()` → al desactivar el módulo (o alternar overlay OFF→ON vía `_scheduleReload`) y re-activar, el throw escapaba de `QuickSettingsTweaksModule.enable()` (sin try/catch) hasta `ModuleLoader._enableModule`, que lo captura y NO registra el módulo → imposible recargarlo hasta reiniciar la shell. Fix: cachear la subclase registrada en un `WeakMap` por constructor del layout nativo (`_accordionLayoutCache`) — registrar UNA vez, reutilizar en re-enables. Además `disable()` debe cerrar la sesión viva del layout (`_lidsolEndSession()`) para no dejar `clip_to_allocation`/opacidad alterados ni el timeout de la sesión corriendo.
+- **2.4.1.2 (leyenda "N Background Apps" fuera del contenedor / sin fondo tras el regreso)**: la leyenda es un quick-toggle dinámico (`BackgroundAppsToggle`, `visible = !isLocked && (menu.isOpen || nBackgroundApps > 0)`, proxy DBus `org.freedesktop.background.Monitor` ASYNC) añadido al FINAL del grid con `column-span = N_QUICK_SETTINGS_COLUMNS` (fila de ancho completo; su fondo es `transparent` por tema → "sin fondo" = está FUERA de la tarjeta del popup). La sesión del acordeón CONGELABA `rows` al abrir → si la leyenda aparecía en mitad de sesión (nApps 0→1 con el proxy sin resolver aún, o app que arranca con un submenú abierto) quedaba perdida: `preferred` con filas congeladas (corto) vs `allocate` nativo live (alto) → overflow → leyenda debajo del contenedor y, sin relayout posterior, el estado roto persistía. Fix: **membresía LIVE en `vfunc_get_preferred_height` y `vfunc_allocate`** (`_getRows` + strip del placeholder cada frame, `_lidsolStripPlaceholder`); se congela solo lo imprescindible por IDENTIDAD de hijo: `heights` WeakMap hijo→[minH,natH] (una medida por hijo/sesión — sin preferred por frame), `activeChild` (hijo con `menu.actor` visible; reinicio de sesión por identidad en vez de por índice) y `clipped` (Set). Hijos que aparecen a mitad (la leyenda) se cachean en su primer frame y se pliegan como el resto; preferred==allocate por construcción → el contenedor SIEMPRE envuelve la leyenda visible y nunca se queda corto. Además `_lidsolEndSession()` fuerza `container.queue_relayout()` para que el dimensionado nativo se aplique siempre al terminar la sesión.
 
 *** Lecciones de System Items Layout
 

@@ -13,6 +13,7 @@ import {
     createGroup,
     createModuleRow,
     createSpinButtonRow,
+    enableDragAutoScroll,
 } from '../../utils/prefsHelpers.js';
 import { UserAvatarPrefs } from '../userAvatar/prefsSettings.js';
 
@@ -198,6 +199,7 @@ export class QuickSettingsPrefs {
                 };
 
                 _qtAddListBoxDropTarget(listBox, getList, saveList, rebuild);
+                enableDragAutoScroll(listBox);
                 rebuild();
             },
         });
@@ -279,6 +281,7 @@ export class QuickSettingsPrefs {
                 };
 
                 _addListBoxDropTarget(listBox, settings);
+                enableDragAutoScroll(listBox);
                 rebuild();
             },
         });

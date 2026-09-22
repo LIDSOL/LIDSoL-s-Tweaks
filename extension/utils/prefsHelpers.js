@@ -4,6 +4,7 @@ import Adw from 'gi://Adw';
 import Gtk from 'gi://Gtk';
 import Gdk from 'gi://Gdk';
 import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 
 export function createModuleRow({ settings, bindKey, title, subtitle, onDetailed, sensitiveBind }) {
@@ -317,3 +318,71 @@ export const DropDownChoice = GObject.registerClass({
             GObject.ParamFlags.READWRITE, null),
     },
 }, class DropDownChoice extends GObject.Object {});
+
+// ── Auto-scroll durante drag & drop ──────────────────────────────────────
+//
+// GTK4 ya trae auto-scroll nativo en GtkListBase (GtkListBox), pero solo ajusta
+// el vadjustment INTERNO de la lista, que aquí no controla el scroll visible:
+// las listas viven dentro de Adw.PreferencesPage, cuyo GtkScrolledWindow interno
+// (clamp → box → groups) es el que de verdad scrollea la ventana. Replicamos el
+// patrón de GTK (gdk: SCROLL_EDGE_SIZE = 30px, delta ∝ 1/3 la distancia al borde,
+// un tick por frame que mueve el adjustment) apuntando a ese scrolled window.
+//
+// Escucha los eventos de motion del drag sobre todo el área visible de la página
+// (un GtkDropControllerMotion en el ancestro recibe motion aunque el puntero esté
+// sobre una fila con su propio DropTarget, porque GTK burbujea el GDK_DRAG_MOTION
+// por los ancestros en GTK_PHASE_BUBBLE con coordenadas traducidas a cada widget).
+export function enableDragAutoScroll(listBox) {
+    const scrolledWindow = listBox.get_ancestor(Gtk.ScrolledWindow);
+    if (!scrolledWindow || scrolledWindow._lidsolDragAutoScroll)
+        return;
+    scrolledWindow._lidsolDragAutoScroll = true;
+
+    const EDGE_SIZE = 30; // px desde el borde visible (mismo valor que GTK)
+    let tickId = 0;
+    let deltaY = 0;
+
+    const stop = () => {
+        deltaY = 0;
+        if (tickId) {
+            scrolledWindow.remove_tick_callback(tickId);
+            tickId = 0;
+        }
+    };
+
+    // Un tick por frame dentro del drag (como autoscroll_cb de GtkListBase).
+    const onTick = (widget, frameClock) => {
+        const vadj = scrolledWindow.vadjustment;
+        if (vadj && deltaY !== 0) {
+            const before = vadj.value;
+            vadj.value = before + deltaY;
+            // Si no se movió (límite del scroll), detener; sino seguir.
+            if (vadj.value !== before)
+                return GLib.SOURCE_CONTINUE;
+        }
+        tickId = 0;
+        return GLib.SOURCE_REMOVE;
+    };
+
+    const update = (x, y) => {
+        const height = scrolledWindow.get_allocated_height();
+        if (y < EDGE_SIZE)
+            deltaY = -(EDGE_SIZE - y) / 3.0;
+        else if (height - y < EDGE_SIZE)
+            deltaY = (EDGE_SIZE - (height - y)) / 3.0;
+        else
+            deltaY = 0;
+
+        if (deltaY !== 0) {
+            if (!tickId)
+                tickId = scrolledWindow.add_tick_callback(onTick);
+        } else {
+            stop();
+        }
+    };
+
+    const controller = new Gtk.DropControllerMotion();
+    controller.connect('motion', (_ctrl, x, y) => update(x, y));
+    controller.connect('leave', stop);
+    scrolledWindow.add_controller(controller);
+}

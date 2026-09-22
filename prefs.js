@@ -23,6 +23,7 @@ import {
   createGroup,
   createKeyboardShortcutRow,
   DropDownChoice,
+  enableDragAutoScroll,
 } from './extension/utils/prefsHelpers.js';
 
 const CATEGORIES = [
@@ -1733,6 +1734,7 @@ function openTopBarOrganizerDialog(parentWindow, settings) {
 
         _populateListBox(listBox, box, settings);
         _addListBoxDropTarget(listBox, settings);
+        enableDragAutoScroll(listBox);
       }
 
       function _rebuildAll() {

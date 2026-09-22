@@ -173,12 +173,11 @@ DEADLINE: <2026-09-19 Sat>
 - [x] 4.1.3 Feat: Cada vez que se abre el dialog, recarga los elementos (para asegurar que no se muestra nada que no está realmente). Solución adoptada: limpieza **manual** vía el botón de actualizar (1.4.1.1); NO se poda automáticamente en cada evento (prefs no accede a `Main.panel`, así que la limpieza se delega al módulo del shell vía D-Bus).
 - [x] 4.1.4 Bug: Este tiene relación con 4.3.1, no se puede "ordenar" el elemento del Workspace Bar. Muy posiblemente por entrar en conflicto con la opción de ubicación de este módulo. No aparece en la lista de elementos a ordenar.
 - [x] 4.1.5 Feat: Recibe la señal de como se indica en 4.3.5.8; es decir, estos dos switch están sincronizados, se usa la función/clase de Top Bar.
-- [ ] No se muestran múltiples monitores.
 **** TODO [#A] 4.2 Panel Corners [0%]
 - [ ] 4.2.1 Eliminar el modo debug (switch) de las opciones avanzadas, y todo el código asociado a esta opción.
 - [ ] 4.2.2 Añadir compatibilidad con la extensión "blur shell".
 - [ ] 4.2.3 Añadir compatibilidad con el color del panel.
-**** TODO [#A] 4.3 Workspace Indicator [%]
+**** TODO [#A] 4.3 Workspace Indicator [0%]
 - [x] 4.3.1 Eliminar las opciones de posición y todo su código asociado (se usará top bar organized para ello).
 - [x] 4.3.2 Bug: No se muestra en top bar organized (relacionado con 1.4.1.4)
 - [x] 4.3.2 Feat: Implementar la posibilidad de renombrar el espacio de trabajo (como en space bar).
@@ -256,6 +255,7 @@ DEADLINE: <2026-09-19 Sat>
 - [ ] Bug en múltiples monitores, no aparece el workspace de los monitores externos.
 - [ ] Cuando se tienen los íconos activos, el bg que difiere del borde también debe aplicar a los indicadores de espacio de trabajo que no tiene aplicaciones abiertas. Cuando te colocas en un espacio de trabajo sin iconos, el borde y el bg son iguales.
 - [ ] Configurar las opciones predeterminadas.
+- [ ] No se muestran múltiples monitores. 
 **** TODO [#B] 4.4 Date Menu Tweaks [0%]
 DEADLINE: <2026-09-26 Sat>
 - Descripción y objetivo: Basado en el widget [[https://support.google.com/android/answer/14883154][At a Glance]] de los Google Pixel; el texto del /Date Menu/ cambia dinámicamente, muestra contenido multimedia en reproducción, muestra un contrador de notificaciones, etcétera.
@@ -475,13 +475,35 @@ journalctl -f -o cat /usr/bin/gnome-shell | grep 'LIDSoL'
 
 *** Lecciones de Overlay Mode (Quick Settings)
 
-- **2.4.1 (nativo + reparto)**: se eliminó el enfoque de constraints/flyout/dialog. La animación
-  nativa (easing de altura + fade + dim) se conserva intacta y solo se parchea `QuickSettingsLayout`.
+- **2.4.1 (nativo + acordeón + fade)**: se eliminó el enfoque de constraints/flyout/dialog y el
+  "reparto" del hueco (v2, rama banda-esencial preserva el enfoque con lag). La animación nativa
+  (easing de altura + fade + dim) se conserva intacta y solo se parchea `QuickSettingsLayout`.
+  Mientras el menú del toggle crece, TODAS las filas salvo la pulsada se desvanecen y colapsan su
+  altura hacia 0 con el mismo ease del menú (`POPUP_ANIMATION_TIME/2`, easeOutCubic), sincronizados
+  por una "sesión" por apertura. Con el progreso p: filas no activas = `altura*(1-p)` y
+  `opacidad 255*(1-p)` (más `clip_to_allocation` en esa sesión); la fila activa queda natural y el
+  toggle sube suavemente con el acordeón; el contenedor termina envolviendo solo "fila del toggle +
+  menú" (nada se desborda, sin banda vacía). Al cerrar, en espejo (1→0).
   `QuickSettingsLayout` es una clase JS registrada **no exportada**: se obtiene con
   `grid.layout_manager.constructor` y se subclasea (`GObject.registerClass(class X extends ...)`)
-  sobreescribiendo solo `vfunc_allocate`. Al sustituir `grid.layout_manager` se recrean los child
-  metas (column-span vuelve a 1): **capturar los spans antes** y reaplicarlos tras el reemplazo y al
-  restaurar en `disable()`. La altura total (`vfunc_get_preferred_height`) no cambia → no se toca.
+  sobreescribiendo `vfunc_allocate` y `vfunc_get_preferred_height` (sin sesión ambos delegan en el
+  nativo vía `super` → modo cerrado idéntico). Al sustituir `grid.layout_manager` se recrean los
+  child metas (column-span vuelve a 1): **capturar los spans antes** y reaplicarlos tras el
+  reemplazo y al restaurar en `disable()`.
+- **Números clave del grid en el shell (quickSettings.js)**: el grid tiene como primer hijo un
+  "placeholder" (`Clutter.Actor` con `BindConstraint HEIGHT → _overlay`), cuya altura es la altura
+  ACTUAL del menú (el overlay es un `Clutter.Actor` con `BinLayout` cuya preferred sigue la altura
+  forzada del actor del menú durante su ease) — es lo que re-layoutiza el grid y anima el hueco
+  nativo. `_getRows()` incluye ese placeholder en sus filas: durante una sesión se **excluye** de
+  las filas y se descartan las filas vacías resultantes (la fila espaciadora es justo lo que se
+  está plegando). El cierre nativo fades el contenido del menú y LUEGO baja la altura del actor
+  antes de ocultarlo: la sesión detecta el cierre cuando la altura del overlay empieza a decrecer
+  (o cuando el menú ya no es visible).
+- **Sincronía**: el progreso de la sesión se anima con un `GLib.timeout` (60 Hz, solo mientras hay
+  sesión) con `easeOutCubic` y duración `POPUP_ANIMATION_TIME/2` (import del namespace
+  `quickSettings.js` con fallback 400 — un named import lanzaría si el export cambiara de nombre).
+  Así el colapso comparte duración y curva con el ease de altura del menú. `super.vfunc_get_preferred_height`
+  existe en 50.5 y main (verificado) → modo cerrado nativo sin reimplementar.
 - **GNOME 51**: `QuickToggleMenu.open(params)` delega en `PopupMenuBase.open`, que emite
   `open-state-changed` ANTES de montar la animación nativa (en 50.5 se emitía después). Cualquier
   código que cancele/reemplace la animación nativa desde esa señal (el overlay antiguo) pierde la
@@ -495,7 +517,7 @@ journalctl -f -o cat /usr/bin/gnome-shell | grep 'LIDSoL'
 - **Siempre conectar handlers GSettings ANTES del early return de `enabled`**, si no, al deshabilitar/re-habilitar el módulo nunca se vuelven a conectar las señales y el toggle queda muerto.
 - Separar claves GSettings en dos grupos: las que requieren `disable()+enable()` (reload) y las que solo necesitan `_loadSettings()` (live: duration, style, overflow anchor).
 - `_scheduleReload()` debe capturar `this._gsettings` en variable local antes de llamar a `disable()`, porque `disable()` lo setea a `null`. Sino `enable(this._gsettings)` recibe `null` y crashea.
-- **GObject.registerClass NO admite re-registrar una clase con el mismo nombre en el proceso**: GJS lanza `Type name 'Gjs_<Nombre>' is already registered` aunque la expresión de clase sea nueva (verificado con `gjs -m`; nombres distintos OK). `_applyRepartitionedLayout()` lo hacía en cada `enable()` → al desactivar el módulo (o alternar overlay OFF→ON vía `_scheduleReload`) y re-activar, el throw escapaba de `QuickSettingsTweaksModule.enable()` (sin try/catch) hasta `ModuleLoader._enableModule`, que lo captura y NO registra el módulo → imposible recargarlo hasta reiniciar la shell. Fix: cachear la subclase registrada en un `WeakMap` por constructor del layout nativo (`_repartitionedLayoutCache`) — registrar UNA vez, reutilizar en re-enables.
+- **GObject.registerClass NO admite re-registrar una clase con el mismo nombre en el proceso**: GJS lanza `Type name 'Gjs_<Nombre>' is already registered` aunque la expresión de clase sea nueva (verificado con `gjs -m`; nombres distintos OK). `_applyAccordionLayout()` lo hacía en cada `enable()` → al desactivar el módulo (o alternar overlay OFF→ON vía `_scheduleReload`) y re-activar, el throw escapaba de `QuickSettingsTweaksModule.enable()` (sin try/catch) hasta `ModuleLoader._enableModule`, que lo captura y NO registra el módulo → imposible recargarlo hasta reiniciar la shell. Fix: cachear la subclase registrada en un `WeakMap` por constructor del layout nativo (`_accordionLayoutCache`) — registrar UNA vez, reutilizar en re-enables. Además `disable()` debe cerrar la sesión viva del layout (`_lidsolEndSession()`) para no dejar `clip_to_allocation`/opacidad alterados ni el timeout de la sesión corriendo.
 
 *** Lecciones de System Items Layout
 

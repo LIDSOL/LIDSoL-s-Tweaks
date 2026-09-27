@@ -881,44 +881,87 @@
       <summary>Custom toggle state slot 9</summary>
     </key>
 
-    <!-- Overlay Menu -->
+    <!-- Overlay Menu (port QST) -->
     <key type="b" name="qst-overlay-menu-enabled">
       <default>false</default>
       <summary>Habilitar Overlay Mode</summary>
-      <description>Muestra los menús de toggles, energía y sonido como superposición sobre los ajustes rápidos, útil en pantallas pequeñas</description>
+      <description>Muestra los menús de toggles, energía y sonido como superposición (overlay) fijada al toggle, en lugar de expandir los ajustes rápidos</description>
     </key>
-
     <key type="i" name="qst-overlay-menu-width">
       <default>380</default>
       <summary>Ancho del overlay</summary>
-      <description>Ancho en píxeles del menú superpuesto (0 = sin ajuste)</description>
+      <description>Ajusta el ancho del menú superpuesto. Poner a 0 desactiva el ajuste.</description>
     </key>
-
     <key type="i" name="qst-overlay-menu-animate-duration">
       <default>360</default>
-      <summary>Duración de la animación</summary>
-      <description>Duración en milisegundos de la animación de apertura (0 = sin animación)</description>
+      <summary>Duración de la animación del overlay</summary>
+      <description>Duración personalizada de la animación de apertura del menú, en microsegundos. Poner a 0 desactiva la animación personalizada.</description>
     </key>
-
     <key type="s" name="qst-overlay-menu-animate-style">
       <choices>
-        <choice value='flyout'/>
-        <choice value='dialog'/>
+        <choice value="flyout"/>
+        <choice value="dialog"/>
       </choices>
-      <default>'dialog'</default>
-      <summary>Estilo de animación</summary>
-      <description>'flyout' se expande desde el toggle origen; 'dialog' escala desde el centro</description>
+      <default>"dialog"</default>
+      <summary>Estilo de animación del overlay</summary>
+      <description>Estilo de la animación personalizada de apertura del menú: flyout (desde el toggle) o dialog (escala desde el centro).</description>
     </key>
-
     <key type="s" name="qst-overlay-menu-overflow-anchor">
       <choices>
-        <choice value='top'/>
-        <choice value='center'/>
-        <choice value='bottom'/>
+        <choice value="top"/>
+        <choice value="center"/>
+        <choice value="bottom"/>
       </choices>
-      <default>'top'</default>
-      <summary>Anclaje por desbordamiento</summary>
-      <description>Si el menú es más alto que la ventana de ajustes: top=anclar arriba, center=centrar, bottom=anclar abajo</description>
+      <default>"top"</default>
+      <summary>Ancla de desbordamiento del overlay</summary>
+      <description>Cuando el menú es más alto que los ajustes rápidos, determina dónde se fija el menú dentro de los ajustes rápidos.</description>
+    </key>
+
+    <!-- Menu Animation (port QST) -->
+    <key type="b" name="qst-menu-animation-enabled">
+      <default>false</default>
+      <summary>Habilitar animación del menú</summary>
+      <description>Añade animación al menú de ajustes rápidos al abrir y cerrar. Para mejor resultado, activa el modo overlay.</description>
+    </key>
+    <key type="i" name="qst-menu-animation-background-blur-radius">
+      <default>4</default>
+      <summary>Radio de desenfoque del fondo</summary>
+      <description>Radio del desenfoque del fondo del menú. Poner a 0 desactiva el desenfoque.</description>
+    </key>
+    <key type="i" name="qst-menu-animation-background-brightness">
+      <default>900</default>
+      <summary>Brillo del fondo</summary>
+      <description>Ajusta el brillo del fondo del menú; 1000 desactiva el control de brillo.</description>
+    </key>
+    <key type="i" name="qst-menu-animation-background-opacity">
+      <default>220</default>
+      <summary>Opacidad del fondo</summary>
+      <description>Opacidad del fondo del menú. 255 = opaco, 0 = transparente.</description>
+    </key>
+    <key type="i" name="qst-menu-animation-grid-content-opacity">
+      <default>100</default>
+      <summary>Opacidad del contenido del grid</summary>
+      <description>Opacidad del contenido del grid de ajustes rápidos. 255 = opaco, 0 = transparente.</description>
+    </key>
+    <key type="i" name="qst-menu-animation-background-scale-x">
+      <default>920</default>
+      <summary>Escala X del fondo</summary>
+      <description>Escala horizontal del fondo del menú; 1000 equivale a escala 1.0.</description>
+    </key>
+    <key type="i" name="qst-menu-animation-background-scale-y">
+      <default>920</default>
+      <summary>Escala Y del fondo</summary>
+      <description>Escala vertical del fondo del menú; 1000 equivale a escala 1.0.</description>
+    </key>
+    <key type="i" name="qst-menu-animation-open-duration">
+      <default>380</default>
+      <summary>Duración de apertura</summary>
+      <description>Duración de la animación de apertura en microsegundos.</description>
+    </key>
+    <key type="i" name="qst-menu-animation-close-duration">
+      <default>380</default>
+      <summary>Duración de cierre</summary>
+      <description>Duración de la animación de cierre en microsegundos.</description>
     </key>
 
     <!-- Picture Widget -->

@@ -57,7 +57,7 @@ export function createSwitchRow({ settings, bindKey, title, subtitle, sensitiveB
     return row;
 }
 
-export function createSpinButtonRow({ settings, bindKey, title, subtitle, adjProps = {} }) {
+export function createSpinButtonRow({ settings, bindKey, title, subtitle, adjProps = {}, sensitiveBind }) {
     const adj = new Gtk.Adjustment({
         lower: adjProps.lower ?? 0,
         upper: adjProps.upper ?? 100,
@@ -78,6 +78,10 @@ export function createSpinButtonRow({ settings, bindKey, title, subtitle, adjPro
         activatable_widget: spin,
     });
     row.add_suffix(spin);
+
+    if (sensitiveBind)
+        settings.bind(sensitiveBind, row, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+
     return row;
 }
 
@@ -108,7 +112,7 @@ export function createColorButtonRow({ settings, bindKey, title, subtitle, useAl
     return row;
 }
 
-export function createComboRow({ settings, bindKey, title, subtitle, options }) {
+export function createComboRow({ settings, bindKey, title, subtitle, options, sensitiveBind }) {
     const model = Gio.ListStore.new(DropDownChoice);
     for (const id in options)
         model.append(new DropDownChoice({ id, title: options[id] }));
@@ -138,6 +142,9 @@ export function createComboRow({ settings, bindKey, title, subtitle, options }) 
     };
     updateSelected();
     settings.connect(`changed::${bindKey}`, updateSelected);
+
+    if (sensitiveBind)
+        settings.bind(sensitiveBind, row, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
 
     return row;
 }

@@ -8,11 +8,11 @@ import GObject from 'gi://GObject';
 import Gtk from 'gi://Gtk';
 
 import {
-    createComboRow,
     createDialog,
-    createGroup,
     createModuleRow,
+    createGroup,
     createSpinButtonRow,
+    createComboRow,
     enableDragAutoScroll,
 } from '../../utils/prefsHelpers.js';
 import { UserAvatarPrefs } from '../userAvatar/prefsSettings.js';
@@ -56,21 +56,43 @@ export class QuickSettingsPrefs {
                     this.openToggleOrderDialog();
             },
         }));
-        togglesGroup.add(createModuleRow({
+        page.add(togglesGroup);
+
+        // Overlay Mode y Animación: port de QST (página "Menu").
+        this._addOverlayMenuSection(page);
+    }
+
+    // Overlay Mode y Animación: port de QST (página "Menu"). Un grupo con dos
+    // filas-módulo; cada una abre su dialog de opciones.
+    _addOverlayMenuSection(page) {
+        const menuGroup = createGroup({
+            parent: page,
+            title: 'Menú',
+            description: 'Modo overlay y animaciones al abrir los menús de los toggles.',
+        });
+        menuGroup.add(createModuleRow({
             settings: this._settings,
             bindKey: 'qst-overlay-menu-enabled',
             title: 'Overlay Mode',
-            subtitle: 'Muestra los menús como superposición sobre los ajustes rápidos (útil en pantallas pequeñas)',
+            subtitle: 'Muestra los menús de toggles, energía y sonido como superposición (experimental)',
             onDetailed: () => {
                 if (this._window && this._settings)
                     this.openOverlayMenuDialog();
             },
         }));
-        page.add(togglesGroup);
+        menuGroup.add(createModuleRow({
+            settings: this._settings,
+            bindKey: 'qst-menu-animation-enabled',
+            title: 'Animation',
+            subtitle: 'Añade animación al menú al abrir y cerrar. Para mejor resultado, activa el modo overlay',
+            onDetailed: () => {
+                if (this._window && this._settings)
+                    this.openMenuAnimationDialog();
+            },
+        }));
     }
 
     openOverlayMenuDialog() {
-        const s = this._settings;
         createDialog({
             window: this._window,
             title: 'Overlay Mode',
@@ -78,43 +100,83 @@ export class QuickSettingsPrefs {
                 const group = createGroup({
                     parent: page,
                     title: 'Overlay Mode',
-                    description: 'Al activarlo, los menús de toggles con opciones se muestran superpuestos sobre los ajustes rápidos. Corrige el desbordamiento en pantallas pequeñas.',
+                    description: 'Muestra los menús de toggles, energía y sonido como superposición (experimental).',
                 });
                 group.add(createSpinButtonRow({
-                    settings: s,
+                    settings: this._settings,
                     bindKey: 'qst-overlay-menu-width',
                     title: 'Ancho del overlay',
-                    subtitle: 'Ancho en píxeles (0 = sin ajuste)',
-                    adjProps: { lower: 0, upper: 2048, step: 10 },
+                    subtitle: 'Ajusta el ancho del menú superpuesto. Poner a 0 desactiva el ajuste',
+                    adjProps: { lower: 0, upper: 2048 },
+                    sensitiveBind: 'qst-overlay-menu-enabled',
                 }));
                 group.add(createSpinButtonRow({
-                    settings: s,
+                    settings: this._settings,
                     bindKey: 'qst-overlay-menu-animate-duration',
-                    title: 'Duración de animación',
-                    subtitle: 'Milisegundos (0 = sin animación)',
-                    adjProps: { lower: 0, upper: 4000, step: 50 },
+                    title: 'Duración de la animación',
+                    subtitle: 'Duración de la animación de apertura en microsegundos. Poner a 0 desactiva la animación personalizada',
+                    adjProps: { lower: 0, upper: 4000 },
+                    sensitiveBind: 'qst-overlay-menu-enabled',
                 }));
                 group.add(createComboRow({
-                    settings: s,
+                    settings: this._settings,
                     bindKey: 'qst-overlay-menu-animate-style',
                     title: 'Estilo de animación',
-                    subtitle: 'Cómo aparece el menú superpuesto',
-                    options: {
-                        flyout: 'Flyout (se expande desde el toggle)',
-                        dialog: 'Diálogo (escala desde el centro)',
-                    },
+                    options: { flyout: 'Flyout', dialog: 'Dialog' },
+                    sensitiveBind: 'qst-overlay-menu-enabled',
                 }));
                 group.add(createComboRow({
-                    settings: s,
+                    settings: this._settings,
                     bindKey: 'qst-overlay-menu-overflow-anchor',
-                    title: 'Anclaje por desbordamiento',
-                    subtitle: 'Si el menú es más alto que la ventana de ajustes',
-                    options: {
-                        top: 'Arriba',
-                        center: 'Centro',
-                        bottom: 'Abajo',
-                    },
+                    title: 'Ancla de desbordamiento',
+                    subtitle: 'Cuando el menú es más alto que los ajustes rápidos, determina dónde se fija el menú',
+                    options: { top: 'Superior', center: 'Centro', bottom: 'Inferior' },
+                    sensitiveBind: 'qst-overlay-menu-enabled',
                 }));
+            },
+        });
+    }
+
+    openMenuAnimationDialog() {
+        createDialog({
+            window: this._window,
+            title: 'Animación',
+            childrenRequest: (page) => {
+                const group = createGroup({
+                    parent: page,
+                    title: 'Estilo avanzado de animación',
+                });
+                const spin = (key, title, subtitle, adjProps = { lower: 0, upper: 4000, step: 1 }) =>
+                    group.add(createSpinButtonRow({
+                        settings: this._settings,
+                        bindKey: key,
+                        title,
+                        subtitle: subtitle ?? null,
+                        adjProps,
+                        sensitiveBind: 'qst-menu-animation-enabled',
+                    }));
+                spin('qst-menu-animation-open-duration', 'Duración de apertura',
+                    'Duración de la animación de apertura en microsegundos');
+                spin('qst-menu-animation-close-duration', 'Duración de cierre',
+                    'Duración de la animación de cierre en microsegundos');
+                spin('qst-menu-animation-grid-content-opacity', 'Opacidad del contenido',
+                    'Opacidad del contenido del grid. 255 = opaco, 0 = transparente',
+                    { lower: 0, upper: 255 });
+                spin('qst-menu-animation-background-blur-radius', 'Radio de desenfoque del fondo',
+                    'Radio del desenfoque del fondo. Poner a 0 desactiva el desenfoque',
+                    { lower: 0, upper: 32 });
+                spin('qst-menu-animation-background-brightness', 'Brillo del fondo',
+                    'Ajusta el brillo del fondo; 1000 desactiva el control de brillo',
+                    { lower: 0, upper: 2000 });
+                spin('qst-menu-animation-background-opacity', 'Opacidad del fondo',
+                    'Opacidad del fondo. 255 = opaco, 0 = transparente',
+                    { lower: 0, upper: 255 });
+                spin('qst-menu-animation-background-scale-x', 'Escala X del fondo',
+                    'Escala horizontal del fondo; 1000 equivale a escala 1.0',
+                    { lower: 0, upper: 4000 });
+                spin('qst-menu-animation-background-scale-y', 'Escala Y del fondo',
+                    'Escala vertical del fondo; 1000 equivale a escala 1.0',
+                    { lower: 0, upper: 4000 });
             },
         });
     }

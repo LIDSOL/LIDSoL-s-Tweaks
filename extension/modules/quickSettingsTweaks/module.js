@@ -3,6 +3,7 @@
 globalThis.log('[LIDSoL QST MODULE] module.js loaded - START');
 import { QuickTogglesFeature } from './quickToggles.js';
 import { OverlayMenuFeature } from './overlayMenu.js';
+import { MenuAnimationFeature } from './menuAnimation.js';
 
 export class QuickSettingsTweaksModule {
     constructor() {
@@ -24,6 +25,12 @@ export class QuickSettingsTweaksModule {
         overlay.enable(gsettings);
         log('[LIDSoL QST MODULE] OverlayMenuFeature enabled');
         this._features.push(overlay);
+
+        const menuAnimation = new MenuAnimationFeature();
+        log('[LIDSoL QST MODULE] MenuAnimationFeature created');
+        menuAnimation.enable(gsettings);
+        log('[LIDSoL QST MODULE] MenuAnimationFeature enabled');
+        this._features.push(menuAnimation);
     }
 
     disable() {

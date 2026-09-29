@@ -1,0 +1,73 @@
+/* Quick Settings Compact (2.6) — referencia compact-quick-settings adaptada a
+ * GNOME 50/51.
+ *
+ * En 50/51 el grid ya no es CSS-grid: las columnas las controla el layout
+ * manager (QuickSettingsLayout, propiedad `n-columns`), así que aquí NO se toca
+ * `grid-columns`. Esto solo ajusta el tamaño de los toggles y libera el ancho
+ * fijo (12em) que el tema impone, para que 1/2/3 columnas no desborden.
+ *
+ * 2.6.1 — La compactación aplica a TODOS los toggles del grid, incluidos los
+ * que tienen sub-opciones (QuickMenuToggle, clase `quick-toggle-has-menu`,
+ * p.ej. Wi-Fi/Bluetooth): se oculta el subtitle (como la referencia original) y
+ * se reduce la flecha del sub-menú. El QuickToggle interno de cada
+ * `quick-toggle-has-menu` recibe el mismo tratamiento que uno individual.
+ */
+
+/* Libera el ancho fijo del tema para que el layout reparta las columnas.
+   Sin esto, en 3 columnas el popup pide >= 3 x 12em y desborda. */
+.quick-settings-grid > .quick-toggle,
+.quick-settings-grid > .quick-toggle-has-menu {
+    min-width: 0;
+    max-width: none;
+}
+
+/* Piso mínimo del popup (modo 2 columnas: ancho natural). En 1 y 3 columnas
+   el ancho lo fija compactQuickSettings.js (WIDTH_FACTOR: min == max =
+   ancla×factor) y este inline lo sobreescribe. */
+.quick-settings {
+    min-width: 320px;
+}
+
+/* 2.6.1 — Altura compacta para todos los toggles del grid. El QuickToggle
+   interno de un `quick-toggle-has-menu` también hereda min-height 3.273em del
+   tema; hay que bajarlo o el contenedor se estira igual. */
+.quick-settings-grid > .quick-toggle,
+.quick-settings-grid > .quick-toggle-has-menu,
+.quick-settings-grid > .quick-toggle-has-menu .quick-toggle {
+    min-height: 38px;
+}
+
+/* Caja interior compacta (spacing/padding) — individuales e internos. */
+.quick-settings-grid > .quick-toggle > StBoxLayout,
+.quick-settings-grid > .quick-toggle-has-menu .quick-toggle > StBoxLayout {
+    spacing: 8px;
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+/* Tipografía: título compacto. El subtitle se oculta para reducir el toggle a
+   una sola línea (mecanismo de compactación de la referencia original). */
+.quick-settings-grid > .quick-toggle .quick-toggle-title,
+.quick-settings-grid > .quick-toggle-has-menu .quick-toggle-title {
+    font-size: 0.9em;
+}
+.quick-settings-grid > .quick-toggle .quick-toggle-subtitle,
+.quick-settings-grid > .quick-toggle-has-menu .quick-toggle-subtitle {
+    display: none;
+}
+
+/* Icono compacto + simbólico. */
+.quick-settings-grid > .quick-toggle .quick-toggle-icon,
+.quick-settings-grid > .quick-toggle-has-menu .quick-toggle-icon {
+    -st-icon-style: symbolic;
+    icon-size: 14px;
+}
+
+/* Flecha del sub-menú (go-next-symbolic): más pequeña y contenida, para que
+   los toggles con sub-opciones acompañen la estética compacta. */
+.quick-settings-grid > .quick-toggle-has-menu .quick-toggle-menu-button {
+    padding: 0.25em 0.5em;
+}
+.quick-settings-grid > .quick-toggle-has-menu .quick-toggle-menu-button StIcon {
+    icon-size: 12px;
+}

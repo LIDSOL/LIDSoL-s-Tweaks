@@ -92,7 +92,7 @@ DEADLINE: <2026-09-26 Sat>
     - Esta sección tiene tres botones: añadir, vista general y buscar
     - Por defecto muestra la última nota o la vista general.
     - Al añadir una nueva nota (botón) puedes escribir y añadirla (quicktext).   
-*** NEXT [#A] 2. Quick Settings [50%]
+*** NEXT [#A] 2. Quick Settings [100%]
 DEADLINE: <2026-09-28 Mon>
 - [ ] 2.2.0: Cambiar los schemas para tener una buena configuración por defecto.
 **** DONE 2.1 Avatar de usuario.
@@ -100,28 +100,23 @@ DEADLINE: <2026-09-28 Mon>
 DEADLINE: <2026-09-21 Sat>
 - [X] 2.2.1: Los elementos deben organizarse mediante "drag and drop" y no mediante botones, símil al organizador de elementos del top bar (implementado en los commits 7e16ea5, e09fc44, 9a3444b y 5025bfa.
 - [X] 2.2.2: Las configuraciones del módulo viven en `extension/modules/quickSettingsTweaks/prefsSettings.js` (y el Avatar en `userAvatar/prefsSettings.js`), delegando desde `prefs.js`.
-**** NEXT [#A] 2.3 Quick Toggles Layout [4/6]
+**** DONE [#A] 2.3 Quick Toggles Layout [8/8]
 DEADLINE: <2026-09-21 Sat>
 - [X] 2.3.1 Los elementos deben organizarse mediante "drag and drop" y no mediante botones, símil al organizador de elementos del top bar (implementado en los commits 7e16ea5, e09fc44, 9a3444b y 5025bfa.
 - [X] 2.3.2 Testing de las reglas de coincidencia: Constructor name, Regex de título, GTYpe name.
 - [X] 2.3.3 Añadir la posibilidad de colocar opciones a los quick (por ejemplo, en caffeine, independiente al botón, hay una flecha que despliega un menú dentro del toggle que permite controlar el tiempo de pantalla activa). Se deben poder añadir estas opciones, cada una puede ser un argumento al script.
-- [-] 2.3.3 Añadir toggles personalizados pre-configurados:
-  - [ ] 2.3.3.1 Remplazo a "caffeine"
-  - [ ] 2.3.3.2 Syncthing
+- [X] 2.3.3 Añadir toggles personalizados pre-configurados:
+  - [X] 2.3.3.1 Remplazo a "caffeine"
+  - [X] 2.3.3.2 Syncthing
 - [X] 2.3.4 El Switch de "Otros Toggles" también oculta los toggles personalizados que el usuario configura. Esto no debería suceder. 
 - [X] 2.3.5 Fix a *Opciones de menu* de Quick Toggles Layouts.
+- [X] 2.3.6 Fix: Parece que al pulsar el botón, este actúa dos veces.
+- [X] 2.3.7 Feat: Agrupación de los comandos "Opciones de menú", para cambiarlos de posición.
 **** DONE [#C] 2.4 Overlay Mode
 DEADLINE: <2026-09-22 Tue>
 - [X] 2.4.1 Overlay mode de QST: port de QST `OverlayMenu` en `extension/modules/quickSettingsTweaks/overlayMenu.js` (overlay flotante fijado al toggle con BindConstraints X/Y → `_boxPointer`; desactiva los constraints nativos de posición y del placeholder del grid; animación `flyout`/`dialog` con bezier custom y duración configurable; ancho configurable). Opciones en el dialog (grupo "Overlay Mode" en `prefsSettings.js`). Claves `qst-overlay-menu-*` en el schema.
 - [X] 2.4.2 Animaciones de QST: port de QST `MenuAnimation` en `extension/modules/quickSettingsTweaks/menuAnimation.js` (blur del boxPointer + ease de escala/opacidad del menú y opacidad del grid en open/close). Opciones en el dialog (grupo "Animation" + dialog "Estilo avanzado de animación"). Claves `qst-menu-animation-*` en el schema.
 - El acordeón "banda esencial" (antiguo 2.4.1.1, regreso fallido del overlay + fade) queda APARCADO para futuras versiones y su código fue sustituido por el port de QST en `overlayMenu.js`. Las lecciones de perf quedan como referencia en este archivo.
-**** TODO [#A] 2.6 Quick Settings Compact
-- [ ] Tomando como referencia /Compact Quick Settings/:
-- [ ] 2.6.1 Solo los toggles individuales cambian de tamaño, los quick con sub-opciones (Wi-Fi, Bluetooth, por ejemplo) no reducen su tamaño.
-- [ ] 2.6.2 No cambia el grid. Sería interesante poder cambiar el grid, la candida de columnas de quicks, por defecto hay 2. Sería interesante poder modificarlo a 1, 2 y 3.
-- [ ] 2.6.3 /Prefs,js/
-  - [ ] 2.6.3.1 Cambiar los schemas para tener una buena configuración por defecto.
-  - [ ] 2.6.3.2 Cambiar los schemas para tener una buena configuración por defecto.
 *** TODO [#C] 3. Widgets
 **** TODO [#A] 3.1 User Avatar (date menu)
 - [ ] 3.1.1 Eliminar este widget, opciones y todo código asociado. Pero tomar notas sobre como insertar elementos en esta sección del date menu, puede resultar útil después.
@@ -150,7 +145,7 @@ DEADLINE: <2026-09-15 Tue>
 - Referencia para el frontend: [[https://flathub.org/en/apps/dev.geopjr.Turntable][Turntable (media widget flatpak)]]
 ***** SOMEDAY Widget weather
 - Referencia para el frontend: [[https://flathub.org/en/apps/io.github.amit9838.mousam][Mouseam en "modo widget"]]
-*** TODO [#A] 4. Top Bar
+*** NEXT [#A] 4. Top Bar
 **** TODO [#A] 4.1 Top Bar Organized [0%] 
 DEADLINE: <2026-09-24 Thu>
 - [ ] 4.1.0 /Prefs.js/
@@ -1056,3 +1051,4 @@ The widget should be injected into the date menu's **right column** (above the c
    - `dmm-show-volume` (bool)
    - `dmm-show-loop-shuffle` (bool)
    - `dmm-fade` (bool)          
+     

@@ -65,6 +65,8 @@ const LidSolToggleIndicator = GObject.registerClass({
         this._stateId = config._id || config.friendlyName || Math.random().toString();
         this._checkIntervalId = 0;
         this._commandTimeoutIds = [];
+        this._clickGuard = false; // coalesce notify::checked duplicados del mismo clic
+        this._clickGuardIdleId = 0;
 
         this._indicator = this._addIndicator();
         this._indicator.iconName = config.icon || 'preferences-other-symbolic';
@@ -181,6 +183,20 @@ const LidSolToggleIndicator = GObject.registerClass({
     }
 
     _onToggleClicked() {
+        // Un clic físico puede emitir notify::checked varias veces en el mismo
+        // dispatch (flip del botón + re-set de "always-on"/"always-off", o dobles
+        // emisiones del input). La guarda fusiona todas esas invocaciones en una
+        // sola ejecución del comando. Se libera al volver la cola a idle, así que
+        // dos clics físicos separados (cada uno con su propio evento) sí se procesan.
+        if (this._clickGuard)
+            return;
+        this._clickGuard = true;
+        this._clickGuardIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+            this._clickGuard = false;
+            this._clickGuardIdleId = 0;
+            return GLib.SOURCE_REMOVE;
+        });
+
         const cfg = this._config;
         const checked = this.toggle.checked;
 
@@ -220,6 +236,9 @@ const LidSolToggleIndicator = GObject.registerClass({
 
         // Toggle mode with optional exit code check
         if (cfg.checkExitCode && cmd?.trim()) {
+            // checkExitCode YA ejecuta el comando y comprueba su salida (ver helper).
+            // En éxito no se re-ejecuta: eso duplicaría el comando por cada clic.
+            // En fallo se revierte el toggle al estado previo.
             checkExitCode(cmd, (ok) => {
                 if (!ok) {
                     GObject.signal_handler_block(this.toggle, this._toggleSignalId);
@@ -227,8 +246,6 @@ const LidSolToggleIndicator = GObject.registerClass({
                     _toggleState[this._stateId] = !checked;
                     persistState(!checked);
                     GObject.signal_handler_unblock(this.toggle, this._toggleSignalId);
-                } else {
-                    executeCommand(cmd, `custom-${checked ? 'on' : 'off'}`);
                 }
             });
         } else {
@@ -293,6 +310,10 @@ const LidSolToggleIndicator = GObject.registerClass({
             try { GLib.source_remove(id); } catch (_) {}
         }
         this._commandTimeoutIds = [];
+        if (this._clickGuardIdleId) {
+            try { GLib.source_remove(this._clickGuardIdleId); } catch (_) {}
+            this._clickGuardIdleId = 0;
+        }
         super.destroy();
     }
 });

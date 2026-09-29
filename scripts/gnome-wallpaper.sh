@@ -1,116 +1,104 @@
 #!/bin/bash
 
-# Script para cambiar wallpaper de GNOME
-# Uso: ./wallpaper.sh [--plano] [--log ARCHIVO] [--exit N] [DIRECTORIO] [MODO] [ORDEN]
-#   --plano : salida sin códigos de color (para usar como checkCommand)
-#   --log   : registra cada ejecución en ARCHIVO (verifica runAtBoot/retardo)
-#   --exit  : fuerza el código de salida (para probar checkExitCode)
+# Script to change the GNOME wallpaper
+# Usage: ./wallpaper.sh [--log FILE] [--exit N] [DIRECTORY] [MODE] [ORDER]
+#   --log : logs every run to FILE (checks runAtBoot/delay)
+#   --exit: forces the exit code (for testing checkExitCode)
+#
+# Output is always plain (no ANSI colors), suitable for checkCommand.
 
 set -e
 
-# Variables globales
-PLANO=0
+# Global variables
 LOG=""
 EXIT_CODE=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --plano) PLANO=1; shift ;;
     --log)   LOG="$2"; shift 2 ;;
     --exit)  EXIT_CODE="$2"; shift 2 ;;
     *)       break ;;
   esac
 done
-DIRECTORIO="${1:-.}"
-MODO="${2:-random}"
-ORDEN="${3:-asc}"
-ARCHIVO_ESTADO="$HOME/.cache/wallpaper_random_state"
-ARCHIVO_INDICE="$HOME/.cache/wallpaper_indice"
-ARCHIVO_MARCADOR="$HOME/.cache/gnome-wallpaper_marcador"
+DIRECTORY="${1:-.}"
+MODE="${2:-random}"
+ORDER="${3:-asc}"
+# Sequential modes (alphabetical/date, next/previous) — shared list+index.
+# Random mode picks one image at random per run, so it needs no state at all.
+STATE_FILE="$HOME/.cache/wallpaper_state"
+INDEX_FILE="$HOME/.cache/wallpaper_index"
+MARKER_FILE="$HOME/.cache/gnome-wallpaper_marker"
 
-# Colores para output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
-# Modo plano: quitar códigos ANSI (checkCommand limpio)
-if [[ "$PLANO" == "1" ]]; then
-  RED=''; GREEN=''; YELLOW=''; BLUE=''; NC=''
-fi
-
-# Registro de ejecuciones (--log): marca de tiempo + texto
+# Run log (--log): timestamp + text
 log_line() {
   [[ -n "$LOG" ]] || return 0
   printf '%s\t%s\n' "$(date +%s.%N)" "$*" >>"$LOG" || true
 }
 
-# Función: mostrar ayuda
-mostrar_ayuda() {
+# Show help
+show_help() {
   cat <<EOF
-${BLUE}=== Script de Wallpaper para GNOME ===${NC}
+=== GNOME Wallpaper Script ===
 
-${GREEN}Uso:${NC}
-    $0 [--plano] [--log ARCHIVO] [--exit N] [DIRECTORIO] [MODO] [ORDEN]
+Usage:
+    $0 [--log FILE] [--exit N] [DIRECTORY] [MODE] [ORDER]
 
-${GREEN}Argumentos:${NC}
-    --plano     : Salida sin códigos de color (para checkCommand de toggles)
-    --log FILE  : Registra cada ejecución en FILE (verifica runAtBoot/retardo)
-    --exit N    : Fuerza el código de salida N (para probar checkExitCode)
-    DIRECTORIO  : Ruta del directorio con imágenes (default: directorio actual)
-    MODO        : random | alfabetico | fecha | siguiente | anterior | estado | actual | marcador (default: random)
-    ORDEN       : asc | desc (default: asc) - solo para alfabetico y fecha; subcomando on|off|estado para marcador
+Arguments:
+    --log FILE  : Logs every run to FILE (checks runAtBoot/delay)
+    --exit N    : Forces the exit code N (for testing checkExitCode)
+    DIRECTORY   : Path to the directory with images (default: current directory)
+    MODE        : random | alphabetical | date | next | previous | status | current | marker (default: random)
+    ORDER       : asc | desc (default: asc) - only for alphabetical and date; subcommand on|off|status for marker
 
-${GREEN}Nota (modo marcador):${NC}
-    La posición DIRECTORIO es un placeholder (no se usa ni se valida): $0 . marcador on
+Note (marker mode):
+    The DIRECTORY position is a placeholder (not used or validated): $0 . marker on
 
-${GREEN}Ejemplos:${NC}
-    $0 ~/Imágenes random              # Modo aleatorio sin repetir
-    $0 ~/Imágenes alfabetico asc      # Alfabéticamente ascendente
-    $0 ~/Imágenes fecha desc          # Por fecha descendente
-    $0 --plano ~/Imágenes actual      # Nombre del wallpaper actual (plano)
-    $0 . marcador on                  # Estado determinista: on (DIR no se usa)
-    $0 --plano . marcador estado      # Lee el estado (plano, exit 0)
+Examples:
+    $0 ~/Images random              # Random mode without repeats
+    $0 ~/Images alphabetical asc    # Ascending alphabetical
+    $0 ~/Images date desc           # By modification date, descending
+    $0 ~/Images current             # Name of the current wallpaper (plain)
+    $0 . marker on                  # Deterministic state: on (DIR not used)
+    $0 . marker status              # Read the state (plain, exit 0)
 
-${GREEN}Modos:${NC}
-    ${YELLOW}random${NC}      : Imagen aleatoria sin repetir hasta recorrer todas
-    ${YELLOW}alfabetico${NC}  : Orden alfabético de rutas
-    ${YELLOW}fecha${NC}       : Orden por fecha de modificación
-    ${YELLOW}siguiente${NC}   : Siguiente imagen de la lista guardada
-    ${YELLOW}anterior${NC}    : Imagen anterior de la lista guardada
-    ${YELLOW}estado${NC}      : Muestra el estado de la lista guardada
-    ${YELLOW}actual${NC}      : Nombre del wallpaper actual (salida plana)
-    ${YELLOW}marcador${NC}    : Estado 'on'|'off' en ~/.cache/gnome-wallpaper_marcador
+Modes:
+    random      : Picks a random image from the directory on each run
+    alphabetical: Order by path alphabetically
+    date        : Order by modification date
+    next        : Next image in the saved list
+    previous    : Previous image in the saved list
+    status      : Show the state of the saved list
+    current     : Name of the current wallpaper (plain output)
+    marker      : State 'on'|'off' in ~/.cache/gnome-wallpaper_marker
 
-${GREEN}Orden (para alfabetico y fecha):${NC}
-    ${YELLOW}asc${NC}         : Ascendente
-    ${YELLOW}desc${NC}        : Descendente
+Order (for alphabetical and date):
+    asc         : Ascending
+    desc        : Descending
 
-${GREEN}Dependencias:${NC}
-    - gsettings (incluido en GNOME)
+Dependencies:
+    - gsettings (included in GNOME)
     - find
     - sort
 
 EOF
 }
 
-# Función: validar directorio
-validar_directorio() {
-  if [[ ! -d "$DIRECTORIO" ]]; then
-    echo -e "${RED}Error: El directorio '$DIRECTORIO' no existe${NC}" >&2
+# Validate directory
+validate_directory() {
+  if [[ ! -d "$DIRECTORY" ]]; then
+    echo "Error: directory '$DIRECTORY' does not exist" >&2
     exit 1
   fi
 }
 
-# Función: obtener lista de imágenes
-obtener_imagenes() {
-  local formato="$1"
-  local orden="$2"
+# Get list of images
+get_images() {
+  local format="$1"
+  local order="$2"
 
-  # Encontrar archivos de imagen (recursivamente)
-  # Soporta: jpg, jpeg, png, bmp, gif, webp
-  local archivos
-  archivos=$(find "$DIRECTORIO" -type f \( \
+  # Find image files (recursively)
+  # Supports: jpg, jpeg, png, bmp, gif, webp
+  local files
+  files=$(find "$DIRECTORY" -type f \( \
     -iname "*.jpg" -o \
     -iname "*.jpeg" -o \
     -iname "*.png" -o \
@@ -119,255 +107,229 @@ obtener_imagenes() {
     -iname "*.webp" \
     \))
 
-  if [[ -z "$archivos" ]]; then
-    echo -e "${RED}Error: No se encontraron imágenes en '$DIRECTORIO'${NC}" >&2
+  if [[ -z "$files" ]]; then
+    echo "Error: no images found in '$DIRECTORY'" >&2
     exit 1
   fi
 
-  # Ordenar según el formato
-  case "$formato" in
-  alfabetico)
-    if [[ "$orden" == "desc" ]]; then
-      echo "$archivos" | sort -r
+  # Sort according to the format
+  case "$format" in
+  alphabetical)
+    if [[ "$order" == "desc" ]]; then
+      echo "$files" | sort -r
     else
-      echo "$archivos" | sort
+      echo "$files" | sort
     fi
     ;;
-  fecha)
-    if [[ "$orden" == "desc" ]]; then
-      echo "$archivos" | xargs -I {} stat --printf='%Y %n\n' {} | sort -rn | awk '{$1=""; print $0}' | sed 's/^ //'
+  date)
+    if [[ "$order" == "desc" ]]; then
+      echo "$files" | xargs -I {} stat --printf='%Y %n\n' {} | sort -rn | awk '{$1=""; print $0}' | sed 's/^ //'
     else
-      echo "$archivos" | xargs -I {} stat --printf='%Y %n\n' {} | sort -n | awk '{$1=""; print $0}' | sed 's/^ //'
+      echo "$files" | xargs -I {} stat --printf='%Y %n\n' {} | sort -n | awk '{$1=""; print $0}' | sed 's/^ //'
     fi
     ;;
   random)
-    echo "$archivos" | shuf
+    echo "$files" | shuf
     ;;
   esac
 }
 
-# Función: establecer wallpaper
-establecer_wallpaper() {
-  local imagen="$1"
-  local ruta_absoluta
+# Set wallpaper
+set_wallpaper() {
+  local image="$1"
+  local abs_path
 
-  # Convertir a ruta absoluta
-  ruta_absoluta=$(cd "$(dirname "$imagen")" && pwd)/$(basename "$imagen")
+  # Convert to absolute path
+  abs_path=$(cd "$(dirname "$image")" && pwd)/$(basename "$image")
 
-  if [[ ! -f "$ruta_absoluta" ]]; then
-    echo -e "${RED}Error: No se puede acceder a la imagen '$ruta_absoluta'${NC}" >&2
+  if [[ ! -f "$abs_path" ]]; then
+    echo "Error: cannot access image '$abs_path'" >&2
     return 1
   fi
 
-  # Establecer wallpaper usando gsettings
-  gsettings set org.gnome.desktop.background picture-uri "file://$ruta_absoluta"
-  gsettings set org.gnome.desktop.background picture-uri-dark "file://$ruta_absoluta"
-  log_line "wallpaper $(basename "$imagen")"
+  # Set wallpaper using gsettings
+  gsettings set org.gnome.desktop.background picture-uri "file://$abs_path"
+  gsettings set org.gnome.desktop.background picture-uri-dark "file://$abs_path"
+  log_line "wallpaper $(basename "$image")"
 
-  echo -e "${GREEN}✓ Wallpaper establecido:${NC} $(basename "$imagen")"
+  echo "Wallpaper set: $(basename "$image")"
 }
 
-# Función: modo random sin repetición
-modo_random() {
-  local imagenes
-  imagenes=$(obtener_imagenes "random" "asc")
+# Random mode: picks one image at random from the directory on every run.
+# No state needed (repeats are allowed — that is what random means).
+mode_random() {
+  local image
+  image=$(get_images "random" "asc" | head -n 1)
+  set_wallpaper "$image"
+}
 
-  # Crear lista de imágenes si no existe o se reinicia
-  if [[ ! -f "$ARCHIVO_ESTADO" ]] || [[ ! -s "$ARCHIVO_ESTADO" ]]; then
-    echo "$imagenes" >"$ARCHIVO_ESTADO"
-    echo "0" >"$ARCHIVO_INDICE"
-    echo -e "${YELLOW}Reiniciando lista de imágenes...${NC}"
+# Sequential mode (alphabetical or by date)
+mode_sequential() {
+  local format="$1"
+  local order="$2"
+  local images
+
+  images=$(get_images "$format" "$order")
+
+  # Save the sorted list
+  echo "$images" >"$STATE_FILE"
+
+  # Get the first image
+  local image
+  image=$(head -n 1 "$STATE_FILE")
+
+  # Reset index
+  echo "1" >"$INDEX_FILE"
+
+  # Set wallpaper
+  set_wallpaper "$image"
+}
+
+# Next in sequence
+next_sequential() {
+  local index
+  index=$(cat "$INDEX_FILE" 2>/dev/null || echo "1")
+
+  local image
+  image=$(sed -n "$((index + 1))p" "$STATE_FILE")
+
+  if [[ -z "$image" ]]; then
+    echo "End of list. Restarting..."
+    index=0
+    image=$(head -n 1 "$STATE_FILE")
   fi
 
-  # Leer índice actual
-  local indice
-  indice=$(cat "$ARCHIVO_INDICE" 2>/dev/null || echo "0")
+  echo "$((index + 1))" >"$INDEX_FILE"
+  set_wallpaper "$image"
+}
 
-  # Obtener la siguiente imagen
-  local imagen
-  imagen=$(sed -n "$((indice + 1))p" "$ARCHIVO_ESTADO")
+# Previous in sequence
+previous_sequential() {
+  local index
+  index=$(cat "$INDEX_FILE" 2>/dev/null || echo "1")
 
-  if [[ -z "$imagen" ]]; then
-    # Reiniciar desde el principio
-    indice=0
-    imagen=$(sed -n "1p" "$ARCHIVO_ESTADO")
-    echo -e "${YELLOW}Reiniciando ciclo de imágenes...${NC}"
+  local image
+  image=$(sed -n "$((index - 1))p" "$STATE_FILE")
+
+  if [[ -z "$image" ]]; then
+    echo "End of list. Restarting..."
+    index=0
+    image=$(head -n 1 "$STATE_FILE")
   fi
 
-  # Incrementar índice
-  echo "$((indice + 1))" >"$ARCHIVO_INDICE"
-
-  # Establecer wallpaper
-  establecer_wallpaper "$imagen"
+  echo "$((index - 1))" >"$INDEX_FILE"
+  set_wallpaper "$image"
 }
 
-# Función: modo secuencial (alfabético o por fecha)
-modo_secuencial() {
-  local formato="$1"
-  local orden="$2"
-  local imagenes
-
-  imagenes=$(obtener_imagenes "$formato" "$orden")
-
-  # Guardar lista ordenada
-  echo "$imagenes" >"$ARCHIVO_ESTADO"
-
-  # Obtener primera imagen
-  local imagen
-  imagen=$(head -n 1 "$ARCHIVO_ESTADO")
-
-  # Reiniciar índice
-  echo "1" >"$ARCHIVO_INDICE"
-
-  # Establecer wallpaper
-  establecer_wallpaper "$imagen"
-}
-
-# Función: siguiente en secuencia
-siguiente_secuencial() {
-  local indice
-  indice=$(cat "$ARCHIVO_INDICE" 2>/dev/null || echo "1")
-
-  local imagen
-  imagen=$(sed -n "$((indice + 1))p" "$ARCHIVO_ESTADO")
-
-  if [[ -z "$imagen" ]]; then
-    echo -e "${YELLOW}Fin de la lista. Reiniciando...${NC}"
-    indice=0
-    imagen=$(head -n 1 "$ARCHIVO_ESTADO")
-  fi
-
-  echo "$((indice + 1))" >"$ARCHIVO_INDICE"
-  establecer_wallpaper "$imagen"
-}
-
-# Función: anterior en secuencia
-anterior_secuencial() {
-  local indice
-  indice=$(cat "$ARCHIVO_INDICE" 2>/dev/null || echo "1")
-
-  local imagen
-  imagen=$(sed -n "$((indice - 1))p" "$ARCHIVO_ESTADO")
-
-  if [[ -z "$imagen" ]]; then
-    echo -e "${YELLOW}Fin de la lista. Reiniciando...${NC}"
-    indice=0
-    imagen=$(head -n 1 "$ARCHIVO_ESTADO")
-  fi
-
-  echo "$((indice - 1))" >"$ARCHIVO_INDICE"
-  establecer_wallpaper "$imagen"
-}
-
-# Función: mostrar estado
-mostrar_estado() {
-  if [[ -f "$ARCHIVO_ESTADO" ]] && [[ -s "$ARCHIVO_ESTADO" ]]; then
+# Show state
+show_state() {
+  if [[ -f "$STATE_FILE" ]] && [[ -s "$STATE_FILE" ]]; then
     local total
-    total=$(wc -l <"$ARCHIVO_ESTADO")
-    local indice
-    indice=$(cat "$ARCHIVO_INDICE" 2>/dev/null || echo "0")
-    local actual
-    actual=$(sed -n "$((indice))p" "$ARCHIVO_ESTADO")
+    total=$(wc -l <"$STATE_FILE")
+    local index
+    index=$(cat "$INDEX_FILE" 2>/dev/null || echo "0")
+    local current
+    current=$(sed -n "$((index))p" "$STATE_FILE")
 
-    echo -e "${BLUE}Estado actual:${NC}"
-    echo "  Modo: $MODO"
-    echo "  Imagen: $((indice))/$total"
-    echo "  Archivo: $(basename "$actual")"
+    echo "Current state:"
+    echo "  Mode: $MODE"
+    echo "  Image: $((index))/$total"
+    echo "  File: $(basename "$current")"
   else
-    echo -e "${YELLOW}No hay estado guardado${NC}"
+    echo "No saved state"
   fi
 }
 
-# Función: nombre del wallpaper actual (salida plana, para checkCommand).
-# No requiere directorio válido ni modifica nada.
-modo_actual() {
+# Name of the current wallpaper (plain output, for checkCommand).
+# Does not require a valid directory and modifies nothing.
+mode_current() {
   local uri
   uri=$(gsettings get org.gnome.desktop.background picture-uri-dark 2>/dev/null || true)
   if [[ -z "$uri" ]] || [[ "$uri" == "''" ]]; then
     uri=$(gsettings get org.gnome.desktop.background picture-uri 2>/dev/null || true)
   fi
-  # gsettings devuelve comillas simples: 'file:///ruta/imagen.jpg'
+  # gsettings returns single-quoted values: 'file:///path/image.jpg'
   uri="${uri//\'/}"
   uri="${uri//\"/}"
   uri="${uri#file://}"
   local base
   base=$(basename "$uri" 2>/dev/null || true)
   if [[ -z "$base" ]] || [[ "$base" == "." ]] || [[ "$base" == "/" ]]; then
-    echo "ninguno"
+    echo "none"
   else
     echo "$base"
   fi
   exit 0
 }
 
-# Función: máquina de estados determinista (para checkCommand/checkRegex).
-#   marcador on|off  : escribe el estado en ARCHIVO_MARCADOR
-#   marcador estado  : imprime 'on'|'off' plano (exit 0)
-# No requiere directorio válido ni modifica el wallpaper.
-modo_marcador() {
-  case "$ORDEN" in
+# Deterministic state machine (for checkCommand/checkRegex).
+#   marker on|off  : writes the state to MARKER_FILE
+#   marker status  : prints 'on'|'off' (plain, exit 0)
+# Does not require a valid directory and does not change the wallpaper.
+mode_marker() {
+  case "$ORDER" in
     on)
-      echo "on" >"$ARCHIVO_MARCADOR"
-      log_line "marcador on"
-      echo -e "${GREEN}Marcador: on${NC}"
+      echo "on" >"$MARKER_FILE"
+      log_line "marker on"
+      echo "Marker: on"
       ;;
     off)
-      echo "off" >"$ARCHIVO_MARCADOR"
-      log_line "marcador off"
-      echo -e "${GREEN}Marcador: off${NC}"
+      echo "off" >"$MARKER_FILE"
+      log_line "marker off"
+      echo "Marker: off"
       ;;
     *)
-      cat "$ARCHIVO_MARCADOR" 2>/dev/null || echo "off"
+      cat "$MARKER_FILE" 2>/dev/null || echo "off"
       ;;
   esac
   exit 0
 }
 
-# Validaciones iniciales
-if [[ "$DIRECTORIO" == "-h" ]] || [[ "$DIRECTORIO" == "--help" ]]; then
-  mostrar_ayuda
+# Initial validations
+if [[ "$DIRECTORY" == "-h" ]] || [[ "$DIRECTORY" == "--help" ]]; then
+  show_help
   exit 0
 fi
 
-# Modos que solo consultan (no requieren directorio válido)
-if [[ "$MODO" != "estado" && "$MODO" != "actual" && "$MODO" != "marcador" ]]; then
-  validar_directorio
+# Modes that only query (do not require a valid directory)
+if [[ "$MODE" != "status" && "$MODE" != "current" && "$MODE" != "marker" ]]; then
+  validate_directory
 fi
 
-# Procesar según modo
-case "$MODO" in
+# Process according to mode
+case "$MODE" in
 random)
-  modo_random
+  mode_random
   ;;
-alfabetico)
-  modo_secuencial "alfabetico" "$ORDEN"
+alphabetical)
+  mode_sequential "alphabetical" "$ORDER"
   ;;
-fecha)
-  modo_secuencial "fecha" "$ORDEN"
+date)
+  mode_sequential "date" "$ORDER"
   ;;
-siguiente)
-  siguiente_secuencial
+next)
+  next_sequential
   ;;
-anterior)
-  anterior_secuencial
+previous)
+  previous_sequential
   ;;
-estado)
-  mostrar_estado
+status)
+  show_state
   ;;
-actual)
-  modo_actual
+current)
+  mode_current
   ;;
-marcador)
-  modo_marcador
+marker)
+  mode_marker
   ;;
 *)
-  echo -e "${RED}Error: Modo desconocido '$MODO'${NC}" >&2
-  echo "Modos válidos: random, alfabetico, fecha, siguiente, anterior, estado, actual, marcador"
+  echo "Error: unknown mode '$MODE'" >&2
+  echo "Valid modes: random, alphabetical, date, next, previous, status, current, marker"
   exit 1
   ;;
 esac
 
-# Forzar código de salida (--exit) para probar checkExitCode
+# Force exit code (--exit) for testing checkExitCode
 if [[ -n "$EXIT_CODE" ]]; then
   exit "$EXIT_CODE"
 fi

@@ -1,0 +1,238 @@
+#!/usr/bin/env bash
+# caffeine-script  —  Custom toggle helper for LIDSoL's Widgets (no-suspend)
+#
+# Prevents the system from suspending by holding a systemd session inhibitor
+# (the same idea as the Caffeine extension, from outside GNOME Shell). The
+# inhibitor is owned by a transient systemd user unit ("caffeine-script"):
+#   - "on" runs `systemd-inhibit … sleep infinity` until it is stopped.
+#   - "<minutes>" additionally schedules a transient timer unit that stops the
+#     service after N minutes — no bounded `sleep` is ever involved, so the
+#     timer cannot be cut short.
+# "off" stops both units; "status" asks systemd whether the unit is active.
+#
+# USAGE:
+#   ./caffeine-script status         → stdout "active (N min left)" | "inactive",
+#                                      exit 0 when active, 1 when inactive
+#   ./caffeine-script on             → enable no-suspend until "off" (no limit)
+#   ./caffeine-script off            → disable and release the inhibitor
+#   ./caffeine-script <minutes>      → enable for N minutes (any positive
+#                                      integer; 15, 30 and 60 are the presets).
+#                                      If already active, restarts with the
+#                                      new duration.
+#
+# Output is always plain (no ANSI colors), suitable for checkCommand.
+
+set -euo pipefail
+
+SCRIPT_NAME="$(basename "$0")"
+STATE_FILE="$HOME/.cache/caffeine-script.state"
+UNIT="caffeine-script"
+TIMER_UNIT="caffeine-script-timer"
+INHIBIT_WHO="LIDSoL caffeine-script"
+INHIBIT_WHY_BASE="Caffeine: no suspend"
+# Which --what value the local systemd accepts: "sleep" (modern systemd) or
+# the legacy "suspend". Resolved at first activation; empty until then.
+INHIBIT_WHAT=""
+
+usage() {
+    local code="${1:-1}"
+    cat <<EOF
+Usage: $SCRIPT_NAME {status|on|off|<minutes>}
+
+  status      Checks whether the no-suspend inhibitor is active
+              stdout: 'active (N min left)' (exit 0) | 'inactive' (exit 1)
+  on          Enables no-suspend until "off" deactivates it (no time limit)
+  off         Disables: releases the inhibitor and clears the saved state
+  <minutes>   Enables for N minutes (any positive integer; 15, 30 and 60 are
+              the documented presets). If already active, restarts with the
+              new duration
+  --help      Shows this help
+
+The inhibitor lives in a transient systemd user unit ("caffeine-script");
+a finite duration is enforced by a transient timer unit
+("caffeine-script-timer") that stops the service after N minutes.
+EOF
+    exit "$code"
+}
+
+# Remove the saved display state.
+clear_state() {
+    rm -f "$STATE_FILE"
+}
+
+# Stop both transient units if they exist (idempotent). Full unit names are
+# used because systemctl resolves a bare name to "<name>.service", which
+# would never stop the pending timer.
+stop_units() {
+    systemctl --user stop "$UNIT" 2>/dev/null || true
+    systemctl --user stop "${TIMER_UNIT}.timer" 2>/dev/null || true
+    systemctl --user stop "${TIMER_UNIT}.service" 2>/dev/null || true
+}
+
+# Resolve which --what value this systemd accepts: "sleep" on modern builds,
+# the legacy "suspend" on older ones.
+resolve_inhibit_what() {
+    if [[ -n "$INHIBIT_WHAT" ]]; then
+        return 0
+    fi
+    INHIBIT_WHAT="sleep"
+    systemd-inhibit --what="$INHIBIT_WHAT" --mode=block \
+        --who="$INHIBIT_WHO" --why="probe" \
+        true >/dev/null 2>&1 || INHIBIT_WHAT="suspend"
+}
+
+# Is our inhibitor currently registered with logind?
+is_inhibited() {
+    systemd-inhibit --list 2>/dev/null | grep -q "$INHIBIT_WHO"
+}
+
+# Start the no-suspend service. DURATION is "inf" (no limit) or a number of
+# minutes, in which case a transient timer stops the service when it expires.
+start_inhibitor() {
+    local duration="$1"
+
+    command -v systemd-inhibit >/dev/null 2>&1 || {
+        echo "error: systemd-inhibit not found" >&2
+        exit 1
+    }
+    command -v systemd-run >/dev/null 2>&1 || {
+        echo "error: systemd-run not found" >&2
+        exit 1
+    }
+    resolve_inhibit_what
+
+    # Stop any previous run — and reset failed leftovers — so the unit names
+    # are free again.
+    stop_units
+    systemctl --user reset-failed "$UNIT" 2>/dev/null || true
+    systemctl --user reset-failed "${TIMER_UNIT}.service" 2>/dev/null || true
+    systemctl --user reset-failed "${TIMER_UNIT}.timer" 2>/dev/null || true
+
+    # The service always runs "sleep infinity"; a finite duration is enforced
+    # by the separate timer, so no bounded sleep can ever die early.
+    if ! systemd-run --user --unit="$UNIT" --collect \
+        systemd-inhibit --what="$INHIBIT_WHAT" --mode=block \
+        --who="$INHIBIT_WHO" \
+        --why="$INHIBIT_WHY_BASE ($duration)" \
+        sleep infinity >/dev/null 2>&1; then
+        echo "error: failed to start the inhibitor unit" >&2
+        exit 1
+    fi
+
+    if [[ "$duration" != "inf" ]]; then
+        if ! systemd-run --user --on-active="${duration}m" \
+            --unit="$TIMER_UNIT" --collect \
+            systemctl --user stop "$UNIT" >/dev/null 2>&1; then
+            systemctl --user stop "$UNIT" 2>/dev/null || true
+            echo "error: failed to schedule the timer" >&2
+            exit 1
+        fi
+    fi
+
+    # Confirm the inhibitor was actually registered with logind.
+    local registered=0 i
+    for i in 1 2 3 4 5; do
+        if is_inhibited; then
+            registered=1
+            break
+        fi
+        sleep 0.2
+    done
+    if (( registered != 1 )); then
+        stop_units
+        clear_state
+        echo "error: inhibitor was not registered" >&2
+        exit 1
+    fi
+
+    # Save display metadata: start epoch + duration (never used for the
+    # active/inactive verdict, only for the "N min left" text).
+    {
+        date +%s
+        echo "$duration"
+    } >"$STATE_FILE"
+
+    if [[ "$duration" == "inf" ]]; then
+        echo "activated: no suspend until deactivated"
+    else
+        echo "activated: no suspend for ${duration} minutes"
+    fi
+}
+
+cmd_status() {
+    local state elapsed remaining minutes started duration
+
+    state=$(systemctl --user is-active "$UNIT" 2>/dev/null || echo "inactive")
+    if [[ "$state" != "active" ]]; then
+        # Unit is gone (stopped, expired, reboot): drop any pending timer and
+        # the saved display state, then report inactive.
+        stop_units
+        clear_state
+        echo "inactive"
+        exit 1
+    fi
+
+    # The unit being active is authoritative: the inhibitor is held. Everything
+    # below only builds the "N min left" display from the saved metadata.
+    if [[ -f "$STATE_FILE" ]]; then
+        started=$(sed -n '1p' "$STATE_FILE")
+        duration=$(sed -n '2p' "$STATE_FILE")
+        if [[ "$duration" == "inf" || -z "$duration" ]]; then
+            echo "active (no limit)"
+            exit 0
+        fi
+        if [[ "$duration" =~ ^[0-9]+$ && "$started" =~ ^[0-9]+$ ]]; then
+            elapsed=$(( $(date +%s) - started ))
+            remaining=$(( duration * 60 - elapsed ))
+            if (( remaining > 0 )); then
+                minutes=$(((remaining + 59) / 60))
+                echo "active (${minutes} min left)"
+            else
+                # Active, but the timer should have fired already (still no
+                # limit claim — the unit may have been replaced externally).
+                echo "active (<1 min left)"
+            fi
+            exit 0
+        fi
+    fi
+    echo "active"
+    exit 0
+}
+
+cmd_on() {
+    start_inhibitor "inf"
+}
+
+cmd_off() {
+    stop_units
+    clear_state
+    echo "deactivated"
+}
+
+cmd_timer() {
+    start_inhibitor "$1"
+}
+
+cmd="${1:-status}"
+case "$cmd" in
+    --help|-h|help)
+        usage 0
+        ;;
+    status)
+        cmd_status
+        ;;
+    on)
+        cmd_on
+        ;;
+    off)
+        cmd_off
+        ;;
+    *)
+        if [[ "$cmd" =~ ^[0-9]+$ ]] && (( cmd > 0 )); then
+            cmd_timer "$cmd"
+        else
+            echo "error: unknown command '$cmd'" >&2
+            usage
+        fi
+        ;;
+esac

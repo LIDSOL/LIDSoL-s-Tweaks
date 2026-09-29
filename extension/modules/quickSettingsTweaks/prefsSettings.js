@@ -531,64 +531,129 @@ function buildEditFormRows(page, item, rootWindow) {
     // ── Opciones del menú ──
     const optsGroup = new Adw.PreferencesGroup({
         title: 'Opciones del menú',
-        description: 'Etiqueta, comando e icono de cada opción del menú.',
+        description: 'Etiqueta, comando e icono de cada opción del menú. Arrastra para reordenar.',
     });
     page.add(optsGroup);
 
     rows.options = [];
+
+    // Cada opción es un ExpanderRow (título = etiqueta, subtítulo = comando)
+    // dentro de un ListBox: el reorden por arrastre así usa get_index() y un
+    // re-append de las mismas instancias (GTK4 ya no tiene ListBox.reorder),
+    // conservando el estado expandido y los textos sin guardar.
+    //
+    // El botón "Añadir opción" vive como primera fila de la misma boxed list:
+    // así el bloque queda visualmente continuo (solo la primera y la última
+    // fila tienen esquinas redondeadas, las internas no). Por eso el índice
+    // de fila en el ListBox es el del array + 1.
+    const optsListBox = new Gtk.ListBox({
+        selection_mode: Gtk.SelectionMode.NONE,
+        show_separators: true,
+    });
+    optsListBox.add_css_class('boxed-list');
+    optsGroup.add(optsListBox);
+
     const addBtnRow = new Adw.ButtonRow({ title: 'Añadir opción' });
     addBtnRow.start_icon_name = 'list-add-symbolic';
-    const moveAddBtnToEnd = () => {
-        try { optsGroup.remove(addBtnRow); } catch (_) {}
-        optsGroup.add(addBtnRow);
-    };
+    optsListBox.append(addBtnRow);
+
     const addOptionRow = (opt = {}) => {
+        // Fila expandible: colapsada muestra la etiqueta (título) y el comando
+        // (subtítulo); expandida muestra Etiqueta / Comando / Icono.
+        const row = new QuickToggleOptionRow();
+        row.set_title(opt.label?.trim() || 'Sin etiqueta');
+        const optionCmd = opt.command?.trim();
+        if (optionCmd)
+            row.set_subtitle(optionCmd);
+
+        // Asa de arrastre para indicar que la fila es draggable.
+        const dragHandle = Gtk.Image.new_from_icon_name('list-drag-handle-symbolic');
+        dragHandle.pixel_size = 14;
+        dragHandle.margin_start = 4;
+        dragHandle.margin_end = 6;
+        dragHandle.opacity = 0.5;
+        row.add_prefix(dragHandle);
+
         // Etiqueta: nombre que se muestra en el menú.
         const labelEntry = new Adw.EntryRow({ title: 'Etiqueta' });
         labelEntry.set_text(opt.label || '');
-        optsGroup.add(labelEntry);
+        labelEntry.connect('notify::text', () => {
+            row.set_title(labelEntry.get_text().trim() || 'Sin etiqueta');
+        });
+        row.add_row(labelEntry);
 
         // Comando: comando a ejecutar al pulsar la opción.
         const cmdEntry = new Adw.EntryRow({ title: 'Comando' });
         cmdEntry.set_text(opt.command || '');
-        optsGroup.add(cmdEntry);
+        cmdEntry.connect('notify::text', () => {
+            row.set_subtitle(cmdEntry.get_text().trim());
+        });
+        row.add_row(cmdEntry);
 
-        // Icono: icono personalizado de la opción + vista previa + trash.
+        // Icono: icono personalizado de la opción + vista previa (el botón de
+        // eliminar vive junto al chevron, en el título de la fila).
         const iconRow = new Adw.EntryRow({ title: 'Icono' });
         iconRow.set_text(opt.icon || '');
         const iconPreview = Gtk.Image.new_from_icon_name(
             opt.icon?.trim() || 'preferences-other-symbolic');
         iconPreview.pixel_size = 20;
         iconPreview.valign = Gtk.Align.CENTER;
-        const delBtn = Gtk.Button.new_from_icon_name('user-trash-symbolic');
-        delBtn.has_frame = false;
-        delBtn.tooltip_text = 'Eliminar opción';
         const suffixBox = new Gtk.Box({ spacing: 6, valign: Gtk.Align.CENTER });
         suffixBox.append(iconPreview);
-        suffixBox.append(delBtn);
         iconRow.add_suffix(suffixBox);
-        optsGroup.add(iconRow);
-
-        const entry = { labelEntry, cmdEntry, iconRow };
-        rows.options.push(entry);
         iconRow.connect('notify::text', () => {
             iconPreview.icon_name =
                 iconRow.get_text().trim() || 'preferences-other-symbolic';
         });
+        row.add_row(iconRow);
+
+        // Botón de eliminar: junto al chevron de expandir/colapsar (título).
+        const delBtn = Gtk.Button.new_from_icon_name('user-trash-symbolic');
+        delBtn.has_frame = false;
+        delBtn.valign = Gtk.Align.CENTER;
+        delBtn.tooltip_text = 'Eliminar opción';
+        row.add_suffix(delBtn);
+
+        const entry = { row, labelEntry, cmdEntry, iconRow };
+        rows.options.push(entry);
+        optsListBox.append(row);
+
         delBtn.connect('clicked', () => {
-            for (const row of [entry.labelEntry, entry.cmdEntry, entry.iconRow]) {
-                try { optsGroup.remove(row); } catch (_) {}
-            }
             const idx = rows.options.indexOf(entry);
             if (idx !== -1) rows.options.splice(idx, 1);
-            moveAddBtnToEnd();
+            optsListBox.remove(row);
         });
-        moveAddBtnToEnd();
+
+        // DnD: la propia fila se puede arrastrar y acepta soltarse encima.
+        _optionAddDragSource(row);
+        _optionAddDropTarget(row, optsListBox, rows, addBtnRow);
     };
     addBtnRow.connect('activated', () => addOptionRow());
     for (const opt of item.options || [])
         addOptionRow(opt);
-    moveAddBtnToEnd();
+
+    // Soltar sobre el área vacía de la lista mueve la opción al final.
+    const optsListDropTarget = new Gtk.DropTarget({
+        actions: Gdk.DragAction.MOVE,
+        formats: Gdk.ContentFormats.new_for_gtype(QuickToggleOptionRow.$gtype),
+    });
+    optsListDropTarget.connect('drop', (_trg, value, _x, _y) => {
+        if (!(value instanceof QuickToggleOptionRow))
+            return false;
+        if (value.get_parent() !== optsListBox)
+            return false;
+        const sourceIndex = value.get_index() - 1; // la fila 0 es el botón
+        const lastIndex = rows.options.length - 1;
+        if (sourceIndex === lastIndex)
+            return false; // ya está al final
+        const [entry] = rows.options.splice(sourceIndex, 1);
+        rows.options.push(entry);
+        _optionRebuildOrder(optsListBox, rows, addBtnRow);
+        return true;
+    });
+    optsListBox.add_controller(optsListDropTarget);
+
+    enableDragAutoScroll(optsListBox);
 
     const startupGroup = new Adw.PreferencesGroup({ title: 'Comportamiento de inicio' });
     page.add(startupGroup);
@@ -834,6 +899,99 @@ function _qtAddListBoxDropTarget(listBox, getList, saveList, rebuild) {
         return true;
     });
     listBox.add_controller(dropTarget);
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  QUICK TOGGLE OPTIONS (formulario de edición)
+//
+// En el diálogo de edición, cada opción del menú es un ExpanderRow
+// (título = etiqueta, subtítulo = comando) dentro de un ListBox, con
+// drag & drop para reordenar (mismo patrón que los toggles). El reorder
+// re-engancha las mismas instancias (remove_all + append) para conservar el
+// estado expandido y los textos sin guardar.
+// ══════════════════════════════════════════════════════════════════
+
+const QuickToggleOptionRow = GObject.registerClass({
+    GTypeName: 'LidSolQuickToggleOptionRow',
+}, class QuickToggleOptionRow extends Adw.ExpanderRow { });
+
+// Fuente de arrastre: al iniciar el drag se empaqueta la propia fila.
+function _optionAddDragSource(row) {
+    const dragSource = new Gtk.DragSource({ actions: Gdk.DragAction.MOVE });
+    dragSource.connect('prepare', (_src, _x, _y) => {
+        const val = new GObject.Value();
+        val.init(QuickToggleOptionRow.$gtype);
+        val.set_object(row);
+        return Gdk.ContentProvider.new_for_value(val);
+    });
+    dragSource.connect('drag-begin', (_src, drag) => {
+        const alloc = row.get_allocation();
+        const ghostBox = new Gtk.ListBox();
+        ghostBox.set_size_request(alloc.width, alloc.height);
+        const ghostRow = new Gtk.ListBoxRow();
+        const ghostLabel = new Gtk.Label({
+            label: row.get_title(),
+            margin_start: 8,
+            margin_end: 8,
+            margin_top: 4,
+            margin_bottom: 4,
+            xalign: 0,
+        });
+        ghostRow.set_child(ghostLabel);
+        ghostBox.append(ghostRow);
+        ghostBox.drag_highlight_row(ghostRow);
+        const dragIcon = Gtk.DragIcon.get_for_drag(drag);
+        if (dragIcon) dragIcon.set_child(ghostBox);
+    });
+    row.add_controller(dragSource);
+}
+
+// Objetivo por fila: insertar la opción arrastrada en la posición destino.
+function _optionAddDropTarget(row, optsListBox, rows, addRowButton) {
+    const dropTarget = new Gtk.DropTarget({
+        actions: Gdk.DragAction.MOVE,
+        formats: Gdk.ContentFormats.new_for_gtype(QuickToggleOptionRow.$gtype),
+    });
+    dropTarget.connect('drop', (_trg, value, _x, _y) => {
+        return _optionHandleDrop(value, row, optsListBox, rows, addRowButton);
+    });
+    row.add_controller(dropTarget);
+}
+
+function _optionHandleDrop(value, targetRow, optsListBox, rows, addRowButton) {
+    if (!(value instanceof QuickToggleOptionRow))
+        return false;
+    if (value === targetRow)
+        return false;
+    if (value.get_parent() !== optsListBox || targetRow.get_parent() !== optsListBox)
+        return false;
+
+    // rows.options se mantiene siempre en el mismo orden que las filas del
+    // ListBox, así que índice de fila == índice del array (no se compara por
+    // identidad de objeto: ya tenemos la referencia de la propia fila). La
+    // fila 0 es el botón "Añadir opción", así que se resta 1.
+    const sourceIndex = value.get_index() - 1;
+    const targetIndex = targetRow.get_index() - 1;
+    if (sourceIndex < 0 || targetIndex < 0)
+        return false;
+
+    const [entry] = rows.options.splice(sourceIndex, 1);
+    rows.options.splice(targetIndex, 0, entry);
+
+    _optionRebuildOrder(optsListBox, rows, addRowButton);
+    return true;
+}
+
+// Re-engancha las mismas instancias de fila en el orden del array.
+// GTK4 ya no tiene Gtk.ListBox.reorder (existía en GTK3), así que el reorder
+// se hace re-append manual. Al reusar los widgets se conserva el estado
+// expandido y los textos sin guardar de las entradas. El botón "Añadir
+// opción" se vuelve a enganchar primero (primera fila de la boxed list).
+function _optionRebuildOrder(optsListBox, rows, addRowButton) {
+    optsListBox.remove_all();
+    optsListBox.append(addRowButton);
+    for (const e of rows.options)
+        optsListBox.append(e.row);
 }
 
 // ══════════════════════════════════════════════════════════════════

@@ -4,6 +4,7 @@ import Adw from 'gi://Adw';
 import Gtk from 'gi://Gtk';
 import Gdk from 'gi://Gdk';
 import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
 import Pango from 'gi://Pango';
 
 import { ExtensionPreferences, gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
@@ -303,6 +304,7 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
 
     const switchRows = new Map();
     const playerRows = [];
+    const MPRIS_PREFIX = 'org.mpris.MediaPlayer2.';
 
     const getFilterList = () => {
       try {
@@ -327,6 +329,65 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
       saveFilterList(list);
     };
 
+    // Converts legacy tokens (e.g. "firefox", "io") into stable granular tokens
+    // (full bus name, minus any ".instance_…" part) so the filter is per player
+    // instead of per substring. Tokens that match no live player are kept as-is
+    // (the service still matches them later).
+    const migrateFilterTokens = (list, stableNames) => {
+      const final = [];
+      const pushUnique = (t) => {
+        if (!final.includes(t))
+          final.push(t);
+      };
+      for (const token of list) {
+        if (token.startsWith(MPRIS_PREFIX)) {
+          pushUnique(stableToken(token));
+          continue;
+        }
+        const matches = stableNames.filter(s =>
+          s.toLowerCase().includes(token.toLowerCase())
+        );
+        if (matches.length === 0)
+          pushUnique(token);
+        else
+          for (const s of matches)
+            pushUnique(s);
+      }
+      return final;
+    };
+
+    const busSuffix = (name) =>
+      name.startsWith(MPRIS_PREFIX) ? name.slice(MPRIS_PREFIX.length) : name;
+
+    // Stable filter token for a player: instance-based bus names
+    // (e.g. "org.mpris.MediaPlayer2.firefox.instance_1_110") change per process,
+    // so strip the ".instance_…" part. The service matches by substring, so the
+    // stable token keeps covering every instance.
+    const stableToken = (name) => {
+      const suffix = name.slice(MPRIS_PREFIX.length);
+      const idx = suffix.indexOf('.instance_');
+      return idx >= 0 ? MPRIS_PREFIX + suffix.slice(0, idx) : name;
+    };
+
+    const fetchPlayerIdentity = (connection, busName, onResult) => {
+      connection.call(
+        busName, '/org/mpris/MediaPlayer2',
+        'org.freedesktop.DBus.Properties', 'Get',
+        new GLib.Variant('(ss)', ['org.mpris.MediaPlayer2', 'Identity']),
+        null, Gio.DBusCallFlags.NONE, -1, null,
+        (conn, res) => {
+          let identity = null;
+          try {
+            const rr = conn.call_finish(res);
+            const variant = rr.deep_unpack()[0];
+            if (typeof variant?.deepUnpack() === 'string')
+              identity = variant.deepUnpack();
+          } catch (e) { /* player may have quit between list and fetch */ }
+          onResult(identity);
+        }
+      );
+    };
+
     const rebuildPlayers = () => {
       for (const row of playerRows)
         filterGroup.remove(row);
@@ -342,16 +403,30 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
           try {
             const r = c.call_finish(res);
             const names = r.deep_unpack()[0];
-            const mpris = names.filter(n => n.startsWith('org.mpris.MediaPlayer2.'));
-            const detected = [...new Set(mpris.map(n =>
-              n.replace('org.mpris.MediaPlayer2.', '').split('.')[0]
-            ))];
+            const busNames = names
+              .filter(n => n.startsWith(MPRIS_PREFIX))
+              .sort();
+            const stableNames = [...new Set(busNames.map(stableToken))];
 
-            const filterList = getFilterList();
-            const configured = filterList.filter(name => !detected.includes(name));
-            const all = [...detected, ...configured];
+            // First live bus per stable token (for Identity fetch and display).
+            const liveBusFor = new Map();
+            for (const b of busNames) {
+              const t = stableToken(b);
+              if (!liveBusFor.has(t))
+                liveBusFor.set(t, b);
+            }
 
             const filterActive = s.get_int('player-filter-mode') !== 0;
+
+            // Persist migrated tokens so the stored filter becomes granular
+            // (one stable token per player) instead of substring matches.
+            const migrated = migrateFilterTokens(getFilterList(), stableNames);
+            if (migrated.join(', ') !== s.get_string('player-filter-list'))
+              s.set_string('player-filter-list', migrated.join(', '));
+
+            const detected = new Set(stableNames);
+            const configured = migrated.filter(name => !detected.has(name));
+            const all = [...stableNames, ...configured];
 
             if (all.length === 0) {
               const emptyRow = new Adw.ActionRow({
@@ -365,7 +440,8 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
             }
 
             for (const name of all) {
-              const isDetected = detected.includes(name);
+              const isDetected = detected.has(name);
+              const liveBus = liveBusFor.get(name);
               const sw = new Gtk.Switch({
                 active: isPlayerEnabled(name),
                 valign: Gtk.Align.CENTER,
@@ -376,10 +452,13 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
               });
 
               const row = new Adw.ActionRow({
-                title: name,
-                subtitle: isDetected ? _('Active') : _('Not detected'),
+                title: busSuffix(name),
+                subtitle: isDetected && liveBus
+                  ? busSuffix(liveBus)
+                  : _('Not detected'),
                 activatable: false,
               });
+              row.tooltip_text = name;
               row.add_suffix(sw);
 
               if (!isDetected)
@@ -388,6 +467,13 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
               switchRows.set(name, { row, sw });
               filterGroup.add(row);
               playerRows.push(row);
+
+              if (isDetected && liveBus) {
+                fetchPlayerIdentity(connection, liveBus, identity => {
+                  if (identity)
+                    row.title = identity;
+                });
+              }
             }
           } catch (e) { /* ignore */ }
         }

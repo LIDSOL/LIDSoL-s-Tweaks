@@ -41,6 +41,7 @@ var MprisPlayer = GObject.registerClass({
         this._app = null;
         this._lastPlayingTime = 0;
         this._wasPlaying = false;
+        this._seekedSignalId = undefined;
 
         // Local position tracking (fallback when D-Bus Position unavailable)
         this._lastKnownPosition = 0;
@@ -129,9 +130,12 @@ var MprisPlayer = GObject.registerClass({
                     <method name="Pause" />
                     <method name="Stop" />
                     <method name="SetPosition">
-                        <arg type="s" name="TrackId" direction="in" />
+                        <arg type="o" name="TrackId" direction="in" />
                         <arg type="x" name="Position" direction="in" />
                     </method>
+                    <signal name="Seeked">
+                        <arg type="x" name="Position" />
+                    </signal>
                 </interface>
             </node>`;
         case 'org.mpris.MediaPlayer2':
@@ -395,15 +399,17 @@ var MprisPlayer = GObject.registerClass({
             this
         );
 
-        // Track Seeked signal for position updates
-        this._playerProxy.connectObject(
+        // Track Seeked signal for position updates. D-Bus interface signals are
+        // NOT GObject signals on GDBusProxy, so connectObject('Seeked') always
+        // throws in strict signal trackers (shell 51). connectSignal is the
+        // GDBus API for interface signals and bypasses the strict GObject check.
+        this._seekedSignalId = this._playerProxy.connectSignal(
             'Seeked',
-            (_proxy, position) => {
-                this._lastKnownPosition = position;
+            (_proxy, _sender, [position]) => {
+                this._lastKnownPosition = Number(position);
                 this._positionTimestamp = Date.now();
                 this.emit('changed');
-            },
-            this
+            }
         );
 
         this._update();
@@ -412,8 +418,13 @@ var MprisPlayer = GObject.registerClass({
     _close() {
         if (this._mprisProxy)
             this._mprisProxy.disconnectObject(this);
-        if (this._playerProxy)
+        if (this._playerProxy) {
+            if (this._seekedSignalId !== undefined) {
+                this._playerProxy.disconnectSignal(this._seekedSignalId);
+                this._seekedSignalId = undefined;
+            }
             this._playerProxy.disconnectObject(this);
+        }
         this._mprisProxy = null;
         this._playerProxy = null;
         this._propertiesProxy = null;

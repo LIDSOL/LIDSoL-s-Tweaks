@@ -241,7 +241,7 @@ DEADLINE: <2026-10-05 Mon>
 - [ ] Configurar las opciones predeterminadas.
 - [ ] No se muestran múltiples monitores. 
 *** TODO [#A] 4.4 Date Menu Tweaks [0%]
-DEADLINE: <2026-09-26 Sat>
+DEADLINE: <2026-10-10 Sat>
 - Descripción y objetivo: Basado en el widget [[https://support.google.com/android/answer/14883154][At a Glance]] de los Google Pixel; el texto del /Date Menu/ cambia dinámicamente, muestra contenido multimedia en reproducción, muestra un contrador de notificaciones, etcétera.
 ***** TODO [#C] 4.4.1 Date Menu 
 DEADLINE: <2026-09-26 Sat>
@@ -267,7 +267,7 @@ DEADLINE: <2026-09-26 Sat>
         - Eliminar u omitir la opción "Stack Direction", y que siempre sea horizontal (siempre se desbordan en vertical)
     - [ ] Start Time, Reset Time, Year start date, life span.  
 ***** TODO [#A] 4.4.3 Media Player
-DEADLINE: <2026-09-26 Sat>
+DEADLINE: <2026-10-10 Sat>
 [[./img/aylurs-player.png]]
 - Descripción y objetivo: Información de reproducción multimedia integrada en el Date Menu.
   - Para usar como base, se pueden tomar en cuenta todas las siguientes implementaciones:
@@ -307,9 +307,8 @@ DEADLINE: <2026-10-10 Sat>
 DEADLINE: <2026-10-04 Sun>
 *** DONE 5.1 Multi-idioma
 DEADLINE: <2026-10-03 Sat>
-*** TODO [#A] 5.2 Backend MPRIS
+*** NEXT [#A] 5.2 Backend MPRIS
 DEADLINE: <2026-10-04 Sun>
-- [ ] Mejorar y corrección de bugs del MPRIS
-  - [ ] No todos los reproductores de música son aceptados.
-    
-    
+- [X] Mejorar y corrección de bugs del MPRIS
+  - [X] No todos los reproductores de música son aceptados.
+  - [ ] Agrupar todos los reproductores de una misma fuente con un Expand Row  

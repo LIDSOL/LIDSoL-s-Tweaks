@@ -5,6 +5,7 @@ import Gdk from 'gi://Gdk';
 import Gio from 'gi://Gio';
 import GObject from 'gi://GObject';
 import Gtk from 'gi://Gtk';
+import { gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 export class WorkspaceIndicatorPrefs {
     constructor(settings) {
@@ -18,8 +19,8 @@ export class WorkspaceIndicatorPrefs {
         });
         this._settings.bind('workspace-indicator-enabled', wsSwitch, 'active', Gio.SettingsBindFlags.DEFAULT);
         const enableRow = new Adw.ActionRow({
-            title: 'Habilitar Workspace Indicator',
-            subtitle: 'Reemplaza el indicador nativo de espacios de trabajo',
+            title: _('Enable Workspace Indicator'),
+            subtitle: _('Replaces the native workspace indicator'),
         });
         enableRow.add_suffix(wsSwitch);
         enableRow.activatable_widget = wsSwitch;
@@ -38,69 +39,69 @@ export class WorkspaceIndicatorPrefs {
 
     _addBehaviorGroup(page) {
         const group = new Adw.PreferencesGroup();
-        group.set_title('Comportamiento');
+        group.set_title(_('Behavior'));
 
         this._addCombo(group, {
             key: 'ws-indicator-style',
-            title: 'Estilo del indicador',
+            title: _('Indicator style'),
             options: {
-                'current-workspace': 'Espacio actual',
-                'workspaces-bar': 'Barra de espacios',
+                'current-workspace': _('Current workspace'),
+                'workspaces-bar': _('Workspaces bar'),
             },
         });
 
-        this._addToggle(group, { key: 'ws-always-show-numbers', title: 'Mostrar números siempre' });
-        this._addToggle(group, { key: 'ws-show-empty-workspaces', title: 'Mostrar espacios vacíos' });
-        this._addToggle(group, { key: 'ws-toggle-overview', title: 'Abrir vista general', subtitle: 'Al hacer clic en espacio activo o vacío' });
-        this._addToggle(group, { key: 'ws-show-app-icons', title: 'Mostrar íconos de aplicaciones',
-            subtitle: 'Muestra íconos de ventanas abiertas en cada espacio de trabajo (solo Barra de espacios)' });
-        this._addToggle(group, { key: 'ws-middle-click-close', title: 'Cerrar ventana con clic central' });
+        this._addToggle(group, { key: 'ws-always-show-numbers', title: _('Always show numbers') });
+        this._addToggle(group, { key: 'ws-show-empty-workspaces', title: _('Show empty workspaces') });
+        this._addToggle(group, { key: 'ws-toggle-overview', title: _('Open overview'), subtitle: _('When clicking the active or empty workspace') });
+        this._addToggle(group, { key: 'ws-show-app-icons', title: _('Show app icons'),
+            subtitle: _('Shows icons of open windows in each workspace (workspaces bar only)') });
+        this._addToggle(group, { key: 'ws-middle-click-close', title: _('Close window with middle click') });
 
         this._addNativeIndicatorToggle(group);
 
         this._addCombo(group, {
             key: 'ws-scroll-wheel',
-            title: 'Rueda del ratón',
-            options: { panel: 'Sobre el panel', 'workspaces-bar': 'Sobre el indicador', disabled: 'Desactivado' },
+            title: _('Mouse wheel'),
+            options: { panel: _('Over the panel'), 'workspaces-bar': _('Over the indicator'), disabled: _('Disabled') },
         });
-        this._addToggle(group, { key: 'ws-scroll-wheel-debounce', title: 'Debounce', subtitle: 'Evita que un giro rápido de la rueda "salte" varios espacios a la vez (o que un scroll accidental cambie de espacio muchas veces)' });
-        this._addSpinButton(group, { key: 'ws-scroll-wheel-debounce-time', title: 'Tiempo de debounce (ms)', lower: 0, upper: 2000, step: 50 });
+        this._addToggle(group, { key: 'ws-scroll-wheel-debounce', title: _('Debounce'), subtitle: _('Prevents a fast wheel spin from "jumping" several workspaces at once (or an accidental scroll from changing many workspaces)') });
+        this._addSpinButton(group, { key: 'ws-scroll-wheel-debounce-time', title: _('Debounce time (ms)'), lower: 0, upper: 2000, step: 50 });
         this._addCombo(group, {
             key: 'ws-scroll-wheel-vertical',
-            title: 'Scroll vertical',
-            options: { normal: 'Normal', inverted: 'Invertido', disabled: 'Desactivado' },
+            title: _('Vertical scroll'),
+            options: { normal: _('Normal'), inverted: _('Inverted'), disabled: _('Disabled') },
         });
         this._addCombo(group, {
             key: 'ws-scroll-wheel-horizontal',
-            title: 'Scroll horizontal',
-            options: { normal: 'Normal', inverted: 'Invertido', disabled: 'Desactivado' },
+            title: _('Horizontal scroll'),
+            options: { normal: _('Normal'), inverted: _('Inverted'), disabled: _('Disabled') },
         });
-        this._addToggle(group, { key: 'ws-scroll-wheel-wrap-around', title: 'Wrap around' });
+        this._addToggle(group, { key: 'ws-scroll-wheel-wrap-around', title: _('Wrap around') });
 
         // Custom labels
-        this._addToggle(group, { key: 'ws-enable-custom-label', title: 'Usar etiquetas personalizadas' });
-        this._addToggle(group, { key: 'ws-enable-custom-label-in-menu', title: 'Etiquetas personalizadas en menú' });
-        this._addTextEntry(group, { key: 'ws-custom-label-named', title: 'Etiqueta para espacios con nombre' });
-        this._addTextEntry(group, { key: 'ws-custom-label-unnamed', title: 'Etiqueta para espacios sin nombre' });
+        this._addToggle(group, { key: 'ws-enable-custom-label', title: _('Use custom labels') });
+        this._addToggle(group, { key: 'ws-enable-custom-label-in-menu', title: _('Custom labels in menu') });
+        this._addTextEntry(group, { key: 'ws-custom-label-named', title: _('Label for named workspaces') });
+        this._addTextEntry(group, { key: 'ws-custom-label-unnamed', title: _('Label for unnamed workspaces') });
 
         page.add(group);
 
         // Smart workspace names
         const smartGroup = new Adw.PreferencesGroup();
-        smartGroup.set_title('Nombres inteligentes');
-        smartGroup.set_description('Recuerda aplicaciones abiertas al renombrar un espacio y asigna nombres automáticamente.');
-        this._addToggle(smartGroup, { key: 'ws-smart-workspace-names', title: 'Activar nombres inteligentes' });
-        this._addToggle(smartGroup, { key: 'ws-reevaluate-smart-workspace-names', title: 'Reevaluar nombres' });
+        smartGroup.set_title(_('Smart names'));
+        smartGroup.set_description(_('Remembers open apps when renaming a workspace and assigns names automatically.'));
+        this._addToggle(smartGroup, { key: 'ws-smart-workspace-names', title: _('Enable smart names') });
+        this._addToggle(smartGroup, { key: 'ws-reevaluate-smart-workspace-names', title: _('Re-evaluate names') });
         page.add(smartGroup);
     }
 
-    // "Conservar indicador nativo": mirrored onto Top Bar Organizer's own
+    // "Keep native indicator": mirrored onto Top Bar Organizer's own
     // mechanism (tbo-hide/tbo-show) for the `activities` role, so both switches
     // behave as one. Disabled unless Top Bar Organizer (tbo-enabled) is on.
     _addNativeIndicatorToggle(group) {
         const row = new Adw.ActionRow({
-            title: 'Conservar indicador nativo',
-            subtitle: 'Mantiene visible el botón Actividades del sistema (gestionado por Top Bar Organizer)',
+            title: _('Keep native indicator'),
+            subtitle: _('Keeps the system Activities button visible (managed by Top Bar Organizer)'),
         });
         group.add(row);
 
@@ -160,39 +161,39 @@ export class WorkspaceIndicatorPrefs {
 
     _addAppearanceGroup(page) {
         const group = new Adw.PreferencesGroup();
-        group.set_title('Apariencia');
-        this._addSpinButton(group, { key: 'ws-workspaces-bar-padding', title: 'Padding de la barra', lower: 0, upper: 255 });
-        this._addSpinButton(group, { key: 'ws-workspace-margin', title: 'Margen entre espacios', lower: 0, upper: 255 });
-        this._addSpinButton(group, { key: 'ws-workspace-name-icons-spacing', title: 'Espacio nombre/íconos', subtitle: 'Separa el nombre del workspace de sus íconos', lower: 0, upper: 255 });
+        group.set_title(_('Appearance'));
+        this._addSpinButton(group, { key: 'ws-workspaces-bar-padding', title: _('Bar padding'), lower: 0, upper: 255 });
+        this._addSpinButton(group, { key: 'ws-workspace-margin', title: _('Margin between workspaces'), lower: 0, upper: 255 });
+        this._addSpinButton(group, { key: 'ws-workspace-name-icons-spacing', title: _('Name/icons spacing'), subtitle: _('Separates the workspace name from its icons'), lower: 0, upper: 255 });
 
         this._addCombo(group, {
             key: 'ws-icon-size-mode',
-            title: 'Tamaño de íconos',
-            subtitle: 'Controla el tamaño de los íconos y de la fuente',
-            options: { small: 'Pequeño (16px)', medium: 'Mediano (20px)', large: 'Grande (26px)' },
+            title: _('Icon size'),
+            subtitle: _('Controls the size of icons and font'),
+            options: { small: _('Small (16px)'), medium: _('Medium (20px)'), large: _('Large (26px)') },
         });
 
-        this._addToggle(group, { key: 'ws-dim-inactive-icons', title: 'Reducir opacidad de íconos inactivos',
-            subtitle: 'Muestra todos los íconos excepto el enfocado con opacidad reducida' });
-        this._addToggle(group, { key: 'ws-desaturate-inactive-icons', title: 'Desaturar íconos inactivos',
-            subtitle: 'Muestra todos los íconos excepto el enfocado en escala de grises' });
+        this._addToggle(group, { key: 'ws-dim-inactive-icons', title: _('Dim inactive icons'),
+            subtitle: _('Shows all icons except the focused one with reduced opacity') });
+        this._addToggle(group, { key: 'ws-desaturate-inactive-icons', title: _('Desaturate inactive icons'),
+            subtitle: _('Shows all icons except the focused one in grayscale') });
 
-        this._addToggle(group, { key: 'ws-focus-scale-effect', title: 'Efecto de escala de enfoque',
-            subtitle: 'Reduce ligeramente los íconos de apps no enfocadas con transición suave' });
-        this._addSpinButton(group, { key: 'ws-focus-scale-reduction', title: 'Cantidad de reducción',
-            subtitle: 'Porcentaje por el cual se reducen los íconos no enfocados', lower: 5, upper: 40 });
+        this._addToggle(group, { key: 'ws-focus-scale-effect', title: _('Focus scale effect'),
+            subtitle: _('Slightly reduces the icons of unfocused apps with a smooth transition') });
+        this._addSpinButton(group, { key: 'ws-focus-scale-reduction', title: _('Reduction amount'),
+            subtitle: _('Percentage by which unfocused icons are reduced'), lower: 5, upper: 40 });
 
-        this._addToggle(group, { key: 'ws-enable-animations', title: 'Habilitar animaciones de íconos',
-            subtitle: 'Anima suavemente aperturas, cierres, movimientos, creaciones y reordenamientos. Desactivar para actualizaciones instantáneas.' });
+        this._addToggle(group, { key: 'ws-enable-animations', title: _('Enable icon animations'),
+            subtitle: _('Smoothly animates openings, closings, movements, creations and reorderings. Disable for instant updates.') });
 
         this._addCombo(group, {
             key: 'ws-transition-animation',
-            title: 'Animación de transición',
+            title: _('Transition animation'),
             options: {
-                fade: 'Desvanecer',
-                'soft-pulse': 'Latido',
-                'soft-slide': 'Deslizar + fundido',
-                none: 'Ninguna',
+                fade: _('Fade'),
+                'soft-pulse': _('Pulse'),
+                'soft-slide': _('Slide + fade'),
+                none: _('None'),
             },
         });
 
@@ -200,11 +201,11 @@ export class WorkspaceIndicatorPrefs {
 
         // Active workspace
         const activeGroup = new Adw.PreferencesGroup();
-        activeGroup.set_title('Espacio activo');
+        activeGroup.set_title(_('Active workspace'));
 
         const accentRow = new Adw.ActionRow({
-            title: 'Usar color de acento de GNOME',
-            subtitle: 'El borde usa el color de acento del sistema; el fondo, un tono oscuro derivado de ese color. Texto siempre #F6F5F4.',
+            title: _('Use GNOME accent color'),
+            subtitle: _('The border uses the system accent color; the background, a dark tone derived from that color. Text always #F6F5F4.'),
         });
         const accentSwitch = new Gtk.Switch({
             active: this._settings.get_boolean('ws-use-accent-color'),
@@ -215,9 +216,9 @@ export class WorkspaceIndicatorPrefs {
         accentRow.activatable_widget = accentSwitch;
         activeGroup.add(accentRow);
 
-        const bgColorRow = this._addColorButton(activeGroup, { key: 'ws-active-workspace-background-color', title: 'Color de fondo' });
-        const textColorRow = this._addColorButton(activeGroup, { key: 'ws-active-workspace-text-color', title: 'Color de texto' });
-        const borderColorRow = this._addColorButton(activeGroup, { key: 'ws-active-workspace-border-color', title: 'Color del borde' });
+        const bgColorRow = this._addColorButton(activeGroup, { key: 'ws-active-workspace-background-color', title: _('Background color') });
+        const textColorRow = this._addColorButton(activeGroup, { key: 'ws-active-workspace-text-color', title: _('Text color') });
+        const borderColorRow = this._addColorButton(activeGroup, { key: 'ws-active-workspace-border-color', title: _('Border color') });
 
         const colorRows = [bgColorRow, textColorRow, borderColorRow];
         const updateAccentSensitivity = () => {
@@ -231,66 +232,66 @@ export class WorkspaceIndicatorPrefs {
 
         this._addCombo(activeGroup, {
             key: 'ws-active-workspace-font-weight',
-            title: 'Grosor de fuente',
-            options: { '100': 'Thin', '200': 'Extra Light', '300': 'Light', '400': 'Normal', '500': 'Medium', '600': 'Semi Bold', '700': 'Bold', '800': 'Extra Bold', '900': 'Black' },
+            title: _('Font weight'),
+            options: { '100': _('Thin'), '200': _('Extra Light'), '300': _('Light'), '400': _('Normal'), '500': _('Medium'), '600': _('Semi Bold'), '700': _('Bold'), '800': _('Extra Bold'), '900': _('Black') },
         });
-        this._addSpinButton(activeGroup, { key: 'ws-active-workspace-border-radius', title: 'Radio del borde', lower: 0, upper: 255 });
-        this._addSpinButton(activeGroup, { key: 'ws-active-workspace-border-width', title: 'Ancho del borde', lower: 0, upper: 255 });
-        this._addSpinButton(activeGroup, { key: 'ws-active-workspace-padding-h', title: 'Padding horizontal', lower: 0, upper: 255 });
-        this._addSpinButton(activeGroup, { key: 'ws-active-workspace-padding-v', title: 'Padding vertical', lower: 0, upper: 255 });
+        this._addSpinButton(activeGroup, { key: 'ws-active-workspace-border-radius', title: _('Border radius'), lower: 0, upper: 255 });
+        this._addSpinButton(activeGroup, { key: 'ws-active-workspace-border-width', title: _('Border width'), lower: 0, upper: 255 });
+        this._addSpinButton(activeGroup, { key: 'ws-active-workspace-padding-h', title: _('Horizontal padding'), lower: 0, upper: 255 });
+        this._addSpinButton(activeGroup, { key: 'ws-active-workspace-padding-v', title: _('Vertical padding'), lower: 0, upper: 255 });
         page.add(activeGroup);
 
         // Inactive workspace
         const inactiveGroup = new Adw.PreferencesGroup();
-        inactiveGroup.set_title('Espacio inactivo');
-        this._addColorButton(inactiveGroup, { key: 'ws-inactive-workspace-background-color', title: 'Color de fondo' });
-        this._addColorButton(inactiveGroup, { key: 'ws-inactive-workspace-text-color', title: 'Color de texto' });
-        this._addColorButton(inactiveGroup, { key: 'ws-inactive-workspace-border-color', title: 'Color del borde' });
+        inactiveGroup.set_title(_('Inactive workspace'));
+        this._addColorButton(inactiveGroup, { key: 'ws-inactive-workspace-background-color', title: _('Background color') });
+        this._addColorButton(inactiveGroup, { key: 'ws-inactive-workspace-text-color', title: _('Text color') });
+        this._addColorButton(inactiveGroup, { key: 'ws-inactive-workspace-border-color', title: _('Border color') });
         this._addCombo(inactiveGroup, {
             key: 'ws-inactive-workspace-font-weight',
-            title: 'Grosor de fuente',
-            options: { '100': 'Thin', '200': 'Extra Light', '300': 'Light', '400': 'Normal', '500': 'Medium', '600': 'Semi Bold', '700': 'Bold', '800': 'Extra Bold', '900': 'Black' },
+            title: _('Font weight'),
+            options: { '100': _('Thin'), '200': _('Extra Light'), '300': _('Light'), '400': _('Normal'), '500': _('Medium'), '600': _('Semi Bold'), '700': _('Bold'), '800': _('Extra Bold'), '900': _('Black') },
         });
-        this._addSpinButton(inactiveGroup, { key: 'ws-inactive-workspace-border-radius', title: 'Radio del borde', lower: 0, upper: 255 });
-        this._addSpinButton(inactiveGroup, { key: 'ws-inactive-workspace-border-width', title: 'Ancho del borde', lower: 0, upper: 255 });
-        this._addSpinButton(inactiveGroup, { key: 'ws-inactive-workspace-padding-h', title: 'Padding horizontal', lower: 0, upper: 255 });
-        this._addSpinButton(inactiveGroup, { key: 'ws-inactive-workspace-padding-v', title: 'Padding vertical', lower: 0, upper: 255 });
+        this._addSpinButton(inactiveGroup, { key: 'ws-inactive-workspace-border-radius', title: _('Border radius'), lower: 0, upper: 255 });
+        this._addSpinButton(inactiveGroup, { key: 'ws-inactive-workspace-border-width', title: _('Border width'), lower: 0, upper: 255 });
+        this._addSpinButton(inactiveGroup, { key: 'ws-inactive-workspace-padding-h', title: _('Horizontal padding'), lower: 0, upper: 255 });
+        this._addSpinButton(inactiveGroup, { key: 'ws-inactive-workspace-padding-v', title: _('Vertical padding'), lower: 0, upper: 255 });
         page.add(inactiveGroup);
 
         // Empty workspace
         const emptyGroup = new Adw.PreferencesGroup();
-        emptyGroup.set_title('Espacio vacío');
-        this._addColorButton(emptyGroup, { key: 'ws-empty-workspace-background-color', title: 'Color de fondo' });
-        this._addColorButton(emptyGroup, { key: 'ws-empty-workspace-text-color', title: 'Color de texto' });
-        this._addColorButton(emptyGroup, { key: 'ws-empty-workspace-border-color', title: 'Color del borde' });
+        emptyGroup.set_title(_('Empty workspace'));
+        this._addColorButton(emptyGroup, { key: 'ws-empty-workspace-background-color', title: _('Background color') });
+        this._addColorButton(emptyGroup, { key: 'ws-empty-workspace-text-color', title: _('Text color') });
+        this._addColorButton(emptyGroup, { key: 'ws-empty-workspace-border-color', title: _('Border color') });
         this._addCombo(emptyGroup, {
             key: 'ws-empty-workspace-font-weight',
-            title: 'Grosor de fuente',
-            options: { '100': 'Thin', '200': 'Extra Light', '300': 'Light', '400': 'Normal', '500': 'Medium', '600': 'Semi Bold', '700': 'Bold', '800': 'Extra Bold', '900': 'Black' },
+            title: _('Font weight'),
+            options: { '100': _('Thin'), '200': _('Extra Light'), '300': _('Light'), '400': _('Normal'), '500': _('Medium'), '600': _('Semi Bold'), '700': _('Bold'), '800': _('Extra Bold'), '900': _('Black') },
         });
-        this._addSpinButton(emptyGroup, { key: 'ws-empty-workspace-border-radius', title: 'Radio del borde', lower: 0, upper: 255 });
-        this._addSpinButton(emptyGroup, { key: 'ws-empty-workspace-border-width', title: 'Ancho del borde', lower: 0, upper: 255 });
-        this._addSpinButton(emptyGroup, { key: 'ws-empty-workspace-padding-h', title: 'Padding horizontal', lower: 0, upper: 255 });
-        this._addSpinButton(emptyGroup, { key: 'ws-empty-workspace-padding-v', title: 'Padding vertical', lower: 0, upper: 255 });
+        this._addSpinButton(emptyGroup, { key: 'ws-empty-workspace-border-radius', title: _('Border radius'), lower: 0, upper: 255 });
+        this._addSpinButton(emptyGroup, { key: 'ws-empty-workspace-border-width', title: _('Border width'), lower: 0, upper: 255 });
+        this._addSpinButton(emptyGroup, { key: 'ws-empty-workspace-padding-h', title: _('Horizontal padding'), lower: 0, upper: 255 });
+        this._addSpinButton(emptyGroup, { key: 'ws-empty-workspace-padding-v', title: _('Vertical padding'), lower: 0, upper: 255 });
         page.add(emptyGroup);
     }
 
     _addShortcutsGroup(page) {
         const group = new Adw.PreferencesGroup();
-        group.set_title('Atajos de teclado');
-        group.set_description('Los atajos pueden no funcionar si ya están asignados a otra acción.');
+        group.set_title(_('Keyboard shortcuts'));
+        group.set_description(_('Shortcuts may not work if they are already assigned to another action.'));
 
-        this._addToggle(group, { key: 'ws-enable-activate-workspace-shortcuts', title: 'Activar espacios (<Super>1-0)',
+        this._addToggle(group, { key: 'ws-enable-activate-workspace-shortcuts', title: _('Activate workspaces (<Super>1-0)'),
             shortcutLabel: '<Super>1...0' });
-        this._addToggle(group, { key: 'ws-back-and-forth', title: 'Ir y volver' });
-        this._addToggle(group, { key: 'ws-enable-move-to-workspace-shortcuts', title: 'Mover a espacio (<Super><Shift>1-0)',
+        this._addToggle(group, { key: 'ws-back-and-forth', title: _('Go back and forth') });
+        this._addToggle(group, { key: 'ws-enable-move-to-workspace-shortcuts', title: _('Move to workspace (<Super><Shift>1-0)'),
             shortcutLabel: '<Super><Shift>1...0' });
 
-        this._addKeyboardShortcut(group, { key: 'ws-move-workspace-left', title: 'Mover espacio a la izquierda' });
-        this._addKeyboardShortcut(group, { key: 'ws-move-workspace-right', title: 'Mover espacio a la derecha' });
-        this._addKeyboardShortcut(group, { key: 'ws-activate-previous-key', title: 'Volver al espacio anterior' });
-        this._addKeyboardShortcut(group, { key: 'ws-activate-empty-key', title: 'Ir a espacio vacío' });
-        this._addKeyboardShortcut(group, { key: 'ws-open-menu', title: 'Abrir menú' });
+        this._addKeyboardShortcut(group, { key: 'ws-move-workspace-left', title: _('Move workspace left') });
+        this._addKeyboardShortcut(group, { key: 'ws-move-workspace-right', title: _('Move workspace right') });
+        this._addKeyboardShortcut(group, { key: 'ws-activate-previous-key', title: _('Go to previous workspace') });
+        this._addKeyboardShortcut(group, { key: 'ws-activate-empty-key', title: _('Go to empty workspace') });
+        this._addKeyboardShortcut(group, { key: 'ws-open-menu', title: _('Open menu') });
 
         page.add(group);
     }
@@ -414,7 +415,7 @@ export class WorkspaceIndicatorPrefs {
         });
         row.add_suffix(shortcutLabel);
         const disabledLabel = new Gtk.Label({
-            label: 'Desactivado',
+            label: _('Disabled'),
             cssClasses: ['dim-label'],
         });
         row.add_suffix(disabledLabel);
@@ -426,7 +427,7 @@ export class WorkspaceIndicatorPrefs {
 
         row.connect('activated', () => {
             const dialog = new Gtk.Dialog({
-                title: 'Establecer atajo',
+                title: _('Set shortcut'),
                 modal: true,
                 useHeaderBar: 1,
                 transientFor: row.get_root(),
@@ -442,11 +443,11 @@ export class WorkspaceIndicatorPrefs {
                 valign: Gtk.Align.CENTER,
             });
             box.append(new Gtk.Label({
-                label: `Introduce un nuevo atajo:`,
+                label: _('Enter a new shortcut:'),
                 marginBottom: 12,
             }));
             box.append(new Gtk.Label({
-                label: 'Esc para cancelar, Retroceso para desactivar',
+                label: _('Esc to cancel, Backspace to disable'),
                 cssClasses: ['dim-label'],
             }));
             dialog.set_child(box);

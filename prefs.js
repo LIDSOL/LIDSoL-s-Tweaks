@@ -6,7 +6,7 @@ import Gdk from 'gi://Gdk';
 import Gio from 'gi://Gio';
 import Pango from 'gi://Pango';
 
-import { ExtensionPreferences } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
+import { ExtensionPreferences, gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 import { TopBarOrganizerPrefs } from './extension/modules/topBarOrganizer/prefsSettings.js';
 import { WorkspaceIndicatorPrefs } from './extension/modules/workspaceIndicator/prefsSettings.js';
 import { WorkspacePrefs } from './extension/modules/workspace/prefsSettings.js';
@@ -24,41 +24,44 @@ import {
   DropDownChoice,
 } from './extension/utils/prefsHelpers.js';
 
+// NOTE: the shell's `gettext` only works once the extension's stateObj exists,
+// which is set AFTER this module is imported (see extensionPrefsDialog.js).
+// Translations must therefore run lazily (getters), not at module top-level.
 const CATEGORIES = [
   {
     id: 'shell',
-    title: 'Herramientas',
     icon: 'applications-utilities-symbolic',
-    summary: 'Herramientas de escritorio',
-    description: 'Dashboard personalizable, captura rápida de notas y ajustes a la busqueda y al lanzador.',
+    get title() { return _('Tools'); },
+    get summary() { return _('Desktop tools'); },
+    get description() { return _('Customizable dashboard, quick note capture, and search/launcher settings.'); },
   },
   {
     id: 'quicksettings',
-    title: 'Quick Settings',
     icon: 'emblem-system-symbolic',
-    summary: 'Ajustes del menú rápido',
-    description: 'Avatar de usuario y mejoras del menú de configuración rápida.',
+    get title() { return _('Quick Settings'); },
+    get summary() { return _('Quick settings menu tweaks'); },
+    get description() { return _('User avatar and quick settings improvements.'); },
   },
   {
     id: 'widgets',
-    title: 'Widgets',
     icon: 'applications-graphics-symbolic',
-    summary: 'Widgets visuales para el escritorio',
-    description: 'Widgets de escritorio: reloj, imagen, indicadores y controles multimedia.',
+    get title() { return _('Widgets'); },
+    get summary() { return _('Visual desktop widgets'); },
+    get description() { return _('Desktop widgets: clock, picture, indicators and media controls.'); },
   },
   {
     id: 'topbar',
-    title: 'Top Bar',
     icon: 'go-top-symbolic',
-    summary: 'Personalización de la barra superior',
-    description: 'Esquinas redondeadas, indicador de espacios, formato de fecha y notificaciones.',
+    get title() { return _('Top Bar'); },
+    get summary() { return _('Top bar customization'); },
+    get description() { return _('Rounded corners, workspace indicator, clock format and notifications.'); },
   },
   {
     id: 'general',
-    title: 'General',
     icon: 'emblem-system-symbolic',
-    summary: 'Configuración general',
-    description: 'Filtros de jugadores multimedia y otras opciones generales.',
+    get title() { return _('General'); },
+    get summary() { return _('General settings'); },
+    get description() { return _('Media player filters and other general options.'); },
   },
 ];
 
@@ -114,43 +117,43 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
 
   _addWidgetsModuleGroup(page) {
     const group = new Adw.PreferencesGroup({
-      description: 'Activa o desactiva todos los widgets de escritorio. (testing)',
+      description: _('Enable or disable all desktop widgets. (testing)'),
     });
     group.add(createSwitchRow({
       settings: this._settings,
       bindKey: 'background-widgets-enabled',
-      title: 'Background Widgets',
-      subtitle: 'Activar widgets de escritorio',
+      title: _('Background Widgets'),
+      subtitle: _('Enable desktop widgets'),
     }));
     group.add(createModuleRow({
       settings: this._settings,
       bindKey: 'pw-enabled',
-      title: 'Picture Widget',
-      subtitle: 'Imagen superpuesta en el escritorio',
-      onDetailed: () => this._openDialog('Picture Widget', p => this._buildPictureWidgetDialog(p)),
+      title: _('Picture Widget'),
+      subtitle: _('Picture overlaid on the desktop'),
+      onDetailed: () => this._openDialog(_('Picture Widget'), p => this._buildPictureWidgetDialog(p)),
       sensitiveBind: 'background-widgets-enabled',
     }));
     group.add(createModuleRow({
       settings: this._settings,
       bindKey: 'background-clock-enabled',
-      title: 'Background Clock',
-      subtitle: 'Reloj superpuesto en el escritorio',
-      onDetailed: () => this._openDialog('Background Clock', p => this._buildBackgroundClockDialog(p)),
+      title: _('Background Clock'),
+      subtitle: _('Clock overlaid on the desktop'),
+      onDetailed: () => this._openDialog(_('Background Clock'), p => this._buildBackgroundClockDialog(p)),
       sensitiveBind: 'background-widgets-enabled',
     }));
     group.add(createModuleRow({
       settings: this._settings,
       bindKey: 'uadm-enabled',
-      title: 'User Avatar (Date Menu)',
-      subtitle: 'Avatar de usuario en el menú de fecha, sobre el calendario',
-      onDetailed: () => this._openDialog('User Avatar (Date Menu)', p => this._buildUserAvatarDateMenuDialog(p)),
+      title: _('User Avatar (Date Menu)'),
+      subtitle: _('User avatar in the date menu, above the calendar'),
+      onDetailed: () => this._openDialog(_('User Avatar (Date Menu)'), p => this._buildUserAvatarDateMenuDialog(p)),
     }));
     group.add(createModuleRow({
       settings: this._settings,
       bindKey: 'dmm-enabled',
-      title: 'Date Menu Media',
-      subtitle: 'Control multimedia en el menú de fecha, sobre el calendario',
-      onDetailed: () => this._openDialog('Date Menu Media', p => this._buildDateMenuMediaDialog(p)),
+      title: _('Date Menu Media'),
+      subtitle: _('Media controls in the date menu, above the calendar'),
+      onDetailed: () => this._openDialog(_('Date Menu Media'), p => this._buildDateMenuMediaDialog(p)),
     }));
     page.add(group);
   }
@@ -158,51 +161,51 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
   _addTopbarModuleGroup(page) {
     // ── General ──
     const generalGroup = new Adw.PreferencesGroup({
-      title: 'General',
-      description: 'Organización y apariencia del panel.',
+      title: _('General'),
+      description: _('Panel organization and appearance.'),
     });
     generalGroup.add(createModuleRow({
       settings: this._settings,
       bindKey: 'panel-corners-enabled',
-      title: 'Panel Corners',
-      subtitle: 'Esquinas redondeadas en el panel y la pantalla',
-      onDetailed: () => this._openDialog('Panel Corners', p => this._buildPanelCornersDialog(p)),
+      title: _('Panel Corners'),
+      subtitle: _('Rounded corners on the panel and screen'),
+      onDetailed: () => this._openDialog(_('Panel Corners'), p => this._buildPanelCornersDialog(p)),
     }));
     page.add(generalGroup);
 
-    // ── Elementos del panel ──
+    // ── Panel elements ──
     const elementsGroup = new Adw.PreferencesGroup({
-      title: 'Elementos del panel',
-      description: 'Configuración de cada elemento en la barra superior.',
+      title: _('Panel elements'),
+      description: _('Settings for each element on the top bar.'),
     });
 
     elementsGroup.add(createModuleRow({
       settings: this._settings,
       bindKey: 'workspace-indicator-enabled',
-      title: 'Workspace Indicator',
-      subtitle: 'Indicador de espacios de trabajo estilo Space Bar',
-      onDetailed: () => this._openDialog('Workspace Indicator', p => this._buildWorkspaceIndicatorDialog(p)),
+      title: _('Workspace Indicator'),
+      subtitle: _('Workspace indicator in Space Bar style'),
+      onDetailed: () => this._openDialog(_('Workspace Indicator'), p => this._buildWorkspaceIndicatorDialog(p)),
     }));
     elementsGroup.add(createModuleRow({
       settings: this._settings,
       bindKey: 'wb-enabled',
-      title: 'Workspace Bar',
-      subtitle: 'Barra de espacios con iconos de ventanas (estilo Space Bar)',
-      onDetailed: () => this._openDialog('Workspace Bar', p => this._buildWorkspaceBarDialog(p)),
+      title: _('Workspace Bar'),
+      subtitle: _('Workspace bar with window icons (Space Bar style)'),
+      onDetailed: () => this._openDialog(_('Workspace Bar'), p => this._buildWorkspaceBarDialog(p)),
     }));
     elementsGroup.add(createModuleRow({
       settings: this._settings,
       bindKey: 'dm-enabled',
-      title: 'Date Menu Tweaks',
-      subtitle: 'Formato personalizado del reloj del panel con indicador multimedia',
-      onDetailed: () => this._openDialog('Date Menu Tweaks', p => this._buildDateMenuDialog(p)),
+      title: _('Date Menu Tweaks'),
+      subtitle: _('Custom panel clock format with media indicator'),
+      onDetailed: () => this._openDialog(_('Date Menu Tweaks'), p => this._buildDateMenuDialog(p)),
     }));
     elementsGroup.add(createModuleRow({
       settings: this._settings,
       bindKey: 'battery-indicator-enabled',
-      title: 'Battery Indicator',
-      subtitle: 'Círculo y/o barra personalizados para la batería en la barra superior',
-      onDetailed: () => this._openDialog('Battery Indicator', p => this._buildBatteryIndicatorDialog(p)),
+      title: _('Battery Indicator'),
+      subtitle: _('Custom circle and/or bar for the battery on the top bar'),
+      onDetailed: () => this._openDialog(_('Battery Indicator'), p => this._buildBatteryIndicatorDialog(p)),
     }));
     page.add(elementsGroup);
   }
@@ -211,54 +214,54 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     const s = this._settings;
 
     const mainGroup = new Adw.PreferencesGroup({
-      title: 'Estilo',
-      description: 'Configura el estilo del indicador de batería.',
+      title: _('Style'),
+      description: _('Configure the style of the battery indicator.'),
     });
     const styleOptions = {
-      'circle': 'Círculo',
-      'bar': 'Barra',
-      'both': 'Ambos',
+      'circle': _('Circle'),
+      'bar': _('Bar'),
+      'both': _('Both'),
     };
     mainGroup.add(createComboRow({
-      settings: s, bindKey: 'bi-top-bar-style', title: 'Estilo', subtitle: 'Círculo, barra, o ambos', options: styleOptions,
+      settings: s, bindKey: 'bi-top-bar-style', title: _('Style'), subtitle: _('Circle, bar, or both'), options: styleOptions,
     }));
     mainGroup.add(createSwitchRow({
       settings: s, bindKey: 'bi-show-percentage',
-      title: 'Mostrar porcentaje', subtitle: 'Muestra el porcentaje junto al indicador',
+      title: _('Show percentage'), subtitle: _('Show the percentage next to the indicator'),
     }));
     page.add(mainGroup);
 
     const barGroup = new Adw.PreferencesGroup({
-      title: 'Barra',
-      description: 'Configura la apariencia de la barra de batería.',
+      title: _('Bar'),
+      description: _('Configure the appearance of the battery bar.'),
     });
     barGroup.add(createSpinButtonRow({
-      settings: s, bindKey: 'bi-bar-width', title: 'Ancho', subtitle: 'Ancho en píxeles',
+      settings: s, bindKey: 'bi-bar-width', title: _('Width'), subtitle: _('Width in pixels'),
       adjProps: { lower: 20, upper: 300, step: 1 },
     }));
     barGroup.add(createSpinButtonRow({
-      settings: s, bindKey: 'bi-bar-height', title: 'Alto', subtitle: 'Alto en píxeles',
+      settings: s, bindKey: 'bi-bar-height', title: _('Height'), subtitle: _('Height in pixels'),
       adjProps: { lower: 4, upper: 40, step: 1 },
     }));
     barGroup.add(createSpinButtonRow({
-      settings: s, bindKey: 'bi-bar-radius', title: 'Redondeo', subtitle: 'Radio de borde en píxeles',
+      settings: s, bindKey: 'bi-bar-radius', title: _('Roundness'), subtitle: _('Border radius in pixels'),
       adjProps: { lower: 0, upper: 20, step: 1 },
     }));
     barGroup.add(createSpinButtonRow({
-      settings: s, bindKey: 'bi-low-threshold', title: 'Umbral bajo', subtitle: 'Porcentaje para activar el color de batería baja',
+      settings: s, bindKey: 'bi-low-threshold', title: _('Low threshold'), subtitle: _('Percentage that triggers the low battery color'),
       adjProps: { lower: 0, upper: 100, step: 1 },
     }));
     barGroup.add(createColorButtonRow({
-      settings: s, bindKey: 'bi-color', title: 'Color normal', subtitle: 'Vacío usa el color del tema',
+      settings: s, bindKey: 'bi-color', title: _('Normal color'), subtitle: _('Empty uses the theme color'),
     }));
     barGroup.add(createColorButtonRow({
-      settings: s, bindKey: 'bi-charging-color', title: 'Color de carga', subtitle: 'Vacío usa el color del tema',
+      settings: s, bindKey: 'bi-charging-color', title: _('Charging color'), subtitle: _('Empty uses the theme color'),
     }));
     barGroup.add(createColorButtonRow({
-      settings: s, bindKey: 'bi-low-color', title: 'Color batería baja', subtitle: 'Vacío usa el color del tema',
+      settings: s, bindKey: 'bi-low-color', title: _('Low battery color'), subtitle: _('Empty uses the theme color'),
     }));
     barGroup.add(createColorButtonRow({
-      settings: s, bindKey: 'bi-bg-color', title: 'Color de fondo', subtitle: 'Vacío usa el color por defecto',
+      settings: s, bindKey: 'bi-bg-color', title: _('Background color'), subtitle: _('Empty uses the default color'),
     }));
     page.add(barGroup);
   }
@@ -268,18 +271,18 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
 
     const filterGroup = createGroup({
       parent: page,
-      title: 'Filtro de jugadores multimedia',
-      description: 'Controla qué reproductores multimedia aparecen en los widgets.',
+      title: _('Media player filter'),
+      description: _('Control which media players appear in the widgets.'),
     });
 
     const filterModel = new Gtk.StringList();
-    filterModel.append('Desactivado');
-    filterModel.append('Lista negra (excluir listados)');
-    filterModel.append('Lista blanca (solo permitir listados)');
+    filterModel.append(_('Disabled'));
+    filterModel.append(_('Blacklist (exclude listed)'));
+    filterModel.append(_('Whitelist (only allow listed)'));
 
     const filterModeRow = new Adw.ComboRow({
-      title: 'Modo de filtro',
-      subtitle: 'Off = permitir todos, Lista negra = excluir los marcados, Lista blanca = solo permitir los marcados',
+      title: _('Filter mode'),
+      subtitle: _('Off = allow all, Blacklist = exclude the marked ones, Whitelist = only allow the marked ones'),
       model: filterModel,
       selected: s.get_int('player-filter-mode'),
     });
@@ -294,7 +297,7 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
       valign: Gtk.Align.CENTER,
       css_classes: ['flat'],
     });
-    refreshBtn.tooltip_text = 'Actualizar lista de jugadores';
+    refreshBtn.tooltip_text = _('Refresh player list');
     headerBox.append(refreshBtn);
     filterGroup.header_suffix = headerBox;
 
@@ -352,7 +355,7 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
 
             if (all.length === 0) {
               const emptyRow = new Adw.ActionRow({
-                title: 'Sin jugadores detectados',
+                title: _('No players detected'),
                 activatable: false,
               });
               emptyRow.set_opacity(0.5);
@@ -374,7 +377,7 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
 
               const row = new Adw.ActionRow({
                 title: name,
-                subtitle: isDetected ? 'Activo' : 'No detectado',
+                subtitle: isDetected ? _('Active') : _('Not detected'),
                 activatable: false,
               });
               row.add_suffix(sw);
@@ -409,23 +412,23 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     group.add(createModuleRow({
       settings: this._settings,
       bindKey: 'dashboard-enabled',
-      title: 'Dashboard',
-      subtitle: 'Panel con widgets generales',
-      onDetailed: () => this._openDialog('Dashboard', p => this._buildDashboardDialog(p)),
+      title: _('Dashboard'),
+      subtitle: _('Panel with general widgets'),
+      onDetailed: () => this._openDialog(_('Dashboard'), p => this._buildDashboardDialog(p)),
     }));
     group.add(createModuleRow({
       settings: this._settings,
       bindKey: 'qt-enabled',
-      title: 'Quick Text',
-      subtitle: 'Captura rápida de notas con atajo de teclado',
-      onDetailed: () => this._openDialog('Quick Text', p => this._buildQuickTextDialog(p)),
+      title: _('Quick Text'),
+      subtitle: _('Quick note capture with keyboard shortcut'),
+      onDetailed: () => this._openDialog(_('Quick Text'), p => this._buildQuickTextDialog(p)),
     }));
     group.add(createModuleRow({
       settings: this._settings,
       bindKey: 'launcher-enabled',
-      title: 'Launcher',
-      subtitle: 'Atajo para abrir la búsqueda del Overview (modo búsqueda)',
-      onDetailed: () => this._openDialog('Launcher', p => this._buildLauncherDialog(p)),
+      title: _('Launcher'),
+      subtitle: _('Shortcut to open the Overview search (search mode)'),
+      onDetailed: () => this._openDialog(_('Launcher'), p => this._buildLauncherDialog(p)),
     }));
     page.add(group);
   }
@@ -445,18 +448,18 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
 
   _buildPanelCornersDialog(page) {
     const s = this._settings;
-    const panelGroup = createGroup({ parent: page, title: 'Panel Corners', description: 'Esquinas redondeadas en la parte inferior del panel' });
-    this._addEnableSubSwitch(panelGroup, s, 'panel-corners', 'Activar Panel Corners');
-    panelGroup.add(createSpinButtonRow({ settings: s, bindKey: 'panel-corner-radius', title: 'Radio', subtitle: 'Recomendado: 12px', adjProps: { lower: 0, upper: 25 } }));
-    panelGroup.add(createColorButtonRow({ settings: s, bindKey: 'panel-corner-background-color', title: 'Color', subtitle: 'Recomendado: negro' }));
-    panelGroup.add(createSpinButtonRow({ settings: s, bindKey: 'panel-corner-opacity', title: 'Opacidad', adjProps: { lower: 0, upper: 1, step: 0.1, digits: 2 } }));
-    const screenGroup = createGroup({ parent: page, title: 'Screen Corners', description: 'Esquinas redondeadas alrededor de la pantalla' });
-    this._addEnableSubSwitch(screenGroup, s, 'screen-corners', 'Activar Screen Corners');
-    screenGroup.add(createSpinButtonRow({ settings: s, bindKey: 'screen-corner-radius', title: 'Radio', subtitle: 'Recomendado: 12px', adjProps: { lower: 0, upper: 25 } }));
-    screenGroup.add(createColorButtonRow({ settings: s, bindKey: 'screen-corner-background-color', title: 'Color' }));
-    screenGroup.add(createSpinButtonRow({ settings: s, bindKey: 'screen-corner-opacity', title: 'Opacidad', adjProps: { lower: 0, upper: 1, step: 0.1, digits: 2 } }));
-    const advGroup = createGroup({ parent: page, title: 'Opciones avanzadas' });
-    advGroup.add(createSwitchRow({ settings: s, bindKey: 'force-extension-values', title: 'Forzar valores de la extensión', subtitle: 'Sobreescribe las preferencias del tema actual' }));
+    const panelGroup = createGroup({ parent: page, title: _('Panel Corners'), description: _('Rounded corners on the bottom of the panel') });
+    this._addEnableSubSwitch(panelGroup, s, 'panel-corners', _('Enable Panel Corners'));
+    panelGroup.add(createSpinButtonRow({ settings: s, bindKey: 'panel-corner-radius', title: _('Radius'), subtitle: _('Recommended: 12px'), adjProps: { lower: 0, upper: 25 } }));
+    panelGroup.add(createColorButtonRow({ settings: s, bindKey: 'panel-corner-background-color', title: _('Color'), subtitle: _('Recommended: black') }));
+    panelGroup.add(createSpinButtonRow({ settings: s, bindKey: 'panel-corner-opacity', title: _('Opacity'), adjProps: { lower: 0, upper: 1, step: 0.1, digits: 2 } }));
+    const screenGroup = createGroup({ parent: page, title: _('Screen Corners'), description: _('Rounded corners around the screen') });
+    this._addEnableSubSwitch(screenGroup, s, 'screen-corners', _('Enable Screen Corners'));
+    screenGroup.add(createSpinButtonRow({ settings: s, bindKey: 'screen-corner-radius', title: _('Radius'), subtitle: _('Recommended: 12px'), adjProps: { lower: 0, upper: 25 } }));
+    screenGroup.add(createColorButtonRow({ settings: s, bindKey: 'screen-corner-background-color', title: _('Color') }));
+    screenGroup.add(createSpinButtonRow({ settings: s, bindKey: 'screen-corner-opacity', title: _('Opacity'), adjProps: { lower: 0, upper: 1, step: 0.1, digits: 2 } }));
+    const advGroup = createGroup({ parent: page, title: _('Advanced options') });
+    advGroup.add(createSwitchRow({ settings: s, bindKey: 'force-extension-values', title: _('Force extension values'), subtitle: _('Overrides the current theme preferences') }));
   }
 
   _buildWorkspaceIndicatorDialog(page) {
@@ -472,18 +475,18 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
   _buildPictureWidgetDialog(page) {
     const s = this._settings;
 
-    const pathGroup = createGroup({ parent: page, title: 'Imagen', description: 'Carpeta con imágenes para mostrar en el escritorio. Se elige una imagen aleatoria.' });
-    const folderRow = new Adw.ActionRow({ title: 'Carpeta de imágenes', subtitle: s.get_string('pw-image-path') || 'Sin carpeta seleccionada' });
-    const folderBtn = new Gtk.Button({ label: 'Examinar', valign: Gtk.Align.CENTER });
+    const pathGroup = createGroup({ parent: page, title: _('Picture'), description: _('Folder with pictures to show on the desktop. A random picture is chosen.') });
+    const folderRow = new Adw.ActionRow({ title: _('Pictures folder'), subtitle: s.get_string('pw-image-path') || _('No folder selected') });
+    const folderBtn = new Gtk.Button({ label: _('Browse'), valign: Gtk.Align.CENTER });
     folderBtn.connect('clicked', () => {
       const dialog = new Gtk.FileChooserDialog({
-        title: 'Seleccionar carpeta de imágenes',
+        title: _('Select pictures folder'),
         transient_for: page.get_root(),
         modal: true,
         action: Gtk.FileChooserAction.SELECT_FOLDER,
       });
-      dialog.add_button('_Cancelar', Gtk.ResponseType.CANCEL);
-      dialog.add_button('_Abrir', Gtk.ResponseType.OK);
+      dialog.add_button('_Cancel', Gtk.ResponseType.CANCEL);
+      dialog.add_button('_Open', Gtk.ResponseType.OK);
       dialog.connect('response', (dlg, response) => {
         if (response === Gtk.ResponseType.OK) {
           const path = dlg.get_file().get_path();
@@ -498,57 +501,57 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     folderRow.activatable_widget = folderBtn;
     pathGroup.add(folderRow);
 
-    const sizeGroup = createGroup({ parent: page, title: 'Tamaño' });
-    sizeGroup.add(createSpinButtonRow({ settings: s, bindKey: 'pw-size', title: 'Tamaño base', subtitle: 'Se combina con el aspect ratio', adjProps: { lower: 10, upper: 2000, step: 10 } }));
-    sizeGroup.add(createSpinButtonRow({ settings: s, bindKey: 'pw-aspect-ratio', title: 'Relación de aspecto', subtitle: 'Ancho / Alto (1.0 = cuadrado)', adjProps: { lower: 0.1, upper: 10, step: 0.1, digits: 2 } }));
+    const sizeGroup = createGroup({ parent: page, title: _('Size') });
+    sizeGroup.add(createSpinButtonRow({ settings: s, bindKey: 'pw-size', title: _('Base size'), subtitle: _('Combined with the aspect ratio'), adjProps: { lower: 10, upper: 2000, step: 10 } }));
+    sizeGroup.add(createSpinButtonRow({ settings: s, bindKey: 'pw-aspect-ratio', title: _('Aspect ratio'), subtitle: _('Width / Height (1.0 = square)'), adjProps: { lower: 0.1, upper: 10, step: 0.1, digits: 2 } }));
 
-    const posGroup = createGroup({ parent: page, title: 'Posición' });
-    posGroup.add(createSpinButtonRow({ settings: s, bindKey: 'pw-position-x', title: 'Posición X', subtitle: 'Píxeles desde el borde izquierdo', adjProps: { lower: 0, upper: 10000, step: 5 } }));
-    posGroup.add(createSpinButtonRow({ settings: s, bindKey: 'pw-position-y', title: 'Posición Y', subtitle: 'Píxeles desde el borde superior', adjProps: { lower: 0, upper: 10000, step: 5 } }));
+    const posGroup = createGroup({ parent: page, title: _('Position') });
+    posGroup.add(createSpinButtonRow({ settings: s, bindKey: 'pw-position-x', title: _('Position X'), subtitle: _('Pixels from the left edge'), adjProps: { lower: 0, upper: 10000, step: 5 } }));
+    posGroup.add(createSpinButtonRow({ settings: s, bindKey: 'pw-position-y', title: _('Position Y'), subtitle: _('Pixels from the top edge'), adjProps: { lower: 0, upper: 10000, step: 5 } }));
 
-    const appearGroup = createGroup({ parent: page, title: 'Apariencia' });
-    appearGroup.add(createSpinButtonRow({ settings: s, bindKey: 'pw-corner-radius', title: 'Radio de esquina', subtitle: 'Porcentaje (0 = sin bordes redondeados)', adjProps: { lower: 0, upper: 100, step: 5 } }));
+    const appearGroup = createGroup({ parent: page, title: _('Appearance') });
+    appearGroup.add(createSpinButtonRow({ settings: s, bindKey: 'pw-corner-radius', title: _('Corner radius'), subtitle: _('Percentage (0 = no rounded corners)'), adjProps: { lower: 0, upper: 100, step: 5 } }));
 
-    const advGroup = createGroup({ parent: page, title: 'Avanzado' });
-    advGroup.add(createSpinButtonRow({ settings: s, bindKey: 'pw-refresh-interval', title: 'Intervalo de rotación', subtitle: 'Segundos (0 = sin cambio automático)', adjProps: { lower: 0, upper: 86400, step: 10 } }));
+    const advGroup = createGroup({ parent: page, title: _('Advanced') });
+    advGroup.add(createSpinButtonRow({ settings: s, bindKey: 'pw-refresh-interval', title: _('Rotation interval'), subtitle: _('Seconds (0 = no automatic change)'), adjProps: { lower: 0, upper: 86400, step: 10 } }));
   }
 
   _buildBackgroundClockDialog(page) {
     const s = this._settings;
-    const posGroup = createGroup({ parent: page, title: 'Posición' });
-    posGroup.add(createSpinButtonRow({ settings: s, bindKey: 'background-clock-position', title: 'Posición', subtitle: '0=sup-izq … 8=inf-der', adjProps: { lower: 0, upper: 8 } }));
-    posGroup.add(createSpinButtonRow({ settings: s, bindKey: 'background-clock-x-offset', title: 'Desplazamiento horizontal', adjProps: { lower: -500, upper: 500 } }));
-    posGroup.add(createSpinButtonRow({ settings: s, bindKey: 'background-clock-y-offset', title: 'Desplazamiento vertical', adjProps: { lower: -500, upper: 500 } }));
-    const clockGroup = createGroup({ parent: page, title: 'Hora' });
-    this._addEnableSubSwitch(clockGroup, s, 'background-clock-enable-clock', 'Mostrar hora');
-    clockGroup.add(createEntryRow({ settings: s, bindKey: 'background-clock-clock-format', title: 'Formato', subtitle: '%H:%M (24h) o %I:%M %p (12h)' }));
-    clockGroup.add(createSpinButtonRow({ settings: s, bindKey: 'background-clock-clock-size', title: 'Tamaño', subtitle: 'Tamaño de fuente en puntos', adjProps: { lower: 8, upper: 200, step: 2 } }));
-    clockGroup.add(createColorButtonRow({ settings: s, bindKey: 'background-clock-clock-color', title: 'Color' }));
-    this._addFontToggleRow(clockGroup, s, 'background-clock-clock-custom-font', 'background-clock-clock-font', 'Fuente personalizada');
-    const dateGroup = createGroup({ parent: page, title: 'Fecha' });
-    this._addEnableSubSwitch(dateGroup, s, 'background-clock-enable-date', 'Mostrar fecha');
-    dateGroup.add(createEntryRow({ settings: s, bindKey: 'background-clock-date-format', title: 'Formato', subtitle: '%A, %d de %B' }));
-    dateGroup.add(createSpinButtonRow({ settings: s, bindKey: 'background-clock-date-size', title: 'Tamaño', adjProps: { lower: 8, upper: 200, step: 2 } }));
-    dateGroup.add(createColorButtonRow({ settings: s, bindKey: 'background-clock-date-color', title: 'Color' }));
-    this._addFontToggleRow(dateGroup, s, 'background-clock-date-custom-font', 'background-clock-date-font', 'Fuente personalizada');
-    const bgGroup = createGroup({ parent: page, title: 'Contenedor', description: 'Estilo del fondo del reloj' });
-    bgGroup.add(createColorButtonRow({ settings: s, bindKey: 'background-clock-bg-color', title: 'Color de fondo', subtitle: 'Usa alpha para fondo semitransparente', useAlpha: true }));
-    bgGroup.add(createSpinButtonRow({ settings: s, bindKey: 'background-clock-bg-padding', title: 'Padding', adjProps: { lower: 0, upper: 100, step: 2 } }));
-    bgGroup.add(createSpinButtonRow({ settings: s, bindKey: 'background-clock-bg-border-radius', title: 'Radio del borde', adjProps: { lower: 0, upper: 50 } }));
+    const posGroup = createGroup({ parent: page, title: _('Position') });
+    posGroup.add(createSpinButtonRow({ settings: s, bindKey: 'background-clock-position', title: _('Position'), subtitle: _('0=top-left … 8=bottom-right'), adjProps: { lower: 0, upper: 8 } }));
+    posGroup.add(createSpinButtonRow({ settings: s, bindKey: 'background-clock-x-offset', title: _('Horizontal offset'), adjProps: { lower: -500, upper: 500 } }));
+    posGroup.add(createSpinButtonRow({ settings: s, bindKey: 'background-clock-y-offset', title: _('Vertical offset'), adjProps: { lower: -500, upper: 500 } }));
+    const clockGroup = createGroup({ parent: page, title: _('Clock') });
+    this._addEnableSubSwitch(clockGroup, s, 'background-clock-enable-clock', _('Show clock'));
+    clockGroup.add(createEntryRow({ settings: s, bindKey: 'background-clock-clock-format', title: _('Format'), subtitle: _('%H:%M (24h) or %I:%M %p (12h)') }));
+    clockGroup.add(createSpinButtonRow({ settings: s, bindKey: 'background-clock-clock-size', title: _('Size'), subtitle: _('Font size in points'), adjProps: { lower: 8, upper: 200, step: 2 } }));
+    clockGroup.add(createColorButtonRow({ settings: s, bindKey: 'background-clock-clock-color', title: _('Color') }));
+    this._addFontToggleRow(clockGroup, s, 'background-clock-clock-custom-font', 'background-clock-clock-font', _('Custom font'));
+    const dateGroup = createGroup({ parent: page, title: _('Date') });
+    this._addEnableSubSwitch(dateGroup, s, 'background-clock-enable-date', _('Show date'));
+    dateGroup.add(createEntryRow({ settings: s, bindKey: 'background-clock-date-format', title: _('Format'), subtitle: _('%A, %d de %B') }));
+    dateGroup.add(createSpinButtonRow({ settings: s, bindKey: 'background-clock-date-size', title: _('Size'), adjProps: { lower: 8, upper: 200, step: 2 } }));
+    dateGroup.add(createColorButtonRow({ settings: s, bindKey: 'background-clock-date-color', title: _('Color') }));
+    this._addFontToggleRow(dateGroup, s, 'background-clock-date-custom-font', 'background-clock-date-font', _('Custom font'));
+    const bgGroup = createGroup({ parent: page, title: _('Container'), description: _('Clock background style') });
+    bgGroup.add(createColorButtonRow({ settings: s, bindKey: 'background-clock-bg-color', title: _('Background color'), subtitle: _('Use alpha for a semi-transparent background'), useAlpha: true }));
+    bgGroup.add(createSpinButtonRow({ settings: s, bindKey: 'background-clock-bg-padding', title: _('Padding'), adjProps: { lower: 0, upper: 100, step: 2 } }));
+    bgGroup.add(createSpinButtonRow({ settings: s, bindKey: 'background-clock-bg-border-radius', title: _('Border radius'), adjProps: { lower: 0, upper: 50 } }));
   }
 
   _buildQuickTextDialog(page) {
     const s = this._settings;
-    const group = createGroup({ parent: page, title: 'Quick Text', description: 'Captura rápida de notas mediante atajo de teclado' });
-    const hotkeyRow = new Adw.ActionRow({ title: 'Atajo de teclado', subtitle: 'Combinación para abrir el diálogo de notas' });
+    const group = createGroup({ parent: page, title: _('Quick Text'), description: _('Quick note capture with keyboard shortcut') });
+    const hotkeyRow = new Adw.ActionRow({ title: _('Keyboard shortcut'), subtitle: _('Key combination to open the notes dialog') });
     const hotkeyLabel = new Gtk.ShortcutLabel({
       accelerator: s.get_strv('qt-hotkey')[0] ?? null,
       valign: Gtk.Align.CENTER,
     });
-    const hotkeyBtn = new Gtk.Button({ label: 'Establecer atajo', valign: Gtk.Align.CENTER });
+    const hotkeyBtn = new Gtk.Button({ label: _('Set shortcut'), valign: Gtk.Align.CENTER });
     hotkeyBtn.connect('clicked', () => {
       const dialog = new Gtk.Dialog({
-        title: 'Establecer atajo',
+        title: _('Set shortcut'),
         modal: true,
         useHeaderBar: 1,
         transientFor: page.get_root(),
@@ -559,9 +562,9 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
         marginBottom: 12, marginEnd: 12, marginStart: 12, marginTop: 12,
         orientation: Gtk.Orientation.VERTICAL, valign: Gtk.Align.CENTER,
       });
-      box.append(new Gtk.Label({ label: 'Introduce una combinación de teclas:', marginBottom: 12 }));
+      box.append(new Gtk.Label({ label: _('Enter a key combination:'), marginBottom: 12 }));
       box.append(new Gtk.Label({
-        label: 'Esc para cancelar, Retroceso para desactivar',
+        label: _('Esc to cancel, Backspace to disable'),
         css_classes: ['dim-label'],
       }));
       dialog.set_child(box);
@@ -586,12 +589,12 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     hotkeyRow.add_suffix(hotkeyLabel);
     hotkeyRow.add_suffix(hotkeyBtn);
     group.add(hotkeyRow);
-    group.add(createSwitchRow({ settings: s, bindKey: 'qt-multiline', title: 'Entrada de una sola línea', subtitle: 'Si está activo, Enter guarda la nota directamente' }));
-    group.add(createSwitchRow({ settings: s, bindKey: 'qt-hideacted', title: 'Ocultar notas procesadas', subtitle: 'Oculta notas marcadas como procesadas en la ventana de acciones' }));
-    group.add(createEntryRow({ settings: s, bindKey: 'qt-filepath', title: 'Archivo de notas', subtitle: 'Ruta absoluta al archivo de texto' }));
-    group.add(createEntryRow({ settings: s, bindKey: 'qt-prepend', title: 'Prefijo', subtitle: 'Texto antes de cada nota (vacío = fecha actual)' }));
-    group.add(createSwitchRow({ settings: s, bindKey: 'qt-linebreak', title: 'Salto de línea', subtitle: 'Añade un salto de línea después del prefijo.\nSi está desactivado, el prefijo y la nota van en la misma línea.' }));
-    const appendRow = createEntryRow({ settings: s, bindKey: 'qt-append', title: 'Separador', subtitle: 'Texto que separa las notas en el archivo' });
+    group.add(createSwitchRow({ settings: s, bindKey: 'qt-multiline', title: _('Single-line input'), subtitle: _('If enabled, Enter saves the note directly') }));
+    group.add(createSwitchRow({ settings: s, bindKey: 'qt-hideacted', title: _('Hide processed notes'), subtitle: _('Hides notes marked as processed in the actions window') }));
+    group.add(createEntryRow({ settings: s, bindKey: 'qt-filepath', title: _('Notes file'), subtitle: _('Absolute path to the text file') }));
+    group.add(createEntryRow({ settings: s, bindKey: 'qt-prepend', title: _('Prefix'), subtitle: _('Text before each note (empty = current date)') }));
+    group.add(createSwitchRow({ settings: s, bindKey: 'qt-linebreak', title: _('Line break'), subtitle: _('Adds a line break after the prefix.\nIf disabled, the prefix and the note go on the same line.') }));
+    const appendRow = createEntryRow({ settings: s, bindKey: 'qt-append', title: _('Separator'), subtitle: _('Text that separates notes in the file') });
     const updateAppendSensitive = () => {
       const enabled = s.get_boolean('qt-append-enabled');
       appendRow.sensitive = enabled;
@@ -602,8 +605,8 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     group.add(createSwitchRow({
       settings: s,
       bindKey: 'qt-append-enabled',
-      title: 'Separador',
-      subtitle: 'Añade un separador entre notas. Si está vacío, deja una línea extra',
+      title: _('Separator'),
+      subtitle: _('Adds a separator between notes. If empty, leaves an extra line'),
     }));
     group.add(appendRow);
   }
@@ -611,7 +614,7 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
   _buildDashboardDialog(page) {
     const s = this._settings;
 
-    const _alignModel = new Gtk.StringList({ strings: ['Fill', 'Start', 'Center', 'End'] });
+    const _alignModel = new Gtk.StringList({ strings: [_('Fill'), _('Start'), _('Center'), _('End')] });
 
 
     function _makeAlignRow(title, bindKey) {
@@ -646,23 +649,23 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     function _makeWidgetExpander(name, title, extraRows) {
       const prefix = `dashboard-${name}`;
       const expander = new Adw.ExpanderRow({ title });
-      expander.add_row(_makeExpandRow('Background', `${prefix}-background`));
+      expander.add_row(_makeExpandRow(_('Background'), `${prefix}-background`));
       if (extraRows) extraRows(expander);
       return expander;
     }
 
     // ── Dash group ──
-    const dashGroup = new Adw.PreferencesGroup({ title: 'Dash' });
+    const dashGroup = new Adw.PreferencesGroup({ title: _('Dash') });
 
-    const shortcutRow = new Adw.ActionRow({ title: 'Shortcut Hotkey' });
+    const shortcutRow = new Adw.ActionRow({ title: _('Shortcut Hotkey') });
     const shortcutLabel = new Gtk.ShortcutLabel({
       accelerator: s.get_strv('dashboard-shortcut')[0] ?? null,
       valign: Gtk.Align.CENTER,
     });
-    const shortcutBtn = new Gtk.Button({ label: 'Set Hotkey', valign: Gtk.Align.CENTER });
+    const shortcutBtn = new Gtk.Button({ label: _('Set Hotkey'), valign: Gtk.Align.CENTER });
     shortcutBtn.connect('clicked', () => {
       const dialog = new Gtk.Dialog({
-        title: 'Set Hotkey',
+        title: _('Set Hotkey'),
         modal: true,
         useHeaderBar: 1,
         transientFor: page.get_root(),
@@ -673,9 +676,9 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
         marginBottom: 12, marginEnd: 12, marginStart: 12, marginTop: 12,
         orientation: Gtk.Orientation.VERTICAL, valign: Gtk.Align.CENTER,
       });
-      box.append(new Gtk.Label({ label: 'Press a key combination:', marginBottom: 12 }));
+      box.append(new Gtk.Label({ label: _('Press a key combination:'), marginBottom: 12 }));
       box.append(new Gtk.Label({
-        label: 'Esc to cancel, Backspace to disable',
+        label: _('Esc to cancel, Backspace to disable'),
         css_classes: ['dim-label'],
       }));
       dialog.set_child(box);
@@ -701,25 +704,25 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     shortcutRow.add_suffix(shortcutBtn);
     dashGroup.add(shortcutRow);
 
-    dashGroup.add(_makeAlignRow('X Align', 'dashboard-x-align'));
-    dashGroup.add(_makeAlignRow('Y Align', 'dashboard-y-align'));
-    dashGroup.add(_makeSpinRow('X Offset', 'dashboard-x-offset', -1000, 1000, 10));
-    dashGroup.add(_makeSpinRow('Y Offset', 'dashboard-y-offset', -1000, 1000, 10));
-    dashGroup.add(_makeExpandRow('Darken Background', 'dashboard-darken'));
-    dashGroup.add(_makeExpandRow('Transparent Container', 'dashboard-container-transparent'));
-    dashGroup.add(_makeSpinRow('Container Scale (%)', 'dashboard-dialog-scale', 50, 150, 5));
+    dashGroup.add(_makeAlignRow(_('X Align'), 'dashboard-x-align'));
+    dashGroup.add(_makeAlignRow(_('Y Align'), 'dashboard-y-align'));
+    dashGroup.add(_makeSpinRow(_('X Offset'), 'dashboard-x-offset', -1000, 1000, 10));
+    dashGroup.add(_makeSpinRow(_('Y Offset'), 'dashboard-y-offset', -1000, 1000, 10));
+    dashGroup.add(_makeExpandRow(_('Darken Background'), 'dashboard-darken'));
+    dashGroup.add(_makeExpandRow(_('Transparent Container'), 'dashboard-container-transparent'));
+    dashGroup.add(_makeSpinRow(_('Container Scale (%)'), 'dashboard-dialog-scale', 50, 150, 5));
     page.add(dashGroup);
 
     // ── Grid group ──
-    const gridGroup = new Adw.PreferencesGroup({ title: 'Grid Layout' });
-    gridGroup.add(_makeSpinRow('Spacing', 'dashboard-grid-spacing', 0, 60, 1));
-    gridGroup.add(_makeSpinRow('Columns', 'dashboard-grid-columns', 1, 6, 1));
+    const gridGroup = new Adw.PreferencesGroup({ title: _('Grid Layout') });
+    gridGroup.add(_makeSpinRow(_('Spacing'), 'dashboard-grid-spacing', 0, 60, 1));
+    gridGroup.add(_makeSpinRow(_('Columns'), 'dashboard-grid-columns', 1, 6, 1));
 
     const resetLayoutRow = new Adw.ActionRow({
-      title: 'Reset Layout',
-      subtitle: 'Restore the default grid layout',
+      title: _('Reset Layout'),
+      subtitle: _('Restore the default grid layout'),
     });
-    const resetLayoutBtn = new Gtk.Button({ label: 'Reset', valign: Gtk.Align.CENTER });
+    const resetLayoutBtn = new Gtk.Button({ label: _('Reset'), valign: Gtk.Align.CENTER });
     resetLayoutBtn.connect('clicked', () => {
       s.reset('dashboard-layout-json');
     });
@@ -728,25 +731,25 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     page.add(gridGroup);
 
     // ── Widgets group ──
-    const widgetsGroup = new Adw.PreferencesGroup({ title: 'Widgets' });
+    const widgetsGroup = new Adw.PreferencesGroup({ title: _('Widgets') });
     page.add(widgetsGroup);
 
-    widgetsGroup.add(_makeWidgetExpander('user', 'User', exp => {
-      exp.add_row(_makeSpinRow('Icon Roundness', 'dashboard-user-icon-roundness', 1, 99, 1));
-      exp.add_row(_makeSpinRow('Icon Width', 'dashboard-user-icon-width', 10, 150, 2));
-      exp.add_row(_makeSpinRow('Icon Height', 'dashboard-user-icon-height', 10, 150, 2));
-      exp.add_row(_makeSpinRow('Text Spacing', 'dashboard-user-text-spacing', 0, 80, 1));
-      exp.add_row(_makeExpandRow('Vertical', 'dashboard-user-vertical'));
-      exp.add_row(_makeExpandRow('Show User Name', 'dashboard-user-real-name'));
+    widgetsGroup.add(_makeWidgetExpander('user', _('User'), exp => {
+      exp.add_row(_makeSpinRow(_('Icon Roundness'), 'dashboard-user-icon-roundness', 1, 99, 1));
+      exp.add_row(_makeSpinRow(_('Icon Width'), 'dashboard-user-icon-width', 10, 150, 2));
+      exp.add_row(_makeSpinRow(_('Icon Height'), 'dashboard-user-icon-height', 10, 150, 2));
+      exp.add_row(_makeSpinRow(_('Text Spacing'), 'dashboard-user-text-spacing', 0, 80, 1));
+      exp.add_row(_makeExpandRow(_('Vertical'), 'dashboard-user-vertical'));
+      exp.add_row(_makeExpandRow(_('Show User Name'), 'dashboard-user-real-name'));
     }));
 
-    widgetsGroup.add(_makeWidgetExpander('levels', 'System Levels', exp => {
-      exp.add_row(_makeSpinRow('Width', 'dashboard-levels-fixed-width', 300, 530, 5));
-      exp.add_row(_makeExpandRow('Show Battery', 'dashboard-levels-show-battery'));
-      exp.add_row(_makeExpandRow('Show Storage', 'dashboard-levels-show-storage'));
-      exp.add_row(_makeExpandRow('Show CPU', 'dashboard-levels-show-cpu'));
-      exp.add_row(_makeExpandRow('Show RAM', 'dashboard-levels-show-ram'));
-      exp.add_row(_makeExpandRow('Show Temperature', 'dashboard-levels-show-temp'));
+    widgetsGroup.add(_makeWidgetExpander('levels', _('System Levels'), exp => {
+      exp.add_row(_makeSpinRow(_('Width'), 'dashboard-levels-fixed-width', 300, 530, 5));
+      exp.add_row(_makeExpandRow(_('Show Battery'), 'dashboard-levels-show-battery'));
+      exp.add_row(_makeExpandRow(_('Show Storage'), 'dashboard-levels-show-storage'));
+      exp.add_row(_makeExpandRow(_('Show CPU'), 'dashboard-levels-show-cpu'));
+      exp.add_row(_makeExpandRow(_('Show RAM'), 'dashboard-levels-show-ram'));
+      exp.add_row(_makeExpandRow(_('Show Temperature'), 'dashboard-levels-show-temp'));
 
       const commandEntry = new Gtk.Entry({
         text: s.get_string('dashboard-levels-command'),
@@ -755,115 +758,115 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
       const cf = new Gtk.EventControllerFocus();
       cf.connect('leave', () => s.set_string('dashboard-levels-command', commandEntry.get_buffer().text));
       commandEntry.add_controller(cf);
-      const commandRow = new Adw.ActionRow({ title: 'Command', activatable_widget: commandEntry });
+      const commandRow = new Adw.ActionRow({ title: _('Command'), activatable_widget: commandEntry });
       commandRow.add_suffix(commandEntry);
       exp.add_row(commandRow);
     }));
 
-    widgetsGroup.add(_makeWidgetExpander('media', 'Media Player', exp => {
+    widgetsGroup.add(_makeWidgetExpander('media', _('Media Player'), exp => {
       const preferEntry = new Gtk.Entry({ text: s.get_string('dashboard-media-prefer'), valign: Gtk.Align.CENTER });
       const pf = new Gtk.EventControllerFocus();
       pf.connect('leave', () => s.set_string('dashboard-media-prefer', preferEntry.get_buffer().text));
       preferEntry.add_controller(pf);
-      const preferRow = new Adw.ActionRow({ title: 'Prefer', activatable_widget: preferEntry });
+      const preferRow = new Adw.ActionRow({ title: _('Prefer'), activatable_widget: preferEntry });
       preferRow.add_suffix(preferEntry);
       exp.add_row(preferRow);
 
-      const styleModel = new Gtk.StringList({ strings: ['Normal Vertical', 'Normal Horizontal', 'Full'] });
-      const styleRow = new Adw.ComboRow({ title: 'Style', model: styleModel, selected: s.get_int('dashboard-media-style') });
+      const styleModel = new Gtk.StringList({ strings: [_('Normal Vertical'), _('Normal Horizontal'), _('Full')] });
+      const styleRow = new Adw.ComboRow({ title: _('Style'), model: styleModel, selected: s.get_int('dashboard-media-style') });
       styleRow.connect('notify::selected', () => s.set_int('dashboard-media-style', styleRow.selected));
       exp.add_row(styleRow);
 
-      exp.add_row(_makeSpinRow('Cover Width', 'dashboard-media-cover-width', 100, 800, 5));
-      exp.add_row(_makeSpinRow('Cover Height', 'dashboard-media-cover-height', 100, 800, 5));
-      exp.add_row(_makeSpinRow('Cover Roundness', 'dashboard-media-cover-roundness', 0, 48, 1));
-      exp.add_row(_makeExpandRow('Fade', 'dashboard-media-fade'));
-      exp.add_row(_makeExpandRow('Show Text', 'dashboard-media-show-text'));
+      exp.add_row(_makeSpinRow(_('Cover Width'), 'dashboard-media-cover-width', 100, 800, 5));
+      exp.add_row(_makeSpinRow(_('Cover Height'), 'dashboard-media-cover-height', 100, 800, 5));
+      exp.add_row(_makeSpinRow(_('Cover Roundness'), 'dashboard-media-cover-roundness', 0, 48, 1));
+      exp.add_row(_makeExpandRow(_('Fade'), 'dashboard-media-fade'));
+      exp.add_row(_makeExpandRow(_('Show Text'), 'dashboard-media-show-text'));
 
-      exp.add_row(_makeExpandRow('Show Loop and Shuffle', 'dashboard-media-show-loop-shuffle'));
+      exp.add_row(_makeExpandRow(_('Show Loop and Shuffle'), 'dashboard-media-show-loop-shuffle'));
     }));
 
-    widgetsGroup.add(_makeWidgetExpander('clock', 'Clock', exp => {
-      exp.add_row(_makeExpandRow('Vertical', 'dashboard-clock-vertical'));
-      exp.add_row(_makeSpinRow('Time Size', 'dashboard-clock-clock-size', 8, 200, 2));
-      exp.add_row(_makeSpinRow('Date Size', 'dashboard-clock-date-size', 8, 100, 1));
-      exp.add_row(_makeSpinRow('Spacing', 'dashboard-clock-spacing', 0, 50, 1));
+    widgetsGroup.add(_makeWidgetExpander('clock', _('Clock'), exp => {
+      exp.add_row(_makeExpandRow(_('Vertical'), 'dashboard-clock-vertical'));
+      exp.add_row(_makeSpinRow(_('Time Size'), 'dashboard-clock-clock-size', 8, 200, 2));
+      exp.add_row(_makeSpinRow(_('Date Size'), 'dashboard-clock-date-size', 8, 100, 1));
+      exp.add_row(_makeSpinRow(_('Spacing'), 'dashboard-clock-spacing', 0, 50, 1));
     }));
 
-    widgetsGroup.add(_makeWidgetExpander('apps', 'App Launcher', exp => {
-      exp.add_row(_makeSpinRow('Rows', 'dashboard-apps-rows', 1, 6, 1));
-      exp.add_row(_makeSpinRow('Columns', 'dashboard-apps-cols', 1, 6, 1));
-      exp.add_row(_makeSpinRow('Icon Size', 'dashboard-apps-icon-size', 4, 100, 2));
+    widgetsGroup.add(_makeWidgetExpander('apps', _('App Launcher'), exp => {
+      exp.add_row(_makeSpinRow(_('Rows'), 'dashboard-apps-rows', 1, 6, 1));
+      exp.add_row(_makeSpinRow(_('Columns'), 'dashboard-apps-cols', 1, 6, 1));
+      exp.add_row(_makeSpinRow(_('Icon Size'), 'dashboard-apps-icon-size', 4, 100, 2));
     }));
 
-    widgetsGroup.add(_makeWidgetExpander('system', 'Settings &amp; System', exp => {
-      const layoutModel = new Gtk.StringList({ strings: ['Stacked', 'Side by Side'] });
-      const layoutRow = new Adw.ComboRow({ title: 'Layout', subtitle: 'Stacked: two rows (current behavior).\nSide by Side: single row.', model: layoutModel, selected: s.get_int('dashboard-system-layout') });
+    widgetsGroup.add(_makeWidgetExpander('system', _('Settings & System'), exp => {
+      const layoutModel = new Gtk.StringList({ strings: [_('Stacked'), _('Side by Side')] });
+      const layoutRow = new Adw.ComboRow({ title: _('Layout'), subtitle: _('Stacked: two rows (current behavior).\nSide by Side: single row.'), model: layoutModel, selected: s.get_int('dashboard-system-layout') });
       layoutRow.connect('notify::selected', () => s.set_int('dashboard-system-layout', layoutRow.selected));
       exp.add_row(layoutRow);
-      exp.add_row(_makeSpinRow('Icon Size', 'dashboard-system-icon-size', 4, 100, 2));
+      exp.add_row(_makeSpinRow(_('Icon Size'), 'dashboard-system-icon-size', 4, 100, 2));
     }));
   }
 
   _buildUserAvatarDateMenuDialog(page) {
     const s = this._settings;
-    const mainGroup = createGroup({ parent: page, title: 'User Avatar (Date Menu)', description: 'Muestra avatar y nombre de usuario en el menú de fecha, sobre el calendario.' });
-    mainGroup.add(createSwitchRow({ settings: s, bindKey: 'uadm-enabled', title: 'Habilitar avatar en el menú de fecha' }));
-    mainGroup.add(createSwitchRow({ settings: s, bindKey: 'uadm-show-realname', title: 'Mostrar nombre real' }));
-    mainGroup.add(createSwitchRow({ settings: s, bindKey: 'uadm-show-username', title: 'Mostrar nombre de usuario' }));
+    const mainGroup = createGroup({ parent: page, title: _('User Avatar (Date Menu)'), description: _('Shows the avatar and user name in the date menu, above the calendar.') });
+    mainGroup.add(createSwitchRow({ settings: s, bindKey: 'uadm-enabled', title: _('Enable avatar in date menu') }));
+    mainGroup.add(createSwitchRow({ settings: s, bindKey: 'uadm-show-realname', title: _('Show real name') }));
+    mainGroup.add(createSwitchRow({ settings: s, bindKey: 'uadm-show-username', title: _('Show user name') }));
   }
 
   _buildDateMenuMediaDialog(page) {
     const s = this._settings;
-    const mainGroup = createGroup({ parent: page, title: 'Date Menu Media', description: 'Widget de control multimedia en el menú de fecha, sobre el calendario.' });
-    mainGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-enabled', title: 'Habilitar widget multimedia' }));
-    mainGroup.add(createSwitchRow({ settings: s, bindKey: 'nm-enabled', title: 'Ocultar indicadores multimedia nativos', subtitle: 'Oculta los controles multimedia nativos de las notificaciones, dentro del menú de fecha' }));
-    mainGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-auto-switch', title: 'Cambiar automáticamente al último medio reproduciéndose', subtitle: 'Siempre muestra el medio activo, incluso por sobre la selección manual' }));
-    mainGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-show-art', title: 'Mostrar carátula del álbum' }));
-    mainGroup.add(createSpinButtonRow({ settings: s, bindKey: 'dmm-art-size', title: 'Tamaño de carátula', adjProps: { lower: 31, upper: 110, step: 1 } }));
-    mainGroup.add(createSpinButtonRow({ settings: s, bindKey: 'dmm-album-roundness', title: 'Redondeo de carátula', subtitle: 'Redondeo de bordes de la carátula (1-99 píxeles)', adjProps: { lower: 1, upper: 99, step: 1 } }));
-    mainGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-compact', title: 'Modo compacto', subtitle: 'Reduce el espacio del widget' }));
+    const mainGroup = createGroup({ parent: page, title: _('Date Menu Media'), description: _('Media control widget in the date menu, above the calendar.') });
+    mainGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-enabled', title: _('Enable media widget') }));
+    mainGroup.add(createSwitchRow({ settings: s, bindKey: 'nm-enabled', title: _('Hide native media indicators'), subtitle: _('Hides the native media controls from notifications, inside the date menu') }));
+    mainGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-auto-switch', title: _('Automatically switch to the last playing media'), subtitle: _('Always show the active media, even over the manual selection') }));
+    mainGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-show-art', title: _('Show album art') }));
+    mainGroup.add(createSpinButtonRow({ settings: s, bindKey: 'dmm-art-size', title: _('Art size'), adjProps: { lower: 31, upper: 110, step: 1 } }));
+    mainGroup.add(createSpinButtonRow({ settings: s, bindKey: 'dmm-album-roundness', title: _('Art roundness'), subtitle: _('Border roundness of the album art (1-99 pixels)'), adjProps: { lower: 1, upper: 99, step: 1 } }));
+    mainGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-compact', title: _('Compact mode'), subtitle: _('Reduces the widget spacing') }));
 
-    const controlsGroup = createGroup({ parent: page, title: 'Controles', description: 'Visibilidad y apariencia de los botones de control multimedia.' });
-    controlsGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-show-prev', title: 'Mostrar botón anterior' }));
-    controlsGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-show-pause', title: 'Mostrar botón pausa/reproducir' }));
-    controlsGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-show-next', title: 'Mostrar botón siguiente' }));
-    controlsGroup.add(createSpinButtonRow({ settings: s, bindKey: 'dmm-control-opacity', title: 'Opacidad de controles', adjProps: { lower: 0, upper: 255, step: 5 } }));
+    const controlsGroup = createGroup({ parent: page, title: _('Controls'), description: _('Visibility and appearance of the media control buttons.') });
+    controlsGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-show-prev', title: _('Show previous button') }));
+    controlsGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-show-pause', title: _('Show pause/play button') }));
+    controlsGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-show-next', title: _('Show next button') }));
+    controlsGroup.add(createSpinButtonRow({ settings: s, bindKey: 'dmm-control-opacity', title: _('Controls opacity'), adjProps: { lower: 0, upper: 255, step: 5 } }));
 
-    const progressGroup = createGroup({ parent: page, title: 'Barra de progreso', description: 'Configuración de la barra de progreso con tiempo transcurrido.' });
-    progressGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-progress-enabled', title: 'Mostrar barra de progreso' }));
+    const progressGroup = createGroup({ parent: page, title: _('Progress bar'), description: _('Progress bar settings with elapsed time.') });
+    progressGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-progress-enabled', title: _('Show progress bar') }));
     const styleModel = new Gtk.StringList({ strings: ['slim', 'default'] });
-    const styleRow = new Adw.ComboRow({ title: 'Estilo', subtitle: 'Estilo de la barra de progreso', model: styleModel, selected: s.get_string('dmm-progress-style') === 'default' ? 1 : 0 });
+    const styleRow = new Adw.ComboRow({ title: _('Style'), subtitle: _('Progress bar style'), model: styleModel, selected: s.get_string('dmm-progress-style') === 'default' ? 1 : 0 });
     styleRow.connect('notify::selected', () => {
       s.set_string('dmm-progress-style', styleRow.selected === 1 ? 'default' : 'slim');
     });
     progressGroup.add(styleRow);
-    progressGroup.add(createSpinButtonRow({ settings: s, bindKey: 'dmm-slider-handle-radius', title: 'Radio del asa', subtitle: '0 = ocultar asa', adjProps: { lower: 0, upper: 20, step: 1 } }));
-    progressGroup.add(createSpinButtonRow({ settings: s, bindKey: 'dmm-slider-bar-height', title: 'Altura de la barra', adjProps: { lower: 2, upper: 20, step: 1 } }));
-    progressGroup.add(createEntryRow({ settings: s, bindKey: 'dmm-slider-active-color', title: 'Color activo', subtitle: 'Color CSS o vacío para usar el acento del tema' }));
-    progressGroup.add(createEntryRow({ settings: s, bindKey: 'dmm-slider-background-color', title: 'Color de fondo', subtitle: 'Color CSS de la parte inactiva' }));
+    progressGroup.add(createSpinButtonRow({ settings: s, bindKey: 'dmm-slider-handle-radius', title: _('Handle radius'), subtitle: _('0 = hide handle'), adjProps: { lower: 0, upper: 20, step: 1 } }));
+    progressGroup.add(createSpinButtonRow({ settings: s, bindKey: 'dmm-slider-bar-height', title: _('Bar height'), adjProps: { lower: 2, upper: 20, step: 1 } }));
+    progressGroup.add(createEntryRow({ settings: s, bindKey: 'dmm-slider-active-color', title: _('Active color'), subtitle: _('CSS color or empty to use the theme accent') }));
+    progressGroup.add(createEntryRow({ settings: s, bindKey: 'dmm-slider-background-color', title: _('Background color'), subtitle: _('CSS color of the inactive part') }));
 
-    const gradientGroup = createGroup({ parent: page, title: 'Gradiente desde carátula', description: 'Extrae el color dominante de la carátula y lo aplica como fondo gradiente.' });
-    gradientGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-gradient-enabled', title: 'Habilitar gradiente' }));
-    gradientGroup.add(createSpinButtonRow({ settings: s, bindKey: 'dmm-gradient-start-opaque', title: 'Opacidad inicial', adjProps: { lower: 0, upper: 1000, step: 50 } }));
-    gradientGroup.add(createSpinButtonRow({ settings: s, bindKey: 'dmm-gradient-start-mix', title: 'Mezcla inicial', subtitle: 'Qué tanto del color extraído se mezcla al inicio (0-1000)', adjProps: { lower: 0, upper: 1000, step: 50 } }));
-    gradientGroup.add(createSpinButtonRow({ settings: s, bindKey: 'dmm-gradient-end-opaque', title: 'Opacidad final', adjProps: { lower: 0, upper: 1000, step: 50 } }));
-    gradientGroup.add(createSpinButtonRow({ settings: s, bindKey: 'dmm-gradient-end-mix', title: 'Mezcla final', subtitle: 'Qué tanto del color extraído se mezcla al final (0-1000)', adjProps: { lower: 0, upper: 1000, step: 50 } }));
+    const gradientGroup = createGroup({ parent: page, title: _('Gradient from art'), description: _('Extracts the dominant color from the album art and applies it as a gradient background.') });
+    gradientGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-gradient-enabled', title: _('Enable gradient') }));
+    gradientGroup.add(createSpinButtonRow({ settings: s, bindKey: 'dmm-gradient-start-opaque', title: _('Start opacity'), adjProps: { lower: 0, upper: 1000, step: 50 } }));
+    gradientGroup.add(createSpinButtonRow({ settings: s, bindKey: 'dmm-gradient-start-mix', title: _('Start mix'), subtitle: _('How much of the extracted color is mixed at the start (0-1000)'), adjProps: { lower: 0, upper: 1000, step: 50 } }));
+    gradientGroup.add(createSpinButtonRow({ settings: s, bindKey: 'dmm-gradient-end-opaque', title: _('End opacity'), adjProps: { lower: 0, upper: 1000, step: 50 } }));
+    gradientGroup.add(createSpinButtonRow({ settings: s, bindKey: 'dmm-gradient-end-mix', title: _('End mix'), subtitle: _('How much of the extracted color is mixed at the end (0-1000)'), adjProps: { lower: 0, upper: 1000, step: 50 } }));
 
-    const roundGroup = createGroup({ parent: page, title: 'Clip redondeado', description: 'Recorta las esquinas del widget multimedia.' });
-    roundGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-round-clip-enabled', title: 'Habilitar clip redondeado' }));
-    roundGroup.add(createSpinButtonRow({ settings: s, bindKey: 'dmm-round-clip-radius', title: 'Radio de esquina', adjProps: { lower: 0, upper: 48, step: 1 } }));
+    const roundGroup = createGroup({ parent: page, title: _('Rounded clip'), description: _('Clips the corners of the media widget.') });
+    roundGroup.add(createSwitchRow({ settings: s, bindKey: 'dmm-round-clip-enabled', title: _('Enable rounded clip') }));
+    roundGroup.add(createSpinButtonRow({ settings: s, bindKey: 'dmm-round-clip-radius', title: _('Corner radius'), adjProps: { lower: 0, upper: 48, step: 1 } }));
   }
 
   _buildLauncherDialog(page) {
     const s = this._settings;
-    const mainGroup = createGroup({ parent: page, title: 'Launcher', description: 'Abre la búsqueda nativa del Overview (modo búsqueda) con un atajo de teclado.' });
-    mainGroup.add(createKeyboardShortcutRow({ settings: s, bindKey: 'launcher-hotkey', title: 'Atajo de teclado', subtitle: 'Combinación para abrir la búsqueda del Overview (modo búsqueda)' }));
-    const overviewGroup = createGroup({ parent: page, title: 'Overview', description: 'Ajustes relacionados con la vista general' });
-    overviewGroup.add(createSwitchRow({ settings: s, bindKey: 'launcher-hide-search', title: 'Ocultar barra de búsqueda', subtitle: 'Oculta el campo "Type to search" en el Overview. Aparece al empezar a escribir.' }));
+    const mainGroup = createGroup({ parent: page, title: _('Launcher'), description: _('Opens the native Overview search (search mode) with a keyboard shortcut.') });
+    mainGroup.add(createKeyboardShortcutRow({ settings: s, bindKey: 'launcher-hotkey', title: _('Keyboard shortcut'), subtitle: _('Key combination to open the Overview search (search mode)') }));
+    const overviewGroup = createGroup({ parent: page, title: _('Overview'), description: _('Settings related to the overview') });
+    overviewGroup.add(createSwitchRow({ settings: s, bindKey: 'launcher-hide-search', title: _('Hide search bar'), subtitle: _('Hides the "Type to search" field in the Overview. It appears when you start typing.') }));
 
-    const cmdGroup = createGroup({ parent: page, title: 'Comandos', description: 'Comandos ejecutables desde la búsqueda escribiendo ":nombre"' });
-    const addBtn = new Gtk.Button({ label: 'Añadir' });
+    const cmdGroup = createGroup({ parent: page, title: _('Commands'), description: _('Commands executable from the search by typing ":name"') });
+    const addBtn = new Gtk.Button({ label: _('Add') });
     addBtn.connect('clicked', () => this._addLauncherCommandDialog(s, cmdList, null));
     cmdGroup.set_header_suffix(addBtn);
     const cmdList = new Gtk.ListBox({ selection_mode: Gtk.SelectionMode.NONE, css_classes: ['boxed-list'] });
@@ -922,10 +925,10 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
       labels.append(nameLabel);
       labels.append(cmdLabel);
       box.append(labels);
-      const editBtn = new Gtk.Button({ icon_name: 'document-edit-symbolic', css_classes: ['flat'], valign: Gtk.Align.CENTER, tooltip_text: 'Editar' });
+      const editBtn = new Gtk.Button({ icon_name: 'document-edit-symbolic', css_classes: ['flat'], valign: Gtk.Align.CENTER, tooltip_text: _('Edit') });
       editBtn.connect('clicked', () => this._addLauncherCommandDialog(s, listBox, index));
       box.append(editBtn);
-      const delBtn = new Gtk.Button({ icon_name: 'user-trash-symbolic', css_classes: ['flat', 'error'], valign: Gtk.Align.CENTER, tooltip_text: 'Eliminar' });
+      const delBtn = new Gtk.Button({ icon_name: 'user-trash-symbolic', css_classes: ['flat', 'error'], valign: Gtk.Align.CENTER, tooltip_text: _('Delete') });
       delBtn.connect('clicked', () => {
         const next = s.get_strv('launcher-commands') || [];
         next.splice(index, 1);
@@ -944,17 +947,17 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     const existing = isEdit ? this._parseLauncherCommand(commands[editIndex] || '') : null;
 
     const dialog = new Adw.MessageDialog({
-      heading: isEdit ? 'Editar comando' : 'Añadir comando',
-      body: 'Al escribir ":$nombre" en la búsqueda se ejecutará el comando.',
+      heading: isEdit ? _('Edit command') : _('Add command'),
+      body: _('Typing ":$name" in the search will run the command.'),
       modal: true,
       transient_for: this._getWindow(),
     });
 
     const content = new Gtk.Box({ orientation: Gtk.Orientation.VERTICAL, spacing: 12, margin_top: 8 });
-    const nameEntry = new Gtk.Entry({ placeholder_text: 'Nombre (sin ":")', text: existing ? existing.name : '' });
-    const cmdEntry = new Gtk.Entry({ placeholder_text: 'Comando de bash (ej: notify-send "Hola")', text: existing ? existing.command : '' });
+    const nameEntry = new Gtk.Entry({ placeholder_text: _('Name (without ":")'), text: existing ? existing.name : '' });
+    const cmdEntry = new Gtk.Entry({ placeholder_text: _('Bash command (e.g. notify-send "Hello")'), text: existing ? existing.command : '' });
 
-    const iconRow = new Adw.ActionRow({ title: 'Icono', subtitle: 'Nombre del icono simbólico (vacío = predeterminado)' });
+    const iconRow = new Adw.ActionRow({ title: _('Icon'), subtitle: _('Symbolic icon name (empty = default)') });
     const iconBox = new Gtk.Box({ spacing: 14, valign: Gtk.Align.CENTER });
     const iconPreview = Gtk.Image.new_from_icon_name((existing && existing.icon) || 'utilities-terminal-symbolic');
     iconPreview.pixel_size = 20;
@@ -968,12 +971,12 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     iconRow.activatable_widget = iconEntry;
     const iconRefLink = new Gtk.LinkButton({
       uri: 'https://gitlab.gnome.org/GNOME/adwaita-icon-theme/-/tree/master/Adwaita/symbolic',
-      label: 'Más iconos',
+      label: _('More icons'),
       valign: Gtk.Align.CENTER,
     });
     const iconRefRow = new Adw.ActionRow({
-      title: 'Sugerencias',
-      subtitle: 'utilities-terminal-symbolic, system-search-symbolic, starred-symbolic, audio-headphones-symbolic, …',
+      title: _('Suggestions'),
+      subtitle: _('utilities-terminal-symbolic, system-search-symbolic, starred-symbolic, audio-headphones-symbolic, …'),
     });
     iconRefRow.add_suffix(iconRefLink);
 
@@ -984,8 +987,8 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     dialog.set_extra_child(content);
 
     const saveResponse = 'save';
-    dialog.add_response('cancel', 'Cancelar');
-    dialog.add_response(saveResponse, isEdit ? 'Guardar' : 'Añadir');
+    dialog.add_response('cancel', _('Cancel'));
+    dialog.add_response(saveResponse, isEdit ? _('Save') : _('Add'));
     dialog.set_response_appearance(saveResponse, Adw.ResponseAppearance.SUGGESTED);
     dialog.set_default_response(saveResponse);
     dialog.connect('response', (_dlg, response) => {
@@ -1013,24 +1016,24 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
   _buildDateMenuDialog(page) {
     const s = this._settings;
 
-    // ── Formatos ──────────────────────────────────────────────────
+    // ── Formats ──────────────────────────────────────────────────
     const formatGroup = createGroup({
       parent: page,
-      title: 'Formatos',
-      description: 'Personaliza el formato del reloj en el panel.',
+      title: _('Formats'),
+      description: _('Customize the clock format on the panel.'),
     });
     formatGroup.add(createEntryRow({
       settings: s,
       bindKey: 'dm-format',
-      title: 'Formato de fecha y hora',
-      subtitle: 'Ej: %B %d, %I:%M:%S %p',
+      title: _('Date and time format'),
+      subtitle: _('E.g. %B %d, %I:%M:%S %p'),
     }));
 
     const completeFormatRow = createEntryRow({
       settings: s,
       bindKey: 'dm-complete-format',
-      title: 'Date menu + Media',
-      subtitle: 'Formato para el modo Multimedia + Reloj\n(máx 10 caracteres)',
+      title: _('Date menu + Media'),
+      subtitle: _('Format for the Multimedia + Clock mode\n(max 10 characters)'),
     });
     completeFormatRow.activatable_widget.max_length = 10;
 
@@ -1046,8 +1049,8 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     const swapRow = createSwitchRow({
       settings: s,
       bindKey: 'dm-swap-text-order',
-      title: 'Permutar orden',
-      subtitle: 'Muestra primero la información multimedia y luego el reloj (solo Vista completa)',
+      title: _('Swap order'),
+      subtitle: _('Shows the media information first and then the clock (full view only)'),
     });
     const updateSwapSensitive = () => {
       swapRow.sensitive = s.get_boolean('dm-show-media') && s.get_int('dm-media-layout') === 2;
@@ -1057,11 +1060,11 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     updateSwapSensitive();
     formatGroup.add(swapRow);
 
-    // ── Multimedia ────────────────────────────────────────────────
+    // ── Media ────────────────────────────────────────────────────
     const mediaGroup = createGroup({
       parent: page,
-      title: 'Multimedia',
-      description: 'Controla cómo se muestra la información de reproducción multimedia en el panel.',
+      title: _('Media'),
+      description: _('Control how media playback information is shown in the panel.'),
     });
 
     function bindMaster(row) {
@@ -1071,8 +1074,8 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     const mediaSwitch = createSwitchRow({
       settings: s,
       bindKey: 'dm-show-media',
-      title: 'Módulo multimedia',
-      subtitle: 'Muestra la información de la pista actual en el panel durante la reproducción',
+      title: _('Media module'),
+      subtitle: _('Shows the current track information in the panel during playback'),
     });
     mediaGroup.add(mediaSwitch);
 
@@ -1083,18 +1086,18 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     const playingOnlyRow = createSwitchRow({
       settings: s,
       bindKey: 'dm-show-media-playing-only',
-      title: 'Solo mostrar durante reproducción',
-      subtitle: 'Si está inactivo, la información multimedia se muestra incluso cuando el medio está en pausa',
+      title: _('Only show during playback'),
+      subtitle: _('If inactive, media information is shown even when the media is paused'),
     });
     bindMaster(playingOnlyRow);
     mediaGroup.add(playingOnlyRow);
 
-    // — Longitudes de texto —
+    // — Text lengths —
     const titleLenRow = createSpinButtonRow({
       settings: s,
       bindKey: 'dm-title-max-length',
-      title: 'Longitud del título',
-      subtitle: 'Máximo de caracteres para el título de la pista (5-30)',
+      title: _('Title length'),
+      subtitle: _('Maximum characters for the track title (5-30)'),
       adjProps: { lower: 5, upper: 30 },
     });
     bindMaster(titleLenRow);
@@ -1103,19 +1106,19 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     const artistLenRow = createSpinButtonRow({
       settings: s,
       bindKey: 'dm-artist-max-length',
-      title: 'Longitud del artista',
-      subtitle: 'Máximo de caracteres para el nombre del artista (5-30)',
+      title: _('Artist length'),
+      subtitle: _('Maximum characters for the artist name (5-30)'),
       adjProps: { lower: 5, upper: 30 },
     });
     bindMaster(artistLenRow);
     mediaGroup.add(artistLenRow);
 
-    // — Álbum —
+    // — Album art —
     const artSwitch = createSwitchRow({
       settings: s,
       bindKey: 'dm-show-art',
-      title: 'Mostrar carátula del álbum',
-      subtitle: 'Muestra la carátula del álbum junto a la información de la canción',
+      title: _('Show album art'),
+      subtitle: _('Shows the album art next to the track information'),
     });
     bindMaster(artSwitch);
     mediaGroup.add(artSwitch);
@@ -1132,8 +1135,8 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     const artCacheRow = createSpinButtonRow({
       settings: s,
       bindKey: 'dm-art-cache-size',
-      title: 'Tamaño de caché de carátulas',
-      subtitle: 'Límite máximo de almacenamiento en disco (MB). Las carátulas antiguas se eliminan automáticamente.',
+      title: _('Art cache size'),
+      subtitle: _('Maximum disk storage limit (MB). Old covers are removed automatically.'),
       adjProps: { lower: 1, upper: 500, step: 5 },
     });
     const updateArtCacheSensitive = () => {
@@ -1144,12 +1147,12 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     updateArtCacheSensitive();
     mediaGroup.add(artCacheRow);
 
-    // — Visualizador —
+    // — Visualizer —
     const visEnabledSwitch = createSwitchRow({
       settings: s,
       bindKey: 'dm-visualizer-enabled',
-      title: 'Activar visualizador',
-      subtitle: 'Muestra el visualizador de audio durante la reproducción',
+      title: _('Enable visualizer'),
+      subtitle: _('Shows the audio visualizer during playback'),
     });
     bindMaster(visEnabledSwitch);
     mediaGroup.add(visEnabledSwitch);
@@ -1159,15 +1162,15 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     const barsRow = createSpinButtonRow({
       settings: s,
       bindKey: 'dm-visualizer-bars',
-      title: 'Barras',
-      subtitle: 'Cantidad de barras del visualizador',
+      title: _('Bars'),
+      subtitle: _('Number of visualizer bars'),
       adjProps: { lower: 2, upper: 16 },
     });
     const heightRow = createSpinButtonRow({
       settings: s,
       bindKey: 'dm-visualizer-height',
-      title: 'Altura',
-      subtitle: 'Altura en píxeles del visualizador',
+      title: _('Height'),
+      subtitle: _('Visualizer height in pixels'),
       adjProps: { lower: 8, upper: 64 },
     });
 
@@ -1191,16 +1194,16 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
   _createLayoutRow(settings) {
     const model = Gio.ListStore.new(DropDownChoice);
     const options = {
-      '0': 'Vista multimedia',
-      '1': 'Vista de reloj',
-      '2': 'Reloj + Multimedia',
+      '0': _('Media view'),
+      '1': _('Clock view'),
+      '2': _('Clock + Media'),
     };
     for (const id in options)
       model.append(new DropDownChoice({ id, title: options[id] }));
 
     const row = new Adw.ComboRow({
-      title: 'Disposición',
-      subtitle: 'Multimedia (solo texto), Reloj (reloj+carátula+visualizador), Completa (texto+reloj)',
+      title: _('Layout'),
+      subtitle: _('Media (text only), Clock (clock+art+visualizer), Full (text+clock)'),
       model,
       expression: Gtk.PropertyExpression.new(DropDownChoice, null, 'title'),
     });
@@ -1239,13 +1242,13 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
 
   _createVisualizerStyleRow(settings) {
     const model = Gio.ListStore.new(DropDownChoice);
-    const options = { '1': 'Wave', '2': 'Beat', '3': 'Cava' };
+    const options = { '1': _('Wave'), '2': _('Beat'), '3': _('Cava') };
     for (const id in options)
       model.append(new DropDownChoice({ id, title: options[id] }));
 
     const row = new Adw.ComboRow({
-      title: 'Estilo del visualizador',
-      subtitle: 'Wave (senoidal), Beat (pulso), Cava (FFT, requiere cava)',
+      title: _('Visualizer style'),
+      subtitle: _('Wave (sine), Beat (pulse), Cava (FFT, requires cava)'),
       model,
       expression: Gtk.PropertyExpression.new(DropDownChoice, null, 'title'),
     });
@@ -1274,13 +1277,13 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
 
   _createArtPositionRow(settings) {
     const model = Gio.ListStore.new(DropDownChoice);
-    const options = { '0': 'Izquierda', '1': 'Derecha' };
+    const options = { '0': _('Left'), '1': _('Right') };
     for (const id in options)
       model.append(new DropDownChoice({ id, title: options[id] }));
 
     const row = new Adw.ComboRow({
-      title: 'Ubicación de la carátula',
-      subtitle: 'Coloca la carátula a la izquierda o derecha del texto',
+      title: _('Art position'),
+      subtitle: _('Places the album art to the left or right of the text'),
       model,
       expression: Gtk.PropertyExpression.new(DropDownChoice, null, 'title'),
     });
@@ -1309,13 +1312,13 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
 
   _createVisPositionRow(settings) {
     const model = Gio.ListStore.new(DropDownChoice);
-    const options = { '0': 'Izquierda', '1': 'Derecha' };
+    const options = { '0': _('Left'), '1': _('Right') };
     for (const id in options)
       model.append(new DropDownChoice({ id, title: options[id] }));
 
     const row = new Adw.ComboRow({
-      title: 'Ubicación del visualizador',
-      subtitle: 'Coloca el visualizador a la izquierda o derecha del texto',
+      title: _('Visualizer position'),
+      subtitle: _('Places the visualizer to the left or right of the text'),
       model,
       expression: Gtk.PropertyExpression.new(DropDownChoice, null, 'title'),
     });
@@ -1352,7 +1355,7 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
 
   _addFontToggleRow(group, settings, toggleKey, fontKey, title) {
     group.add(createSwitchRow({ settings, bindKey: toggleKey, title }));
-    group.add(createEntryRow({ settings, bindKey: fontKey, title: 'Fuente', subtitle: 'Nombre de la fuente (ej: Monospace)' }));
+    group.add(createEntryRow({ settings, bindKey: fontKey, title: _('Font'), subtitle: _('Font name (e.g. Monospace)') }));
   }
 }
 

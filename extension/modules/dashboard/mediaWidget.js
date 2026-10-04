@@ -4,6 +4,7 @@ import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
 import Pango from 'gi://Pango';
 import St from 'gi://St';
+import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { MprisService } from '../../utils/mprisService.js';
 import { MediaWidgetBase } from '../../utils/mediaPlayer/mediaWidget.js';
@@ -246,8 +247,8 @@ var DashboardMediaWidget = GObject.registerClass({
     this._pageIndicator.visible = false;
 
     // Placeholder text: the same slots real media data uses.
-    this._titleLabel.text = 'No media playing';
-    this._artistLabel.text = 'No media information';
+    this._titleLabel.text = _('No media playing');
+    this._artistLabel.text = _('No media information');
 
     // Default cover art image (the same placeholder used when a player has
     // no art URL).

@@ -8,6 +8,9 @@ EXT_DIR="${HOME}/.local/share/gnome-shell/extensions/${UUID}"
 echo "==> Compilando schemas…"
 glib-compile-schemas "${REPO_DIR}/schemas/"
 
+echo "==> Compilando traducciones…"
+"${REPO_DIR}/scripts/build-i18n.sh" build
+
 echo "==> Instalando extensión en ${EXT_DIR}…"
 mkdir -p "${HOME}/.local/share/gnome-shell/extensions"
 if [ -L "${EXT_DIR}" ] || [ -e "${EXT_DIR}" ]; then

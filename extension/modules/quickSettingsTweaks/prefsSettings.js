@@ -6,6 +6,7 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import Gtk from 'gi://Gtk';
+import { gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 import {
     createDialog,
@@ -25,16 +26,16 @@ export class QuickSettingsPrefs {
 
     populateCategoryPage(page) {
         const systemGroup = new Adw.PreferencesGroup({
-            title: 'Área de sistema',
-            description: 'Avatar de usuario y organización de los botones del sistema.',
+            title: _('System area'),
+            description: _('User avatar and system buttons organization.'),
         });
         const avatarPrefs = new UserAvatarPrefs(this._settings, this._window);
         systemGroup.add(avatarPrefs.createModuleRow());
         systemGroup.add(createModuleRow({
             settings: this._settings,
             bindKey: 'qst-system-items-enabled',
-            title: 'System Items Layout',
-            subtitle: 'Reordena y oculta botones del área de sistema (captura, ajustes, bloqueo, apagado, batería)',
+            title: _('System Items Layout'),
+            subtitle: _('Reorders and hides system area buttons (screenshot, settings, lock, shutdown, battery)'),
             onDetailed: () => {
                 if (this._window && this._settings)
                     this.openSystemItemsDialog();
@@ -43,14 +44,14 @@ export class QuickSettingsPrefs {
         page.add(systemGroup);
 
         const togglesGroup = new Adw.PreferencesGroup({
-            title: 'Toggles',
-            description: 'Personalización de los toggles del menú de configuración rápida.',
+            title: _('Toggles'),
+            description: _('Customization of the quick settings toggles.'),
         });
         togglesGroup.add(createModuleRow({
             settings: this._settings,
             bindKey: 'qst-toggles-enabled',
-            title: 'Quick Toggles Layout',
-            subtitle: 'Reordena y oculta toggles del menú de configuración rápida',
+            title: _('Quick Toggles Layout'),
+            subtitle: _('Reorders and hides quick settings toggles'),
             onDetailed: () => {
                 if (this._window && this._settings)
                     this.openToggleOrderDialog();
@@ -67,14 +68,14 @@ export class QuickSettingsPrefs {
     _addOverlayMenuSection(page) {
         const menuGroup = createGroup({
             parent: page,
-            title: 'Menú',
-            description: 'Modo overlay y animaciones al abrir los menús de los toggles.',
+            title: _('Menu'),
+            description: _('Overlay mode and animations when opening the toggle menus.'),
         });
         menuGroup.add(createModuleRow({
             settings: this._settings,
             bindKey: 'qst-overlay-menu-enabled',
-            title: 'Overlay Mode',
-            subtitle: 'Muestra los menús de toggles, energía y sonido como superposición (experimental)',
+            title: _('Overlay Mode'),
+            subtitle: _('Shows toggle, power and sound menus as an overlay (experimental)'),
             onDetailed: () => {
                 if (this._window && this._settings)
                     this.openOverlayMenuDialog();
@@ -83,8 +84,8 @@ export class QuickSettingsPrefs {
         menuGroup.add(createModuleRow({
             settings: this._settings,
             bindKey: 'qst-menu-animation-enabled',
-            title: 'Animation',
-            subtitle: 'Añade animación al menú al abrir y cerrar. Para mejor resultado, activa el modo overlay',
+            title: _('Animation'),
+            subtitle: _('Adds animation to the menu when opening and closing. For best results, enable overlay mode'),
             onDetailed: () => {
                 if (this._window && this._settings)
                     this.openMenuAnimationDialog();
@@ -95,42 +96,42 @@ export class QuickSettingsPrefs {
     openOverlayMenuDialog() {
         createDialog({
             window: this._window,
-            title: 'Overlay Mode',
+            title: _('Overlay Mode'),
             childrenRequest: (page) => {
                 const group = createGroup({
                     parent: page,
-                    title: 'Overlay Mode',
-                    description: 'Muestra los menús de toggles, energía y sonido como superposición (experimental).',
+                    title: _('Overlay Mode'),
+                    description: _('Shows toggle, power and sound menus as an overlay (experimental).'),
                 });
                 group.add(createSpinButtonRow({
                     settings: this._settings,
                     bindKey: 'qst-overlay-menu-width',
-                    title: 'Ancho del overlay',
-                    subtitle: 'Ajusta el ancho del menú superpuesto. Poner a 0 desactiva el ajuste',
+                    title: _('Overlay width'),
+                    subtitle: _('Adjusts the overlay menu width. Set to 0 to disable'),
                     adjProps: { lower: 0, upper: 2048 },
                     sensitiveBind: 'qst-overlay-menu-enabled',
                 }));
                 group.add(createSpinButtonRow({
                     settings: this._settings,
                     bindKey: 'qst-overlay-menu-animate-duration',
-                    title: 'Duración de la animación',
-                    subtitle: 'Duración de la animación de apertura en microsegundos. Poner a 0 desactiva la animación personalizada',
+                    title: _('Animation duration'),
+                    subtitle: _('Opening animation duration in microseconds. Set to 0 to disable the custom animation'),
                     adjProps: { lower: 0, upper: 4000 },
                     sensitiveBind: 'qst-overlay-menu-enabled',
                 }));
                 group.add(createComboRow({
                     settings: this._settings,
                     bindKey: 'qst-overlay-menu-animate-style',
-                    title: 'Estilo de animación',
-                    options: { flyout: 'Flyout', dialog: 'Dialog' },
+                    title: _('Animation style'),
+                    options: { flyout: _('Flyout'), dialog: _('Dialog') },
                     sensitiveBind: 'qst-overlay-menu-enabled',
                 }));
                 group.add(createComboRow({
                     settings: this._settings,
                     bindKey: 'qst-overlay-menu-overflow-anchor',
-                    title: 'Ancla de desbordamiento',
-                    subtitle: 'Cuando el menú es más alto que los ajustes rápidos, determina dónde se fija el menú',
-                    options: { top: 'Superior', center: 'Centro', bottom: 'Inferior' },
+                    title: _('Overflow anchor'),
+                    subtitle: _('When the menu is taller than the quick settings, determines where the menu is anchored'),
+                    options: { top: _('Top'), center: _('Center'), bottom: _('Bottom') },
                     sensitiveBind: 'qst-overlay-menu-enabled',
                 }));
             },
@@ -140,11 +141,11 @@ export class QuickSettingsPrefs {
     openMenuAnimationDialog() {
         createDialog({
             window: this._window,
-            title: 'Animación',
+            title: _('Animation'),
             childrenRequest: (page) => {
                 const group = createGroup({
                     parent: page,
-                    title: 'Estilo avanzado de animación',
+                    title: _('Advanced animation style'),
                 });
                 const spin = (key, title, subtitle, adjProps = { lower: 0, upper: 4000, step: 1 }) =>
                     group.add(createSpinButtonRow({
@@ -155,27 +156,27 @@ export class QuickSettingsPrefs {
                         adjProps,
                         sensitiveBind: 'qst-menu-animation-enabled',
                     }));
-                spin('qst-menu-animation-open-duration', 'Duración de apertura',
-                    'Duración de la animación de apertura en microsegundos');
-                spin('qst-menu-animation-close-duration', 'Duración de cierre',
-                    'Duración de la animación de cierre en microsegundos');
-                spin('qst-menu-animation-grid-content-opacity', 'Opacidad del contenido',
-                    'Opacidad del contenido del grid. 255 = opaco, 0 = transparente',
+                spin('qst-menu-animation-open-duration', _('Opening duration'),
+                    _('Opening animation duration in microseconds'));
+                spin('qst-menu-animation-close-duration', _('Closing duration'),
+                    _('Closing animation duration in microseconds'));
+                spin('qst-menu-animation-grid-content-opacity', _('Content opacity'),
+                    _('Grid content opacity. 255 = opaque, 0 = transparent'),
                     { lower: 0, upper: 255 });
-                spin('qst-menu-animation-background-blur-radius', 'Radio de desenfoque del fondo',
-                    'Radio del desenfoque del fondo. Poner a 0 desactiva el desenfoque',
+                spin('qst-menu-animation-background-blur-radius', _('Background blur radius'),
+                    _('Background blur radius. Set to 0 to disable blur'),
                     { lower: 0, upper: 32 });
-                spin('qst-menu-animation-background-brightness', 'Brillo del fondo',
-                    'Ajusta el brillo del fondo; 1000 desactiva el control de brillo',
+                spin('qst-menu-animation-background-brightness', _('Background brightness'),
+                    _('Adjusts the background brightness; 1000 disables the brightness control'),
                     { lower: 0, upper: 2000 });
-                spin('qst-menu-animation-background-opacity', 'Opacidad del fondo',
-                    'Opacidad del fondo. 255 = opaco, 0 = transparente',
+                spin('qst-menu-animation-background-opacity', _('Background opacity'),
+                    _('Background opacity. 255 = opaque, 0 = transparent'),
                     { lower: 0, upper: 255 });
-                spin('qst-menu-animation-background-scale-x', 'Escala X del fondo',
-                    'Escala horizontal del fondo; 1000 equivale a escala 1.0',
+                spin('qst-menu-animation-background-scale-x', _('Background X scale'),
+                    _('Horizontal background scale; 1000 equals 1.0 scale'),
                     { lower: 0, upper: 4000 });
-                spin('qst-menu-animation-background-scale-y', 'Escala Y del fondo',
-                    'Escala vertical del fondo; 1000 equivale a escala 1.0',
+                spin('qst-menu-animation-background-scale-y', _('Background Y scale'),
+                    _('Vertical background scale; 1000 equals 1.0 scale'),
                     { lower: 0, upper: 4000 });
             },
         });
@@ -201,11 +202,11 @@ export class QuickSettingsPrefs {
         };
         createDialog({
             window: parentWindow,
-            title: 'Ordenar y ocultar toggles',
+            title: _('Reorder and hide toggles'),
             childrenRequest: (page) => {
                 const group = new Adw.PreferencesGroup({
-                    title: 'Toggles',
-                    description: 'Arrastra y suelta para reordenar. El switch oculta.',
+                    title: _('Toggles'),
+                    description: _('Drag and drop to reorder. The switch hides.'),
                 });
                 page.add(group);
 
@@ -217,19 +218,19 @@ export class QuickSettingsPrefs {
                 newBtn.get_style_context().add_provider(s, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
                 const c = new Gtk.Box(); newBtn.child = c;
                 new Gtk.Image({ icon_name: 'list-add', pixel_size: 12, margin_end: 6 }).insert_before(c, null);
-                new Gtk.Label({ label: 'Nuevo Toggle' }).insert_before(c, null);
+                new Gtk.Label({ label: _('New Toggle') }).insert_before(c, null);
                 newBtn.connect('clicked', addNewItem);
                 headerBox.append(newBtn);
                 const resetBtn = Gtk.Button.new_from_icon_name('view-refresh-symbolic');
                 resetBtn.has_frame = false; resetBtn.valign = Gtk.Align.CENTER;
-                resetBtn.tooltip_text = 'Restablecer valores predeterminados';
+                resetBtn.tooltip_text = _('Reset to default values');
                 resetBtn.connect('clicked', () => {
                     const alert = new Adw.AlertDialog({
-                        heading: 'Restablecer valores predeterminados',
-                        body: 'Se perderán todos los cambios realizados en los toggles personalizados. ¿Continuar?',
+                        heading: _('Reset to default values'),
+                        body: _('All changes made to the custom toggles will be lost. Continue?'),
                     });
-                    alert.add_response('cancel', 'Cancelar');
-                    alert.add_response('reset', 'Restablecer');
+                    alert.add_response('cancel', _('Cancel'));
+                    alert.add_response('reset', _('Reset'));
                     alert.set_response_appearance('reset', Adw.ResponseAppearance.DESTRUCTIVE);
                     alert.set_default_response('cancel');
                     alert.set_close_response('cancel');
@@ -273,11 +274,11 @@ export class QuickSettingsPrefs {
 
         createDialog({
             window: parentWindow,
-            title: 'Ordenar elementos del sistema',
+            title: _('Reorder system items'),
             childrenRequest: (page) => {
                 const masterGroup = new Adw.PreferencesGroup({
-                    title: 'Sistema',
-                    description: 'Controla la visibilidad y el orden de los botones del área de sistema en el menú de ajustes rápidos.',
+                    title: _('System'),
+                    description: _('Controls the visibility and order of the system area buttons in the quick settings menu.'),
                 });
                 page.add(masterGroup);
 
@@ -288,16 +289,16 @@ export class QuickSettingsPrefs {
                 settings.bind('qst-system-items-hide', hideAllSwitch, 'active',
                     Gio.SettingsBindFlags.DEFAULT);
                 const hideAllRow = new Adw.ActionRow({
-                    title: 'Ocultar toda el área de sistema',
-                    subtitle: 'Reemplaza con el botón de apagado simplificado',
+                    title: _('Hide the entire system area'),
+                    subtitle: _('Replaces it with the simplified power button'),
                     activatable_widget: hideAllSwitch,
                 });
                 hideAllRow.add_suffix(hideAllSwitch);
                 masterGroup.add(hideAllRow);
 
                 const orderGroup = new Adw.PreferencesGroup({
-                    title: 'Orden y visibilidad',
-                    description: 'Arrastra y suelta para reordenar. El switch oculta el elemento.',
+                    title: _('Order and visibility'),
+                    description: _('Drag and drop to reorder. The switch hides the element.'),
                 });
                 page.add(orderGroup);
 
@@ -305,14 +306,14 @@ export class QuickSettingsPrefs {
                 const resetBtn = Gtk.Button.new_from_icon_name('view-refresh-symbolic');
                 resetBtn.has_frame = false;
                 resetBtn.valign = Gtk.Align.CENTER;
-                resetBtn.tooltip_text = 'Restablecer orden predeterminado';
+                resetBtn.tooltip_text = _('Reset to default order');
                 resetBtn.connect('clicked', () => {
                     const alert = new Adw.AlertDialog({
-                        heading: 'Restablecer orden predeterminado',
-                        body: 'Se perderán todos los cambios en el orden y visibilidad de los elementos del sistema. ¿Continuar?',
+                        heading: _('Reset to default order'),
+                        body: _('All changes to the order and visibility of the system items will be lost. Continue?'),
                     });
-                    alert.add_response('cancel', 'Cancelar');
-                    alert.add_response('reset', 'Restablecer');
+                    alert.add_response('cancel', _('Cancel'));
+                    alert.add_response('reset', _('Reset'));
                     alert.set_response_appearance('reset', Adw.ResponseAppearance.DESTRUCTIVE);
                     alert.set_default_response('cancel');
                     alert.set_close_response('cancel');
@@ -355,12 +356,21 @@ export class QuickSettingsPrefs {
 // ══════════════════════════════════════════════════════════════════
 
 const SYSTEM_NAMES = {
-    NMWiredToggle: 'Cableada', NMWirelessToggle: 'Wi-Fi', NMModemToggle: 'Red Móvil',
-    NMBluetoothToggle: 'BT Tethering', NMVpnToggle: 'VPN', BluetoothToggle: 'Bluetooth',
-    PowerProfilesToggle: 'Modo de Energía', NightLightToggle: 'Luz Nocturna',
-    DarkModeToggle: 'Modo Oscuro', DoNotDisturbToggle: 'No Molestar',
-    KeyboardBrightnessToggle: 'Teclado Retroiluminado', RfkillToggle: 'Modo Avión',
-    RotationToggle: 'Auto Rotar', DndQuickToggle: 'DND', UnsafeQuickToggle: 'Modo Inseguro',
+    get NMWiredToggle() { return _('Wired'); },
+    get NMWirelessToggle() { return _('Wi-Fi'); },
+    get NMModemToggle() { return _('Mobile Data'); },
+    get NMBluetoothToggle() { return _('BT Tethering'); },
+    get NMVpnToggle() { return _('VPN'); },
+    get BluetoothToggle() { return _('Bluetooth'); },
+    get PowerProfilesToggle() { return _('Power Mode'); },
+    get NightLightToggle() { return _('Night Light'); },
+    get DarkModeToggle() { return _('Dark Mode'); },
+    get DoNotDisturbToggle() { return _('Do Not Disturb'); },
+    get KeyboardBrightnessToggle() { return _('Keyboard Backlight'); },
+    get RfkillToggle() { return _('Airplane Mode'); },
+    get RotationToggle() { return _('Auto Rotate'); },
+    get DndQuickToggle() { return _('DND'); },
+    get UnsafeQuickToggle() { return _('Unsafe Mode'); },
 };
 const SYSTEM_ICONS = {
     NMWiredToggle: 'network-wired-symbolic', NMWirelessToggle: 'network-wireless-signal-excellent-symbolic',
@@ -374,19 +384,19 @@ const SYSTEM_ICONS = {
 };
 
 function getDisplayName(item) {
-    if (item.nonOrdered) return 'Otros toggles';
+    if (item.nonOrdered) return _('Other toggles');
     if (item.isSystem && item.constructorName)
         return SYSTEM_NAMES[item.constructorName] || item.constructorName;
-    return item.friendlyName || item.constructorName || '(sin nombre)';
+    return item.friendlyName || item.constructorName || _('(unnamed)');
 }
 function getSubtitle(item) {
-    if (item.nonOrdered) return 'Los toggles no listados aparecerán aquí';
-    if (item.isSystem) return 'Toggle del sistema';
+    if (item.nonOrdered) return _('Toggles not listed will appear here');
+    if (item.isSystem) return _('System toggle');
     const parts = [];
     if (item.constructorName) parts.push(`ctor: ${item.constructorName}`);
     if (item.titleRegex) parts.push(`regex: ${item.titleRegex}`);
-    if (item.options?.length) parts.push(`${item.options.length} opciones`);
-    return parts.join(', ') || 'Toggle personalizado';
+    if (item.options?.length) parts.push(`${item.options.length} ${_('options')}`);
+    return parts.join(', ') || _('Custom toggle');
 }
 function getIconName(item) {
     if (item.isSystem && item.constructorName)
@@ -456,7 +466,7 @@ function saveItem(item, rows) {
 function newItemDefaults() {
     return {
         hide: false, isSystem: false, constructorName: '',
-        friendlyName: 'Toggle personalizado', titleRegex: '', gtypeName: '',
+        friendlyName: _('Custom toggle'), titleRegex: '', gtypeName: '',
         icon: '', commandOn: '', commandOff: '',
         checkCommand: '', checkRegex: '', keybinding: '',
         initialState: 2, runAtBoot: false, delayTime: 3,
@@ -468,12 +478,12 @@ function newItemDefaults() {
 
 function buildEditFormRows(page, item, rootWindow) {
     const rows = {};
-    const appGroup = new Adw.PreferencesGroup({ title: 'Apariencia' });
+    const appGroup = new Adw.PreferencesGroup({ title: _('Appearance') });
     page.add(appGroup);
-    rows.nameRow = new Adw.EntryRow({ title: 'Nombre' });
+    rows.nameRow = new Adw.EntryRow({ title: _('Name') });
     rows.nameRow.set_text(item.friendlyName || '');
     appGroup.add(rows.nameRow);
-    rows.iconRow = new Adw.ActionRow({ title: 'Icono', subtitle: 'Nombre del icono' });
+    rows.iconRow = new Adw.ActionRow({ title: _('Icon'), subtitle: _('Icon name') });
     const iconBox = new Gtk.Box({ spacing: 14, valign: Gtk.Align.CENTER });
     rows.iconPreview = Gtk.Image.new_from_icon_name(item.icon || 'preferences-other-symbolic');
     rows.iconPreview.pixel_size = 20;
@@ -489,40 +499,40 @@ function buildEditFormRows(page, item, rootWindow) {
     });
     const refLink = new Gtk.LinkButton({
         uri: 'https://gitlab.gnome.org/GNOME/adwaita-icon-theme/-/tree/master/Adwaita/symbolic',
-        label: 'Más iconos',
+        label: _('More icons'),
         valign: Gtk.Align.CENTER,
     });
     const refRow = new Adw.ActionRow({
-        title: 'Sugerencias',
+        title: _('Suggestions'),
         subtitle: 'face-smile-symbolic, heart-symbolic, starred-symbolic, audio-headphones-symbolic, battery-good-symbolic, …',
     });
     refRow.add_suffix(refLink);
     appGroup.add(refRow);
-    const matchGroup = new Adw.PreferencesGroup({ title: 'Reglas de coincidencia', description: 'Identifica el toggle en el sistema. Vacío si es sólo comandos.' });
+    const matchGroup = new Adw.PreferencesGroup({ title: _('Matching rules'), description: _('Identifies the toggle in the system. Empty if it only runs commands.') });
     page.add(matchGroup);
-    rows.ctorRow = new Adw.EntryRow({ title: 'Constructor name' });
+    rows.ctorRow = new Adw.EntryRow({ title: _('Constructor name') });
     rows.ctorRow.set_text(item.constructorName || '');
     matchGroup.add(rows.ctorRow);
-    rows.regexRow = new Adw.EntryRow({ title: 'Regex de título' });
+    rows.regexRow = new Adw.EntryRow({ title: _('Title regex') });
     rows.regexRow.set_text(item.titleRegex || '');
     matchGroup.add(rows.regexRow);
-    rows.gtypeRow = new Adw.EntryRow({ title: 'GType name' });
+    rows.gtypeRow = new Adw.EntryRow({ title: _('GType name') });
     rows.gtypeRow.set_text(item.gtypeName || '');
     matchGroup.add(rows.gtypeRow);
-    const cmdGroup = new Adw.PreferencesGroup({ title: 'Comandos', description: 'Comandos a ejecutar al activar/desactivar' });
+    const cmdGroup = new Adw.PreferencesGroup({ title: _('Commands'), description: _('Commands to run when activating/deactivating') });
     page.add(cmdGroup);
-    rows.onCmdRow = new Adw.EntryRow({ title: 'Comando ON' });
+    rows.onCmdRow = new Adw.EntryRow({ title: _('ON command') });
     rows.onCmdRow.set_text(item.commandOn || '');
     cmdGroup.add(rows.onCmdRow);
-    rows.offCmdRow = new Adw.EntryRow({ title: 'Comando OFF' });
+    rows.offCmdRow = new Adw.EntryRow({ title: _('OFF command') });
     rows.offCmdRow.set_text(item.commandOff || '');
     cmdGroup.add(rows.offCmdRow);
-    rows.checkCmdRow = new Adw.ActionRow({ title: 'Comando de verificación', subtitle: 'Consulta el estado actual' });
+    rows.checkCmdRow = new Adw.ActionRow({ title: _('Check command'), subtitle: _('Queries the current state') });
     rows.checkCmdEntry = new Gtk.Entry({ text: item.checkCommand || '', valign: Gtk.Align.CENTER });
     rows.checkCmdRow.add_suffix(rows.checkCmdEntry);
     rows.checkCmdRow.activatable_widget = rows.checkCmdEntry;
     cmdGroup.add(rows.checkCmdRow);
-    rows.checkRegexRow = new Adw.ActionRow({ title: 'Término de búsqueda', subtitle: 'Texto a buscar en la salida del comando' });
+    rows.checkRegexRow = new Adw.ActionRow({ title: _('Search term'), subtitle: _('Text to search in the command output') });
     rows.checkRegexEntry = new Gtk.Entry({ text: item.checkRegex || '', valign: Gtk.Align.CENTER });
     rows.checkRegexRow.add_suffix(rows.checkRegexEntry);
     rows.checkRegexRow.activatable_widget = rows.checkRegexEntry;
@@ -530,8 +540,8 @@ function buildEditFormRows(page, item, rootWindow) {
 
     // ── Opciones del menú ──
     const optsGroup = new Adw.PreferencesGroup({
-        title: 'Opciones del menú',
-        description: 'Etiqueta, comando e icono de cada opción del menú. Arrastra para reordenar.',
+        title: _('Menu options'),
+        description: _('Label, command and icon of each menu option. Drag to reorder.'),
     });
     page.add(optsGroup);
 
@@ -553,7 +563,7 @@ function buildEditFormRows(page, item, rootWindow) {
     optsListBox.add_css_class('boxed-list');
     optsGroup.add(optsListBox);
 
-    const addBtnRow = new Adw.ButtonRow({ title: 'Añadir opción' });
+    const addBtnRow = new Adw.ButtonRow({ title: _('Add option') });
     addBtnRow.start_icon_name = 'list-add-symbolic';
     optsListBox.append(addBtnRow);
 
@@ -561,7 +571,7 @@ function buildEditFormRows(page, item, rootWindow) {
         // Fila expandible: colapsada muestra la etiqueta (título) y el comando
         // (subtítulo); expandida muestra Etiqueta / Comando / Icono.
         const row = new QuickToggleOptionRow();
-        row.set_title(opt.label?.trim() || 'Sin etiqueta');
+        row.set_title(opt.label?.trim() || _('No label'));
         const optionCmd = opt.command?.trim();
         if (optionCmd)
             row.set_subtitle(optionCmd);
@@ -575,15 +585,15 @@ function buildEditFormRows(page, item, rootWindow) {
         row.add_prefix(dragHandle);
 
         // Etiqueta: nombre que se muestra en el menú.
-        const labelEntry = new Adw.EntryRow({ title: 'Etiqueta' });
+        const labelEntry = new Adw.EntryRow({ title: _('Label') });
         labelEntry.set_text(opt.label || '');
         labelEntry.connect('notify::text', () => {
-            row.set_title(labelEntry.get_text().trim() || 'Sin etiqueta');
+            row.set_title(labelEntry.get_text().trim() || _('No label'));
         });
         row.add_row(labelEntry);
 
         // Comando: comando a ejecutar al pulsar la opción.
-        const cmdEntry = new Adw.EntryRow({ title: 'Comando' });
+        const cmdEntry = new Adw.EntryRow({ title: _('Command') });
         cmdEntry.set_text(opt.command || '');
         cmdEntry.connect('notify::text', () => {
             row.set_subtitle(cmdEntry.get_text().trim());
@@ -592,7 +602,7 @@ function buildEditFormRows(page, item, rootWindow) {
 
         // Icono: icono personalizado de la opción + vista previa (el botón de
         // eliminar vive junto al chevron, en el título de la fila).
-        const iconRow = new Adw.EntryRow({ title: 'Icono' });
+        const iconRow = new Adw.EntryRow({ title: _('Icon') });
         iconRow.set_text(opt.icon || '');
         const iconPreview = Gtk.Image.new_from_icon_name(
             opt.icon?.trim() || 'preferences-other-symbolic');
@@ -611,7 +621,7 @@ function buildEditFormRows(page, item, rootWindow) {
         const delBtn = Gtk.Button.new_from_icon_name('user-trash-symbolic');
         delBtn.has_frame = false;
         delBtn.valign = Gtk.Align.CENTER;
-        delBtn.tooltip_text = 'Eliminar opción';
+        delBtn.tooltip_text = _('Delete option');
         row.add_suffix(delBtn);
 
         const entry = { row, labelEntry, cmdEntry, iconRow };
@@ -655,43 +665,43 @@ function buildEditFormRows(page, item, rootWindow) {
 
     enableDragAutoScroll(optsListBox);
 
-    const startupGroup = new Adw.PreferencesGroup({ title: 'Comportamiento de inicio' });
+    const startupGroup = new Adw.PreferencesGroup({ title: _('Startup behavior') });
     page.add(startupGroup);
     const initialStateOptions = new Gtk.StringList();
-    initialStateOptions.append('Activado'); initialStateOptions.append('Desactivado');
-    initialStateOptions.append('Estado anterior'); initialStateOptions.append('Salida del comando');
-    rows.initialStateCombo = new Adw.ComboRow({ title: 'Estado inicial', subtitle: 'Estado al iniciar sesión', model: initialStateOptions, selected: item.initialState ?? 2 });
+    initialStateOptions.append(_('Enabled')); initialStateOptions.append(_('Disabled'));
+    initialStateOptions.append(_('Previous state')); initialStateOptions.append(_('Command output'));
+    rows.initialStateCombo = new Adw.ComboRow({ title: _('Initial state'), subtitle: _('State when signing in'), model: initialStateOptions, selected: item.initialState ?? 2 });
     startupGroup.add(rows.initialStateCombo);
-    rows.runAtBootSwitch = new Adw.SwitchRow({ title: 'Ejecutar comando al inicio', subtitle: 'Ejecuta ON/OFF al iniciar sesión', active: !!item.runAtBoot });
+    rows.runAtBootSwitch = new Adw.SwitchRow({ title: _('Run command at startup'), subtitle: _('Runs ON/OFF when signing in'), active: !!item.runAtBoot });
     startupGroup.add(rows.runAtBootSwitch);
-    rows.delaySpin = new Adw.SpinRow({ title: 'Retardo (segundos)', adjustment: new Gtk.Adjustment({ lower: 0, upper: 10, step_increment: 1 }), value: item.delayTime ?? 3 });
+    rows.delaySpin = new Adw.SpinRow({ title: _('Delay (seconds)'), adjustment: new Gtk.Adjustment({ lower: 0, upper: 10, step_increment: 1 }), value: item.delayTime ?? 3 });
     startupGroup.add(rows.delaySpin);
-    const toggleGroup = new Adw.PreferencesGroup({ title: 'Comportamiento del toggle' });
+    const toggleGroup = new Adw.PreferencesGroup({ title: _('Toggle behavior') });
     page.add(toggleGroup);
     const clickOptions = new Gtk.StringList();
-    clickOptions.append('Siempre activado'); clickOptions.append('Siempre desactivado'); clickOptions.append('Alternar');
-    rows.buttonClickCombo = new Adw.ComboRow({ title: 'Acción al hacer clic', subtitle: 'Comportamiento al presionar', model: clickOptions, selected: item.buttonClick ?? 2 });
+    clickOptions.append(_('Always on')); clickOptions.append(_('Always off')); clickOptions.append(_('Toggle'));
+    rows.buttonClickCombo = new Adw.ComboRow({ title: _('Click action'), subtitle: _('Behavior when pressed'), model: clickOptions, selected: item.buttonClick ?? 2 });
     toggleGroup.add(rows.buttonClickCombo);
-    rows.showIndicatorSwitch = new Adw.SwitchRow({ title: 'Mostrar indicador', subtitle: 'Icono en la barra superior cuando está activado', active: !!item.showIndicator });
+    rows.showIndicatorSwitch = new Adw.SwitchRow({ title: _('Show indicator'), subtitle: _('Icon in the top bar when enabled'), active: !!item.showIndicator });
     toggleGroup.add(rows.showIndicatorSwitch);
-    rows.closeMenuSwitch = new Adw.SwitchRow({ title: 'Cerrar menú al presionar', active: !!item.closeMenu });
+    rows.closeMenuSwitch = new Adw.SwitchRow({ title: _('Close menu on press'), active: !!item.closeMenu });
     toggleGroup.add(rows.closeMenuSwitch);
-    rows.checkExitCodeSwitch = new Adw.SwitchRow({ title: 'Verificar código de salida', subtitle: 'Sólo alternar si el comando se ejecuta correctamente', active: !!item.checkExitCode });
+    rows.checkExitCodeSwitch = new Adw.SwitchRow({ title: _('Check exit code'), subtitle: _('Only toggle if the command runs successfully'), active: !!item.checkExitCode });
     toggleGroup.add(rows.checkExitCodeSwitch);
-    const syncGroup = new Adw.PreferencesGroup({ title: 'Sincronización' });
+    const syncGroup = new Adw.PreferencesGroup({ title: _('Synchronization') });
     page.add(syncGroup);
-    rows.commandSyncSwitch = new Adw.SwitchRow({ title: 'Mantener sincronizado', subtitle: 'Actualiza periódicamente el estado según la salida del comando', active: !!item.commandSync });
+    rows.commandSyncSwitch = new Adw.SwitchRow({ title: _('Keep in sync'), subtitle: _('Periodically updates the state from the command output'), active: !!item.commandSync });
     syncGroup.add(rows.commandSyncSwitch);
-    rows.pollIntervalSpin = new Adw.SpinRow({ title: 'Frecuencia (segundos)', subtitle: 'Cada cuánto verificar el estado', adjustment: new Gtk.Adjustment({ lower: 2, upper: 900, step_increment: 1 }), value: item.pollInterval ?? 10 });
+    rows.pollIntervalSpin = new Adw.SpinRow({ title: _('Frequency (seconds)'), subtitle: _('How often to check the state'), adjustment: new Gtk.Adjustment({ lower: 2, upper: 900, step_increment: 1 }), value: item.pollInterval ?? 10 });
     syncGroup.add(rows.pollIntervalSpin);
-    const shortcutGroup = new Adw.PreferencesGroup({ title: 'Atajo de teclado' });
+    const shortcutGroup = new Adw.PreferencesGroup({ title: _('Keyboard shortcut') });
     page.add(shortcutGroup);
-    rows.shortcutLabel = new Gtk.ShortcutLabel({ accelerator: item.keybinding || null, disabled_text: 'Sin atajo', valign: Gtk.Align.CENTER });
-    const shortcutRow = new Adw.ActionRow({ title: 'Atajo', activatable: true });
+    rows.shortcutLabel = new Gtk.ShortcutLabel({ accelerator: item.keybinding || null, disabled_text: _('No shortcut'), valign: Gtk.Align.CENTER });
+    const shortcutRow = new Adw.ActionRow({ title: _('Shortcut'), activatable: true });
     shortcutRow.add_suffix(rows.shortcutLabel);
     shortcutGroup.add(shortcutRow);
     shortcutRow.connect('activated', () => {
-        const captureWin = new Adw.Window({ modal: true, transient_for: rootWindow, width_request: 400, height_request: 250, content: new Adw.StatusPage({ title: 'Capturar atajo', description: 'Esc para cancelar, Retroceso para desactivar', icon_name: 'preferences-desktop-keyboard-shortcuts-symbolic' }) });
+        const captureWin = new Adw.Window({ modal: true, transient_for: rootWindow, width_request: 400, height_request: 250, content: new Adw.StatusPage({ title: _('Capture shortcut'), description: _('Esc to cancel, Backspace to disable'), icon_name: 'preferences-desktop-keyboard-shortcuts-symbolic' }) });
         const controller = new Gtk.EventControllerKey();
         captureWin.add_controller(controller);
         controller.connect('key-pressed', (_ctrl, keyval, _keycode, state) => {
@@ -708,14 +718,14 @@ function buildEditFormRows(page, item, rootWindow) {
 }
 
 function openEditDialog(parentWindow, settings, item, onSave) {
-    const isNew = !item.friendlyName || item.friendlyName === 'Toggle personalizado' || /^My item #\d+$/.test(item.friendlyName);
+    const isNew = !item.friendlyName || item.friendlyName === _('Custom toggle') || /^My item #\d+$/.test(item.friendlyName);
     createDialog({
         window: parentWindow,
-        title: isNew ? 'Nuevo toggle' : item.friendlyName,
+        title: isNew ? _('New toggle') : item.friendlyName,
         childrenRequest: (page, dlg) => {
             const { rows, appGroup } = buildEditFormRows(page, item, parentWindow);
             const saveBtn = new Gtk.Button({ icon_name: 'document-save-symbolic', has_frame: true });
-            saveBtn.tooltip_text = 'Guardar';
+            saveBtn.tooltip_text = _('Save');
             saveBtn.add_css_class('flat');
             saveBtn.connect('clicked', () => {
                 try {
@@ -757,7 +767,7 @@ const QuickTogglesPlaceholder = GObject.registerClass({
         this.set_vexpand(true);
 
         const label = new Gtk.Label({
-            label: 'Arrastra elementos aquí',
+            label: _('Drag items here'),
             sensitive: false,
             opacity: 0.5,
             margin_top: 16,
@@ -804,7 +814,7 @@ function _qtCreateRow(item, ctx) {
         editBtn.connect('clicked', () => { openEditDialog(window, settings, item, () => { saveList(list); rebuild(); }); });
         row.add_suffix(editBtn);
         const delBtn = Gtk.Button.new_from_icon_name('user-trash-symbolic');
-        delBtn.has_frame = false; delBtn.valign = Gtk.Align.CENTER; delBtn.tooltip_text = 'Eliminar toggle';
+        delBtn.has_frame = false; delBtn.valign = Gtk.Align.CENTER; delBtn.tooltip_text = _('Delete toggle');
         delBtn.connect('clicked', () => { const idx = list.indexOf(item); list.splice(idx, 1); saveList(list); rebuild(); });
         row.add_suffix(delBtn);
     }
@@ -999,13 +1009,13 @@ function _optionRebuildOrder(optsListBox, rows, addRowButton) {
 // ══════════════════════════════════════════════════════════════════
 
 const SYSTEM_ITEM_NAMES = {
-    battery: 'Batería',
-    laptopSpacer: 'Espaciador (portátil)',
-    screenshot: 'Captura de pantalla',
-    settings: 'Ajustes',
-    desktopSpacer: 'Espaciador (escritorio)',
-    lock: 'Bloqueo',
-    shutdown: 'Apagado',
+    get battery() { return _('Battery'); },
+    get laptopSpacer() { return _('Spacer (laptop)'); },
+    get screenshot() { return _('Screenshot'); },
+    get settings() { return _('Settings'); },
+    get desktopSpacer() { return _('Spacer (desktop)'); },
+    get lock() { return _('Lock'); },
+    get shutdown() { return _('Shutdown'); },
 };
 
 const SYSTEM_ITEM_ICONS = {
@@ -1046,7 +1056,7 @@ const SystemItemsPlaceholder = GObject.registerClass({
         this.set_vexpand(true);
 
         const label = new Gtk.Label({
-            label: 'Arrastra elementos aquí',
+            label: _('Drag items here'),
             sensitive: false,
             opacity: 0.5,
             margin_top: 16,

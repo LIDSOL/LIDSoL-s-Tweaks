@@ -12,6 +12,7 @@ import * as ModalDialog from 'resource:///org/gnome/shell/ui/modalDialog.js';
 import * as Dialog from 'resource:///org/gnome/shell/ui/dialog.js';
 import * as ShellEntry from 'resource:///org/gnome/shell/ui/shellEntry.js';
 import * as Util from 'resource:///org/gnome/shell/misc/util.js';
+import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 export class QuickTextModule {
     constructor() {
@@ -53,7 +54,7 @@ export class QuickTextModule {
         const dialog = new ModalDialog.ModalDialog();
         this._dialog = dialog;
 
-        const title = 'Save A Note';
+        const title = _('Save A Note');
         const content = new Dialog.MessageDialogContent({title});
         dialog.contentLayout.add_child(content);
 
@@ -103,16 +104,16 @@ export class QuickTextModule {
         const eprepend = new St.Entry({can_focus: false, text: prependStr});
 
         dialog.addButton({
-            label: 'OK',
+            label: _('OK'),
             action: () => this._doSaveSnippet(entry, filepath, pendLoc, append, prependStr, dialog),
         });
         dialog.addButton({
-            label: 'Cancel',
+            label: _('Cancel'),
             action: () => dialog.close(),
             key: Clutter.KEY_Escape,
         });
         dialog.addButton({
-            label: 'Actions',
+            label: _('Actions'),
             action: () => {
                 this._doWindow();
                 dialog.close();

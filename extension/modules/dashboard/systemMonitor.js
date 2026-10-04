@@ -5,6 +5,7 @@ import GLib from 'gi://GLib';
 import Gio from 'gi://Gio';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
+import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 let GTop, hasGTop = true;
 try {
@@ -229,7 +230,7 @@ class PowerLevel extends UsageLevel {
     _init(vertical) {
         super._init(vertical);
         this.icon.icon_name = 'battery-symbolic';
-        this.hoverLabel.text = 'Battery';
+        this.hoverLabel.text = _('Battery');
         this.colorSwitchValues = [75, 50, 25];
 
         const DisplayDeviceInterface = `
@@ -293,7 +294,7 @@ class CpuLevel extends UsageLevel {
     _init(vertical) {
         super._init(vertical);
         this.icon.icon_name = 'power-profile-performance-symbolic';
-        this.hoverLabel.text = 'CPU';
+        this.hoverLabel.text = _('CPU');
         this.lastCPUTotal = 0;
         this.lastCPUUsed = 0;
     }
@@ -356,7 +357,7 @@ class RamLevel extends UsageLevel {
     _init(vertical) {
         super._init(vertical);
         this.icon.icon_name = 'drive-harddisk-solidstate-symbolic';
-        this.hoverLabel.text = 'RAM';
+        this.hoverLabel.text = _('RAM');
     }
 
     setUsage() {
@@ -401,7 +402,7 @@ class TempLevel extends UsageLevel {
     _init(vertical) {
         super._init(vertical);
         this.icon.icon_name = 'temperature-symbolic';
-        this.hoverLabel.text = 'Temperature';
+        this.hoverLabel.text = _('Temperature');
         this.colorSwitchValues = [50, 65, 80];
     }
 
@@ -428,7 +429,7 @@ class StorageLevel extends UsageLevel {
     _init(vertical) {
         super._init(vertical);
         this.icon.icon_name = 'drive-harddisk-symbolic';
-        this.hoverLabel.text = 'Disk';
+        this.hoverLabel.text = _('Disk');
         this.colorSwitchValues = [40, 60, 80];
 
         if (hasGTop)

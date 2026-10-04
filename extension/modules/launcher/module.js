@@ -6,6 +6,7 @@ import Clutter from 'gi://Clutter';
 import Shell from 'gi://Shell';
 import Gio from 'gi://Gio';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { LauncherSearchProvider } from './searchProvider.js';
 

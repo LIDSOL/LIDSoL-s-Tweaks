@@ -1,0 +1,615 @@
+#+TITLE: Notas, lecciones y referencias
+#+DATE: 2026-08-25
+* Notas: lecciones y referencias
+** Comandos útiles
+#+BEGIN_SRC bash
+glib-compile-schemas LIDSoL-s-Tweaks/schemas/
+gnome-extensions enable/disable/prefs lidsol-widgets@lidsol
+journalctl -f -o cat /usr/bin/gnome-shell | grep 'LIDSoL'
+#+END_SRC
+** Lecciones aprendidas
+
+- **prefs.js vacío → crash**: `fillPreferencesWindow()` debe agregar al menos un widget. Si no, GNOME falla con "Extension did not provide any UI".
+- **Import ESM sensible a mayúsculas**: `import {ModuleLoader}` debe coincidir exactamente con `export class ModuleLoader`.
+- **Keybinding keys**: Deben coincidir exactamente entre el schema y `Main.wm.addKeybinding()`. Error → crash del Shell (retorno a GDM).
+- **`hook.js`**: Siempre verificar `typeof originalMethod === 'function'` antes de parchear prototipos.
+- **`Gtk.Switch` en GTK4**: Usar `'active'`, NO `'state'` (propiedad eliminada de GTK3). `settings.bind(key, sw, 'active', ...)`.
+- **`_loadSettings()` reconectar handlers**: Si se usa señal `changed::`, desconectar viejos y reconectar al recargar settings. Nunca confiar en que la señal anterior sigue viva tras recarga.
+- **Quick Text dual-process**: Diálogo modal en St/Clutter (dentro del Shell), ventana Actions en Gtk/Adw (proceso separado vía `Util.spawn()`). El subproceso necesita shebang `#!/usr/bin/gjs -m`.
+- **Background Clock**: NO monkey-patchear `BackgroundManager.prototype._createBackgroundActor`. Usar `Main.layoutManager._backgroundGroup.add_child()`.
+- **JS getters vs GObject properties**: No definir `get canPlay() { }` en una clase `GObject.registerClass` que ya declara `'can-play'` como `GObject.ParamSpec.boolean(READWRITE)`. El getter JS shadowea la propiedad GObject y como no tiene setter, `this.canPlay = value` lanza `TypeError: setting getter-only property`. La señal `notify::can-play` nunca se emite, rompiendo cualquier código que dependa de ella. Siempre verificar que no haya conflicto entre `Properties:` del `registerClass` y getters/setters del prototipo.
+
+*** Lecciones de Top Bar Organizer (1.4.1)
+
+- **prefs.js no puede leer el estado vivo de la barra** (proceso GTK separado, sin `Main.panel`). Para que el dialog "solo muestre lo que existe", el trabajo se delega al módulo del shell vía **D-Bus**: prefs expone el botón "actualizar", llama a `org.gnome.Shell.Extensions.LidSolWidgets.CleanTopBar` (método exportado por `TopBarOrganizerModule`), el módulo reconstruye los `tbo-*-box-order`/`tbo-hide`/`tbo-show` y el dialog se reconstruye en el callback.
+- **D-Bus IMPORTANTE — exportar el objeto en la MISMA conexión que posee el nombre**: si usas `Gio.bus_own_name(...)` (crea una conexión PRIVADA interna) y exportas con `Gio.DBus.session.export_object(...)` (conexión COMPARTIDA), son conexiones DISTINTAS → el nombre resuelve a una y el objeto está exportado en la otra → las llamadas fallan (`"No se pudo actualizar la barra"` aunque el módulo esté activo; el botón de "Actualizar barra" falló hasta fix 2026-08). Solución correcta: exportar dentro del **`bus_acquired_handler`** de `bus_own_name`, usando la conexión que recibe ese callback (`connection.export_object(path, iface, methodHandler)`), y guardar `this._dbusConnection = connection` para hacer `unexport_object` en `disable()`.
+- **`Main.panel.statusArea[role]` persiste tras deshabilitar un módulo**: p.ej. `disable()` de batteryIndicator destruye el container pero NO borra `statusArea['lidsol-battery-indicator']`. Por eso comprobar solo `statusArea[role]?.container instanceof St.Bin` NO basta → hay que verificar que el container sea hijo vivo de `_leftBox/_centerBox/_rightBox` (como hace `_cleanTopBar()`).
+- **`saveNewTopBarItems` solo añade, nunca borra** → los roles obsoletos quedan guardados. `_cleanTopBar()` reconstruye los órdenes directamente desde los containers vivos de cada box (con reverse en el box derecho, RTL) y filtra `hide/show`; escribe con comparación `JSON.stringify` para evitar loops de señal.
+- **Comunicación prefs → shell**: en este proyecto la limpieza es **manual** (botón) y no automática; se usó D-Bus para tener un call-and-response determinista (prefs espera la llamada para `_rebuildAll()`), evitando claves GSettings `tbo-clean` con patrón de sentinela frágil.
+- **CRÍTICO — un throw en `enable()` mata TODO el módulo**: `ModuleLoader._enableModule` envuelve `moduleInstance.enable()` en `try/catch` (moduleLoader.js); si `enable()` lanza (p.ej. el setup D-Bus `Gio.bus_own_name`/`Gio.DBus.session.export_object` falla), NO se registra el módulo y **nunca** se enganchan el patch de `Panel._addToPanelBox` ni las conexiones `changed::` → la barra no reordena ni oculta (regresión 2026-08). Lección: el bloque D-Bus debe ir **DESPUÉS** del wiring esencial (patch + conexiones + `_handleNewItemsAndOrderTopBar()`) y envuelto en `try/catch` para que un fallo de D-Bus NUNCA deshabilite la barra.
+- **El role de `statusArea` NO debe ser el nombre visible de la extensión**: el Workspace Indicator usaba `extension.metadata.name` ("LIDSoL's Tweaks") como role → en el dialog TBO se mostraba un item "LIDSoL's Tweaks" y roles duplicados obsoletos quedaban guardados en los `tbo-*-box-order`. Fix: usar un role estable y único (`'lidsol-workspace-indicator'`) y mapear a nombre amigable en `TOP_BAR_ITEM_NAMES`/`TOP_BAR_ITEM_ICONS` de prefs.js. Además `_saveNewTopBarItems` ahora deduplica (`[...new Set(...)]`) cada box-order antes de guardar.
+- **Roles obsoletos**: roles muertos acaban guardados en los `tbo-*` (aquí `"LIDSoL's Tweaks"` y `'workspaceBar'`). `_removeObsoleteRoles()` los filtra de todos los `tbo-*` keys de forma automática (no hace falta el botón de actualizar). El role nuevo del workspace indicator debe quedar también en `DEFAULT_BOX_BY_ROLE = { 'lidsol-workspace-indicator': 'left' }` para que se coloque en la caja izquierda por defecto (si no, `addToStatusArea` sin box lo pondría en la derecha y `addNewItems` lo guardaría ahí).
+- **El ícono del dialog debe existir en el sistema**: `desktop-symbolic` NO existe → ícono en blanco. Usar uno real (`preferences-desktop-multitasking-symbolic`). `_saveNewTopBarItems` también escribía `default-left/center/right` que NO existen en el schema (throw si `isFirstTime`); se eliminaron esas escrituras muertas.
+
+*** Lecciones de Overlay Mode (Quick Settings)
+
+- **2.4.1 (nativo + acordeón + fade)**: se eliminó el enfoque de constraints/flyout/dialog y el
+  "reparto" del hueco (v2, rama banda-esencial preserva el enfoque con lag). La animación nativa
+  (easing de altura + fade + dim) se conserva intacta y solo se parchea `QuickSettingsLayout`.
+  Mientras el menú del toggle crece, TODAS las filas salvo la pulsada se desvanecen y colapsan su
+  altura hacia 0 con el mismo ease del menú (`POPUP_ANIMATION_TIME/2`, easeOutCubic), sincronizados
+  por una "sesión" por apertura. Con el progreso p: filas no activas = `altura*(1-p)` y
+  `opacidad 255*(1-p)` (más `clip_to_allocation` en esa sesión); la fila activa queda natural y el
+  toggle sube suavemente con el acordeón; el contenedor termina envolviendo solo "fila del toggle +
+  menú" (nada se desborda, sin banda vacía). Al cerrar, en espejo (1→0).
+  `QuickSettingsLayout` es una clase JS registrada **no exportada**: se obtiene con
+  `grid.layout_manager.constructor` y se subclasea (`GObject.registerClass(class X extends ...)`)
+  sobreescribiendo `vfunc_allocate` y `vfunc_get_preferred_height` (sin sesión ambos delegan en el
+  nativo vía `super` → modo cerrado idéntico). Al sustituir `grid.layout_manager` se recrean los
+  child metas (column-span vuelve a 1): **capturar los spans antes** y reaplicarlos tras el
+  reemplazo y al restaurar en `disable()`.
+- **Números clave del grid en el shell (quickSettings.js)**: el grid tiene como primer hijo un
+  "placeholder" (`Clutter.Actor` con `BindConstraint HEIGHT → _overlay`), cuya altura es la altura
+  ACTUAL del menú (el overlay es un `Clutter.Actor` con `BinLayout` cuya preferred sigue la altura
+  forzada del actor del menú durante su ease) — es lo que re-layoutiza el grid y anima el hueco
+  nativo. `_getRows()` incluye ese placeholder en sus filas: durante una sesión se **excluye** de
+  las filas y se descartan las filas vacías resultantes (la fila espaciadora es justo lo que se
+  está plegando). El cierre nativo fades el contenido del menú y LUEGO baja la altura del actor
+  antes de ocultarlo: la sesión detecta el cierre cuando la altura del overlay empieza a decrecer
+  (o cuando el menú ya no es visible).
+- **Sincronía**: el progreso de la sesión se anima con un `GLib.timeout` (60 Hz, solo mientras hay
+  sesión) con `easeOutCubic` y duración `POPUP_ANIMATION_TIME/2` (import del namespace
+  `quickSettings.js` con fallback 400 — un named import lanzaría si el export cambiara de nombre).
+  Así el colapso comparte duración y curva con el ease de altura del menú. `super.vfunc_get_preferred_height`
+  existe en 50.5 y main (verificado) → modo cerrado nativo sin reimplementar.
+- **GNOME 51**: `QuickToggleMenu.open(params)` delega en `PopupMenuBase.open`, que emite
+  `open-state-changed` ANTES de montar la animación nativa (en 50.5 se emitía después). Cualquier
+  código que cancele/reemplace la animación nativa desde esa señal (el overlay antiguo) pierde la
+  animación. El reparto no escucha la señal: detecta la fila activa por `menu.actor.visible` en el
+  propio `vfunc_allocate` (idéntico en 50.5 y main).
+- El overlay (`QuickSettingsMenu._overlay`) necesita coordenadas stage-absolutas. Vincular constraints a `menu.box` da coordenadas relativas al padre → overlay aparece en x=0.
+- Usar `menu._boxPointer` como source de `Clutter.BindConstraint` para ambos ejes (X e Y).
+- `_xconstraint.offset` debe actualizarse en `_onOpen()` y en el handler `notify::height`, igual que `_yconstraint.offset`.
+- Al fijar `menu.actor.width`, también setear `x_align = Clutter.ActorAlign.CENTER` para que el menú se centre dentro del overlay.
+- Para animaciones con overshoot (flyout/dialog), usar `AdvAni.ease()` con `AdvAnimationMode.LowBackover` / `MiddleBackover` en vez de `Clutter.AnimationMode.EASE_OUT_BACK` / `EASE_OUT_EXPO`. Los custom bezier curves dan un efecto más natural.
+- **Siempre conectar handlers GSettings ANTES del early return de `enabled`**, si no, al deshabilitar/re-habilitar el módulo nunca se vuelven a conectar las señales y el toggle queda muerto.
+- Separar claves GSettings en dos grupos: las que requieren `disable()+enable()` (reload) y las que solo necesitan `_loadSettings()` (live: duration, style, overflow anchor).
+- `_scheduleReload()` debe capturar `this._gsettings` en variable local antes de llamar a `disable()`, porque `disable()` lo setea a `null`. Sino `enable(this._gsettings)` recibe `null` y crashea.
+- **GObject.registerClass NO admite re-registrar una clase con el mismo nombre en el proceso**: GJS lanza `Type name 'Gjs_<Nombre>' is already registered` aunque la expresión de clase sea nueva (verificado con `gjs -m`; nombres distintos OK). `_applyAccordionLayout()` lo hacía en cada `enable()` → al desactivar el módulo (o alternar overlay OFF→ON vía `_scheduleReload`) y re-activar, el throw escapaba de `QuickSettingsTweaksModule.enable()` (sin try/catch) hasta `ModuleLoader._enableModule`, que lo captura y NO registra el módulo → imposible recargarlo hasta reiniciar la shell. Fix: cachear la subclase registrada en un `WeakMap` por constructor del layout nativo (`_accordionLayoutCache`) — registrar UNA vez, reutilizar en re-enables. Además `disable()` debe cerrar la sesión viva del layout (`_lidsolEndSession()`) para no dejar `clip_to_allocation`/opacidad alterados ni el timeout de la sesión corriendo.
+- **2.4.1.2 (leyenda "N Background Apps" fuera del contenedor / sin fondo tras el regreso)**: la leyenda es un quick-toggle dinámico (`BackgroundAppsToggle`, `visible = !isLocked && (menu.isOpen || nBackgroundApps > 0)`, proxy DBus `org.freedesktop.background.Monitor` ASYNC) añadido al FINAL del grid con `column-span = N_QUICK_SETTINGS_COLUMNS` (fila de ancho completo; su fondo es `transparent` por tema → "sin fondo" = está FUERA de la tarjeta del popup). La sesión del acordeón CONGELABA `rows` al abrir → si la leyenda aparecía en mitad de sesión (nApps 0→1 con el proxy sin resolver aún, o app que arranca con un submenú abierto) quedaba perdida: `preferred` con filas congeladas (corto) vs `allocate` nativo live (alto) → overflow → leyenda debajo del contenedor y, sin relayout posterior, el estado roto persistía. Fix: **membresía LIVE en `vfunc_get_preferred_height` y `vfunc_allocate`** (`_getRows` + strip del placeholder cada frame, `_lidsolStripPlaceholder`); se congela solo lo imprescindible por IDENTIDAD de hijo: `heights` WeakMap hijo→[minH,natH] (una medida por hijo/sesión — sin preferred por frame), `activeChild` (hijo con `menu.actor` visible; reinicio de sesión por identidad en vez de por índice) y `clipped` (Set). Hijos que aparecen a mitad (la leyenda) se cachean en su primer frame y se pliegan como el resto; preferred==allocate por construcción → el contenedor SIEMPRE envuelve la leyenda visible y nunca se queda corto. Además `_lidsolEndSession()` fuerza `container.queue_relayout()` para que el dimensionado nativo se aplique siempre al terminar la sesión.
+
+*** Lecciones de System Items Layout
+
+- El overlay (`QuickSettingsMenu._overlay`) necesita coordenadas stage-absolutas. Vincular constraints a `menu.box` da coordenadas relativas al padre → overlay aparece en x=0.
+- Usar `menu._boxPointer` como source de `Clutter.BindConstraint` para ambos ejes (X e Y).
+- `_xconstraint.offset` debe actualizarse en `_onOpen()` y en el handler `notify::height`, igual que `_yconstraint.offset`.
+- Al fijar `menu.actor.width`, también setear `x_align = Clutter.ActorAlign.CENTER` para que el menú se centre dentro del overlay.
+- Para animaciones con overshoot (flyout/dialog), usar `AdvAni.ease()` con `AdvAnimationMode.LowBackover` / `MiddleBackover` en vez de `Clutter.AnimationMode.EASE_OUT_BACK` / `EASE_OUT_EXPO`. Los custom bezier curves dan un efecto más natural.
+
+*** Lecciones de System Items Layout
+
+- El overlay (`QuickSettingsMenu._overlay`) necesita coordenadas stage-absolutas. Vincular constraints a `menu.box` da coordenadas relativas al padre → overlay aparece en x=0.
+- Usar `menu._boxPointer` como source de `Clutter.BindConstraint` para ambos ejes (X e Y).
+- `_xconstraint.offset` debe actualizarse en `_onOpen()` y en el handler `notify::height`, igual que `_yconstraint.offset`.
+- Al fijar `menu.actor.width`, también setear `x_align = Clutter.ActorAlign.CENTER` para que el menú se centre dentro del overlay.
+
+*** Lecciones de System Items Layout
+
+- Acceso a botones del sistema: `Main.panel.statusArea.quickSettings._system._systemItem`. Hijos identificables por `constructor.name`: `ScreenshotItem`, `SettingsItem`, `LockItem`, `ShutdownItem`. Batería: `systemItem.powerToggle`. Spacers: `_laptopSpacer`, `_desktopSpacer`.
+- Ocultar vía `Maid.hideJob()`, reordenar vía `set_child_above_sibling()`. La batería necesita callback `_sync()` al restaurar visibilidad.
+- Acceso async con `GLib.idle_add` (el `_system` puede no estar disponible inmediatamente).
+- 8 keys GSettings: 1 master enable, 1 hide-all, 5 hides individuales, 1 order (array de strings `'as'`).
+
+*** Lecciones de Transition Animations (Workspace Indicator)
+
+- `ws-transition-animation` schema key: enum `none`/`slide`/`slide-bounce`/`fade`/`glow`, ubicado en el schema tras `ws-custom-styles`.
+- **Estrategia**: `_updateWorkspacesBar()` distingue cambio estructural (add/remove/reorder → `_fullRefresh()`) de cambio de activo (→ `_updateInPlace()`).
+- `_updateInPlace()` en modo slide: las labels wsBox reciben clase `inactive` (sin `active`), y un `St.Bin` (`_activeIndicator`) con `fixed_position_set=true` se mueve entre wsBoxes animando `{x, y, width, height}` vía `ease()`. En modos no-slide usa active/inactive normal en labels.
+- `_activeIndicator` se crea en `_initWorkspacesBar()` y se recrea en `_fullRefresh()` (destroy_all_children lo destruye). Posicionamiento inicial via `GLib.idle_add` para esperar layout.
+- **`_fullRefresh()`** se llama si `existingCount !== expectedCount` o `existingCount === 0` (primera carga). Recrea indicator + wsBoxes y agenda `_syncIndicator()` en idle.
+- **`_syncSlideIndicator()`** oculta/muestra el indicator según modo.
+- **Animaciones:**
+  - `slide`: indicator ease `{x, y, width, height}` con `EASE_OUT_QUAD`, 250ms.
+  - `slide-bounce`: mismo con `EASE_OUT_BACK`, 300ms (overshoot suave).
+  - `fade`: label nuevo activo `opacity 0 → 255` con `EASE_OUT_QUAD`, 250ms.
+  - `glow`: wsBox `scale 1.0 → 1.12 → 1.0` con `EASE_OUT_QUAD`, 150+200ms.
+- `_prevActiveIndex` guardado en constructor, actualizado al final de `_updateWorkspacesBar()`.
+
+** Referencia: Dynamic Music Pill (`code-references/dynamic-music-pill/`)
+
+*** Arquitectura general
+
+- **Controller-centric**: `MusicController` (controller.js) orquesta todo — escanea MPRIS vía D-Bus, mantiene `_proxies` (Map<busName, Proxy>), decide active player, maneja art cache, lyrics, game mode. `MusicPill` es vista pasiva; recibe datos via `updateDisplay()`.
+- **Entry point**: extension.js → `MusicController(extension)` → `controller.enable()`.
+- **UI components** (src/ui.js re-exporta): `MusicPill`, `ExpandedPlayer`, `PlayerSelectorMenu`.
+- **Utils**: `getAverageColor(pixbuf)` (sampleo cada 20px), `getClosestGnomeAccent(r,g,b)` (hue→string), `smartUnpack(variant)`.
+- **Visualizer**: `SharedVisualizerEngine` singleton (visualizerEngine.js), usado por pill y expanded player.
+
+*** MusicPill (`src/uiMusicPill.js`)
+
+- Extiende `St.Widget` con `Clutter.BinLayout`. Contiene un `_body` (`St.BoxLayout`) con: art bin → tablet controls → text wrapper → vis bin.
+- **Estados**: `_isActiveState` (true si hay player activo), `_currentStatus` (Playing/Paused/Stopped), `_inPanel` (bool), `_isSidePanel` (detecta dock vertical).
+- **Ciclo de vida**: constructor crea UI fija, `updateDisplay()` recibe (title, artist, artUrl, status, busName, isSkipActive, player) y actualiza contenido. Al cambiar de bus, resetea `_lastTitle/Artist/ArtUrl`.
+- **Dynamic width**: si `pill-dynamic-width` está activo, calcula ancho como suma de elementos (art + controls + text + vis + padding), clamp a `pill-width` y ancho de monitor. Usa `GLib.idle_add` post-layout para reajustar por ancho de texto real.
+- **Animaciones**: `ease()` con `EASE_OUT_QUAD` (400ms) para cambios de ancho/alto del body; `_animateSlide(offset)` para scroll feedback.
+- **Clicks**: `button-press-event` escala body 0.96, `button-release-event` restaura 1.0 con `EASE_OUT_BACK`. Soporta doble-click (timer 200ms). Botón central (`button===2`) y derecho (`button===3`) configurable via settings.
+- **Hover**: muestra hover label y ejecuta `action-hover` tras `hover-delay` ms.
+- **Scroll**: soporta scroll up/down, smooth scroll con delta acumulativo (>1.0 umbral). Acciones configurables: next/prev, volume, seek, player switch.
+- **Art crossfade** (uiWidgets.js `CrossfadeArt`): capas `St.Widget` con `background-image`, nueva capa fade-in 1800ms, viejas fade-out 300ms y destroy.
+- **ScrollLabel** (uiWidgets.js): dos `St.Label` en `PixelSnappedBox`. Detecta overflow via `_checkResize()`. Scroll infinito: distancia = textWidth+30, velocidad 30px/s. Scroll lírico: calcula duración desde `lyricTime`. Fade effect via `TextFadeEffect`.
+- **Game mode**: detecta fullscreen window activa, pausa visualizer, oculta scroll, opacity.
+- **Transparencia**: configura opacidad por componente (art, text, vis) según `enable-transparency` + `transparency-strength`.
+- **Tablet mode**: muestra botones skip prev/playpause/next dentro del pill.
+- **Posicionamiento en panel**: `_inject()` busca contenedor según `target-container`: 0=dock/overview dash, 1=leftBox, 2=centerBox, 3=rightBox. `_ensurePosition()` reordena según `position-mode` (manual, first, middle, last).
+- **Drag fix** para DTD: monkey-patch `dash.handleDragOver` y `dash.acceptDrop` para ajustar x por ancho del pill y remover/reinsertar en drop.
+
+*** PlayerSelectorMenu (`src/uiPlayerSelector.js`)
+
+- Extiende `St.Widget` con tamaño = stage completo, `reactive: true`, `visible: false`.
+- **Estructura**: `_backgroundBtn` (fondo transparente, cierra al click → `this.hide()`) + `_box` (menú vertical centrado).
+- **`populate()`**: destruye hijos, itera `controller._proxies`, crea `St.Button` por player con icono+label. Opción "Auto (Smart Selection)" al inicio. Resalta selección actual vía `background-color` (0.2 vs 0.05 alpha).
+- **`showMenu()`**: posiciona relativo al pill (calcula startX/Y según side panel, bordes de monitor). Usa `ease()` fade-in 200ms. Llama `disableDashToDockAutohide()` para evitar interferencia DTD.
+- **`hide()`**: fade-out 200ms, `restoreDashToDockAutohide()`, flag `_isHiding` para evitar reentrada.
+- **Close gestures**: click fuera, Escape, scroll right/smooth right, botón 8 (back), leave-event con timeout 300ms configurable.
+
+*** ExpandedPlayer (`src/uiExpandedPlayer.js`)
+
+- Extiende `St.Widget` (stage completo, `reactive: true`, `visible: false`).
+- **Estructura**: background transparente + `_box` (PixelSnappedBox vertical) con: player selector row → top row (vinyl + infoBox + vis) → progress (currentTime + slider + totalTime) → controls row (shuffle, custom1, prev, play/pause, next, custom2, repeat) → first-hint box.
+- **Vinyl**: `St.Widget` con `background-image` de album art, capas crossfade como `CrossfadeArt`. Animación rotación vía `_startVinyl()`/`_stopVinyl()` (usando `ease()` con `angle`).
+- **Slider**: `_sliderBin` (reactive, click-to-seek) + `_sliderFill`. Actualiza vía `_tick()` cada segundo.
+- **Subpáginas**: `_pushPage(title, iconName, buildFn)` → oculta mainPage, anima slide-in (translation_x 32→0, opacity 0→255). `_popPage()` → anima slide-out, restaura mainPage. Usado para lyrics, sleep timer, output, etc.
+- **Custom buttons**: configurables via settings (`custom-button-1`, `custom-button-2`). Acciones: none, volume, seek_step, output_switch, sleep_timer, playback_speed, history.
+- **Colors**: hereda color del pill (`_displayedColor`). Calcula foreground (blanco o negro según brightness). Opcionalmente usa custom colors de settings.
+
+*** Controller (`src/controller.js`)
+
+- **MPRIS scanning**: `_scan()` → D-Bus `ListNames` → filtra `org.mpris.MediaPlayer2.*` → `_add(busName)` crea `Gio.DBusProxy`. Señales: `g-properties-changed` (Metadata, PlaybackStatus, Position), `Seeked`, `notify::g-name-owner`.
+- **Active player selection**: si `selected-player-bus` está vacío, usa smart selection: prioriza el que está `Playing`, luego el más reciente.
+- **Art cache**: `_artCache` (Map, max 50) + disco en `~/.cache/dynamic-music-pill/art/`. `_monitorArtFile()` para archivos locales. `_cleanupDiskCache()` periódico.
+- **Lyrics**: D-Bus proxy (interfaz `org.gnome.Shell.TrayLyric`) para lyrics externos + `LyricsClient` para network (LRCLib). Timer 200ms sincroniza posición con lyrics.
+- **Sleep timer**: `_sleepTimerId`, cuenta regresiva, pausa/para al llegar a 0.
+- **Game mode**: `_monitorGameMode()` → checkea fullscreen window activa.
+- **Watchdog**: timeout 5s verifica que pill siga inyectado.
+
+*** Patrones clave reutilizables
+
+- **`PixelSnappedBox`**: `St.BoxLayout` con `vfunc_allocate()` que redondea coordenadas a enteros para evitar subpixel blur.
+- **`_addBtnPressAnim(btn)`**: escala 0.84 en press, 1.0 en release (EASE_OUT_BACK), 1.0 en leave. Conectado a `button-press-event`, `button-release-event`, `leave-event`.
+- **`smartUnpack()`**: desenvuelve recursivamente `GLib.Variant` → JS primitivo.
+- **`getAverageColor()`**: samplea pixbuf cada 20px, promedia RGB.
+- **`getClosestGnomeAccent()`**: convierte RGB a HSL, mapea al preset más cercano (red/orange/yellow/green/teal/blue/purple/pink/slate).
+- **`disableDashToDockAutohide()`/`restoreDashToDockAutohide()`**: contador de requests para manejar popups anidados. Import dinámico de DTD module.
+- **Event handling**: pattern `button-press-event` → `EVENT_STOP` (evita propagación), `button-release-event` → acción + `EVENT_STOP`. Touch events duplican lógica para Wayland touch. Botón 8 (back) manejado en todos los contenedores.
+- **Crossfade art**: capas `St.Widget` con `background-image`, nueva fade-in 1800ms EASE_OUT_QUAD, viejas fade-out 300ms + destroy. Evita flicker en transiciones.
+- **Dynamic width calculation**: suma `preferred_width` de cada elemento visible, clamp entre mínimo (120) y máximo (confWidth o monitor-40).
+
+*** Arte tras unlock: vfunc_paint → Clutter.Canvas
+
+**Problema:** CSS `background-image` no funciona en ningún actor tras un lock/unlock de pantalla (GNOME Shell lo elimina del compositor y `set_style()` no puede restaurarlo, ni siquiera con data URIs).
+
+**Solución:** Usar `Clutter.Canvas` como `this.content` del widget, dibujando el pixbuf con Cairo y clip circular (`cr.arc` + `cr.clip()` + `Gdk.cairo_set_source_pixbuf()` + `cr.paint()`). El Canvas siempre funciona, incluso tras unlock.
+
+**Cambios en `crossfadeArt.js`:**
+- Eliminado `vfunc_paint()`.
+- Agregado `_initCanvas()`: crea `Clutter.Canvas`, conecta señal `draw` con renderizado Cairo circular.
+- Agregado `_loadPixbufForCanvas()`: carga pixbuf desde `_currentUrl`, invalida canvas. Se llama desde `setArt()` (siempre) y `refreshStyle()`.
+- `setArt()` ahora actualiza el Canvas además de crear capas CSS. Las capas CSS dan animación cruzada hasta el primer lock/unlock; después son transparentes y el Canvas es la fuente visible.
+- `refreshStyle()` simplificado: destruye hijos, llama a `_loadPixbufForCanvas()`. No más `queue_repaint()`.
+- **CRÍTICO:** `vfunc_get_preferred_width/height` deben mantenerse — sin ellos el widget reporta tamaño 0 y rompe el layout del dateMenu completo.
+
+**Cambios en `mediaManager.js`:**
+- Agregado `_lastKnownCover` (almacenado en cada cache hit/success de `getArtUrl()`)
+- Agregado `getLastKnownCover()` — expuesto para unlock handler
+
+**Cambios en `dateMenu.js`:**
+- Handler `screen-unlocked` con tres capas de defensa:
+  1. Meta D-Bus directa → `getArtUrl()` → `refreshStyle()`
+  2. Fallback `getLastKnownCover()` si meta es null
+  3. (implícito) `setArt()` en `media-changed` posterior actualiza Canvas
+
+**Flujo post-unlock:**
+1. Se obtiene el player activo y su metadata.
+2. Si hay cover URL → se setea `_mediaArt._currentUrl` y se llama `refreshStyle()`.
+3. `refreshStyle()` destruye capas CSS, carga pixbuf, invalida Canvas.
+4. El Canvas dibuja el pixbuf con clip circular → el usuario ve el arte correctamente.
+5. Si el módulo fue deshabilitado/re-habilitado durante el lock, `getLastKnownCover()` restaura la URL.
+
+**Actualizaciones de media tras unlock:** Cuando cambia la canción después del unlock, `setArt()` es llamado por los signals normales (`media-changed`). Este actualiza el Canvas via `_loadPixbufForCanvas()`, y las capas CSS (transparentes post-unlock) se crean pero no afectan la visualización.
+
+** Referencia: Aylur's Widgets — Date Menu (`code-references/gnome-extensions/widgets@aylur/`)
+
+*** Cómo inyectar widgets en el date menu
+
+- **Anchor**: `Main.panel.statusArea.dateMenu` — el `DateMenuButton`.
+- **Acceso al layout interno**: `DateMenu.menu.box.get_first_child().get_first_child()` → el `_menuBox` que contiene dos columnas: notificaciones (first child) y calendario (last child).
+- **Inserción**: `_menuBox.insert_child_at_index(widget, 1)` coloca entre notificaciones y calendario. `_menuBox.replace_child(calendar, customWidget)` reemplaza el calendario.
+- **El panel button** se accede via `DateMenu.get_children()[0]` → `_box` con padding, _indicator, _clockDisplay. Se puede reordenar dentro de `_leftBox`/`_centerBox`/`_rightBox`.
+- **Extraer widgets stock**: para reutilizar el calendario en un layout custom, se instancia un nuevo `DateMenuButton()` y se extrae `._calendar` con `get_parent().remove_child(calendar)`.
+- **Patrón reset/reload**: guardar referencias a hijos originales (`this._menuChildren = _menuBox.get_children()`) y restaurarlos en `disable()`. Reemplazar en `enable()`.
+- **CRÍTICO — `_menuBox.get_last_child()` no es el calendario grid**: es la **columna derecha completa** (calendar + events + weather). Insertar como sibling de esta columna (`insert_child_at_index(widget, lastIdx)`) crea una **tercera columna** y desplaza todo. Para poner el widget "encima del calendario", hay que insertar **dentro** de la columna derecha: `rightColumn.insert_child_at_index(widget, 0)`. La columna derecha es `_menuBox.get_last_child()`, y su primer hijo suele ser el calendario grid.
+
+*** UserWidget (`shared/userWidget.js`)
+
+- `Avatar()`: factory que retorna `St.Widget` con `background-image` desde `AccountsService.UserManager.get_default().list_users()` → `user.icon_file`, o fallback `St.Icon` con `'avatar-default-symbolic'`.
+- `UserName`: `St.Label` que muestra `GLib.get_real_name()` o `GLib.get_user_name()` según setting.
+- `Greetings`: `St.Label` con saludo según hora del día (Buenos días/tardes/noches), actualizado cada 60s.
+- CSS para avatar circular: `border-radius: 99px` en el botón y en el widget hijo.
+
+*** Date Menu CSS custom (`stylesheet.css`)
+
+- `.datemenu-user { padding: 30px; }` con `StButton` de 160×160px y `border-radius: 99px`.
+
+*** Lecciones aplicadas en userAvatarDateMenu
+
+- Se usa `AccountsService` para icono, `GLib.get_real_name()` / `GLib.get_user_name()` para nombre.
+- Inserción vía `_menuBox.insert_child_at_index()` entre notificaciones y calendario.
+- Click abre `gnome-control-center user-accounts` y cierra el menú.
+- Load/unload de CSS manual via `St.ThemeContext`.
+- Patrón disable completo + re-enable para cambios de settings (bruto pero fiable).
+
+** Referencia: QST Media Widget (`code-references/quick-settings-tweaks/src/features/widget/media.ts`)
+
+*** Architecture
+
+#+BEGIN_SRC
+MediaWidgetFeature (FeatureBase)    ← lifecycle, settings, page management
+  └── MediaWidget (St.BoxLayout)    ← top-level container
+        ├── Header (St.BoxLayout)   ← "Media" label + PageIndicators (dots)
+        └── MediaList (St.BoxLayout)← swipeable list of player MediaItems
+              └── MediaItem × N (extends MessageList.Message) ← one per player
+                    ├── ProgressControl (St.BoxLayout)
+                    │     ├── positionLabel (St.Label)
+                    │     ├── slider (Shell.UI.Slider.Slider)
+                    │     └── lengthLabel (St.Label)
+                    ├── _prevButton (St.Button) via addMediaControl()
+                    ├── _pauseButton (St.Button) via addMediaControl()
+                    └── _nextButton (St.Button) via addMediaControl()
+#+END_SRC
+
+*** MPRIS stack (custom, NOT using MessageList._mediaSource)
+
+**Source class** (GObject.Object):
+- Creates a `Gio.DBusProxy` for `org.freedesktop.DBus` on the session bus
+- On ready: calls `ListNamesAsync()` → filters names starting with `org.mpris.MediaPlayer2.`
+- Connects `NameOwnerChanged` signal on the D-Bus daemon for dynamic add/remove of players
+- Maintains `Map<string, Player>` of active players
+- Signals: `player-added(busName, player)`, `player-removed(busName)`
+
+**Player class** (GObject.Object):
+- Constructor takes `busName`, creates 3 parallel D-Bus proxies:
+  1. `_propertiesProxy` → `org.freedesktop.DBus.Properties` (for async `GetPosition`)
+  2. `_playerProxy` → `org.mpris.MediaPlayer2.Player` (PlayPause, Next, Previous, SetPosition, Metadata, PlaybackStatus, CanGoNext, CanGoPrev, CanPlay, CanSeek)
+  3. `_mprisProxy` → `org.mpris.MediaPlayer2` (Raise, DesktopEntry, Identity, name-owner tracking)
+- Metadata parsing (`_parseMetadata`):
+  - `mpris:trackid` → `_trackId`
+  - `mpris:length` → `_length` (microseconds)
+  - `xesam:artist` → `_trackArtists` (array, fallback "Unknown artist")
+  - `xesam:title` → `_trackTitle` (fallback "Unknown title")
+  - `mpris:artUrl` → `_trackCoverUrl`
+- Controls: `previous()`, `next()`, `playPause()`, `raise()` — all via async D-Bus
+- Position: async getter (GetAsync → int64), setter (SetPositionAsync with trackId)
+- GObject properties: `can-play` (boolean), `can-seek` (boolean)
+- Signal: `changed` on any metadata/status change
+- Tracks `NameOwnerChanged` on its own proxy → emits `closed` when player disappears
+
+*** Controls (MediaItem._createControlButtons)
+
+- Uses `MessageList.Message.addMediaControl(iconName, callback)` (GNOME Shell native)
+- Buttons: `media-skip-backward-symbolic`, `media-playback-start/pause-symbolic`, `media-skip-forward-symbolic`
+- **Individually toggleable** via settings: `media-contorl-show-prev-button`, `media-contorl-show-pause-button`, `media-contorl-show-next-button`
+- **Opacity**: all buttons get `opacity` from `media-contorl-opacity` (0-255)
+- **Reactive state**: prev/next set `reactive = false` when `!canGoNext / !canGoPrev`
+- **Pause icon**: toggles between pause/pause based on `playBackStatus === 'Playing'`
+
+*** Album art
+
+- **NO custom cover rendering** — reuses `MessageList.Message` native icon
+- Sets `this.icon = new Gio.FileIcon({ file })` from `trackCoverUrl`, or fallback `audio-x-generic-symbolic`
+- **Gradient from cover** (optional, `media-gradient-enabled`):
+  - Extracts dominant color via `getImageMeanColor(pixbuf)` (scales to 128×128, gravity-based algorithm)
+  - Cache: `Map<string, Promise<[r,g,b]>>` keyed by URL
+  - Applies CSS: `background-gradient-direction:horizontal; background-gradient-start:rgba(...); background-gradient-end:rgba(...)`
+  - Configurable start/end opacity and color mix
+
+*** Progress control
+
+`ProgressControl` (extends St.BoxLayout):
+- Layout: `[positionLabel] [slider] [lengthLabel]` horizontal
+- Updates every 1s via `GLib.timeout_add(PRIORITY_DEFAULT, 1000, ...)`
+- Position fetched async: `player.position` (Promise from D-Bus GetAsync)
+- Only visible when player `isPlaying()` (Playing status)
+- Slider: `Shell.UI.Slider.Slider` with drag-to-seek
+- Time format: `MM:SS` or `H:MM:SS`
+- Style: `slim` or `default` via `media-progress-style`
+
+*** Multi-player page system
+
+- Each active MPRIS player gets its own `MediaItem`
+- One visible at a time, others hidden
+- `PageIndicators` show dots for each player
+- Navigation: click dots, horizontal swipe/drag (threshold 1/4 width), mouse scroll wheel, trackpad scroll
+- Auto-selects "first playing" player
+- Transitions: `EASE_OUT_EXPO` 280ms in, `EASE_OUT_QUAD` 100ms out
+
+*** Settings (media-* prefix)
+
+| Key | Type | Default | Description |
+| `media-enabled` | bool | true | Master toggle |
+| `media-show-header` | bool | true | Show "Media" header |
+| `media-compact` | bool | true | Compact mode |
+| `media-remove-shadow` | bool | true | Remove message shadow |
+| `media-contorl-opacity` | int | 230 | Button opacity (0-255) |
+| `media-contorl-show-next-button` | bool | true | Show next |
+| `media-contorl-show-prev-button` | bool | true | Show prev |
+| `media-contorl-show-pause-button` | bool | true | Show pause |
+| `media-progress-enabled` | bool | true | Show progress slider |
+| `media-progress-style` | string | 'slim' | 'default' or 'slim' |
+| `media-gradient-enabled` | bool | true | Gradient from cover |
+| `media-round-clip-enabled` | bool | true | GLSL round clip |
+| `media-smooth-scroll-speed` | int | 16 | Touchpad scroll speed |
+
+*** CSS
+
+**`src/styles/media-widget.scss`:**
+#+BEGIN_SRC scss
+.QSTWEAKS-media {
+    padding: 0px;
+    margin: 0px;
+    .message { margin: 0px; }
+    .message-content { width: 0px; text-overflow: ellipsis; }
+    .QSTWEAKS-header {
+        margin-bottom: 6px;
+        .QSTWEAKS-header-label { font-weight: bold; font-size: 0.98em; margin-left: 4px; }
+        .page-indicators { margin-right: 4px; spacing: 6px; }
+    }
+    .QSTWEAKS-progress-control {
+        spacing: 8px; padding: 0px 6px;
+        .QSTWEAKS-position-label, .QSTWEAKS-length-label { font-size: 0.92em; }
+    }
+}
+#+END_SRC
+
+**`src/styles/message-compact.scss`** (applied when compact=true):
+#+BEGIN_SRC scss
+.QSTWEAKS-message-compact .message {
+    margin-bottom: 8px; padding: 5px 6px;
+    .message-box .message-content { spacing: 3px; font-size: 0.89em; }
+}
+#+END_SRC
+
+*** Key difference from our goal
+
+- QST injects into **Quick Settings grid** (`Main.panel.statusArea.quickSettings.menu._grid`), NOT the date menu
+- Uses custom MPRIS stack (Source + Player), NOT shared MediaPlayerManager
+- Does NOT have: cover width/height/roundness, text alignment/position, volume slider, loop/shuffle, layout modes
+
+** Referencia: Aylur's Media Widget (`code-references/gnome-extensions/widgets@aylur/`)
+
+*** Architecture chain
+
+#+BEGIN_SRC
+GObject → MprisPlayer (St.Widget)     ← D-Bus per-player proxy wrapper
+  ↑
+GObject → PlayerWidget (St.BoxLayout)  ← UI widgets (cover, buttons, labels, volume)
+  ↑
+GObject → Media (St.Bin)               ← D-Bus scanner, Map<busName, MprisPlayer>
+  ↑
+GObject → MediaBox (extends Media)     ← settings-driven configurable player display
+  ├── mediaPlayer.js → panel popup button (settingName: 'media-player')
+  ├── dateMenuTweaks.js → date menu (settingName: 'date-menu-media')
+  ├── dashBoard.js → dashboard modal (settingName: 'dash-media')
+  └── quickSettingsTweaks.js → QS popup (settingName: 'quick-settings-media')
+#+END_SRC
+
+*** MprisPlayer (shared/media.js lines 53-214)
+
+- Creates 2 D-Bus proxies per player:
+  - `MprisProxy` → `org.mpris.MediaPlayer2` (Identity, DesktopEntry, CanRaise, Raise)
+  - `MprisPlayerProxy` → `org.mpris.MediaPlayer2.Player` (PlayPause, Next, Previous, Metadata, PlaybackStatus, CanGoNext/Prev/Play/Pause, Shuffle, LoopStatus, Volume, Position, SetPosition)
+- Getters: `busName`, `trackArtists[]`, `trackTitle`, `trackCoverUrl`, `playBackStatus`, `canGoNext`, `canGoPrev`, `canPlay`, `shuffleStatus`, `loopStatus`, `volume`, `entry`, `identity`
+- Actions: `playPause()`, `next()`, `previous()`, `shuffle()`, `loop()`, `setVolume(v)`, `raise()`
+- Smart close: monitors `notify::g-name-owner` → emits `closed` when player vanishes
+- Signal: `changed` on any property update
+
+*** PlayerWidget (shared/media.js lines 216-446)
+
+Creates all UI subwidgets:
+#+BEGIN_SRC
+mediaCover (St.Button)          ← background-image CSS of cover art
+mediaIcon (St.Icon)             ← app icon
+playerName (St.Label)           ← player identity
+_mediaTitle (St.Label)          ← track title
+_mediaArtist (St.Label)         ← track artist
+_shuffleBtn (St.Button)         ← media-playlist-shuffle-symbolic
+_prevBtn (St.Button)            ← media-skip-backward-symbolic
+_playPauseBtn (St.Button)       ← media-playback-start/pause-symbolic
+_nextBtn (St.Button)            ← media-skip-forward-symbolic
+_loopBtn (St.Button)            ← media-playlist-repeat-symbolic / repeat-song
+_volumeIcon (St.Icon)           ← audio-volume-{muted,low,medium,high}
+_volumeSlider (slider.Slider)   ← Shell slider
+titleBox (St.BoxLayout)         ← vertical, style_class: 'media-title-box'
+controlsBox (St.BoxLayout)      ← horizontal, style_class: 'media-container media-controls'
+volumeBox (St.BoxLayout)        ← horizontal, style_class: 'media-container media-volume'
+#+END_SRC
+
+_sync() method:
+- Updates title/artist text
+- **Cover art**: copies URI to `~/.cache/aylur/media/{artist}_{title}` via `Gio.File.copy_async()`, then sets CSS `background-image: url("file://...")`. Uses sanitized filename. Falls back to bundled `missing-cover-symbolic.svg`.
+- Play/pause icon based on playback status
+- Shows/hides shuffle/loop based on status availability
+- Loop: cycles icons (repeat → repeat-song), uses `insensitive` pseudo-class for inactive
+- Volume slider: hidden if blacklisted player or volume=-1. Volume icon changes by level. Only sets value when not being dragged.
+
+*** Media (shared/media.js lines 448-517) — D-Bus scanner
+
+- Creates DBusProxy to `org.freedesktop.DBus`
+- `ListNamesRemote()` → filters `org.mpris.MediaPlayer2.*`
+- Maintains `Map<busName, MprisPlayer>`
+- `getPreferred()`: returns player whose busName includes `this.preferred` string, falls back to first player
+- `getPlayers()`: returns all MprisPlayer instances as array
+- Listens to NameOwnerChanged for dynamic add/remove
+
+*** MediaBox (shared/media.js lines 520-710) — Configurable display
+
+- Constructor: `(settings, settingName)` where settingName is a prefix like `'date-menu-media'`
+- Reads ALL `${settingName}-*` GSettings keys
+- `_sync()`: reads settings, creates new PlayerWidget for preferred player, calls `_buildPlayerUI()`
+- Layout methods (provided by base MediaBox, used by all consumers):
+
+**`_normal(vertical = true)`:**
+#+BEGIN_SRC
+player (vertical=vertical)
+├── mediaCover
+└── vbox (vertical=true, style_class: 'media-container')
+    ├── titleBox (if showText)
+    ├── controlsBox
+    └── volumeBox (if showVolume)
+#+END_SRC
+
+**`_labelOnCover(vertical = true)`:**
+#+BEGIN_SRC
+player (vertical=true)
+├── mediaCover
+│   └── vbox (overlay, covers entire art area)
+│       ├── titleBox (textPosition=0: top with fade-from-top; else spacer then bottom fade)
+│       └── spacer (y_expand=true)
+├── controlsBox (vertical=!vertical)
+└── volumeBox (if showVolume)
+#+END_SRC
+
+**`_full()`:**
+#+BEGIN_SRC
+player (vertical=true)
+├── mediaCover
+│   └── vbox (full overlay)
+│       ├── titleBox (textPosition=0: top fade, spacer, controls with fade-from-bottom)
+│       │   OR: controlsBox (top fade), spacer, titleBox (bottom fade)
+└── volumeBox (if showVolume)
+#+END_SRC
+
+In `_labelOnCover` and `_full`, titleBox gets `border-radius = coverRadius - 1`. If `fade` is enabled, adds `fade-from-top` or `fade-from-bottom` CSS class for gradient fade overlay.
+
+*** Date menu integration (dateMenuTweaks.js)
+
+- `CustomMenu` replaces the right column entirely via `_menuBox.replace_child(this._calendar, this._customMenu)`
+- `CustomMenu` layout (vertical):
+#+BEGIN_SRC
+userBox (if date-menu-show-user)
+calendarBox
+scrollView
+  └── scrollItems (vertical)
+        ├── eventsItem
+        ├── clocksItem
+        ├── weatherItem
+        ├── MediaBox (if date-menu-show-media) ← HERE with settingName='date-menu-media'
+        └── LevelsBox
+#+END_SRC
+- Date menu specific MediaBox (lines 33-61): extends Media.MediaBox, `events-button` style class, layout modes 0-3
+- Stock MPRIS hidden via `_shouldShow = () => false`
+
+*** Settings (date-menu-media-* prefix)
+
+| Key | Type | Default | Description |
+| `date-menu-show-media` | bool | true | Show media in date menu |
+| `date-menu-hide-stock-mpris` | bool | false | Hide GNOME stock MPRIS |
+| `date-menu-media-cover-width` | int | 290 | Cover art width (px) |
+| `date-menu-media-cover-height` | int | 200 | Cover art height (px) |
+| `date-menu-media-cover-roundness` | int | 8 | Cover border-radius (px) |
+| `date-menu-media-show-loop-shuffle` | bool | true | Show shuffle/loop buttons |
+| `date-menu-media-style` | int | 3 | Layout: 0=normal, 1=labelOnCover, 2=labelOnCover-h, 3=full |
+| `date-menu-show-text` | bool | true | Show title/artist |
+| `date-menu-media-text-align` | int | 1 | 0=left, 1=center, 2=right |
+| `date-menu-media-text-position` | int | 0 | 0=top, 1=bottom |
+| `date-menu-media-show-volume` | bool | false | Show volume slider |
+| `date-menu-media-fade` | bool | true | Gradient fade overlay on cover |
+| `date-menu-media-prefer` | string | "firefox" | Preferred player bus name substring |
+
+*** CSS for media (stylesheet.css lines 74-110)
+
+#+BEGIN_SRC css
+/* Fade overlays on cover art */
+.media-cover .fade-from-top {
+    background-gradient-direction: vertical;
+    background-gradient-start: rgba(0,0,0,0.5);
+    background-gradient-end: transparent;
+    padding: 6px; padding-bottom: 18px;
+}
+.media-cover .fade-from-bottom {
+    background-gradient-direction: vertical;
+    background-gradient-start: transparent;
+    background-gradient-end: rgba(0,0,0,0.5);
+    padding-top: 18px; padding-bottom: 6px;
+}
+.media-cover { box-shadow: none; border: none; }
+.media-container { spacing: 8px; }
+.media-controls .message-media-control { padding: 6px; margin: 0; }
+.media-controls .message-media-control StIcon { icon-size: 24px; }
+.media-controls .media-control-secondary StIcon { icon-size: 18px; }
+.media-container .media-volume StIcon { icon-size: 18px; }
+.media-container .media-title-box { padding-left: 6px; padding-right: 6px; }
+#+END_SRC
+
+*** Panel media settings (media-player-*)
+
+| Key | Default | Description |
+| `media-player-position` | 1 | 0=left, 1=center, 2=right panel box |
+| `media-player-enable-controls` | true | Separate prev/play/next panel button |
+| `media-player-enable-track` | true | Show track info in panel button |
+| `media-player-max-width` | 0 | Max label width (0=unlimited) |
+| `media-player-show-player-icon` | true | Show app icon |
+| `media-player-cover-width` | 200 | Cover width |
+| `media-player-cover-height` | 200 | Cover height |
+| `media-player-cover-roundness` | 12 | Border radius |
+| `media-player-show-volume` | true | Show volume slider |
+| `media-player-show-loop-shuffle` | true | Show shuffle/loop |
+
+** Comparación: QST vs Aylur
+
+| Feature | QST | Aylur |
+| Progress bar + seek slider | ✓ | ✗ |
+| Gradient from cover color | ✓ | ✗ |
+| Page indicators for multi-player | ✓ | ✗ (single preferred player) |
+| Swipe/scroll between players | ✓ | ✗ |
+| GLSL round clip effect | ✓ | ✗ |
+| Labels on Cover / Full layouts | ✗ | ✓ (3+ layout modes) |
+| Cover width/height/roundness | ✗ | ✓ |
+| Text alignment + position | ✗ | ✓ |
+| Volume slider | ✗ | ✓ |
+| Loop + Shuffle buttons | ✗ | ✓ |
+| Fade gradient overlay on cover | ✗ | ✓ |
+| Cover art cache to disk | ✗ | ✓ |
+| Compact mode | ✓ | ✓ (partial) |
+| Control opacity | ✓ | ✗ |
+| Individual show/hide controls | ✓ | ✗ (all or nothing) |
+
+** Implementation strategy for step 1.5 (date menu media widget)
+
+The widget should be injected into the date menu's **right column** (above the calendar grid) using the same pattern as userAvatarDateMenu:
+
+1. **Module location**: `extension/modules/dateMenuMedia/` (separate from dateMenu module)
+2. **Injection**: navigate to `_menuBox.get_last_child()` (right column), insert at index 0
+3. **MPRIS data**: use existing `MediaPlayerManager` singleton from `utils/mediaPlayer/mediaManager.js`
+4. **Cover art**: use `CrossfadeArt` from `dateMenu/crossfadeArt.js` (canvas-based for unlock safety)
+5. **Widget structure**:
+   - Base container: `St.BoxLayout` (vertical)
+   - Album art area (if enabled)
+   - Title + artist labels
+   - Control buttons: prev, play/pause, next
+   - Progress bar (optional, from QST)
+6. **Settings prefix**: `dmm-` (Date Menu Media) to avoid conflict with dateMenu's `dm-*`
+7. **Key settings for phase 1** (minimal):
+   - `dmm-enabled` (bool) — master toggle
+   - `dmm-show-prev`, `dmm-show-pause`, `dmm-show-next` (bools)
+   - `dmm-control-opacity` (int, 0-255)
+   - `dmm-compact` (bool)
+   - `dmm-progress-enabled` (bool)
+   - `dmm-progress-style` (string: 'slim'/'default')
+8. **Layout styles from 1.6** (later):
+   - `dmm-style` (int: 0=normal, 1=label-on-cover, 2=full)
+   - `dmm-cover-width`, `dmm-cover-height`, `dmm-cover-roundness` (ints)
+   - `dmm-text-align` (int: 0=left, 1=center, 2=right)
+   - `dmm-text-position` (int: 0=top, 1=bottom)
+   - `dmm-show-volume` (bool)
+   - `dmm-show-loop-shuffle` (bool)
+   - `dmm-fade` (bool)

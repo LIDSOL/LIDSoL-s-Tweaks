@@ -3,3 +3,8 @@
 *.swo
 *~
 .DS_Store
+
+# Traducciones compiladas y archivos temporales de i18n
+locale/
+po/*.po~
+po/*.pot~

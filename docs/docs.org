@@ -1,0 +1,137 @@
+#+TITLE: Documentación general del proyecto LIDSoL'S Tweaks.
+#+DATE: 2026-09-30
+* Core Framework
+** Module Loader
+- Carga y descarga dinámica de módulos
+- Activación condicional según configuración
+- Gesitón de dependencias internas
+** Signal Manager
+- Registro centralizado
+- Desconexión automática en disable().
+- Prevención de memory leaks.
+** Settings Manager
+- Wrapper sobre GSettings.
+- Observadores desacoplados.
+- Actualización reactiva controlada.
+** Logger
+** Maid
+- Gestión del ciclo de vida de los módulos (`connectJob`, `functionJob`, `disposeJob`, `runDisposeJob`, `destroyJob`, `patchJob`, `hideJob`).
+- Prioridades (`Priority.High/Default/Low`) para ordenar la ejecución de tareas.
+* Estructura de directorio
+Estructura real del proyecto.
+#+BEGIN_SRC bash
+LIDSoL-s-Tweaks/
+├── extension.js                 # Punto de entrada (enable/disable → ModuleLoader)
+├── metadata.json                # uuid lidsol-widgets@lidsol, settings-schema, GNOME 50/51
+├── prefs.js                     # Ventana de preferencias
+├── LICENSE                      # GPL-2.0-or-later
+├── README.org                   # Información general del proyecto
+├── stylesheet.css               # Estilos de la Workspace Bar (wsb-*)
+│
+├── extension/
+│   ├── core/
+│   │   ├── moduleLoader.js      # Registro de 16 módulos + lazy loading + toggle runtime
+│   │   ├── maid.js              # Ciclo de vida (jobs + prioridades)
+│   │   ├── signalManager.js     # Gestor central de signals
+│   │   ├── settingsManager.js   # Wrapper sobre GSettings (Setting/SettingType)
+│   │   └── logger.js            # Sistema de logging
+│   │
+│   ├── modules/
+│   │   ├── panelCorners/        # module.js, panelCorner.js, screenCorner.js, utils.js
+│   │   ├── workspaceIndicator/  # Port de Space Bar (16 archivos, con prefsSettings.js)
+│   │   ├── quickText/           # module.js, actions.js, events.js, interface.js(.ui), stylesheet.css
+│   │   ├── backgroundWidgets/   # module.js, baseWidget.js, clockWidget.js, pictureWidget.js
+│   │   ├── userAvatar/          # module.js, prefsSettings.js, stylesheet.css
+│   │   ├── quickSettingsTweaks/ # module.js, features + prefsSettings.js (1204 líneas)
+│   │   ├── systemItems/         # module.js (System Items Layout)
+│   │   ├── topBarOrganizer/     # module.js + prefsSettings.js (solo TBO, diálogo drag&drop)
+│   │   ├── dateMenu/            # module.js, dateMenu.js, crossfadeArt.js, visualizer.js, dateMenu.css
+│   │   ├── dashboard/           # module.js, dashBoard.js, mediaWidget.js, systemMonitor.js, widgets.js
+│   │   ├── notificationMedia/   # module.js
+│   │   ├── userAvatarDateMenu/  # module.js, stylesheet.css
+│   │   ├── dateMenuMedia/       # module.js, mediaWidget.js, dateMenuMedia.css
+│   │   ├── launcher/            # module.js, searchProvider.js
+│   │   ├── batteryIndicator/    # module.js, widget.js, drawicon.js, stylesheet.css
+│   │   └── workspace/           # module.js, bar.js, prefsSettings.js, stylesheet.css
+│   │
+│   ├── utils/
+│   │   ├── advani.js            # Animaciones bezier (AdvAnimationMode, ease)
+│   │   ├── childrenTracker.js   # ChildrenTrackerBase / QuickSettingsToggleTracker
+│   │   ├── prefsHelpers.js      # 13 factories Adw + DropDownChoice + enableDragAutoScroll
+│   │   ├── mprisService.js      # MprisPlayer/MediaPlayerManager (D-Bus)
+│   │   ├── mediaPlayer/         # mediaManager.js, albumArt.js, mediaWidget.js, mediaPlayer.css
+│   │   ├── layoutHelpers.js     # (TODO)
+│   │   ├── gsettingsHelper.js   # (TODO)
+│   │   └── dBusHelper.js        # (TODO)
+│   └── stylesheet.css           # Estilos globales de la extensión
+│
+├── schemas/
+│   └── org.gnome.shell.extensions.lidsol-widgets.gschema.xml  # 1728 líneas, 381 keys
+│
+├── docs/
+│   ├── docs.org             # Arquitectura (este documento)
+│   ├── project.org          # Objetivos, plan y TODOs del proyecto
+│   ├── notesReferences.org  # Notas, lecciones y referencias
+│   └── img/
+│
+└── scripts/
+    ├── caffeine-script          # Evitar suspensión
+    ├── gnome-wallpaper.sh
+    ├── install.sh
+    └── syncthing-toggle.sh
+#+END_SRC
+
+* Decisiones de arquitectura
+- **UUID sin apóstrofe** — GNOME Shell no acepta `lidsol's-widgets@lidsol`.
+- **Symlink** — GNOME 50 no sigue symlinks confiablemente en runtime, pero sí para `prefs.js`.
+- **prefs.js** — `ExtensionPreferences.fillPreferencesWindow()` añade `Adw.PreferencesPage` por categoría (el `Adw.ViewSwitcher` lo aporta el toolkit). Categorías reales: *Herramientas, Quick Settings, Widgets, Top Bar, General*. La página Quick Settings delega en `QuickSettingsPrefs` y la Top Bar en `TopBarOrganizerPrefs`; el resto de dialogs se construyen inline en `prefs.js`.
+- **prefs por módulo** — Los módulos con mucha configuración exponen su propio `prefsSettings.js` con clase `XxxPrefs` y método `populateCategoryPage(page)` / `populateGroups(page)`: `quickSettingsTweaks` (página completa), `topBarOrganizer` (solo su fila-módulo TBO + diálogo drag&drop), `workspaceIndicator`/`workspace` (delegados desde los dialogs de prefs.js), `userAvatar` (fila dentro de Quick Settings).
+- **ModuleLoader** — Lazy loading dinámico: cada módulo tiene un `enabledKey` en GSettings. `_watchEnabledKey()` permite toggle en runtime vía `changed::` signal. 16 módulos registrados en `REGISTERED_MODULES`.
+- **Aislar errores por módulo** — `_enableModule()` envuelto en try/catch para que un módulo roto no bloquee los demás.
+- **Schema unificado** — Todas las keys GSettings en un solo XML (1728 líneas, 381 keys), agrupadas por prefijo: `dashboard-` (91), `ws-` (80), `qst-` (45), `background-` (38), `dmm-` (23), `dm-` (17), `qt-` (10), `nm-` (10), `bi-` (10), `wb-` (9), `tbo-` (9), `pw-` (8), `ua-` (7), `panel-` (6), `screen-` (4), `launcher-` (4), `uadm-` (3), etc.
+- **Módulos como features internas** — `QuickSettingsTweaksModule` crea sub-features (`QuickTogglesFeature`, `OverlayMenuFeature`, `MenuAnimationFeature`) dentro de su `enable()`; `SystemItemsFeature` es compartida por el módulo `systemItems`.
+* Arquitectura actual
+#+BEGIN_SRC
+extension.js               → init/enable/disable → ModuleLoader
+prefs.js                   → ExtensionPreferences (fillPreferencesWindow, 5 páginas)
+extension/
+├── core/
+│   ├── moduleLoader.js    → Registro (16 módulos) + lazy loading + toggle runtime
+│   ├── maid.js            → Gestión de ciclo de vida (jobs + prioridades)
+│   ├── signalManager.js
+│   ├── settingsManager.js
+│   └── logger.js
+├── modules/
+│   ├── panelCorners/      → ✓ Integrado
+│   ├── workspaceIndicator/ → ✓ Integrado (16 archivos portados de Space Bar TS)
+│   ├── quickText/         → ✓ Integrado (dual-process: shell dialog + Gtk actions window)
+│   ├── backgroundWidgets/ → ✓ Integrado (reloj + imagen de escritorio, baseWidget común)
+│   ├── userAvatar/        → ✓ Integrado
+│   ├── quickSettingsTweaks/ → ✓ Integrado (features: QuickToggles/SystemItems/OverlayMenu/MenuAnimation + prefsSettings)
+│   ├── systemItems/       → ✓ Integrado (System Items Layout)
+│   ├── topBarOrganizer/   → ✓ Integrado (+ prefsSettings.js con el diálogo drag&drop y D-Bus CleanTopBar)
+│   ├── dateMenu/          → ✓ Integrado (reloj + visualizador + crossfade art)
+│   ├── dashboard/         → ✓ Integrado (dashboard, system monitor, media widgets)
+│   ├── notificationMedia/ → ✓ Integrado
+│   ├── userAvatarDateMenu/ → ✓ Integrado
+│   ├── dateMenuMedia/     → ✓ Integrado (control multimedia en el menú de fecha)
+│   ├── launcher/          → ✓ Integrado (+ searchProvider)
+│   ├── batteryIndicator/  → ✓ Integrado (círculo/barra en la barra superior)
+│   └── workspace/         → ✓ Integrado (Workspace Bar)
+└── utils/
+    ├── advani.js          → Animaciones bezier (ease, AdvAnimationMode)
+    ├── childrenTracker.js → QuickSettingsToggleTracker
+    ├── prefsHelpers.js    → 13 factories reutilizables para UI Adw
+    ├── mprisService.js    → Interfaz MPRIS D-Bus
+    ├── mediaPlayer/       → mediaManager, albumArt, mediaWidget (visualizer/album art)
+    ├── layoutHelpers.js   → (TODO)
+    ├── gsettingsHelper.js → (TODO)
+    └── dBusHelper.js      → (TODO)
+extension/stylesheet.css → Estilos globales de la extensión
+schemas/                 → Schema unificado (1728 líneas, 381 keys)
+#+END_SRC
+* Workflow GNOME 50 (Wayland)
+No existe recarga fiable de módulos ESM. `gnome-extensions disable/enable` solo ejecuta `disable()`/`enable()` pero **no re-evalúa imports** (GJS cachea módulos en memoria). Para cambios en `extension/` se requiere cerrar sesión y reingresar. `prefs.js` se recarga al abrir la ventana de preferencias.
+* Herramientas
+- GNOME Shell 50, GJS (ES modules)
+- `glib-compile-schemas` para compilar esquemas GSettings

@@ -15,6 +15,7 @@ import * as SystemActions from 'resource:///org/gnome/shell/misc/systemActions.j
 
 import * as Util from 'resource:///org/gnome/shell/misc/util.js';
 import { PACKAGE_VERSION } from 'resource:///org/gnome/shell/misc/config.js';
+import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { DashboardMediaWidget } from './mediaWidget.js';
 import {
@@ -297,10 +298,10 @@ class UserWidget extends DashWidget {
 
 function _getGreeting() {
     const hour = GLib.DateTime.new_now_local().get_hour();
-    if (hour < 5) return 'Night Time';
-    if (hour < 12) return 'Good Morning';
-    if (hour < 18) return 'Good Afternoon';
-    return 'Good Evening';
+    if (hour < 5) return _('Night Time');
+    if (hour < 12) return _('Good Morning');
+    if (hour < 18) return _('Good Afternoon');
+    return _('Good Evening');
 }
 
 export var LevelsWidget = GObject.registerClass(
@@ -669,9 +670,9 @@ class SettingsWidget extends DashWidget {
 
         this.destroy_all_children();
         [
-            this._button('network-wireless-signal-good-symbolic', 'gnome-wifi-panel', iconSize, 'WiFi'),
-            this._button('bluetooth-active-symbolic', 'gnome-bluetooth-panel', iconSize, 'Bluetooth'),
-            this._button('org.gnome.Settings-symbolic', 'org.gnome.Settings', iconSize, 'Settings'),
+            this._button('network-wireless-signal-good-symbolic', 'gnome-wifi-panel', iconSize, _('WiFi')),
+            this._button('bluetooth-active-symbolic', 'gnome-bluetooth-panel', iconSize, _('Bluetooth')),
+            this._button('org.gnome.Settings-symbolic', 'org.gnome.Settings', iconSize, _('Settings')),
         ]
         .forEach(btn => this.add_child(btn));
     }
@@ -717,10 +718,10 @@ class SystemWidget extends DashWidget {
             y_expand: true,
         });
         [
-            this._button('system-shutdown-symbolic', 'power-off', iconSize, 'Power Off'),
-            this._button('system-reboot-symbolic', 'restart', iconSize, 'Reboot'),
-            this._button('system-log-out-symbolic', 'logout', iconSize, 'Log Out'),
-            this._button('weather-clear-night-symbolic', 'suspend', iconSize, 'Suspend'),
+            this._button('system-shutdown-symbolic', 'power-off', iconSize, _('Power Off')),
+            this._button('system-reboot-symbolic', 'restart', iconSize, _('Reboot')),
+            this._button('system-log-out-symbolic', 'logout', iconSize, _('Log Out')),
+            this._button('weather-clear-night-symbolic', 'suspend', iconSize, _('Suspend')),
         ].forEach(btn => actionsBox.add_child(btn));
 
         const settingsBox = new St.BoxLayout({
@@ -729,9 +730,9 @@ class SystemWidget extends DashWidget {
             y_expand: true,
         });
         [
-            this._appButton('network-wireless-signal-good-symbolic', 'gnome-wifi-panel', iconSize, 'WiFi'),
-            this._appButton('bluetooth-active-symbolic', 'gnome-bluetooth-panel', iconSize, 'Bluetooth'),
-            this._appButton('org.gnome.Settings-symbolic', 'org.gnome.Settings', iconSize, 'Settings'),
+            this._appButton('network-wireless-signal-good-symbolic', 'gnome-wifi-panel', iconSize, _('WiFi')),
+            this._appButton('bluetooth-active-symbolic', 'gnome-bluetooth-panel', iconSize, _('Bluetooth')),
+            this._appButton('org.gnome.Settings-symbolic', 'org.gnome.Settings', iconSize, _('Settings')),
         ]
         .forEach(btn => settingsBox.add_child(btn));
 

@@ -6,6 +6,7 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import Gtk from 'gi://Gtk';
+import { gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 import {
     createDialog,
@@ -24,14 +25,14 @@ export class TopBarOrganizerPrefs {
 
     populateCategoryPage(page) {
         const group = new Adw.PreferencesGroup({
-            title: 'Top Bar Organizer',
-            description: 'Organización y apariencia del panel.',
+            title: _('Top Bar Organizer'),
+            description: _('Panel organization and appearance.'),
         });
         group.add(createModuleRow({
             settings: this._settings,
             bindKey: 'tbo-enabled',
-            title: 'Top Bar Organizer',
-            subtitle: 'Reordena y oculta indicadores de la barra superior',
+            title: _('Top Bar Organizer'),
+            subtitle: _('Reorder and hide top bar indicators'),
             onDetailed: () => {
                 if (this._window && this._settings)
                     openTopBarOrganizerDialog(this._window, this._settings);
@@ -46,16 +47,16 @@ export class TopBarOrganizerPrefs {
 // ══════════════════════════════════════════════════════════════════
 
 const TOP_BAR_ITEM_NAMES = {
-    appMenu: 'Menú de aplicación',
-    dateMenu: 'Fecha y hora',
-    activities: 'Actividades',
-    quickSettings: 'Ajustes rápidos',
-    a11y: 'Accesibilidad',
-    keyboard: 'Distribución del teclado',
-    screencastIndicator: 'Grabación de pantalla',
-    remoteAccessIndicator: 'Acceso remoto',
-    appindicatorContainer: 'Indicadores de aplicación',
-    'lidsol-workspace-indicator': 'Workspace Indicator',
+    get appMenu() { return _('Application menu'); },
+    get dateMenu() { return _('Date and time'); },
+    get activities() { return _('Activities'); },
+    get quickSettings() { return _('Quick settings'); },
+    get a11y() { return _('Accessibility'); },
+    get keyboard() { return _('Keyboard layout'); },
+    get screencastIndicator() { return _('Screen recording'); },
+    get remoteAccessIndicator() { return _('Remote access'); },
+    get appindicatorContainer() { return _('Application indicators'); },
+    get 'lidsol-workspace-indicator'() { return _('Workspace Indicator'); },
 };
 
 const TOP_BAR_ITEM_ICONS = {
@@ -93,7 +94,7 @@ const TopBarOrganizerPlaceholder = GObject.registerClass({
         this.set_vexpand(true);
 
         const label = new Gtk.Label({
-            label: 'Arrastra elementos aquí',
+            label: _('Drag items here'),
             sensitive: false,
             opacity: 0.5,
             margin_top: 16,
@@ -106,9 +107,9 @@ const TopBarOrganizerPlaceholder = GObject.registerClass({
 });
 
 const BOX_NAMES = {
-    left: 'Caja izquierda',
-    center: 'Caja central',
-    right: 'Caja derecha',
+    get left() { return _('Left box'); },
+    get center() { return _('Center box'); },
+    get right() { return _('Right box'); },
 };
 
 function openTopBarOrganizerDialog(parentWindow, settings) {
@@ -318,25 +319,25 @@ function openTopBarOrganizerDialog(parentWindow, settings) {
 
     createDialog({
         window: parentWindow,
-        title: 'Ordenar elementos de la barra superior',
+        title: _('Arrange top bar elements'),
         childrenRequest: (page, dialog) => {
             const group = new Adw.PreferencesGroup({
-                title: 'Orden de la barra superior',
-                description: 'Arrastra y suelta para reordenar los elementos entre cajas.',
+                title: _('Top bar order'),
+                description: _('Drag and drop to reorder elements between boxes.'),
             });
             page.add(group);
 
             const resetBtn = Gtk.Button.new_from_icon_name('view-refresh-symbolic');
             resetBtn.has_frame = false;
             resetBtn.valign = Gtk.Align.CENTER;
-            resetBtn.tooltip_text = 'Actualizar barra: mostrar solo los elementos actuales';
+            resetBtn.tooltip_text = _('Refresh bar: show only the current elements');
 
             const showAlert = (heading, body) => {
                 const alert = new Adw.AlertDialog({
                     heading,
                     body,
                 });
-                alert.add_response('ok', 'Aceptar');
+                alert.add_response('ok', _('OK'));
                 alert.set_default_response('ok');
                 alert.set_close_response('ok');
                 alert.present(parentWindow);
@@ -363,17 +364,17 @@ function openTopBarOrganizerDialog(parentWindow, settings) {
                         } catch (e) {
                             console.error('[TBO] no ha sido posible actualizar la barra:', e);
                             showAlert(
-                                'No se pudo actualizar la barra',
-                                'El módulo "Top Bar Organizer" no está activo. Activa el módulo e inténtalo de nuevo.'
+                                _('Could not refresh the bar'),
+                                _('The "Top Bar Organizer" module is not active. Enable the module and try again.')
                             );
                             return;
                         }
                         _rebuildAll();
                         showAlert(
-                            changed ? 'Barra actualizada' : 'Sin cambios',
+                            changed ? _('Bar refreshed') : _('No changes'),
                             changed
-                                ? 'La barra ahora muestra solo los elementos actuales.'
-                                : 'Todos los elementos guardados ya son los actuales.'
+                                ? _('The bar now shows only the current elements.')
+                                : _('All saved elements are already the current ones.')
                         );
                     }
                 );

@@ -4,6 +4,7 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import St from 'gi://St';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 const PREFS_TERM_SEPARATOR = '|';
 const DEFAULT_ICON = 'utilities-terminal-symbolic';
@@ -16,7 +17,7 @@ export class LauncherSearchProvider {
         // list section with a header (icon + name) instead of a flat grid of
         // letter-circles, exactly like the native "Settings" provider.
         this.appInfo = {
-            get_name: () => 'Comandos',
+            get_name: () => _('Commands'),
             // A real installed desktop id keeps parental-controls happy and
             // lets the launch animation resolve an app.
             get_id: () => 'org.gnome.Settings.desktop',

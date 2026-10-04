@@ -6,6 +6,7 @@ import Gdk from 'gi://Gdk';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
+import { gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 export function createModuleRow({ settings, bindKey, title, subtitle, onDetailed, sensitiveBind }) {
     const row = new Adw.SwitchRow({
@@ -29,7 +30,7 @@ function _pushDetailedButton(row, onDetailed) {
         icon_name: 'emblem-system-symbolic',
         has_frame: false,
         valign: Gtk.Align.CENTER,
-        tooltip_text: 'Configuración detallada',
+        tooltip_text: _('Detailed settings'),
     });
     const img = btn.get_first_child();
     if (img) {

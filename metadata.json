@@ -3,6 +3,7 @@
   "description": "Colección modular de extensiones para GNOME Shell",
   "uuid": "lidsol-widgets@lidsol",
   "settings-schema": "org.gnome.shell.extensions.lidsol-widgets",
+  "gettext-domain": "lidsol-widgets",
   "shell-version": [
     "50",
     "51"

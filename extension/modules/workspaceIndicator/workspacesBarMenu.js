@@ -2,6 +2,7 @@ import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
+import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 import { KeyBindings } from './keyBindings.js';
 import { Settings } from './settings.js';
 import { WorkspaceNames } from './workspaceNames.js';
@@ -32,7 +33,7 @@ export class WorkspacesBarMenu {
 
     init() {
         this._menu.box.add_style_class_name('space-bar-menu');
-        this._addSectionHeading('Rename current workspace');
+        this._addSectionHeading(_('Rename current workspace'));
         this._initEntry();
         this._menu.addMenuItem(this._hiddenWorkspacesSection);
         this._initManageWorkspaceSection();
@@ -96,7 +97,7 @@ export class WorkspacesBarMenu {
     _initExtensionSettingsButton() {
         const separator = new PopupMenu.PopupSeparatorMenuItem();
         this._menu.addMenuItem(separator);
-        const button = new PopupMenu.PopupMenuItem(`${this._extension.metadata.name} settings`);
+        const button = new PopupMenu.PopupMenuItem(_('%s settings').format(this._extension.metadata.name));
         button.connect('activate', () => {
             this._menu.close();
             this._extension.openPreferences();
@@ -122,7 +123,7 @@ export class WorkspacesBarMenu {
                 break;
         }
         if (hiddenWorkspaces?.length > 0) {
-            this._addSectionHeading('Other workspaces', this._hiddenWorkspacesSection);
+            this._addSectionHeading(_('Other workspaces'), this._hiddenWorkspacesSection);
             hiddenWorkspaces.forEach((workspace) => {
                 const label = this._settings.enableCustomLabelInMenus.value
                     ? this._ws.getDisplayName(workspace) : this._ws.getDefaultDisplayName(workspace);
@@ -139,14 +140,14 @@ export class WorkspacesBarMenu {
     _refreshManageWorkspaceSection() {
         this._manageWorkspaceSection.box.destroy_all_children();
         if (!this._settings.dynamicWorkspaces.value || !this._settings.showEmptyWorkspaces.value || this._settings.indicatorStyle.value === 'current-workspace') {
-            const newWsButton = new PopupMenu.PopupMenuItem('Add new workspace');
+            const newWsButton = new PopupMenu.PopupMenuItem(_('Add new workspace'));
             newWsButton.connect('activate', () => {
                 this._menu.close();
                 this._ws.addWorkspace();
             });
             this._manageWorkspaceSection.addMenuItem(newWsButton);
         }
-        const closeWsButton = new PopupMenu.PopupMenuItem('Remove current workspace');
+        const closeWsButton = new PopupMenu.PopupMenuItem(_('Remove current workspace'));
         closeWsButton.connect('activate', () => this._ws.removeWorkspace(this._ws.currentIndex));
         this._manageWorkspaceSection.addMenuItem(closeWsButton);
     }

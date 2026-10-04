@@ -6,12 +6,16 @@ import Gtk from 'gi://Gtk';
 import Gdk from 'gi://Gdk';
 import Adw from 'gi://Adw';
 import GObject from 'gi://GObject';
+import { bindtextdomain, gettext as _, textdomain } from 'gettext';
 
 import { createQWindow } from './interface.js';
 import { vevent, vtodo, treated } from './events.js';
 
 const MOD_PATH = ARGV[0];
 const SCHEMA_ID = 'org.gnome.shell.extensions.lidsol-widgets';
+
+bindtextdomain('lidsol-widgets', MOD_PATH + '/../../../locale');
+textdomain('lidsol-widgets');
 
 function getSettings() {
     const schemaSource = Gio.SettingsSchemaSource.get_default();
@@ -54,7 +58,7 @@ const QuickTextApp = GObject.registerClass({
         this.ID = 'com.github.brainstormtrooper.QuickText';
         super._init({application_id: this.ID});
         GLib.set_prgname(this.ID);
-        GLib.set_application_name('QuickText');
+        GLib.set_application_name(_('QuickText'));
     }
 
     vfunc_activate() {
@@ -124,12 +128,12 @@ const QuickTextApp = GObject.registerClass({
     _getPicker(i) {
         const now = GLib.DateTime.new_now_local();
 
-        const tbtn = Gtk.ToggleButton.new_with_label('Task');
-        const ebtn = Gtk.ToggleButton.new_with_label('Event');
+        const tbtn = Gtk.ToggleButton.new_with_label(_('Task'));
+        const ebtn = Gtk.ToggleButton.new_with_label(_('Event'));
         ebtn.set_group(tbtn);
         ebtn.set_active(true);
-        const rowLabel = new Gtk.Label({label: 'Create new : '});
-        const rowLimit = new Gtk.Label({label: 'Duration : '});
+        const rowLabel = new Gtk.Label({label: _('Create new : ')});
+        const rowLimit = new Gtk.Label({label: _('Duration : ')});
         const dAdjust = new Gtk.Adjustment({
             value: 1, lower: 1, upper: 24, step_increment: 1,
         });
@@ -140,11 +144,11 @@ const QuickTextApp = GObject.registerClass({
         duration.set_orientation(Gtk.Orientation.HORIZONTAL);
 
         tbtn.connect('toggled', () => {
-            rowLimit.set_label('Due :');
+            rowLimit.set_label(_('Due :'));
             duration.set_visible(false);
         });
         ebtn.connect('toggled', () => {
-            rowLimit.set_label('Duration :');
+            rowLimit.set_label(_('Duration :'));
             duration.set_visible(true);
         });
 
@@ -223,7 +227,7 @@ const QuickTextApp = GObject.registerClass({
         row3.append(times);
 
         const pickBox = new Gtk.Box({orientation: Gtk.Orientation.VERTICAL, spacing: 6});
-        const save = new Gtk.Button({label: 'Save'});
+        const save = new Gtk.Button({label: _('Save')});
         const row4 = new Gtk.Box({
             orientation: Gtk.Orientation.HORIZONTAL, spacing: 6,
             halign: Gtk.Align.END,
@@ -290,8 +294,8 @@ const QuickTextApp = GObject.registerClass({
                     });
                     this.add_action(undeleteAction);
 
-                    const undeleteToast = new Adw.Toast({title: 'Note deleted'});
-                    undeleteToast.set_button_label('Undo');
+                    const undeleteToast = new Adw.Toast({title: _('Note deleted')});
+                    undeleteToast.set_button_label(_('Undo'));
                     undeleteToast.set_action_name(`app.undelete_${i}`);
 
                     const liTxtView = new Gtk.TextView();
@@ -310,25 +314,25 @@ const QuickTextApp = GObject.registerClass({
 
                     const liDeleteBtn = new Gtk.Button({
                         icon_name: 'user-trash-symbolic',
-                        tooltip_text: 'Delete',
+                        tooltip_text: _('Delete'),
                     });
                     const liEditBtn = new Gtk.Button({
                         icon_name: 'document-edit-symbolic',
-                        tooltip_text: 'Edit',
+                        tooltip_text: _('Edit'),
                     });
                     const liSaveBtn = new Gtk.Button({
                         icon_name: 'document-save-symbolic',
-                        tooltip_text: 'Save',
+                        tooltip_text: _('Save'),
                         visible: false,
                     });
                     const liCancelBtn = new Gtk.Button({
                         icon_name: 'edit-delete-symbolic',
-                        tooltip_text: 'Cancel',
+                        tooltip_text: _('Cancel'),
                         visible: false,
                     });
                     const liEventBtn = new Gtk.MenuButton({
                         icon_name: 'x-office-calendar-symbolic',
-                        tooltip_text: 'New Event',
+                        tooltip_text: _('New Event'),
                         popover: ePopover,
                     });
 

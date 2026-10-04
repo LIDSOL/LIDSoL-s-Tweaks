@@ -2,6 +2,7 @@
 
 import Adw from 'gi://Adw';
 import Gtk from 'gi://Gtk';
+import { gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 import {
     createDialog,
@@ -21,8 +22,8 @@ export class UserAvatarPrefs {
         return createModuleRow({
             settings: this._settings,
             bindKey: 'user-avatar-enabled',
-            title: 'Avatar de Usuario',
-            subtitle: 'Muestra tu foto de perfil en los ajustes rápidos',
+            title: _('User Avatar'),
+            subtitle: _('Shows your profile picture in the quick settings'),
             onDetailed: () => this.openDialog(),
         });
     }
@@ -31,48 +32,48 @@ export class UserAvatarPrefs {
         const s = this._settings;
         createDialog({
             window: this._window,
-            title: 'Avatar de Usuario',
+            title: _('User Avatar'),
             childrenRequest: (page) => {
-                const posGroup = createGroup({ parent: page, title: 'Posición' });
-                const positionModel = new Gtk.StringList({ strings: ['Derecha', 'Izquierda'] });
+                const posGroup = createGroup({ parent: page, title: _('Position') });
+                const positionModel = new Gtk.StringList({ strings: [_('Right'), _('Left')] });
                 const positionRow = new Adw.ComboRow({
-                    title: 'Posición',
-                    subtitle: 'Posición del avatar respecto a los botones del sistema',
+                    title: _('Position'),
+                    subtitle: _('Position of the avatar relative to the system buttons'),
                     model: positionModel,
                     selected: s.get_int('ua-position'),
                 });
                 positionRow.connect('notify::selected', () => s.set_int('ua-position', positionRow.selected));
                 posGroup.add(positionRow);
 
-                const appearGroup = createGroup({ parent: page, title: 'Apariencia' });
+                const appearGroup = createGroup({ parent: page, title: _('Appearance') });
                 appearGroup.add(createSpinButtonRow({
                     settings: s,
                     bindKey: 'ua-size',
-                    title: 'Tamaño',
-                    subtitle: '43 por defecto',
+                    title: _('Size'),
+                    subtitle: _('43 by default'),
                     adjProps: { lower: 15, upper: 75, step: 2 },
                 }));
                 appearGroup.add(createSwitchRow({
                     settings: s,
                     bindKey: 'ua-realname',
-                    title: 'Mostrar nombre real',
-                    subtitle: 'Según la longitud, puede aumentar el ancho del panel',
+                    title: _('Show real name'),
+                    subtitle: _('Depending on the length, it may increase the panel width'),
                 }));
                 appearGroup.add(createSwitchRow({
                     settings: s,
                     bindKey: 'ua-username',
-                    title: 'Mostrar nombre de usuario',
+                    title: _('Show user name'),
                 }));
                 appearGroup.add(createSwitchRow({
                     settings: s,
                     bindKey: 'ua-hostname',
-                    title: 'Mostrar nombre del equipo',
+                    title: _('Show host name'),
                 }));
                 appearGroup.add(createSwitchRow({
                     settings: s,
                     bindKey: 'ua-nobackground',
-                    title: 'Quitar fondo del botón',
-                    subtitle: 'Elimina el fondo predeterminado',
+                    title: _('Remove button background'),
+                    subtitle: _('Removes the default background'),
                 }));
             },
         });

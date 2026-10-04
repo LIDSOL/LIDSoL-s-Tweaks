@@ -8,6 +8,7 @@ import * as DND from 'resource:///org/gnome/shell/ui/dnd.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import { WindowPreview } from 'resource:///org/gnome/shell/ui/windowPreview.js';
+import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 import { Settings, ICON_PRESETS } from './settings.js';
 import { Styles } from './styles.js';
 import { Workspaces } from './workspaces.js';
@@ -237,7 +238,7 @@ export class WorkspaceBar {
     constructor(extension) {
         this._extension = extension;
         this._name = 'lidsol-workspace-indicator';
-        this._label = 'Workspace Indicator';
+        this._label = _('Workspace Indicator');
         this._settings = Settings.getInstance();
         this._styles = Styles.getInstance();
         this._ws = Workspaces.getInstance();

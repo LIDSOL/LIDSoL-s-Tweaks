@@ -359,6 +359,12 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
     const busSuffix = (name) =>
       name.startsWith(MPRIS_PREFIX) ? name.slice(MPRIS_PREFIX.length) : name;
 
+    // Category for grouping players in the UI: the first segment of the bus
+    // suffix ("io.bassi.Amberol" → "io", "GSConnect.motog505GMetrolist" →
+    // "GSConnect"). Instance-based players already collapse to their stable
+    // token beforehand, so "firefox" stays a single-player category.
+    const categoryOf = (name) => busSuffix(name).split('.')[0];
+
     // Stable filter token for a player: instance-based bus names
     // (e.g. "org.mpris.MediaPlayer2.firefox.instance_1_110") change per process,
     // so strip the ".instance_…" part. The service matches by substring, so the
@@ -439,41 +445,149 @@ export default class LidsolWidgetsPrefs extends ExtensionPreferences {
               return;
             }
 
+            // Group players by category (first segment of the bus suffix, so
+            // "io.bassi.Amberol" and "io.github.nate_xyz.Resonance" both end
+            // up under "io"). Multi-player categories get an expander row with
+            // a bulk switch (a macro over the individual tokens) plus one
+            // switch per player; single-player categories stay as plain rows.
+            const groups = new Map();
             for (const name of all) {
-              const isDetected = detected.has(name);
-              const liveBus = liveBusFor.get(name);
-              const sw = new Gtk.Switch({
-                active: isPlayerEnabled(name),
+              const cat = categoryOf(name);
+              if (!groups.has(cat))
+                groups.set(cat, []);
+              groups.get(cat).push({
+                name,
+                isDetected: detected.has(name),
+                liveBus: liveBusFor.get(name),
+              });
+            }
+
+            // Guards the programmatic switch sync below: setting `active`
+            // fires notify::active, which must not trigger the handlers.
+            let syncing = false;
+            const syncGroupSwitch = (catSw, items) => {
+              syncing = true;
+              catSw.active = items.every(it => isPlayerEnabled(it.name));
+              syncing = false;
+            };
+
+            for (const [cat, catItems] of [...groups.entries()].sort((a, b) =>
+              a[0].localeCompare(b[0]))) {
+              catItems.sort((a, b) => a.name.localeCompare(b.name));
+
+              // Category with a single player: plain row with its own switch
+              // (a category token would be identical to the player token).
+              if (catItems.length === 1) {
+                const { name: itemName, isDetected, liveBus } = catItems[0];
+                const sw = new Gtk.Switch({
+                  active: isPlayerEnabled(itemName),
+                  valign: Gtk.Align.CENTER,
+                  sensitive: filterActive,
+                });
+                sw.connect('notify::active', () => {
+                  togglePlayer(itemName, sw.active);
+                });
+
+                const row = new Adw.ActionRow({
+                  title: busSuffix(itemName),
+                  subtitle: isDetected && liveBus
+                    ? busSuffix(liveBus)
+                    : _('Not detected'),
+                  activatable: false,
+                });
+                row.tooltip_text = itemName;
+                row.add_suffix(sw);
+
+                if (!isDetected)
+                  row.set_opacity(0.5);
+
+                switchRows.set(`player:${itemName}`, { row, sw });
+                filterGroup.add(row);
+                playerRows.push(row);
+
+                if (isDetected && liveBus) {
+                  fetchPlayerIdentity(connection, liveBus, identity => {
+                    if (identity)
+                      row.title = identity;
+                  });
+                }
+                continue;
+              }
+
+              // Category with several players: expander with a bulk switch
+              // (macro over the individual tokens) and one row per player.
+              const catSw = new Gtk.Switch({
+                active: catItems.every(it => isPlayerEnabled(it.name)),
                 valign: Gtk.Align.CENTER,
                 sensitive: filterActive,
               });
-              sw.connect('notify::active', () => {
-                togglePlayer(name, sw.active);
+              catSw.connect('notify::active', () => {
+                if (syncing)
+                  return;
+                const list = getFilterList();
+                for (const it of catItems) {
+                  const idx = list.indexOf(it.name);
+                  if (catSw.active && idx === -1)
+                    list.push(it.name);
+                  else if (!catSw.active && idx !== -1)
+                    list.splice(idx, 1);
+                }
+                saveFilterList(list);
+                syncing = true;
+                for (const it of catItems) {
+                  const entry = switchRows.get(`player:${it.name}`);
+                  if (entry)
+                    entry.sw.active = isPlayerEnabled(it.name);
+                }
+                syncing = false;
               });
 
-              const row = new Adw.ActionRow({
-                title: busSuffix(name),
-                subtitle: isDetected && liveBus
-                  ? busSuffix(liveBus)
-                  : _('Not detected'),
-                activatable: false,
+              const group = new Adw.ExpanderRow({
+                title: cat,
+                subtitle: _('%d players').format(catItems.length),
               });
-              row.tooltip_text = name;
-              row.add_suffix(sw);
+              group.add_suffix(catSw);
 
-              if (!isDetected)
-                row.set_opacity(0.5);
-
-              switchRows.set(name, { row, sw });
-              filterGroup.add(row);
-              playerRows.push(row);
-
-              if (isDetected && liveBus) {
-                fetchPlayerIdentity(connection, liveBus, identity => {
-                  if (identity)
-                    row.title = identity;
+              for (const { name: itemName, isDetected, liveBus } of catItems) {
+                const sw = new Gtk.Switch({
+                  active: isPlayerEnabled(itemName),
+                  valign: Gtk.Align.CENTER,
+                  sensitive: filterActive,
                 });
+                sw.connect('notify::active', () => {
+                  if (syncing)
+                    return;
+                  togglePlayer(itemName, sw.active);
+                  syncGroupSwitch(catSw, catItems);
+                });
+
+                const row = new Adw.ActionRow({
+                  title: busSuffix(itemName),
+                  subtitle: isDetected && liveBus
+                    ? busSuffix(liveBus)
+                    : _('Not detected'),
+                  activatable: false,
+                });
+                row.tooltip_text = itemName;
+                row.add_suffix(sw);
+
+                if (!isDetected)
+                  row.set_opacity(0.5);
+
+                switchRows.set(`player:${itemName}`, { row, sw });
+                group.add_row(row);
+
+                if (isDetected && liveBus) {
+                  fetchPlayerIdentity(connection, liveBus, identity => {
+                    if (identity)
+                      row.title = identity;
+                  });
+                }
               }
+
+              switchRows.set(`group:${cat}`, { row: group, sw: catSw });
+              filterGroup.add(group);
+              playerRows.push(group);
             }
           } catch (e) { /* ignore */ }
         }

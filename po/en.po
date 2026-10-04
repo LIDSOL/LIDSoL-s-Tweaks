@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: LIDSoL's Tweaks\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-04 01:28-0600\n"
+"POT-Creation-Date: 2026-10-04 14:03-0600\n"
 "PO-Revision-Date: 2026-10-03 00:00+0000\n"
 "Last-Translator: LIDSoL <EMAIL@ADDRESS>\n"
 "Language-Team: English <en@li.org>\n"
@@ -99,7 +99,7 @@ msgid "Type to search"
 msgstr "Type to search"
 
 #: extension/modules/launcher/searchProvider.js:20
-#: extension/modules/quickSettingsTweaks/prefsSettings.js:522 prefs.js:954
+#: extension/modules/quickSettingsTweaks/prefsSettings.js:522 prefs.js:1068
 msgid "Commands"
 msgstr "Commands"
 
@@ -208,7 +208,7 @@ msgstr "When the menu is taller than the quick settings, determines where the me
 msgid "Top"
 msgstr "Top"
 
-#: extension/modules/quickSettingsTweaks/prefsSettings.js:134 prefs.js:703
+#: extension/modules/quickSettingsTweaks/prefsSettings.js:134 prefs.js:817
 msgid "Center"
 msgstr "Center"
 
@@ -308,12 +308,12 @@ msgstr "All changes made to the custom toggles will be lost. Continue?"
 #: extension/modules/quickSettingsTweaks/prefsSettings.js:232
 #: extension/modules/quickSettingsTweaks/prefsSettings.js:315
 #: extension/modules/quickText/actions.js:330
-#: extension/modules/quickText/module.js:111 prefs.js:1076
+#: extension/modules/quickText/module.js:111 prefs.js:1190
 msgid "Cancel"
 msgstr "Cancel"
 
 #: extension/modules/quickSettingsTweaks/prefsSettings.js:233
-#: extension/modules/quickSettingsTweaks/prefsSettings.js:316 prefs.js:811
+#: extension/modules/quickSettingsTweaks/prefsSettings.js:316 prefs.js:925
 msgid "Reset"
 msgstr "Reset"
 
@@ -439,7 +439,7 @@ msgstr "Custom toggle"
 #: extension/modules/quickSettingsTweaks/prefsSettings.js:481
 #: extension/modules/userAvatar/prefsSettings.js:48
 #: extension/modules/workspace/prefsSettings.js:17
-#: extension/modules/workspaceIndicator/prefsSettings.js:164 prefs.js:598
+#: extension/modules/workspaceIndicator/prefsSettings.js:164 prefs.js:712
 msgid "Appearance"
 msgstr "Appearance"
 
@@ -448,7 +448,7 @@ msgid "Name"
 msgstr "Name"
 
 #: extension/modules/quickSettingsTweaks/prefsSettings.js:486
-#: extension/modules/quickSettingsTweaks/prefsSettings.js:605 prefs.js:1046
+#: extension/modules/quickSettingsTweaks/prefsSettings.js:605 prefs.js:1160
 msgid "Icon"
 msgstr "Icon"
 
@@ -456,11 +456,11 @@ msgstr "Icon"
 msgid "Icon name"
 msgstr "Icon name"
 
-#: extension/modules/quickSettingsTweaks/prefsSettings.js:502 prefs.js:1060
+#: extension/modules/quickSettingsTweaks/prefsSettings.js:502 prefs.js:1174
 msgid "More icons"
 msgstr "More icons"
 
-#: extension/modules/quickSettingsTweaks/prefsSettings.js:506 prefs.js:1064
+#: extension/modules/quickSettingsTweaks/prefsSettings.js:506 prefs.js:1178
 msgid "Suggestions"
 msgstr "Suggestions"
 
@@ -533,7 +533,7 @@ msgstr "No label"
 msgid "Label"
 msgstr "Label"
 
-#: extension/modules/quickSettingsTweaks/prefsSettings.js:596 prefs.js:847
+#: extension/modules/quickSettingsTweaks/prefsSettings.js:596 prefs.js:961
 msgid "Command"
 msgstr "Command"
 
@@ -649,8 +649,8 @@ msgstr "Frequency (seconds)"
 msgid "How often to check the state"
 msgstr "How often to check the state"
 
-#: extension/modules/quickSettingsTweaks/prefsSettings.js:697 prefs.js:632
-#: prefs.js:950
+#: extension/modules/quickSettingsTweaks/prefsSettings.js:697 prefs.js:746
+#: prefs.js:1064
 msgid "Keyboard shortcut"
 msgstr "Keyboard shortcut"
 
@@ -667,8 +667,8 @@ msgid "Capture shortcut"
 msgstr "Capture shortcut"
 
 #: extension/modules/quickSettingsTweaks/prefsSettings.js:704
-#: extension/modules/workspaceIndicator/prefsSettings.js:450 prefs.js:653
-#: prefs.js:767
+#: extension/modules/workspaceIndicator/prefsSettings.js:450 prefs.js:767
+#: prefs.js:881
 msgid "Esc to cancel, Backspace to disable"
 msgstr "Esc to cancel, Backspace to disable"
 
@@ -678,7 +678,7 @@ msgstr "New toggle"
 
 #: extension/modules/quickSettingsTweaks/prefsSettings.js:728
 #: extension/modules/quickText/actions.js:230
-#: extension/modules/quickText/actions.js:325 prefs.js:1077
+#: extension/modules/quickText/actions.js:325 prefs.js:1191
 msgid "Save"
 msgstr "Save"
 
@@ -748,11 +748,11 @@ msgstr "Note deleted"
 msgid "Undo"
 msgstr "Undo"
 
-#: extension/modules/quickText/actions.js:317 prefs.js:1017
+#: extension/modules/quickText/actions.js:317 prefs.js:1131
 msgid "Delete"
 msgstr "Delete"
 
-#: extension/modules/quickText/actions.js:321 prefs.js:1014
+#: extension/modules/quickText/actions.js:321 prefs.js:1128
 msgid "Edit"
 msgstr "Edit"
 
@@ -891,16 +891,16 @@ msgid "Shows your profile picture in the quick settings"
 msgstr "Shows your profile picture in the quick settings"
 
 #: extension/modules/userAvatar/prefsSettings.js:37
-#: extension/modules/userAvatar/prefsSettings.js:40 prefs.js:594 prefs.js:607
-#: prefs.js:608
+#: extension/modules/userAvatar/prefsSettings.js:40 prefs.js:708 prefs.js:721
+#: prefs.js:722
 msgid "Position"
 msgstr "Position"
 
-#: extension/modules/userAvatar/prefsSettings.js:38 prefs.js:1366 prefs.js:1401
+#: extension/modules/userAvatar/prefsSettings.js:38 prefs.js:1480 prefs.js:1515
 msgid "Right"
 msgstr "Right"
 
-#: extension/modules/userAvatar/prefsSettings.js:38 prefs.js:1366 prefs.js:1401
+#: extension/modules/userAvatar/prefsSettings.js:38 prefs.js:1480 prefs.js:1515
 msgid "Left"
 msgstr "Left"
 
@@ -909,8 +909,8 @@ msgid "Position of the avatar relative to the system buttons"
 msgstr "Position of the avatar relative to the system buttons"
 
 #: extension/modules/userAvatar/prefsSettings.js:52
-#: extension/modules/workspace/prefsSettings.js:22 prefs.js:590 prefs.js:614
-#: prefs.js:620
+#: extension/modules/workspace/prefsSettings.js:22 prefs.js:704 prefs.js:728
+#: prefs.js:734
 msgid "Size"
 msgstr "Size"
 
@@ -918,7 +918,7 @@ msgstr "Size"
 msgid "43 by default"
 msgstr "43 by default"
 
-#: extension/modules/userAvatar/prefsSettings.js:59 prefs.js:901
+#: extension/modules/userAvatar/prefsSettings.js:59 prefs.js:1015
 msgid "Show real name"
 msgstr "Show real name"
 
@@ -926,7 +926,7 @@ msgstr "Show real name"
 msgid "Depending on the length, it may increase the panel width"
 msgstr "Depending on the length, it may increase the panel width"
 
-#: extension/modules/userAvatar/prefsSettings.js:65 prefs.js:902
+#: extension/modules/userAvatar/prefsSettings.js:65 prefs.js:1016
 msgid "Show user name"
 msgstr "Show user name"
 
@@ -1224,7 +1224,7 @@ msgstr "Enable icon animations"
 msgid "Transition animation"
 msgstr "Transition animation"
 
-#: extension/modules/workspaceIndicator/prefsSettings.js:193 prefs.js:869
+#: extension/modules/workspaceIndicator/prefsSettings.js:193 prefs.js:983
 msgid "Fade"
 msgstr "Fade"
 
@@ -1255,7 +1255,7 @@ msgstr "The border uses the system accent color; the background, a dark tone der
 #: extension/modules/workspaceIndicator/prefsSettings.js:219
 #: extension/modules/workspaceIndicator/prefsSettings.js:247
 #: extension/modules/workspaceIndicator/prefsSettings.js:264 prefs.js:265
-#: prefs.js:624 prefs.js:933
+#: prefs.js:738 prefs.js:1047
 msgid "Background color"
 msgstr "Background color"
 
@@ -1321,7 +1321,7 @@ msgstr "Black"
 
 #: extension/modules/workspaceIndicator/prefsSettings.js:238
 #: extension/modules/workspaceIndicator/prefsSettings.js:255
-#: extension/modules/workspaceIndicator/prefsSettings.js:272 prefs.js:626
+#: extension/modules/workspaceIndicator/prefsSettings.js:272 prefs.js:740
 msgid "Border radius"
 msgstr "Border radius"
 
@@ -1391,8 +1391,8 @@ msgstr "Go to empty workspace"
 msgid "Open menu"
 msgstr "Open menu"
 
-#: extension/modules/workspaceIndicator/prefsSettings.js:430 prefs.js:637
-#: prefs.js:640
+#: extension/modules/workspaceIndicator/prefsSettings.js:430 prefs.js:751
+#: prefs.js:754
 msgid "Set shortcut"
 msgstr "Set shortcut"
 
@@ -1449,7 +1449,7 @@ msgstr "Quick settings menu tweaks"
 msgid "User avatar and quick settings improvements."
 msgstr "User avatar and quick settings improvements."
 
-#: prefs.js:49 prefs.js:820
+#: prefs.js:49 prefs.js:934
 msgid "Widgets"
 msgstr "Widgets"
 
@@ -1513,7 +1513,7 @@ msgstr "Background Clock"
 msgid "Clock overlaid on the desktop"
 msgstr "Clock overlaid on the desktop"
 
-#: prefs.js:148 prefs.js:150 prefs.js:899
+#: prefs.js:148 prefs.js:150 prefs.js:1013
 msgid "User Avatar (Date Menu)"
 msgstr "User Avatar (Date Menu)"
 
@@ -1521,7 +1521,7 @@ msgstr "User Avatar (Date Menu)"
 msgid "User avatar in the date menu, above the calendar"
 msgstr "User avatar in the date menu, above the calendar"
 
-#: prefs.js:155 prefs.js:157 prefs.js:907
+#: prefs.js:155 prefs.js:157 prefs.js:1021
 msgid "Date Menu Media"
 msgstr "Date Menu Media"
 
@@ -1529,7 +1529,7 @@ msgstr "Date Menu Media"
 msgid "Media controls in the date menu, above the calendar"
 msgstr "Media controls in the date menu, above the calendar"
 
-#: prefs.js:171 prefs.js:173 prefs.js:537
+#: prefs.js:171 prefs.js:173 prefs.js:651
 msgid "Panel Corners"
 msgstr "Panel Corners"
 
@@ -1573,7 +1573,7 @@ msgstr "Battery Indicator"
 msgid "Custom circle and/or bar for the battery on the top bar"
 msgstr "Custom circle and/or bar for the battery on the top bar"
 
-#: prefs.js:218 prefs.js:227 prefs.js:862 prefs.js:925
+#: prefs.js:218 prefs.js:227 prefs.js:976 prefs.js:1039
 msgid "Style"
 msgstr "Style"
 
@@ -1609,7 +1609,7 @@ msgstr "Show the percentage next to the indicator"
 msgid "Configure the appearance of the battery bar."
 msgstr "Configure the appearance of the battery bar."
 
-#: prefs.js:240 prefs.js:833
+#: prefs.js:240 prefs.js:947
 msgid "Width"
 msgstr "Width"
 
@@ -1617,7 +1617,7 @@ msgstr "Width"
 msgid "Width in pixels"
 msgstr "Width in pixels"
 
-#: prefs.js:244 prefs.js:1258
+#: prefs.js:244 prefs.js:1372
 msgid "Height"
 msgstr "Height"
 
@@ -1689,275 +1689,280 @@ msgstr "Off = allow all, Blacklist = exclude the marked ones, Whitelist = only a
 msgid "Refresh player list"
 msgstr "Refresh player list"
 
-#: prefs.js:433
+#: prefs.js:439
 msgid "No players detected"
 msgstr "No players detected"
 
-#: prefs.js:458
+#: prefs.js:495 prefs.js:568
 msgid "Not detected"
 msgstr "Not detected"
 
-#: prefs.js:501 prefs.js:503
+#: prefs.js:547
+#, javascript-format
+msgid "%d players"
+msgstr "%d players"
+
+#: prefs.js:615 prefs.js:617
 msgid "Dashboard"
 msgstr "Dashboard"
 
-#: prefs.js:502
+#: prefs.js:616
 msgid "Panel with general widgets"
 msgstr "Panel with general widgets"
 
-#: prefs.js:508 prefs.js:510 prefs.js:631
+#: prefs.js:622 prefs.js:624 prefs.js:745
 msgid "Quick Text"
 msgstr "Quick Text"
 
-#: prefs.js:509 prefs.js:631
+#: prefs.js:623 prefs.js:745
 msgid "Quick note capture with keyboard shortcut"
 msgstr "Quick note capture with keyboard shortcut"
 
-#: prefs.js:515 prefs.js:517 prefs.js:949
+#: prefs.js:629 prefs.js:631 prefs.js:1063
 msgid "Launcher"
 msgstr "Launcher"
 
-#: prefs.js:516
+#: prefs.js:630
 msgid "Shortcut to open the Overview search (search mode)"
 msgstr "Shortcut to open the Overview search (search mode)"
 
-#: prefs.js:537
+#: prefs.js:651
 msgid "Rounded corners on the bottom of the panel"
 msgstr "Rounded corners on the bottom of the panel"
 
-#: prefs.js:538
+#: prefs.js:652
 msgid "Enable Panel Corners"
 msgstr "Enable Panel Corners"
 
-#: prefs.js:539 prefs.js:544
+#: prefs.js:653 prefs.js:658
 msgid "Radius"
 msgstr "Radius"
 
-#: prefs.js:539 prefs.js:544
+#: prefs.js:653 prefs.js:658
 msgid "Recommended: 12px"
 msgstr "Recommended: 12px"
 
-#: prefs.js:540 prefs.js:545 prefs.js:615 prefs.js:621
+#: prefs.js:654 prefs.js:659 prefs.js:729 prefs.js:735
 msgid "Color"
 msgstr "Color"
 
-#: prefs.js:540
+#: prefs.js:654
 msgid "Recommended: black"
 msgstr "Recommended: black"
 
-#: prefs.js:541 prefs.js:546
+#: prefs.js:655 prefs.js:660
 msgid "Opacity"
 msgstr "Opacity"
 
-#: prefs.js:542
+#: prefs.js:656
 msgid "Screen Corners"
 msgstr "Screen Corners"
 
-#: prefs.js:542
+#: prefs.js:656
 msgid "Rounded corners around the screen"
 msgstr "Rounded corners around the screen"
 
-#: prefs.js:543
+#: prefs.js:657
 msgid "Enable Screen Corners"
 msgstr "Enable Screen Corners"
 
-#: prefs.js:547
+#: prefs.js:661
 msgid "Advanced options"
 msgstr "Advanced options"
 
-#: prefs.js:548
+#: prefs.js:662
 msgid "Force extension values"
 msgstr "Force extension values"
 
-#: prefs.js:548
+#: prefs.js:662
 msgid "Overrides the current theme preferences"
 msgstr "Overrides the current theme preferences"
 
-#: prefs.js:564
+#: prefs.js:678
 msgid "Picture"
 msgstr "Picture"
 
-#: prefs.js:564
+#: prefs.js:678
 msgid "Folder with pictures to show on the desktop. A random picture is chosen."
 msgstr "Folder with pictures to show on the desktop. A random picture is chosen."
 
-#: prefs.js:565
+#: prefs.js:679
 msgid "Pictures folder"
 msgstr "Pictures folder"
 
-#: prefs.js:565
+#: prefs.js:679
 msgid "No folder selected"
 msgstr "No folder selected"
 
-#: prefs.js:566
+#: prefs.js:680
 msgid "Browse"
 msgstr "Browse"
 
-#: prefs.js:569
+#: prefs.js:683
 msgid "Select pictures folder"
 msgstr "Select pictures folder"
 
-#: prefs.js:591
+#: prefs.js:705
 msgid "Base size"
 msgstr "Base size"
 
-#: prefs.js:591
+#: prefs.js:705
 msgid "Combined with the aspect ratio"
 msgstr "Combined with the aspect ratio"
 
-#: prefs.js:592
+#: prefs.js:706
 msgid "Aspect ratio"
 msgstr "Aspect ratio"
 
-#: prefs.js:592
+#: prefs.js:706
 msgid "Width / Height (1.0 = square)"
 msgstr "Width / Height (1.0 = square)"
 
-#: prefs.js:595
+#: prefs.js:709
 msgid "Position X"
 msgstr "Position X"
 
-#: prefs.js:595
+#: prefs.js:709
 msgid "Pixels from the left edge"
 msgstr "Pixels from the left edge"
 
-#: prefs.js:596
+#: prefs.js:710
 msgid "Position Y"
 msgstr "Position Y"
 
-#: prefs.js:596
+#: prefs.js:710
 msgid "Pixels from the top edge"
 msgstr "Pixels from the top edge"
 
-#: prefs.js:599 prefs.js:944
+#: prefs.js:713 prefs.js:1058
 msgid "Corner radius"
 msgstr "Corner radius"
 
-#: prefs.js:599
+#: prefs.js:713
 msgid "Percentage (0 = no rounded corners)"
 msgstr "Percentage (0 = no rounded corners)"
 
-#: prefs.js:601
+#: prefs.js:715
 msgid "Advanced"
 msgstr "Advanced"
 
-#: prefs.js:602
+#: prefs.js:716
 msgid "Rotation interval"
 msgstr "Rotation interval"
 
-#: prefs.js:602
+#: prefs.js:716
 msgid "Seconds (0 = no automatic change)"
 msgstr "Seconds (0 = no automatic change)"
 
-#: prefs.js:608
+#: prefs.js:722
 msgid "0=top-left … 8=bottom-right"
 msgstr "0=top-left … 8=bottom-right"
 
-#: prefs.js:609
+#: prefs.js:723
 msgid "Horizontal offset"
 msgstr "Horizontal offset"
 
-#: prefs.js:610
+#: prefs.js:724
 msgid "Vertical offset"
 msgstr "Vertical offset"
 
-#: prefs.js:611 prefs.js:875
+#: prefs.js:725 prefs.js:989
 msgid "Clock"
 msgstr "Clock"
 
-#: prefs.js:612
+#: prefs.js:726
 msgid "Show clock"
 msgstr "Show clock"
 
-#: prefs.js:613 prefs.js:619
+#: prefs.js:727 prefs.js:733
 msgid "Format"
 msgstr "Format"
 
-#: prefs.js:613
+#: prefs.js:727
 msgid "%H:%M (24h) or %I:%M %p (12h)"
 msgstr "%H:%M (24h) or %I:%M %p (12h)"
 
-#: prefs.js:614
+#: prefs.js:728
 msgid "Font size in points"
 msgstr "Font size in points"
 
-#: prefs.js:616 prefs.js:622
+#: prefs.js:730 prefs.js:736
 msgid "Custom font"
 msgstr "Custom font"
 
-#: prefs.js:617
+#: prefs.js:731
 msgid "Date"
 msgstr "Date"
 
-#: prefs.js:618
+#: prefs.js:732
 msgid "Show date"
 msgstr "Show date"
 
-#: prefs.js:619
+#: prefs.js:733
 msgid "%A, %d de %B"
 msgstr "%A, %d de %B"
 
-#: prefs.js:623
+#: prefs.js:737
 msgid "Container"
 msgstr "Container"
 
-#: prefs.js:623
+#: prefs.js:737
 msgid "Clock background style"
 msgstr "Clock background style"
 
-#: prefs.js:624
+#: prefs.js:738
 msgid "Use alpha for a semi-transparent background"
 msgstr "Use alpha for a semi-transparent background"
 
-#: prefs.js:625
+#: prefs.js:739
 msgid "Padding"
 msgstr "Padding"
 
-#: prefs.js:632
+#: prefs.js:746
 msgid "Key combination to open the notes dialog"
 msgstr "Key combination to open the notes dialog"
 
-#: prefs.js:651
+#: prefs.js:765
 msgid "Enter a key combination:"
 msgstr "Enter a key combination:"
 
-#: prefs.js:678
+#: prefs.js:792
 msgid "Single-line input"
 msgstr "Single-line input"
 
-#: prefs.js:678
+#: prefs.js:792
 msgid "If enabled, Enter saves the note directly"
 msgstr "If enabled, Enter saves the note directly"
 
-#: prefs.js:679
+#: prefs.js:793
 msgid "Hide processed notes"
 msgstr "Hide processed notes"
 
-#: prefs.js:679
+#: prefs.js:793
 msgid "Hides notes marked as processed in the actions window"
 msgstr "Hides notes marked as processed in the actions window"
 
-#: prefs.js:680
+#: prefs.js:794
 msgid "Notes file"
 msgstr "Notes file"
 
-#: prefs.js:680
+#: prefs.js:794
 msgid "Absolute path to the text file"
 msgstr "Absolute path to the text file"
 
-#: prefs.js:681
+#: prefs.js:795
 msgid "Prefix"
 msgstr "Prefix"
 
-#: prefs.js:681
+#: prefs.js:795
 msgid "Text before each note (empty = current date)"
 msgstr "Text before each note (empty = current date)"
 
-#: prefs.js:682
+#: prefs.js:796
 msgid "Line break"
 msgstr "Line break"
 
-#: prefs.js:682
+#: prefs.js:796
 msgid ""
 "Adds a line break after the prefix.\n"
 "If disabled, the prefix and the note go on the same line."
@@ -1965,227 +1970,227 @@ msgstr ""
 "Adds a line break after the prefix.\n"
 "If disabled, the prefix and the note go on the same line."
 
-#: prefs.js:683 prefs.js:694
+#: prefs.js:797 prefs.js:808
 msgid "Separator"
 msgstr "Separator"
 
-#: prefs.js:683
+#: prefs.js:797
 msgid "Text that separates notes in the file"
 msgstr "Text that separates notes in the file"
 
-#: prefs.js:695
+#: prefs.js:809
 msgid "Adds a separator between notes. If empty, leaves an extra line"
 msgstr "Adds a separator between notes. If empty, leaves an extra line"
 
-#: prefs.js:703
+#: prefs.js:817
 msgid "Fill"
 msgstr "Fill"
 
-#: prefs.js:703
+#: prefs.js:817
 msgid "Start"
 msgstr "Start"
 
-#: prefs.js:703
+#: prefs.js:817
 msgid "End"
 msgstr "End"
 
-#: prefs.js:738
+#: prefs.js:852
 msgid "Background"
 msgstr "Background"
 
-#: prefs.js:744
+#: prefs.js:858
 msgid "Dash"
 msgstr "Dash"
 
-#: prefs.js:746
+#: prefs.js:860
 msgid "Shortcut Hotkey"
 msgstr "Shortcut Hotkey"
 
-#: prefs.js:751 prefs.js:754
+#: prefs.js:865 prefs.js:868
 msgid "Set Hotkey"
 msgstr "Set Hotkey"
 
-#: prefs.js:765
+#: prefs.js:879
 msgid "Press a key combination:"
 msgstr "Press a key combination:"
 
-#: prefs.js:793
+#: prefs.js:907
 msgid "X Align"
 msgstr "X Align"
 
-#: prefs.js:794
+#: prefs.js:908
 msgid "Y Align"
 msgstr "Y Align"
 
-#: prefs.js:795
+#: prefs.js:909
 msgid "X Offset"
 msgstr "X Offset"
 
-#: prefs.js:796
+#: prefs.js:910
 msgid "Y Offset"
 msgstr "Y Offset"
 
-#: prefs.js:797
+#: prefs.js:911
 msgid "Darken Background"
 msgstr "Darken Background"
 
-#: prefs.js:798
+#: prefs.js:912
 msgid "Transparent Container"
 msgstr "Transparent Container"
 
-#: prefs.js:799
+#: prefs.js:913
 msgid "Container Scale (%)"
 msgstr "Container Scale (%)"
 
-#: prefs.js:803
+#: prefs.js:917
 msgid "Grid Layout"
 msgstr "Grid Layout"
 
-#: prefs.js:804 prefs.js:879
+#: prefs.js:918 prefs.js:993
 msgid "Spacing"
 msgstr "Spacing"
 
-#: prefs.js:805 prefs.js:884
+#: prefs.js:919 prefs.js:998
 msgid "Columns"
 msgstr "Columns"
 
-#: prefs.js:808
+#: prefs.js:922
 msgid "Reset Layout"
 msgstr "Reset Layout"
 
-#: prefs.js:809
+#: prefs.js:923
 msgid "Restore the default grid layout"
 msgstr "Restore the default grid layout"
 
-#: prefs.js:823
+#: prefs.js:937
 msgid "User"
 msgstr "User"
 
-#: prefs.js:824
+#: prefs.js:938
 msgid "Icon Roundness"
 msgstr "Icon Roundness"
 
-#: prefs.js:825
+#: prefs.js:939
 msgid "Icon Width"
 msgstr "Icon Width"
 
-#: prefs.js:826
+#: prefs.js:940
 msgid "Icon Height"
 msgstr "Icon Height"
 
-#: prefs.js:827
+#: prefs.js:941
 msgid "Text Spacing"
 msgstr "Text Spacing"
 
-#: prefs.js:828 prefs.js:876
+#: prefs.js:942 prefs.js:990
 msgid "Vertical"
 msgstr "Vertical"
 
-#: prefs.js:829
+#: prefs.js:943
 msgid "Show User Name"
 msgstr "Show User Name"
 
-#: prefs.js:832
+#: prefs.js:946
 msgid "System Levels"
 msgstr "System Levels"
 
-#: prefs.js:834
+#: prefs.js:948
 msgid "Show Battery"
 msgstr "Show Battery"
 
-#: prefs.js:835
+#: prefs.js:949
 msgid "Show Storage"
 msgstr "Show Storage"
 
-#: prefs.js:836
+#: prefs.js:950
 msgid "Show CPU"
 msgstr "Show CPU"
 
-#: prefs.js:837
+#: prefs.js:951
 msgid "Show RAM"
 msgstr "Show RAM"
 
-#: prefs.js:838
+#: prefs.js:952
 msgid "Show Temperature"
 msgstr "Show Temperature"
 
-#: prefs.js:852
+#: prefs.js:966
 msgid "Media Player"
 msgstr "Media Player"
 
-#: prefs.js:857
+#: prefs.js:971
 msgid "Prefer"
 msgstr "Prefer"
 
-#: prefs.js:861
+#: prefs.js:975
 msgid "Normal Vertical"
 msgstr "Normal Vertical"
 
-#: prefs.js:861
+#: prefs.js:975
 msgid "Normal Horizontal"
 msgstr "Normal Horizontal"
 
-#: prefs.js:861
+#: prefs.js:975
 msgid "Full"
 msgstr "Full"
 
-#: prefs.js:866
+#: prefs.js:980
 msgid "Cover Width"
 msgstr "Cover Width"
 
-#: prefs.js:867
+#: prefs.js:981
 msgid "Cover Height"
 msgstr "Cover Height"
 
-#: prefs.js:868
+#: prefs.js:982
 msgid "Cover Roundness"
 msgstr "Cover Roundness"
 
-#: prefs.js:870
+#: prefs.js:984
 msgid "Show Text"
 msgstr "Show Text"
 
-#: prefs.js:872
+#: prefs.js:986
 msgid "Show Loop and Shuffle"
 msgstr "Show Loop and Shuffle"
 
-#: prefs.js:877
+#: prefs.js:991
 msgid "Time Size"
 msgstr "Time Size"
 
-#: prefs.js:878
+#: prefs.js:992
 msgid "Date Size"
 msgstr "Date Size"
 
-#: prefs.js:882
+#: prefs.js:996
 msgid "App Launcher"
 msgstr "App Launcher"
 
-#: prefs.js:883
+#: prefs.js:997
 msgid "Rows"
 msgstr "Rows"
 
-#: prefs.js:885 prefs.js:893
+#: prefs.js:999 prefs.js:1007
 msgid "Icon Size"
 msgstr "Icon Size"
 
-#: prefs.js:888
+#: prefs.js:1002
 msgid "Settings & System"
 msgstr "Settings & System"
 
-#: prefs.js:889
+#: prefs.js:1003
 msgid "Stacked"
 msgstr "Stacked"
 
-#: prefs.js:889
+#: prefs.js:1003
 msgid "Side by Side"
 msgstr "Side by Side"
 
-#: prefs.js:890 prefs.js:1291
+#: prefs.js:1004 prefs.js:1405
 msgid "Layout"
 msgstr "Layout"
 
-#: prefs.js:890
+#: prefs.js:1004
 msgid ""
 "Stacked: two rows (current behavior).\n"
 "Side by Side: single row."
@@ -2193,255 +2198,255 @@ msgstr ""
 "Stacked: two rows (current behavior).\n"
 "Side by Side: single row."
 
-#: prefs.js:899
+#: prefs.js:1013
 msgid "Shows the avatar and user name in the date menu, above the calendar."
 msgstr "Shows the avatar and user name in the date menu, above the calendar."
 
-#: prefs.js:900
+#: prefs.js:1014
 msgid "Enable avatar in date menu"
 msgstr "Enable avatar in date menu"
 
-#: prefs.js:907
+#: prefs.js:1021
 msgid "Media control widget in the date menu, above the calendar."
 msgstr "Media control widget in the date menu, above the calendar."
 
-#: prefs.js:908
+#: prefs.js:1022
 msgid "Enable media widget"
 msgstr "Enable media widget"
 
-#: prefs.js:909
+#: prefs.js:1023
 msgid "Hide native media indicators"
 msgstr "Hide native media indicators"
 
-#: prefs.js:909
+#: prefs.js:1023
 msgid "Hides the native media controls from notifications, inside the date menu"
 msgstr "Hides the native media controls from notifications, inside the date menu"
 
-#: prefs.js:910
+#: prefs.js:1024
 msgid "Automatically switch to the last playing media"
 msgstr "Automatically switch to the last playing media"
 
-#: prefs.js:910
+#: prefs.js:1024
 msgid "Always show the active media, even over the manual selection"
 msgstr "Always show the active media, even over the manual selection"
 
-#: prefs.js:911 prefs.js:1206
+#: prefs.js:1025 prefs.js:1320
 msgid "Show album art"
 msgstr "Show album art"
 
-#: prefs.js:912
+#: prefs.js:1026
 msgid "Art size"
 msgstr "Art size"
 
-#: prefs.js:913
+#: prefs.js:1027
 msgid "Art roundness"
 msgstr "Art roundness"
 
-#: prefs.js:913
+#: prefs.js:1027
 msgid "Border roundness of the album art (1-99 pixels)"
 msgstr "Border roundness of the album art (1-99 pixels)"
 
-#: prefs.js:914
+#: prefs.js:1028
 msgid "Compact mode"
 msgstr "Compact mode"
 
-#: prefs.js:914
+#: prefs.js:1028
 msgid "Reduces the widget spacing"
 msgstr "Reduces the widget spacing"
 
-#: prefs.js:916
+#: prefs.js:1030
 msgid "Controls"
 msgstr "Controls"
 
-#: prefs.js:916
+#: prefs.js:1030
 msgid "Visibility and appearance of the media control buttons."
 msgstr "Visibility and appearance of the media control buttons."
 
-#: prefs.js:917
+#: prefs.js:1031
 msgid "Show previous button"
 msgstr "Show previous button"
 
-#: prefs.js:918
+#: prefs.js:1032
 msgid "Show pause/play button"
 msgstr "Show pause/play button"
 
-#: prefs.js:919
+#: prefs.js:1033
 msgid "Show next button"
 msgstr "Show next button"
 
-#: prefs.js:920
+#: prefs.js:1034
 msgid "Controls opacity"
 msgstr "Controls opacity"
 
-#: prefs.js:922
+#: prefs.js:1036
 msgid "Progress bar"
 msgstr "Progress bar"
 
-#: prefs.js:922
+#: prefs.js:1036
 msgid "Progress bar settings with elapsed time."
 msgstr "Progress bar settings with elapsed time."
 
-#: prefs.js:923
+#: prefs.js:1037
 msgid "Show progress bar"
 msgstr "Show progress bar"
 
-#: prefs.js:925
+#: prefs.js:1039
 msgid "Progress bar style"
 msgstr "Progress bar style"
 
-#: prefs.js:930
+#: prefs.js:1044
 msgid "Handle radius"
 msgstr "Handle radius"
 
-#: prefs.js:930
+#: prefs.js:1044
 msgid "0 = hide handle"
 msgstr "0 = hide handle"
 
-#: prefs.js:931
+#: prefs.js:1045
 msgid "Bar height"
 msgstr "Bar height"
 
-#: prefs.js:932
+#: prefs.js:1046
 msgid "Active color"
 msgstr "Active color"
 
-#: prefs.js:932
+#: prefs.js:1046
 msgid "CSS color or empty to use the theme accent"
 msgstr "CSS color or empty to use the theme accent"
 
-#: prefs.js:933
+#: prefs.js:1047
 msgid "CSS color of the inactive part"
 msgstr "CSS color of the inactive part"
 
-#: prefs.js:935
+#: prefs.js:1049
 msgid "Gradient from art"
 msgstr "Gradient from art"
 
-#: prefs.js:935
+#: prefs.js:1049
 msgid "Extracts the dominant color from the album art and applies it as a gradient background."
 msgstr "Extracts the dominant color from the album art and applies it as a gradient background."
 
-#: prefs.js:936
+#: prefs.js:1050
 msgid "Enable gradient"
 msgstr "Enable gradient"
 
-#: prefs.js:937
+#: prefs.js:1051
 msgid "Start opacity"
 msgstr "Start opacity"
 
-#: prefs.js:938
+#: prefs.js:1052
 msgid "Start mix"
 msgstr "Start mix"
 
-#: prefs.js:938
+#: prefs.js:1052
 msgid "How much of the extracted color is mixed at the start (0-1000)"
 msgstr "How much of the extracted color is mixed at the start (0-1000)"
 
-#: prefs.js:939
+#: prefs.js:1053
 msgid "End opacity"
 msgstr "End opacity"
 
-#: prefs.js:940
+#: prefs.js:1054
 msgid "End mix"
 msgstr "End mix"
 
-#: prefs.js:940
+#: prefs.js:1054
 msgid "How much of the extracted color is mixed at the end (0-1000)"
 msgstr "How much of the extracted color is mixed at the end (0-1000)"
 
-#: prefs.js:942
+#: prefs.js:1056
 msgid "Rounded clip"
 msgstr "Rounded clip"
 
-#: prefs.js:942
+#: prefs.js:1056
 msgid "Clips the corners of the media widget."
 msgstr "Clips the corners of the media widget."
 
-#: prefs.js:943
+#: prefs.js:1057
 msgid "Enable rounded clip"
 msgstr "Enable rounded clip"
 
-#: prefs.js:949
+#: prefs.js:1063
 msgid "Opens the native Overview search (search mode) with a keyboard shortcut."
 msgstr "Opens the native Overview search (search mode) with a keyboard shortcut."
 
-#: prefs.js:950
+#: prefs.js:1064
 msgid "Key combination to open the Overview search (search mode)"
 msgstr "Key combination to open the Overview search (search mode)"
 
-#: prefs.js:951
+#: prefs.js:1065
 msgid "Overview"
 msgstr "Overview"
 
-#: prefs.js:951
+#: prefs.js:1065
 msgid "Settings related to the overview"
 msgstr "Settings related to the overview"
 
-#: prefs.js:952
+#: prefs.js:1066
 msgid "Hide search bar"
 msgstr "Hide search bar"
 
-#: prefs.js:952
+#: prefs.js:1066
 msgid "Hides the \"Type to search\" field in the Overview. It appears when you start typing."
 msgstr "Hides the \"Type to search\" field in the Overview. It appears when you start typing."
 
-#: prefs.js:954
+#: prefs.js:1068
 msgid "Commands executable from the search by typing \":name\""
 msgstr "Commands executable from the search by typing \":name\""
 
-#: prefs.js:955 prefs.js:1077
+#: prefs.js:1069 prefs.js:1191
 msgid "Add"
 msgstr "Add"
 
-#: prefs.js:1036
+#: prefs.js:1150
 msgid "Edit command"
 msgstr "Edit command"
 
-#: prefs.js:1036
+#: prefs.js:1150
 msgid "Add command"
 msgstr "Add command"
 
-#: prefs.js:1037
+#: prefs.js:1151
 msgid "Typing \":$name\" in the search will run the command."
 msgstr "Typing \":$name\" in the search will run the command."
 
-#: prefs.js:1043
+#: prefs.js:1157
 msgid "Name (without \":\")"
 msgstr "Name (without \":\")"
 
-#: prefs.js:1044
+#: prefs.js:1158
 msgid "Bash command (e.g. notify-send \"Hello\")"
 msgstr "Bash command (e.g. notify-send \"Hello\")"
 
-#: prefs.js:1046
+#: prefs.js:1160
 msgid "Symbolic icon name (empty = default)"
 msgstr "Symbolic icon name (empty = default)"
 
-#: prefs.js:1065
+#: prefs.js:1179
 msgid "utilities-terminal-symbolic, system-search-symbolic, starred-symbolic, audio-headphones-symbolic, …"
 msgstr "utilities-terminal-symbolic, system-search-symbolic, starred-symbolic, audio-headphones-symbolic, …"
 
-#: prefs.js:1108
+#: prefs.js:1222
 msgid "Formats"
 msgstr "Formats"
 
-#: prefs.js:1109
+#: prefs.js:1223
 msgid "Customize the clock format on the panel."
 msgstr "Customize the clock format on the panel."
 
-#: prefs.js:1114
+#: prefs.js:1228
 msgid "Date and time format"
 msgstr "Date and time format"
 
-#: prefs.js:1115
+#: prefs.js:1229
 msgid "E.g. %B %d, %I:%M:%S %p"
 msgstr "E.g. %B %d, %I:%M:%S %p"
 
-#: prefs.js:1121
+#: prefs.js:1235
 msgid "Date menu + Media"
 msgstr "Date menu + Media"
 
-#: prefs.js:1122
+#: prefs.js:1236
 msgid ""
 "Format for the Multimedia + Clock mode\n"
 "(max 10 characters)"
@@ -2449,143 +2454,143 @@ msgstr ""
 "Format for the Multimedia + Clock mode\n"
 "(max 10 characters)"
 
-#: prefs.js:1138
+#: prefs.js:1252
 msgid "Swap order"
 msgstr "Swap order"
 
-#: prefs.js:1139
+#: prefs.js:1253
 msgid "Shows the media information first and then the clock (full view only)"
 msgstr "Shows the media information first and then the clock (full view only)"
 
-#: prefs.js:1152
+#: prefs.js:1266
 msgid "Media"
 msgstr "Media"
 
-#: prefs.js:1153
+#: prefs.js:1267
 msgid "Control how media playback information is shown in the panel."
 msgstr "Control how media playback information is shown in the panel."
 
-#: prefs.js:1163
+#: prefs.js:1277
 msgid "Media module"
 msgstr "Media module"
 
-#: prefs.js:1164
+#: prefs.js:1278
 msgid "Shows the current track information in the panel during playback"
 msgstr "Shows the current track information in the panel during playback"
 
-#: prefs.js:1175
+#: prefs.js:1289
 msgid "Only show during playback"
 msgstr "Only show during playback"
 
-#: prefs.js:1176
+#: prefs.js:1290
 msgid "If inactive, media information is shown even when the media is paused"
 msgstr "If inactive, media information is shown even when the media is paused"
 
-#: prefs.js:1185
+#: prefs.js:1299
 msgid "Title length"
 msgstr "Title length"
 
-#: prefs.js:1186
+#: prefs.js:1300
 msgid "Maximum characters for the track title (5-30)"
 msgstr "Maximum characters for the track title (5-30)"
 
-#: prefs.js:1195
+#: prefs.js:1309
 msgid "Artist length"
 msgstr "Artist length"
 
-#: prefs.js:1196
+#: prefs.js:1310
 msgid "Maximum characters for the artist name (5-30)"
 msgstr "Maximum characters for the artist name (5-30)"
 
-#: prefs.js:1207
+#: prefs.js:1321
 msgid "Shows the album art next to the track information"
 msgstr "Shows the album art next to the track information"
 
-#: prefs.js:1224
+#: prefs.js:1338
 msgid "Art cache size"
 msgstr "Art cache size"
 
-#: prefs.js:1225
+#: prefs.js:1339
 msgid "Maximum disk storage limit (MB). Old covers are removed automatically."
 msgstr "Maximum disk storage limit (MB). Old covers are removed automatically."
 
-#: prefs.js:1240
+#: prefs.js:1354
 msgid "Enable visualizer"
 msgstr "Enable visualizer"
 
-#: prefs.js:1241
+#: prefs.js:1355
 msgid "Shows the audio visualizer during playback"
 msgstr "Shows the audio visualizer during playback"
 
-#: prefs.js:1251
+#: prefs.js:1365
 msgid "Bars"
 msgstr "Bars"
 
-#: prefs.js:1252
+#: prefs.js:1366
 msgid "Number of visualizer bars"
 msgstr "Number of visualizer bars"
 
-#: prefs.js:1259
+#: prefs.js:1373
 msgid "Visualizer height in pixels"
 msgstr "Visualizer height in pixels"
 
-#: prefs.js:1283
+#: prefs.js:1397
 msgid "Media view"
 msgstr "Media view"
 
-#: prefs.js:1284
+#: prefs.js:1398
 msgid "Clock view"
 msgstr "Clock view"
 
-#: prefs.js:1285
+#: prefs.js:1399
 msgid "Clock + Media"
 msgstr "Clock + Media"
 
-#: prefs.js:1292
+#: prefs.js:1406
 msgid "Media (text only), Clock (clock+art+visualizer), Full (text+clock)"
 msgstr "Media (text only), Clock (clock+art+visualizer), Full (text+clock)"
 
-#: prefs.js:1331
+#: prefs.js:1445
 msgid "Wave"
 msgstr "Wave"
 
-#: prefs.js:1331
+#: prefs.js:1445
 msgid "Beat"
 msgstr "Beat"
 
-#: prefs.js:1331
+#: prefs.js:1445
 msgid "Cava"
 msgstr "Cava"
 
-#: prefs.js:1336
+#: prefs.js:1450
 msgid "Visualizer style"
 msgstr "Visualizer style"
 
-#: prefs.js:1337
+#: prefs.js:1451
 msgid "Wave (sine), Beat (pulse), Cava (FFT, requires cava)"
 msgstr "Wave (sine), Beat (pulse), Cava (FFT, requires cava)"
 
-#: prefs.js:1371
+#: prefs.js:1485
 msgid "Art position"
 msgstr "Art position"
 
-#: prefs.js:1372
+#: prefs.js:1486
 msgid "Places the album art to the left or right of the text"
 msgstr "Places the album art to the left or right of the text"
 
-#: prefs.js:1406
+#: prefs.js:1520
 msgid "Visualizer position"
 msgstr "Visualizer position"
 
-#: prefs.js:1407
+#: prefs.js:1521
 msgid "Places the visualizer to the left or right of the text"
 msgstr "Places the visualizer to the left or right of the text"
 
-#: prefs.js:1444
+#: prefs.js:1558
 msgid "Font"
 msgstr "Font"
 
-#: prefs.js:1444
+#: prefs.js:1558
 msgid "Font name (e.g. Monospace)"
 msgstr "Font name (e.g. Monospace)"
 

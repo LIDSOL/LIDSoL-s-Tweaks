@@ -54,6 +54,7 @@ var MediaPlayerManager = GObject.registerClass({
         this._service.connectObject(
             'player-added', () => this._onPlayerListChanged(),
             'player-removed', () => this._onPlayerListChanged(),
+            'players-changed', () => this._onFilterChanged(),
             this
         );
 
@@ -105,6 +106,14 @@ var MediaPlayerManager = GObject.registerClass({
         this._selectActivePlayer();
     }
 
+    // The player filter (blacklist/whitelist) may have excluded the currently
+    // active player. Re-select so the change is applied immediately instead of
+    // waiting for the player to quit/restart. _selectActivePlayer revalidates
+    // against the allowed list and emits 'player-changed' if it dropped it.
+    _onFilterChanged() {
+        this._selectActivePlayer();
+    }
+
     _onAnyPlayerUpdate(player) {
         const wasActive = player === this._activePlayer;
 
@@ -129,7 +138,18 @@ var MediaPlayerManager = GObject.registerClass({
     }
 
     _selectActivePlayer(opts = {}) {
+        // Capture before the filter validation below so a player dropped by
+        // the filter still counts as a change and emits 'player-changed'.
         const previous = this._activePlayer;
+
+        // The player filter may have excluded the previously active player,
+        // so never keep a player that is no longer in the allowed list.
+        const allowed = this._service.players;
+        if (this._activePlayer && !allowed.includes(this._activePlayer))
+            this._activePlayer = null;
+        if (this._lastActivePlayer && !allowed.includes(this._lastActivePlayer))
+            this._lastActivePlayer = null;
+
         const active = this._service.getActivePlayer();
         const lastActive = this._lastActivePlayer;
 

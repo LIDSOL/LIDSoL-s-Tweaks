@@ -450,11 +450,13 @@ var MprisService = GObject.registerClass({
 }, class MprisService extends GObject.Object {
     static _instance = null;
 
-    static getDefault() {
+    static getDefault(settings) {
         if (!MprisService._instance) {
             MprisService._instance = new MprisService();
             MprisService._instance.start();
         }
+        if (settings)
+            MprisService._instance.initialize(settings);
         return MprisService._instance;
     }
 
@@ -465,6 +467,8 @@ var MprisService = GObject.registerClass({
         this._started = false;
         this._filterMode = 0;
         this._filterList = [];
+        this._settings = null;
+        this._settingsFilterIds = [];
     }
 
     start() {
@@ -613,6 +617,37 @@ var MprisService = GObject.registerClass({
         this.emit('players-changed');
     }
 
+    // Makes the service the single owner of the player filter: watches the
+    // extension settings (player-filter-mode / player-filter-list) and
+    // re-applies the filter on change, emitting 'players-changed' so every
+    // consumer reacts to it immediately. Idempotent: the first call wins,
+    // later calls (other modules sharing the singleton) are no-ops.
+    initialize(settings) {
+        if (!settings || this._settings)
+            return;
+        this._settings = settings;
+        this._settingsFilterIds = [
+            this._settings.connect('changed::player-filter-mode', () => {
+                this._applyFilterFromSettings();
+            }),
+            this._settings.connect('changed::player-filter-list', () => {
+                this._applyFilterFromSettings();
+            }),
+        ];
+        this._applyFilterFromSettings();
+    }
+
+    _applyFilterFromSettings() {
+        if (!this._settings)
+            return;
+        const mode = this._settings.get_int('player-filter-mode');
+        const listStr = this._settings.get_string('player-filter-list');
+        const list = listStr.split(',')
+            .map(s => s.trim())
+            .filter(s => s.length > 0);
+        this.setFilter(mode, list);
+    }
+
     _isPlayerAllowed(busName) {
         if (this._filterMode === 0) return true;
         if (this._filterList.length === 0) return this._filterMode === 1;
@@ -624,6 +659,12 @@ var MprisService = GObject.registerClass({
     }
 
     destroy() {
+        if (this._settings) {
+            for (const id of this._settingsFilterIds)
+                this._settings.disconnect(id);
+            this._settings = null;
+            this._settingsFilterIds = [];
+        }
         for (const [name, player] of this._players) {
             player.disconnectObject(this);
             player.destroy();

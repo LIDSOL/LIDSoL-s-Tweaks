@@ -16,7 +16,7 @@ var DashboardMediaWidget = GObject.registerClass({
   },
 }, class DashboardMediaWidget extends MediaWidgetBase {
   _init(settings) {
-    const mpris = MprisService.getDefault();
+    const mpris = MprisService.getDefault(settings);
     super._init(settings, mpris);
 
     // Keep the dashboard open when interacting with the media widget.

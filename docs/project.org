@@ -78,6 +78,7 @@ DEADLINE: <2026-10-09 Fri>
 - [ ] /1.3.3 Prefs.js/ [0/2]
   - [ ] 1.3.3.1 Cambiar los schemas para tener una buena configuración por defecto.
   - [ ] 1.3.3.2 Las configuraciones debe estar dentro del módulo, para ir reduciendo el tamaño de `prefs.js`.   
+- [ ] 1.3.4 Quitar la leyenda actual "Type to search" y en su lugar, al hacer el atajo de teclado, simplemente volver a mostrar la barra de búsqueda si es que estaba oculta
 *** SOMEDAY [#C] 1.4 Unclutter be like
  Basado en unclutter y copyus
 - Se debe abrir con un atajo de teclado o un hot point como en overview.
@@ -146,7 +147,7 @@ DEADLINE: <2026-09-15 Tue>
 - Referencia para el frontend: [[https://flathub.org/en/apps/dev.geopjr.Turntable][Turntable (media widget flatpak)]]
 ***** SOMEDAY Widget weather
 - Referencia para el frontend: [[https://flathub.org/en/apps/io.github.amit9838.mousam][Mouseam en "modo widget"]]
-** TODO [#B] 4. Top Bar
+** NEXT [#B] 4. Top Bar
 *** TODO [#C] 4.1 Top Bar Organized [0%] 
 DEADLINE: <2026-10-05 Mon>
 - [-] 4.1.0 /Prefs.js/
@@ -240,7 +241,7 @@ DEADLINE: <2026-10-05 Mon>
 - [ ] Cuando se tienen los íconos activos, el bg que difiere del borde también debe aplicar a los indicadores de espacio de trabajo que no tiene aplicaciones abiertas. Cuando te colocas en un espacio de trabajo sin iconos, el borde y el bg son iguales.
 - [ ] Configurar las opciones predeterminadas.
 - [ ] No se muestran múltiples monitores. 
-*** TODO [#A] 4.4 Date Menu Tweaks [0%]
+*** NEXT [#A] 4.4 Date Menu Tweaks [0%]
 DEADLINE: <2026-10-10 Sat>
 - Descripción y objetivo: Basado en el widget [[https://support.google.com/android/answer/14883154][At a Glance]] de los Google Pixel; el texto del /Date Menu/ cambia dinámicamente, muestra contenido multimedia en reproducción, muestra un contrador de notificaciones, etcétera.
 ***** TODO [#C] 4.4.1 Date Menu 
@@ -309,6 +310,7 @@ DEADLINE: <2026-10-04 Sun>
 DEADLINE: <2026-10-03 Sat>
 *** NEXT [#A] 5.2 Backend MPRIS
 DEADLINE: <2026-10-04 Sun>
-- [X] Mejorar y corrección de bugs del MPRIS
-  - [X] No todos los reproductores de música son aceptados.
-  - [ ] Agrupar todos los reproductores de una misma fuente con un Expand Row  
+- [X] 5.2.1 Mejorar y corrección de bugs del MPRIS
+  - [X] 5.2.1.1 No todos los reproductores de música son aceptados.
+  - [X] 5.2.1.2 Agrupar todos los reproductores de una misma fuente con un Expand Row
+  - [X] 5.2.1.3 Filtro aplicado al instante en todos los consumidores (dateMenu/AtAGlance, dateMenuMedia, dashboard)

@@ -76,7 +76,7 @@ export class DateMenuMediaModule {
     }
 
     _initMpris() {
-        this._mpris = MprisService.getDefault();
+        this._mpris = MprisService.getDefault(this._settings);
         if (!this._mpris)
             return;
 
@@ -87,20 +87,9 @@ export class DateMenuMediaModule {
             this
         );
 
-        this._applyFilter();
-
         for (const player of this._mpris.players) {
             this._connectPlayerChanged(player);
         }
-    }
-
-    _applyFilter() {
-        if (!this._mpris || !this._settings)
-            return;
-        const mode = this._settings.get_int('player-filter-mode');
-        const listStr = this._settings.get_string('player-filter-list');
-        const list = listStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
-        this._mpris.setFilter(mode, list);
     }
 
     _onPlayerAdded(player) {
@@ -164,17 +153,11 @@ export class DateMenuMediaModule {
     }
 
     _connectSettings() {
+        // The player filter is owned by MprisService (see initialize()), so
+        // no player-filter-* handlers here.
         this._handlerIds = SETTINGS.map(key =>
             this._settings.connect(`changed::${key}`, () => {
                 this._widget?.updateSettings(this._settings);
-            })
-        );
-        this._handlerIds.push(
-            this._settings.connect('changed::player-filter-mode', () => {
-                this._applyFilter();
-            }),
-            this._settings.connect('changed::player-filter-list', () => {
-                this._applyFilter();
             })
         );
     }

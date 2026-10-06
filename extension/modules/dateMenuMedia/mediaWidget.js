@@ -245,7 +245,7 @@ export const MediaWidget = GObject.registerClass(
                 resolve([
                     Math.round(rSum / count),
                     Math.round(gSum / count),
-                    Math.round(gSum / count),
+                    Math.round(bSum / count),
                 ]);
             });
         }

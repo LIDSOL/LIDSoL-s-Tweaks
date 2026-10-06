@@ -479,11 +479,6 @@ var AlbumArt = GObject.registerClass(
             return this._currentUrl;
         }
 
-        set currentUrl(v) {
-            // Back-compat: escribirlo no dispara carga (usar setArt).
-            this._currentUrl = v;
-        }
-
         // True cuando el caller debería volver a pedir esta URL (falló o nunca
         // se intentó y no hay resolución en vuelo). Permite que los
         // consumidores reintenten en su siguiente sync sin spammear.
@@ -699,10 +694,6 @@ var AlbumArt = GObject.registerClass(
         refreshStyle() {
             this._updateRootStyle();
             this._updateLayersStyle();
-        }
-
-        clearArt() {
-            this.setArt(null);
         }
 
         destroy() {

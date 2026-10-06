@@ -152,6 +152,8 @@ var MediaPlayerManager = GObject.registerClass({
             this._lastActivePlayer = this._activePlayer;
 
         if (this._activePlayer !== previous) {
+            // Never leak the previous player's cover into the unlock fallback.
+            this._lastKnownCover = null;
             if (opts.silent) return;
             this.emit('player-changed', this._activePlayer?.busName || '');
             if (this._activePlayer)
@@ -161,6 +163,15 @@ var MediaPlayerManager = GObject.registerClass({
 
     _emitMediaChanged() {
         if (!this._activePlayer) return;
+        // Remember the last cover the active player reported. Right after an
+        // unlock the player may transiently expose no metadata (a rebuilt or
+        // cleared MprisPlayer), and the at-a-glance uses this as its Layer 2
+        // fallback before falling back to what is already on screen. Only
+        // overwritten with a real cover, never with null; cleared above when
+        // the active player changes.
+        const cover = this._activePlayer.trackCoverUrl;
+        if (cover)
+            this._lastKnownCover = cover;
         this.emit('media-changed');
     }
 

@@ -130,27 +130,38 @@ export class AtAGlanceIndicator {
                 this._onManagerMediaUpdate();
             }),
             this._manager.connect('screen-unlocked', () => {
-                // CSS background-image is broken after unlock — use Canvas-based rendering
+                // El at-a-glance vive en el panel, el único actor que GNOME no
+                // destruye al bloquear. Su StThemeNode conserva la textura
+                // cacheada del background-image que Mutter invalidó en el ciclo
+                // de bloqueo, y St solo la invalida por cambio de archivo o de
+                // allocation → al volver se pinta negro. setArt(url, true)
+                // fuerza una capa nueva (theme node nuevo → St recarga) con el
+                // fade de cambio de pista.
                 this._lastMediaText = '';
                 this._lastCoverUrl = null;
                 if (this._player) {
                     const meta = this._manager.getActivePlayerMeta();
+                    let url = null;
 
                     // Layer 1: direct meta from D-Bus
                     if (meta && meta.coverUrl) {
                         this._lastCoverUrl = meta.coverUrl;
                         this._lastMediaText = this._formatMediaText(meta.title, meta.artist);
                         this._lastPlayingState = meta.isPlaying;
-                        this._mediaArt._currentUrl = this._lastCoverUrl;
-                        this._mediaArt.refreshStyle();
+                        url = meta.coverUrl;
                     // Layer 2: fallback to last known cover
                     } else if (this._manager.getLastKnownCover()) {
-                        let fallback = this._manager.getLastKnownCover();
-                        this._lastCoverUrl = fallback;
+                        this._lastCoverUrl = this._manager.getLastKnownCover();
                         this._lastPlayingState = true;
-                        this._mediaArt._currentUrl = fallback;
-                        this._mediaArt.refreshStyle();
+                        url = this._lastCoverUrl;
                     }
+
+                    // Si el reproductor no reporta carátula en este instante,
+                    // recargar igualmente la que ya está en pantalla.
+                    if (!url)
+                        url = this._mediaArt.currentUrl;
+
+                    this._mediaArt.setArt(url, true);
 
                     this._mediaLabel.text = this._lastMediaText;
                     this._updateClock();

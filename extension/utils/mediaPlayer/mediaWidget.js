@@ -457,7 +457,11 @@ export const MediaWidgetBase = GObject.registerClass(
 
         _updateCover(player) {
             const coverUrl = player.trackCoverUrl || '';
-            if (coverUrl === this._lastCoverUrl)
+            // Same URL but the widget has not rendered it yet (fetch pending
+            // or failed) — retry so a transient failure recovers and a stale
+            // cover never sticks. needsLoad() is cheap and setArt() reloads
+            // from the shared validated disk cache once the URL is pinned.
+            if (coverUrl === this._lastCoverUrl && !this._art?.needsLoad?.(coverUrl))
                 return;
             this._lastCoverUrl = coverUrl;
             this._setArt(coverUrl);

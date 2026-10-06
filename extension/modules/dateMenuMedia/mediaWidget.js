@@ -106,10 +106,10 @@ export const MediaWidget = GObject.registerClass(
             const showArt = this._settings.get_boolean('dmm-show-art');
             const artSize = this._settings.get_int('dmm-art-size');
             const roundness = this._settings.get_int('dmm-album-roundness');
-            if (artSize !== this._artSize || roundness !== this._art._roundness) {
+            if (artSize !== this._artSize || roundness !== this._art.roundness) {
                 this._artSize = artSize;
-                this._art._roundness = roundness;
-                this._art._size = artSize;
+                this._art.roundness = roundness;
+                this._art.size = artSize;
                 this._art.refreshStyle();
             }
             if (!showArt)

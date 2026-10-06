@@ -90,6 +90,9 @@ LIDSoL-s-Tweaks/
 - **Aislar errores por módulo** — `_enableModule()` envuelto en try/catch para que un módulo roto no bloquee los demás.
 - **Schema unificado** — Todas las keys GSettings en un solo XML (1728 líneas, 381 keys), agrupadas por prefijo: `dashboard-` (91), `ws-` (80), `qst-` (45), `background-` (38), `dmm-` (23), `dm-` (17), `qt-` (10), `nm-` (10), `bi-` (10), `wb-` (9), `tbo-` (9), `pw-` (8), `ua-` (7), `panel-` (6), `screen-` (4), `launcher-` (4), `uadm-` (3), etc.
 - **Módulos como features internas** — `QuickSettingsTweaksModule` crea sub-features (`QuickTogglesFeature`, `OverlayMenuFeature`, `MenuAnimationFeature`) dentro de su `enable()`; `SystemItemsFeature` es compartida por el módulo `systemItems`.
+- **Album art como capas CSS** — `extension/utils/mediaPlayer/albumArt.js` es el único propietario del art: renderiza capas `St.Widget` con `background-image` (`background-size: cover` + `border-radius`), nunca decodifica ni toca la red. Se descartó `St.DrawingArea` + Cairo porque `GdkPixbuf.new_from_file_at_size` síncrono congelaba el shell al cambiar de pista. Su API pública (`setArt(url[,force])`, `currentUrl`, `needsLoad()`, `size`/`roundness`, `refreshStyle()`, `clearArt()`) no cambia, así que dashboard, at-a-glance y dateMenuMedia no se adaptan.
+- **Resolver de art a nivel de módulo** — Toda carátula se normaliza a un `file://` local en `~/.cache/lidsol-widgets/album-art` (`<md5>.png`, LRU de 50 con cleanup diferido de 5s): `http(s)` se descarga con una `Soup.Session` compartida y dedup in-flight; `file://` se copia con clave `MD5(url|mtime)`, lo que detecta que el reproductor reescriba el mismo archivo entre pistas; `data:`/otros pasan directo al CSS. Se normaliza a disco en vez de dejar que St cargue remotos porque el cache propio es lo que permite `needsLoad()` y una recarga determinista tras un lock/unlock.
+- **`setArt(url, force)`** — `force` existe para recrear la capa aunque la URI sea idéntica. St cachea la textura del `background-image` dentro del `StThemeNode` y solo la invalida por cambio de archivo o de allocation, nunca por un reset del compositor: tras un lock/unlock la capa que sobrevive se pinta negra y no hay forma de recuperarla salvo darle un theme node nuevo.
 * Arquitectura actual
 #+BEGIN_SRC
 extension.js               → init/enable/disable → ModuleLoader
@@ -123,13 +126,14 @@ extension/
     ├── childrenTracker.js → QuickSettingsToggleTracker
     ├── prefsHelpers.js    → 13 factories reutilizables para UI Adw
     ├── mprisService.js    → Interfaz MPRIS D-Bus
-    ├── mediaPlayer/       → mediaManager, albumArt, mediaWidget (visualizer/album art)
+    ├── mediaPlayer/       → mediaManager, albumArt (capas CSS + resolver a disco), mediaWidget
     ├── layoutHelpers.js   → (TODO)
     ├── gsettingsHelper.js → (TODO)
     └── dBusHelper.js      → (TODO)
 extension/stylesheet.css → Estilos globales de la extensión
 schemas/                 → Schema unificado (1728 líneas, 381 keys)
 #+END_SRC
+Flujo del album art: `meta.mpris:artUrl` → `AlbumArt.setArt(url)` → resolver a nivel de módulo (`http(s)` → descarga Soup; `file://` → copia al cache; `data:` → passthrough) → capa `St.Widget` con `background-image` → crossfade de ~300ms de la nueva sobre la anterior. El crossfade vive únicamente en `setArt()`: ante un fallo definitivo se limpia a vacío (nunca se retiene la carátula de la pista anterior) y la anterior solo se conserva mientras la nueva está resolviéndose. Ningún consumidor descarga ni decodifica carátulas por su cuenta.
 * Workflow GNOME 50 (Wayland)
 No existe recarga fiable de módulos ESM. `gnome-extensions disable/enable` solo ejecuta `disable()`/`enable()` pero **no re-evalúa imports** (GJS cachea módulos en memoria). Para cambios en `extension/` se requiere cerrar sesión y reingresar. `prefs.js` se recarga al abrir la ventana de preferencias.
 * Herramientas

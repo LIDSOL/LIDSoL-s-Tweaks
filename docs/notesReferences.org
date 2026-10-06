@@ -115,6 +115,40 @@ journalctl -f -o cat /usr/bin/gnome-shell | grep 'LIDSoL'
   - `glow`: wsBox `scale 1.0 → 1.12 → 1.0` con `EASE_OUT_QUAD`, 150+200ms.
 - `_prevActiveIndex` guardado en constructor, actualizado al final de `_updateWorkspacesBar()`.
 
+*** Lecciones de Album Art (capas CSS)
+
+**Modelo:** `extension/utils/mediaPlayer/albumArt.js` es el único propietario del art. Renderiza capas `St.Widget` con `background-image` (`background-size: cover` + `border-radius`) y nunca decodifica: la carga asíncrona la hace el propio St. Un resolver a nivel de módulo, compartido por todas las instancias, normaliza cualquier carátula a un `file://` local en `~/.cache/lidsol-widgets/album-art`:
+- `http(s)`: descarga async con una `Soup.Session` compartida, dedup in-flight (dos widgets con la misma URL comparten una petición) y escritura atómica tmp → `GLib.rename`, para que un stream truncado nunca llegue al cache.
+- `file://`: copia con clave `MD5(url|mtime)`, lo que detecta que el reproductor reescriba el mismo archivo entre pistas. Además reintentos de 500ms ×10 para archivos que aún no existen o están vacíos, y `Gio.FileMonitor` con debounce de 200ms (registrado también para archivos que YA existen, para que una reescritura vuelva a copiar).
+- `data:`/otros: passthrough directo al CSS.
+- LRU de 50 entradas con cleanup diferido de 5s.
+
+**Estado de resolución explícito** (4 variables, no una): `_currentUrl` = fuente pedida, `_loadedSource` = fuente cuyo art está en pantalla, `_pendingUrl` = fuente en vuelo, `_watchedUrl` = fuente vigilada por esta instancia. Más `_requestSeq` para secuenciar: una descarga lenta que llega tarde descarta su resultado si una petición más nueva reclamó antes (`seq !== this._requestSeq`).
+
+**Causa raíz de la carátula negra tras desbloquear (solo en el at-a-glance):** St cachea la textura del `background-image` dentro del `StThemeNode` (`node->background_texture`) y solo la invalida por cambio de archivo (`StTextureCache::texture-file-changed`) o de allocation, **nunca por un reset del compositor**. En el ciclo bloquear/desbloquear ese puntero queda muerto y la capa se pinta negra. Afecta únicamente al at-a-glance porque es el único widget que vive en el panel, el actor que GNOME no destruye al bloquear; dashboard y dateMenuMedia están en popups/overview que se recrean al volver, con theme node nuevo, y por eso funcionaban.
+
+**Fix:** `setArt(url, true)` → `_showLayer(uri, force)`. Con `force` se crea una capa nueva aunque la URI sea idéntica (theme node nuevo → St recarga la textura del cache), con el fade de cambio de pista. Ojo: el handler de `screen-unlocked` **ya llamaba** `setArt(url, true)` y era un no-op, porque `force` solo saltaba la idempotencia de `setArt()` mientras `_showLayer()` hacía early-return con la misma URI. El flag tenía que propagarse hasta el final de la cadena, no solo hasta `setArt()`.
+
+**Alternativa descartada:** `St.ThemeNode.invalidate_background_image()` existe y es accesible desde JS (verificado en `/usr/lib/gnome-shell/St-51.typelib`: `peek_theme_node`, `get_theme_node`, `invalidate_background_image`). Recrear la capa es el equivalente vía API pública y está respaldado por la evidencia de que las superficies con actor recreado funcionan así.
+
+**Reglas del crossfade por capas:**
+- Un fade solo limpia si su capa sigue siendo la vigente (la última añadida). Si dos fades se solapan y ambos limpiaran, se destruirían mutuamente y podría no quedar **ninguna** capa (carátula negra).
+- Un fade interrumpido (bloqueo de pantalla, destrucción) nunca debe dejar la capa a media opacidad: si sigue viva, se restaura a 255 en `onStopped` aunque `!isFinished`.
+- Ante fallo definitivo se limpia a vacío: la carátula de la pista anterior solo se conserva mientras la nueva está resolviéndose, nunca como estado final.
+
+**Trampas de la API verificadas en gjs 1.90 / Shell 51:**
+- `Soup.Session.send_and_read_async` exige **4** argumentos: el callback va explícito y el resultado se obtiene con `send_and_read_finish(res)`.
+- No existe `Gio.FileMoveFlags` ni `move()` de 3 argumentos: usar `GLib.rename`, que además es la syscall directa (atómica).
+- `Gio.File.copy_async` exige **6** argumentos, con `progress_callback` en 5ª posición.
+- `GLib.Bytes` → `Uint8Array` con `bytes.get_data()` (o `toArray()`).
+
+**Bugs cazados por el harness al escribir el fix:**
+- `options.roundness` se ignoraba en el constructor (el dashboard lo pasa; el radio solo se aplicaba luego, por el setter).
+- Los dos fades concurrentes que se destruían mutuamente.
+- Un fade interrumpido que dejaba la carátula a media opacidad.
+
+**Lección del harness:** cargar el **fuente real** del módulo sustituyendo solo los `import 'gi://...'` por mocks (reloj virtual + fs real), y recargar el módulo entre tests para aislar el estado a nivel de módulo (`_sources`, `_inflight`, `_cleanupId`). **No usar réplicas manuales del módulo**: la réplica anterior divergió del código real y por eso no cazó el bug de `Gio.FileMoveFlags`; el harness actual sí cazó los tres bugs de arriba. Verificar cada fix revirtiéndolo y comprobando que el harness falla.
+
 ** Referencia: Dynamic Music Pill (`code-references/dynamic-music-pill/`)
 
 *** Arquitectura general
@@ -184,38 +218,21 @@ journalctl -f -o cat /usr/bin/gnome-shell | grep 'LIDSoL'
 - **Crossfade art**: capas `St.Widget` con `background-image`, nueva fade-in 1800ms EASE_OUT_QUAD, viejas fade-out 300ms + destroy. Evita flicker en transiciones.
 - **Dynamic width calculation**: suma `preferred_width` de cada elemento visible, clamp entre mínimo (120) y máximo (confWidth o monitor-40).
 
-*** Arte tras unlock: vfunc_paint → Clutter.Canvas
+*** Arte tras unlock: del Clutter.Canvas a forzar la capa CSS
 
-**Problema:** CSS `background-image` no funciona en ningún actor tras un lock/unlock de pantalla (GNOME Shell lo elimina del compositor y `set_style()` no puede restaurarlo, ni siquiera con data URIs).
+Esta sección se reescribió: la versión anterior afirmaba que el `background-image` de CSS no funciona en ningún actor tras un lock/unlock, y describía cambios en `crossfadeArt.js`. Ese fichero ya no implementa nada: son 5 líneas (`export const CrossfadeArt = AlbumArt`) que lo mantienen como alias de `extension/utils/mediaPlayer/albumArt.js` para no romper los imports de `dateMenu.js` y `dateMenuMedia/mediaWidget.js`. La afirmación sobre el CSS era falsa.
 
-**Solución:** Usar `Clutter.Canvas` como `this.content` del widget, dibujando el pixbuf con Cairo y clip circular (`cr.arc` + `cr.clip()` + `Gdk.cairo_set_source_pixbuf()` + `cr.paint()`). El Canvas siempre funciona, incluso tras unlock.
+**Recorrido de intentos:**
 
-**Cambios en `crossfadeArt.js`:**
-- Eliminado `vfunc_paint()`.
-- Agregado `_initCanvas()`: crea `Clutter.Canvas`, conecta señal `draw` con renderizado Cairo circular.
-- Agregado `_loadPixbufForCanvas()`: carga pixbuf desde `_currentUrl`, invalida canvas. Se llama desde `setArt()` (siempre) y `refreshStyle()`.
-- `setArt()` ahora actualiza el Canvas además de crear capas CSS. Las capas CSS dan animación cruzada hasta el primer lock/unlock; después son transparentes y el Canvas es la fuente visible.
-- `refreshStyle()` simplificado: destruye hijos, llama a `_loadPixbufForCanvas()`. No más `queue_repaint()`.
-- **CRÍTICO:** `vfunc_get_preferred_width/height` deben mantenerse — sin ellos el widget reporta tamaño 0 y rompe el layout del dateMenu completo.
+1. `1ea7641` — `Clutter.Canvas` como `content` del widget, dibujando el pixbuf con Cairo y clip circular (`cr.arc` + `cr.clip()` + `Gdk.cairo_set_source_pixbuf()` + `cr.paint()`). El Canvas sí sobrevive al unlock, pero carga el pixbuf en el hilo principal y obliga a mantener `vfunc_get_preferred_width/height` (sin ellos el widget mide 0 y rompe el layout del dateMenu completo).
+2. `f3a4a4f` — se vuelve a `St.DrawingArea` + Cairo por el mismo bug.
+3. Estado actual — vuelta a capas CSS, pero **forzando la recreation de la capa** en el desbloqueo.
 
-**Cambios en `mediaManager.js`:**
-- Agregado `_lastKnownCover` (almacenado en cada cache hit/success de `getArtUrl()`)
-- Agregado `getLastKnownCover()` — expuesto para unlock handler
+**Por qué la versión anterior se equivocó:** tomó la conclusión correcta ("el Canvas funciona") y la incorrecta ("el CSS no funciona nunca"). El problema no era el CSS sino que el `StThemeNode` de la capa superviviente conserva una textura muerta; las superficies cuyo actor sí se destruye al bloquear (dashboard, dateMenuMedia) recargan bien porque nacen con theme node nuevo. Ver "Lecciones de Album Art (capas CSS)" para la causa raíz completa.
 
-**Cambios en `dateMenu.js`:**
-- Handler `screen-unlocked` con tres capas de defensa:
-  1. Meta D-Bus directa → `getArtUrl()` → `refreshStyle()`
-  2. Fallback `getLastKnownCover()` si meta es null
-  3. (implícito) `setArt()` en `media-changed` posterior actualiza Canvas
+**Regla práctica:** ante un artefacto de lock/unlock, comprobar primero si el actor sobrevive al bloqueo. Si sobrevive, su theme node arrastra estado inválido y hay que forzar algo (capa nueva o `invalidate_background_image()`), no cambiar de tecnología de render.
 
-**Flujo post-unlock:**
-1. Se obtiene el player activo y su metadata.
-2. Si hay cover URL → se setea `_mediaArt._currentUrl` y se llama `refreshStyle()`.
-3. `refreshStyle()` destruye capas CSS, carga pixbuf, invalida Canvas.
-4. El Canvas dibuja el pixbuf con clip circular → el usuario ve el arte correctamente.
-5. Si el módulo fue deshabilitado/re-habilitado durante el lock, `getLastKnownCover()` restaura la URL.
-
-**Actualizaciones de media tras unlock:** Cuando cambia la canción después del unlock, `setArt()` es llamado por los signals normales (`media-changed`). Este actualiza el Canvas via `_loadPixbufForCanvas()`, y las capas CSS (transparentes post-unlock) se crean pero no afectan la visualización.
+**Lo que sí quedó del diseño en Canvas:** el crossfade por capas (`300ms` de entrada, destruction de las viejas al terminar) y el fallback a la última carátula conocida (`mediaManager.getLastKnownCover()`), que el handler de `screen-unlocked` del dateMenu sigue usando cuando el reproductor no reporta metadata en ese instante.
 
 ** Referencia: Aylur's Widgets — Date Menu (`code-references/gnome-extensions/widgets@aylur/`)
 
@@ -590,7 +607,7 @@ The widget should be injected into the date menu's **right column** (above the c
 1. **Module location**: `extension/modules/dateMenuMedia/` (separate from dateMenu module)
 2. **Injection**: navigate to `_menuBox.get_last_child()` (right column), insert at index 0
 3. **MPRIS data**: use existing `MediaPlayerManager` singleton from `utils/mediaPlayer/mediaManager.js`
-4. **Cover art**: use `CrossfadeArt` from `dateMenu/crossfadeArt.js` (canvas-based for unlock safety)
+4. **Cover art**: use `AlbumArt` from `utils/mediaPlayer/albumArt.js` (alias `CrossfadeArt` en `dateMenu/crossfadeArt.js`): capas CSS, y `setArt(url, true)` tras un unlock para forzar una capa nueva
 5. **Widget structure**:
    - Base container: `St.BoxLayout` (vertical)
    - Album art area (if enabled)

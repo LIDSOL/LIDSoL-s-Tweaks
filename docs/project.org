@@ -14,11 +14,11 @@ Diseñar, implementar y mantener una extensión modular para GNOME que modernice
 - Reducir listeners globales innecesarios y evitar memory leaks.
 - Minimizar conflictos con extensiones populares.
 - Publicar la extensión.
-* Objetivos específicos 
-** TODO 0. Docs y README
+* Objetivos específicos
+** NEXT 0. Docs y README
 *** TODO [#A] Escribir un README.org con todas las features de la extensión
-DEADLINE: <2026-10-02 Fri>
-** TODO [#B] 1. Herramientas 
+DEADLINE: <2026-10-05 Mon>
+** TODO [#B] 1. Herramientas [0%]
 *** TODO [#A] 1.1 Dashboard [0%]
 DEADLINE: <2026-10-08 Thu>
 - [ ] 1.1.1 Fix o Feat en Configuraciones [0/11]
@@ -51,7 +51,7 @@ DEADLINE: <2026-10-09 Fri>
     - [[https://extensions.gnome.org/extension/5892/quick-text/][QuickText (Extension.Gnome)]]
   - La /primera versión/ será solamente adaptar y actualizar a GNOME 50 QuickText, pero, posteriormente sería interesante implementar algo similar a [[https://unclutterapp.com/][unclutter]]:
   - Para ello, se puede tomar como base la extensión [[https://github.com/boerdereinar/copyous][copyous]].
-    
+
 [[./img/unclutter.gif]]
 
 - [ ] 1.2.1 Fix o Feat en configuraciones [0%]
@@ -77,7 +77,7 @@ DEADLINE: <2026-10-09 Fri>
   - [ ] 1.3.2.1: Cambiar el ícono de la sección de comandos en la búsqueda.
 - [ ] /1.3.3 Prefs.js/ [0/2]
   - [ ] 1.3.3.1 Cambiar los schemas para tener una buena configuración por defecto.
-  - [ ] 1.3.3.2 Las configuraciones debe estar dentro del módulo, para ir reduciendo el tamaño de `prefs.js`.   
+  - [ ] 1.3.3.2 Las configuraciones debe estar dentro del módulo, para ir reduciendo el tamaño de `prefs.js`.
 - [ ] 1.3.4 Quitar la leyenda actual "Type to search" y en su lugar, al hacer el atajo de teclado, simplemente volver a mostrar la barra de búsqueda si es que estaba oculta
 *** SOMEDAY [#C] 1.4 Unclutter be like
  Basado en unclutter y copyus
@@ -91,7 +91,7 @@ DEADLINE: <2026-10-09 Fri>
   - Notes.
     - Esta sección tiene tres botones: añadir, vista general y buscar
     - Por defecto muestra la última nota o la vista general.
-    - Al añadir una nueva nota (botón) puedes escribir y añadirla (quicktext).   
+    - Al añadir una nueva nota (botón) puedes escribir y añadirla (quicktext).
 ** TODO [#C] 2. Quick Settings [100%]
 DEADLINE: <2026-09-28 Mon>
 - [ ] 2.2.0: Cambiar los schemas para tener una buena configuración por defecto.
@@ -109,7 +109,7 @@ DEADLINE: <2026-09-21 Sat>
 - [X] 2.3.3 Añadir toggles personalizados pre-configurados:
   - [X] 2.3.3.1 Remplazo a "caffeine"
   - [X] 2.3.3.2 Syncthing
-- [X] 2.3.4 El Switch de "Otros Toggles" también oculta los toggles personalizados que el usuario configura. Esto no debería suceder. 
+- [X] 2.3.4 El Switch de "Otros Toggles" también oculta los toggles personalizados que el usuario configura. Esto no debería suceder.
 - [X] 2.3.5 Fix a *Opciones de menu* de Quick Toggles Layouts.
 - [X] 2.3.6 Fix: Parece que al pulsar el botón, este actúa dos veces.
 - [X] 2.3.7 Feat: Agrupación de los comandos "Opciones de menú", para cambiarlos de posición.
@@ -118,7 +118,7 @@ DEADLINE: <2026-09-22 Tue>
 - [X] 2.4.1 Overlay mode de QST: port de QST `OverlayMenu` en `extension/modules/quickSettingsTweaks/overlayMenu.js` (overlay flotante fijado al toggle con BindConstraints X/Y → `_boxPointer`; desactiva los constraints nativos de posición y del placeholder del grid; animación `flyout`/`dialog` con bezier custom y duración configurable; ancho configurable). Opciones en el dialog (grupo "Overlay Mode" en `prefsSettings.js`). Claves `qst-overlay-menu-*` en el schema.
 - [X] 2.4.2 Animaciones de QST: port de QST `MenuAnimation` en `extension/modules/quickSettingsTweaks/menuAnimation.js` (blur del boxPointer + ease de escala/opacidad del menú y opacidad del grid en open/close). Opciones en el dialog (grupo "Animation" + dialog "Estilo avanzado de animación"). Claves `qst-menu-animation-*` en el schema.
 - El acordeón "banda esencial" (antiguo 2.4.1.1, regreso fallido del overlay + fade) queda APARCADO para futuras versiones y su código fue sustituido por el port de QST en `overlayMenu.js`. Las lecciones de perf quedan como referencia en este archivo.
-** TODO [#B] 3. Widgets
+** TODO [#B] 3. Widgets [0%]
 *** TODO [#B] 3.1 User Avatar (date menu)
 DEADLINE: <2026-10-05 Mon>
 - [ ] 3.1.1 Eliminar este widget, opciones y todo código asociado. Pero tomar notas sobre como insertar elementos en esta sección del date menu, puede resultar útil después.
@@ -126,7 +126,7 @@ DEADLINE: <2026-10-05 Mon>
 DEADLINE: <2026-10-10 Sat>
 - [ ] 1.3.1.2 Bug: De vez en cuando, aparece la leyenda "No Notifications" en el Date Menu, incluso aunque sí hayan notificaciones, provocando que estas se superpongan a la leyenda; no sucede todo el tiempo, aparece la leyenda sin "razón aparente" y luego nunca desaparece, incluso si las extensiones son desactivadas; esto también hace que el botón "Borrar todo" no sea visible.
 - [ ] 1.3.1.3 Mejoras en el widget de Multimedia
-  - [ ] 1.3.1.3.1 La barra de progreso avanza cada 3 segundos, sería bueno ver una animación de desplazamiento del indicador, para no ver un avance brusco. 
+  - [ ] 1.3.1.3.1 La barra de progreso avanza cada 3 segundos, sería bueno ver una animación de desplazamiento del indicador, para no ver un avance brusco.
   - [ ] 1.3.1.3.2  Cuando se cambia de medio gracias al switch, la barra de progreso se muestra en 0 y después avanza hasta el estado tiempo real de producción. También se debe implementar la animación de avance en este caso, para evitar "ese cambio brusco"
   - [ ] 1.3.1.3.3 Mejoras en MPRIS
 - [ ] 3.1.1.4 Ocultar caja derecha (quick settings tweaks referencia)
@@ -139,7 +139,7 @@ DEADLINE: <2026-10-10 Sat>
 ***** TODO 1.3.3.1 Animación fade.
 DEADLINE: <2026-09-15 Tue>
 Implementar una animación fade al pasar del desktop al overview, para que la transición no sea tan brusca. Para ello puedes estudiar la extensión "/desktop-icons-ng/", que muestra íconos en el escritorio, y ya implementa la animación que buscamos.
-***** TODO 1.3.3.2 Widget Picture 
+***** TODO 1.3.3.2 Widget Picture
 DEADLINE: <2026-09-15 Tue>
 ***** SOMEDAY Widget clock
 - Referencia para el frontend: [[https://flathub.org/en/apps/re.sonny.Retro][Widget clock]]
@@ -147,8 +147,8 @@ DEADLINE: <2026-09-15 Tue>
 - Referencia para el frontend: [[https://flathub.org/en/apps/dev.geopjr.Turntable][Turntable (media widget flatpak)]]
 ***** SOMEDAY Widget weather
 - Referencia para el frontend: [[https://flathub.org/en/apps/io.github.amit9838.mousam][Mouseam en "modo widget"]]
-** NEXT [#B] 4. Top Bar
-*** TODO [#C] 4.1 Top Bar Organized [0%] 
+** NEXT [#B] 4. Top Bar [0%]
+*** TODO [#C] 4.1 Top Bar Organized [0%]
 DEADLINE: <2026-10-05 Mon>
 - [-] 4.1.0 /Prefs.js/
   - [X] 4.1.0.1 Mover los ajustes de /Prefs.js/ a un archivo de configuración en el directorio del módulo.
@@ -166,7 +166,7 @@ DEADLINE: <2026-10-05 Mon>
 - [x] 4.3.1 Eliminar las opciones de posición y todo su código asociado (se usará top bar organized para ello).
 - [x] 4.3.2 Bug: No se muestra en top bar organized (relacionado con 1.4.1.4)
 - [x] 4.3.2 Feat: Implementar la posibilidad de renombrar el espacio de trabajo (como en space bar).
-- [ ] 4.3.3 Añadir la posibilidad de arrastrar un elemento del topbar a un espacio de trabajo o un lugar intermedio para abrir un nuevo espacio de trabajo. 
+- [ ] 4.3.3 Añadir la posibilidad de arrastrar un elemento del topbar a un espacio de trabajo o un lugar intermedio para abrir un nuevo espacio de trabajo.
 - [x] 4.3.4 Movimiento de workspaces como en workspaceIndicator
 - [x] 4.3.5 Opciones de *Comportamiento*
   - [x] 4.3.5.1 Mostrar iconos de las aplicaciones (este switch debe mostrar u ocultar los iconos, para solo mostrar los nombres de los espacios de trabajo)
@@ -175,9 +175,9 @@ DEADLINE: <2026-10-05 Mon>
   - [x] 4.3.5.4 Scroll vertical (normal, invertido, desactivado)
   - [x] 4.3.5.5 Scroll horizontal (normal, invertido, desactivado)
   - [x] 4.3.5.6 Rueda del ratón (sobre el panel, sobre el indicador, desactivado)
-  - [x] 4.3.5.7 Debounce 
+  - [x] 4.3.5.7 Debounce
   - [x] 4.3.5.6 Tiempo de debounce
-  - [x] 4.3.5.8 Conservar indicador nativo (cuando se activa este módulo, manda un mensaje a top bar organized para ocultarlo). Relacionado con 1.4.1.5 
+  - [x] 4.3.5.8 Conservar indicador nativo (cuando se activa este módulo, manda un mensaje a top bar organized para ocultarlo). Relacionado con 1.4.1.5
   - [x] 4.3.5.9  Mostrar espacios vacíos (+) (adaptarlo de space bar)
 - [x] 4.3.6 Opciones de *Nombres inteligentes*
   - Feat basada en space bar
@@ -227,37 +227,37 @@ DEADLINE: <2026-10-05 Mon>
   - [x] 4.3.10.9 Padding horizontal
   - [x] 4.3.10.10 Padding vertical
 - [ ] 4.3.11 Opciones de *Atajos de teclado*
-  - [ ] 4.3.11.1 Super + 1, ..., 0 (Switch to workspace) 
+  - [ ] 4.3.11.1 Super + 1, ..., 0 (Switch to workspace)
   - [ ] 4.3.11.2 Ir y volver
   - [ ] 4.3.11.3 Super + Shift + 1, ..., 0 (Move windows to workspaces ...)
   - [ ] 4.3.11.4 Mover espacio a la izquierda
   - [ ] 4.3.11.5 Mover espacio a la derecha
   - [ ] 4.3.11.6 Volver al espacio anterior
-  - [ ] 4.3.11.7 Ir al espacio vacío 
+  - [ ] 4.3.11.7 Ir al espacio vacío
   - [ ] 4.3.11.8 Abrir menú (para renombrar)
 - [x] Configuración para el acento de color, si se muestra los iconos, el color difiere del bg al borde, si no se muestran los iconos, se usa el color del acento tanto en borde como bg.
 - [ ] Deshabilitar las opciones referentes a iconos si el switch para mostrarlos está desactivado.
 - [ ] Bug en múltiples monitores, no aparece el workspace de los monitores externos.
 - [ ] Cuando se tienen los íconos activos, el bg que difiere del borde también debe aplicar a los indicadores de espacio de trabajo que no tiene aplicaciones abiertas. Cuando te colocas en un espacio de trabajo sin iconos, el borde y el bg son iguales.
 - [ ] Configurar las opciones predeterminadas.
-- [ ] No se muestran múltiples monitores. 
+- [ ] No se muestran múltiples monitores.
 *** NEXT [#A] 4.4 Date Menu Tweaks [0%]
 DEADLINE: <2026-10-10 Sat>
 - Descripción y objetivo: Basado en el widget [[https://support.google.com/android/answer/14883154][At a Glance]] de los Google Pixel; el texto del /Date Menu/ cambia dinámicamente, muestra contenido multimedia en reproducción, muestra un contrador de notificaciones, etcétera.
-***** TODO [#C] 4.4.1 Date Menu 
+***** TODO [#C] 4.4.1 Date Menu
 DEADLINE: <2026-09-26 Sat>
 [[./img/date-format.png]]
 - Descripción y objetivo: Permite personalizar el formato de fecha y hora en el panel.
   - Aylur's Widget tiene un componente que permite personalizar esto, también se tomará como referencia el código de la extensión [[https://extensions.gnome.org/extension/4655/date-menu-formatter/][Date Menu Formatter de Marcin Jakubowski]]. Esta última compatible hasta GNOME 50, por lo que no debería ser difícil integrarla.
 - [ ] 4.4.1.1 Bug: Habilitar la opacidad en ./Gnome-Extensions/extension/modules/dateMenu/dateMenu.css; las primeras 14 líneas de este archivo desactivan la opacidad predeterminada en hover y active, esto con el objetivo de no superponer la opacidad nativa con la de /at-a-glance/. En teoría, con las líneas 20 a 32 debería de añadirse la opacidad en el Hover y Active, pero no está funcionando correctamente.
-- [ ] 4.4.1.2 Bug: Espacio anómalo a un lado del date menu (top bar, hora) al iniciar sesión (parece reservar espacio para el visualizador y la carátula). El relleno se normaliza tras reproducir y pausar cualquier medio (después de mostrar información multimedia).   
+- [ ] 4.4.1.2 Bug: Espacio anómalo a un lado del date menu (top bar, hora) al iniciar sesión (parece reservar espacio para el visualizador y la carátula). El relleno se normaliza tras reproducir y pausar cualquier medio (después de mostrar información multimedia).
 ***** TODO [#B] 4.4.2 Progress Day
-DEADLINE: <2026-09-26 Sat>
+DEADLINE: <2026-10-10 Sat>
 - Descripción y objetivo: Usando como base [[https://github.com/ArcaEge/day-progress][Day progress de ArcaEge]], añadir una barra o círculo de progreso en el date menu (no debe ser un elemento añadido, debe estar dentro el date menu, así como el indicador multimedia). Este remplaza o complementa la hora/fecha.
-- Esto puede que interfiera con la disposición (vista multimedia, vista reloj, vista reloj+multimedia). Así que hay que tener cuidado de no romper estas opciones. Si se prefiere la barra de progreso como remplazo del reloj (texto), se deben comportar igual la multimedia, pero en vez de mostrar el texto, mostrar la barra o barras. 
+- Esto puede que interfiera con la disposición (vista multimedia, vista reloj, vista reloj+multimedia). Así que hay que tener cuidado de no romper estas opciones. Si se prefiere la barra de progreso como remplazo del reloj (texto), se deben comportar igual la multimedia, pero en vez de mostrar el texto, mostrar la barra o barras.
 - [ ] 4.4.2.1 En las opciones de Top Bar -> Date Menu; añadir arriba de "Multimedia" y debajo de "Formatos" las opciones de Progress Day. Las opciones a añadir:
     - [ ] Comportamiento
-      - [ ] Combo Row con: 
+      - [ ] Combo Row con:
         - No mostrar barra(s)/círculo(s) de progreso.
         - Mostrar barra(s)/circulo(s) de progreso junto con el reloj.
         - Solo mostrar la barra(s)/circulo(s), remplazando el reloj/fecha (texto). Si esta opción está seleccionada, se deben bloquear los ajustes de formatos.
@@ -266,7 +266,7 @@ DEADLINE: <2026-09-26 Sat>
         - Show Year Progress
         - Show Life progress
         - Eliminar u omitir la opción "Stack Direction", y que siempre sea horizontal (siempre se desbordan en vertical)
-    - [ ] Start Time, Reset Time, Year start date, life span.  
+    - [ ] Start Time, Reset Time, Year start date, life span.
 ***** TODO [#A] 4.4.3 Media Player
 DEADLINE: <2026-10-10 Sat>
 [[./img/aylurs-player.png]]
@@ -276,7 +276,7 @@ DEADLINE: <2026-10-10 Sat>
     - [[https://extensions.gnome.org/extension/9334/dynamic-music-pill/][Dynamic Music Pill (por andbal)]], compatible hasta GNOME 50.
     - [[https://extensions.gnome.org/extension/4470/media-controls/][Media Controls (por Sakith B.)]], compatible hasta GNOME 49.
     - [[https://extensions.gnome.org/extension/9184/advanced-media-controller/][Advanced Media Controller (por sanjai)]] compatible hasta GNOME 50.
-- [ ] 4.4.3.1 Mejoras en MPRIS
+- [ ] 4.4.3.1 ¿Crossfade por capas CSS?
 ***** TODO [#B] 4.4.4 Notifications Indicator
 DEADLINE: <2026-09-26 Sat>
 Punto indicador se desplaza cuando hover. Por modificaciones en la apariencia.
@@ -303,14 +303,18 @@ DEADLINE: <2026-10-10 Sat>
 - [ ] 2.5.5 /Prefs,js/
   - [ ] 2.5.5.1 Cambiar los schemas para tener una buena configuración por defecto.
   - [ ] 2.5.5.2 Cambiar los schemas para tener una buena configuración por defecto.
-- Si en el futuro, como se indica en [[https://blogs.gnome.org/shell-dev/2026/08/11/gnome-shell-design-dreams/][el blog de GNOME SHELL & Mutter]], el widget de multimedia se mueve a los quicksettings: se moverá el visualizer y album art a los System Indicators. 
+- Si en el futuro, como se indica en [[https://blogs.gnome.org/shell-dev/2026/08/11/gnome-shell-design-dreams/][el blog de GNOME SHELL & Mutter]], el widget de multimedia se mueve a los quicksettings: se moverá el visualizer y album art a los System Indicators.
 ** NEXT [#A] 5. General [50%]
 DEADLINE: <2026-10-04 Sun>
 *** DONE 5.1 Multi-idioma
 DEADLINE: <2026-10-03 Sat>
-*** NEXT [#A] 5.2 Backend MPRIS
+*** NEXT [#A] 5.2 Backend MPRIS [4/5]
 DEADLINE: <2026-10-04 Sun>
 - [X] 5.2.1 Mejorar y corrección de bugs del MPRIS
-  - [X] 5.2.1.1 No todos los reproductores de música son aceptados.
-  - [X] 5.2.1.2 Agrupar todos los reproductores de una misma fuente con un Expand Row
-  - [X] 5.2.1.3 Filtro aplicado al instante en todos los consumidores (dateMenu/AtAGlance, dateMenuMedia, dashboard)
+- [X] 5.2.1.1 No todos los reproductores de música son aceptados.
+- [X] 5.2.1.2 Agrupar todos los reproductores de una misma fuente con un Expand Row
+- [X] 5.2.1.3 Filtro aplicado al instante en todos los consumidores (dateMenu/AtAGlance, dateMenuMedia, dashboard)
+- [X] 5.2.1.4 Mejoras en la obtención del album art, incluida la carátula negra al desbloquear (solo en el at-a-glance). Decisiones en [[file:docs.org][docs.org]] ("Decisiones de arquitectura") y lección en [[file:notesReferences.org][notesReferences.org]] ("Lecciones de Album Art (capas CSS)").
+  - [ ] 5.2.1.4.1 Pendiente: segundo problema de CSS del at-a-glance (aplazado a propósito en esta tanda, sin diagnosticar). El refinamiento del crossfade por capas está en 4.4.3.1.
+  - [ ] 5.2.1.4.2 Bug: el handler de =screen-unlocked= del dateMenu anula =_lastCoverUrl= al principio. Si el reproductor no reporta carátula y tampoco hay =getLastKnownCover()=, un =_updateMedia= posterior puede terminar limpiando un art que estaba visible.
+  - [ ] 5.2.1.4.3 Bug: =dateMenuMedia._updateGradient= lee =trackCoverUrl= crudo (solo =file://=), al margen del AlbumArt, así que con carátulas remotas o =data:= el degradado no se aplica.

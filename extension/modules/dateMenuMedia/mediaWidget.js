@@ -5,7 +5,7 @@ import GdkPixbuf from 'gi://GdkPixbuf';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 
-import { CrossfadeArt } from '../dateMenu/crossfadeArt.js';
+import { AlbumArt } from '../../utils/mediaPlayer/albumArt.js';
 import { MediaWidgetBase } from '../../utils/mediaPlayer/mediaWidget.js';
 
 export const MediaWidget = GObject.registerClass(
@@ -34,7 +34,7 @@ export const MediaWidget = GObject.registerClass(
                 x_align: Clutter.ActorAlign.FILL,
             });
 
-            this._art = new CrossfadeArt(this._artSize / 2);
+            this._art = new AlbumArt(this._artSize / 2);
             this._art.set_style('margin-left: 6px;');
             this._art.visible = false;
             bodyRow.add_child(this._art);

@@ -5,7 +5,7 @@ import Clutter from 'gi://Clutter';
 import St from 'gi://St';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import { MediaPlayerManager } from '../../utils/mediaPlayer/mediaManager.js';
-import { CrossfadeArt } from './crossfadeArt.js';
+import { AlbumArt } from '../../utils/mediaPlayer/albumArt.js';
 import { VisualizerWidget } from './visualizer.js';
 
 export class AtAGlanceIndicator {
@@ -70,7 +70,7 @@ export class AtAGlanceIndicator {
         });
 
         // Album art (always outermost, left or right)
-        this._mediaArt = new CrossfadeArt(11);
+        this._mediaArt = new AlbumArt(11);
         this._mediaArt.add_style_class_name('at-a-glance-media-art');
         this._mediaArt.set_width(22);
         this._mediaArt.set_height(22);

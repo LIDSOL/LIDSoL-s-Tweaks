@@ -45,7 +45,7 @@ LIDSoL-s-Tweaks/
 │   │   ├── quickSettingsTweaks/ # module.js, features + prefsSettings.js (1204 líneas)
 │   │   ├── systemItems/         # module.js (System Items Layout)
 │   │   ├── topBarOrganizer/     # module.js + prefsSettings.js (solo TBO, diálogo drag&drop)
-│   │   ├── dateMenu/            # module.js, dateMenu.js, crossfadeArt.js, visualizer.js, dateMenu.css
+│   │   ├── dateMenu/            # module.js, dateMenu.js, visualizer.js, dateMenu.css
 │   │   ├── dashboard/           # module.js, dashBoard.js, mediaWidget.js, systemMonitor.js, widgets.js
 │   │   ├── notificationMedia/   # module.js
 │   │   ├── userAvatarDateMenu/  # module.js, stylesheet.css
@@ -58,8 +58,8 @@ LIDSoL-s-Tweaks/
 │   │   ├── advani.js            # Animaciones bezier (AdvAnimationMode, ease)
 │   │   ├── childrenTracker.js   # ChildrenTrackerBase / QuickSettingsToggleTracker
 │   │   ├── prefsHelpers.js      # 13 factories Adw + DropDownChoice + enableDragAutoScroll
-│   │   ├── mprisService.js      # MprisPlayer/MediaPlayerManager (D-Bus)
-│   │   ├── mediaPlayer/         # mediaManager.js, albumArt.js, mediaWidget.js, mediaPlayer.css
+│   │   ├── mprisService.js      # MprisPlayer/MprisService (D-Bus, filtros de reproductor)
+│   │   ├── mediaPlayer/         # mediaManager.js, albumArt.js, mediaWidget.js
 │   │   ├── layoutHelpers.js     # (TODO)
 │   │   ├── gsettingsHelper.js   # (TODO)
 │   │   └── dBusHelper.js        # (TODO)
@@ -90,7 +90,8 @@ LIDSoL-s-Tweaks/
 - **Aislar errores por módulo** — `_enableModule()` envuelto en try/catch para que un módulo roto no bloquee los demás.
 - **Schema unificado** — Todas las keys GSettings en un solo XML (1728 líneas, 381 keys), agrupadas por prefijo: `dashboard-` (91), `ws-` (80), `qst-` (45), `background-` (38), `dmm-` (23), `dm-` (17), `qt-` (10), `nm-` (10), `bi-` (10), `wb-` (9), `tbo-` (9), `pw-` (8), `ua-` (7), `panel-` (6), `screen-` (4), `launcher-` (4), `uadm-` (3), etc.
 - **Módulos como features internas** — `QuickSettingsTweaksModule` crea sub-features (`QuickTogglesFeature`, `OverlayMenuFeature`, `MenuAnimationFeature`) dentro de su `enable()`; `SystemItemsFeature` es compartida por el módulo `systemItems`.
-- **Album art como capas CSS** — `extension/utils/mediaPlayer/albumArt.js` es el único propietario del art: renderiza capas `St.Widget` con `background-image` (`background-size: cover` + `border-radius`), nunca decodifica ni toca la red. Se descartó `St.DrawingArea` + Cairo porque `GdkPixbuf.new_from_file_at_size` síncrono congelaba el shell al cambiar de pista. Su API pública (`setArt(url[,force])`, `currentUrl`, `needsLoad()`, `size`/`roundness`, `refreshStyle()`, `clearArt()`) no cambia, así que dashboard, at-a-glance y dateMenuMedia no se adaptan.
+- **Album art como capas CSS** — `extension/utils/mediaPlayer/albumArt.js` es el único propietario del art: renderiza capas `St.Widget` con `background-image` (`background-size: cover` + `border-radius`), nunca decodifica ni toca la red. Se descartó `St.DrawingArea` + Cairo porque `GdkPixbuf.new_from_file_at_size` síncrono congelaba el shell al cambiar de pista. Su API pública (`setArt(url[,force])`, `currentUrl` (getter), `needsLoad()`, `size`/`roundness`, `refreshStyle()`) es la que consumen dashboard, at-a-glance y dateMenuMedia; los dos setters sin ningún consumidor (`clearArt()`, `set currentUrl`) se eliminaron en la poda, al igual que `mediaPlayer.css` (0 referencias) y el alias `crossfadeArt.js`.
+- **Caja cuadrada del art** — Quien aloja el art lo alinea siempre con `x_align`/`y_align: CENTER` (así lo hacía ya el dashboard; el at-a-glance se corrigió en `7772577`): en un `St.BoxLayout` horizontal Clutter asigna a cada hijo la altura completa del contenedor en el eje cruzado y `FILL` (el `y_align` por defecto) la conserva sin recortar, así que la caja pasaba a ser `22 × altura del contenedor` (la fija el hermano más alto, la etiqueta del reloj) y el `border-radius: 11px` dejaba de ser un círculo. `set_width`/`set_height` solo fijan min+natural y `st_widget_allocate()` no recorta la asignación a `max-height`, por eso **no es arreglable desde CSS**: la regla `min/max-*` de `.at-a-glance-media-art` además queda muerta porque `AlbumArt.vfunc_get_preferred_*` devuelve `[_size, _size]` sin encadenar y nunca ejecuta el ajuste del theme node.
 - **Resolver de art a nivel de módulo** — Toda carátula se normaliza a un `file://` local en `~/.cache/lidsol-widgets/album-art` (`<md5>.png`, LRU de 50 con cleanup diferido de 5s): `http(s)` se descarga con una `Soup.Session` compartida y dedup in-flight; `file://` se copia con clave `MD5(url|mtime)`, lo que detecta que el reproductor reescriba el mismo archivo entre pistas; `data:`/otros pasan directo al CSS. Se normaliza a disco en vez de dejar que St cargue remotos porque el cache propio es lo que permite `needsLoad()` y una recarga determinista tras un lock/unlock.
 - **`setArt(url, force)`** — `force` existe para recrear la capa aunque la URI sea idéntica. St cachea la textura del `background-image` dentro del `StThemeNode` y solo la invalida por cambio de archivo o de allocation, nunca por un reset del compositor: tras un lock/unlock la capa que sobrevive se pinta negra y no hay forma de recuperarla salvo darle un theme node nuevo.
 * Arquitectura actual

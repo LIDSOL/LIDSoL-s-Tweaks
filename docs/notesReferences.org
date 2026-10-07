@@ -149,6 +149,15 @@ journalctl -f -o cat /usr/bin/gnome-shell | grep 'LIDSoL'
 
 **Lección del harness:** cargar el **fuente real** del módulo sustituyendo solo los `import 'gi://...'` por mocks (reloj virtual + fs real), y recargar el módulo entre tests para aislar el estado a nivel de módulo (`_sources`, `_inflight`, `_cleanupId`). **No usar réplicas manuales del módulo**: la réplica anterior divergió del código real y por eso no cazó el bug de `Gio.FileMoveFlags`; el harness actual sí cazó los tres bugs de arriba. Verificar cada fix revirtiéndolo y comprobando que el harness falla.
 
+**Caja del art: la altura no la decide el layout, y por eso no se arregla con CSS** (fix `7772577`):
+
+- En un `St.BoxLayout` **horizontal**, `clutter_box_layout_allocate()` asigna a cada hijo el eje cruzado completo del contenedor (`child_allocation.y1/y2 = box->y1/y2`) y `allocate_box_child()` solo llama a `clutter_actor_allocate()` sin reajustar nada: la **anchura** la decide el layout, la **altura** no.
+- Después, `clutter_actor_adjust_height()` → `adjust_for_alignment()` interpreta el `y_align` contra esa caja: `FILL` (el valor por defecto) hace *"do nothing"*, así que el actor se queda con la altura completa; `CENTER/START/END` la recortan a su altura **natural** y lo centran. El art no tenía `y_align` → quedaba en `22 × altura del contenedor`.
+- Esa altura la fija el hermano más alto del contenedor. `set_width()`/`set_height()` no fijan nada (`clutter_actor_set_width_internal()` solo hace `set_min_*` + `set_natural_*`) y `st_widget_allocate()` hace `clutter_actor_set_allocation()` **sin recortar a `max-height`**, así que con la etiqueta del reloj por encima de 22px el art acababa más alto que ancho.
+- Consecuencia visual: el `border-radius: 11px` deja de ser un círculo y `background-size: cover` recorta los lados → óvalo vertical con el contenido achatado.
+- Reglas derivadas: (1) cualquier contenedor del art le da `x_align`/`y_align: CENTER` (patrón que ya usaba el dashboard); (2) las reglas `min/max-*` de `.at-a-glance-media-art` son **CSS muerto**, porque `AlbumArt.vfunc_get_preferred_width/height` devuelve `[_size, _size]` **sin encadenar** a `StWidget` y el ajuste del theme node nunca se ejecuta; (3) el `border-radius` de la clase lo pisa el `set_style()` inline con el mismo valor.
+- Descartado con datos antes de tocar nada: escalado HiDPI o fraccionario (monitores a `scale 1`, `scaling-factor 0`, `text-scaling-factor 1.0`); que St deformase la imagen (`get_background_scale()` en `st-theme-node-drawing.c` usa `MAX(area/img)` con escala uniforme para `cover`, es decir, recorta y no estira); márgenes (ninguno en esa clase); `stylesheet.css` (solo reglas `.wsb-*`).
+
 ** Referencia: Dynamic Music Pill (`code-references/dynamic-music-pill/`)
 
 *** Arquitectura general
@@ -220,7 +229,7 @@ journalctl -f -o cat /usr/bin/gnome-shell | grep 'LIDSoL'
 
 *** Arte tras unlock: del Clutter.Canvas a forzar la capa CSS
 
-Esta sección se reescribió: la versión anterior afirmaba que el `background-image` de CSS no funciona en ningún actor tras un lock/unlock, y describía cambios en `crossfadeArt.js`. Ese fichero ya no implementa nada: son 5 líneas (`export const CrossfadeArt = AlbumArt`) que lo mantienen como alias de `extension/utils/mediaPlayer/albumArt.js` para no romper los imports de `dateMenu.js` y `dateMenuMedia/mediaWidget.js`. La afirmación sobre el CSS era falsa.
+Esta sección se reescribió: la versión anterior afirmaba que el `background-image` de CSS no funciona en ningún actor tras un lock/unlock, y describía cambios en `crossfadeArt.js`. La afirmación sobre el CSS era falsa. Ese fichero ya no existe: era un alias de cinco líneas (`export const CrossfadeArt = AlbumArt`) y se eliminó en el refactor; `dateMenu.js` y `dateMenuMedia/mediaWidget.js` importan `AlbumArt` directamente de `extension/utils/mediaPlayer/albumArt.js`.
 
 **Recorrido de intentos:**
 
@@ -232,7 +241,7 @@ Esta sección se reescribió: la versión anterior afirmaba que el `background-i
 
 **Regla práctica:** ante un artefacto de lock/unlock, comprobar primero si el actor sobrevive al bloqueo. Si sobrevive, su theme node arrastra estado inválido y hay que forzar algo (capa nueva o `invalidate_background_image()`), no cambiar de tecnología de render.
 
-**Lo que sí quedó del diseño en Canvas:** el crossfade por capas (`300ms` de entrada, destruction de las viejas al terminar) y el fallback a la última carátula conocida (`mediaManager.getLastKnownCover()`), que el handler de `screen-unlocked` del dateMenu sigue usando cuando el reproductor no reporta metadata en ese instante.
+**Lo que sí quedó del diseño en Canvas:** el crossfade por capas (`300ms` de entrada, destruction de las viejas al terminar) y el fallback a la última carátula conocida (`mediaManager.getLastKnownCover()`), que el handler de `screen-unlocked` del dateMenu sigue usando cuando el reproductor no reporta metadata en ese instante. Ojo: hasta `4e92c5f` ese fallback estaba **muerto**, porque `_emitMediaChanged()` nunca registraba `trackCoverUrl` y `getLastKnownCover()` devolvía siempre `null`; el registro vive ahora en `_emitMediaChanged()` y se limpia en `_selectActivePlayer()` (semántica: última portada que reportó el reproductor activo).
 
 ** Referencia: Aylur's Widgets — Date Menu (`code-references/gnome-extensions/widgets@aylur/`)
 
@@ -607,7 +616,7 @@ The widget should be injected into the date menu's **right column** (above the c
 1. **Module location**: `extension/modules/dateMenuMedia/` (separate from dateMenu module)
 2. **Injection**: navigate to `_menuBox.get_last_child()` (right column), insert at index 0
 3. **MPRIS data**: use existing `MediaPlayerManager` singleton from `utils/mediaPlayer/mediaManager.js`
-4. **Cover art**: use `AlbumArt` from `utils/mediaPlayer/albumArt.js` (alias `CrossfadeArt` en `dateMenu/crossfadeArt.js`): capas CSS, y `setArt(url, true)` tras un unlock para forzar una capa nueva
+4. **Cover art**: use `AlbumArt` from `utils/mediaPlayer/albumArt.js`: capas CSS, y `setArt(url, true)` tras un unlock para forzar una capa nueva
 5. **Widget structure**:
    - Base container: `St.BoxLayout` (vertical)
    - Album art area (if enabled)

@@ -129,9 +129,7 @@ DEADLINE: <2026-10-10 Sat>
   - [ ] 1.3.1.3.1 La barra de progreso avanza cada 3 segundos, sería bueno ver una animación de desplazamiento del indicador, para no ver un avance brusco.
   - [ ] 1.3.1.3.2  Cuando se cambia de medio gracias al switch, la barra de progreso se muestra en 0 y después avanza hasta el estado tiempo real de producción. También se debe implementar la animación de avance en este caso, para evitar "ese cambio brusco"
   - [ ] 1.3.1.3.3 Mejoras en MPRIS
-- [ ] 3.1.1.4 Ocultar caja derecha (quick settings tweaks referencia)
-- [ ] 3.1.1.5 Ocultar caja izquierda (quick settings tweaks referencia)
-- [ ] 3.1.1.6 Permutar caja derecha e izquierda (aylur's referencia)
+- [ ] 3.1.1.4 Al desactiar el widget, este no regresa a su visibilidad los widgets nativos, debería regresarlos. 
 - [ ] 3.1.1.7 mediaPlayer.js está spameando en el journal.
 *** TODO [#B] 3.3 Desktop Widgets
 DEADLINE: <2026-10-10 Sat>
@@ -240,7 +238,7 @@ DEADLINE: <2026-10-05 Mon>
 - [ ] Bug en múltiples monitores, no aparece el workspace de los monitores externos.
 - [ ] Cuando se tienen los íconos activos, el bg que difiere del borde también debe aplicar a los indicadores de espacio de trabajo que no tiene aplicaciones abiertas. Cuando te colocas en un espacio de trabajo sin iconos, el borde y el bg son iguales.
 - [ ] Configurar las opciones predeterminadas.
-- [ ] No se muestran múltiples monitores.
+- [ ] Al desactivar el módulo, no se regresa a la vista el indicador nativo. 
 *** NEXT [#A] 4.4 Date Menu Tweaks [0%]
 DEADLINE: <2026-10-10 Sat>
 - Descripción y objetivo: Basado en el widget [[https://support.google.com/android/answer/14883154][At a Glance]] de los Google Pixel; el texto del /Date Menu/ cambia dinámicamente, muestra contenido multimedia en reproducción, muestra un contrador de notificaciones, etcétera.
@@ -276,7 +274,7 @@ DEADLINE: <2026-10-10 Sat>
     - [[https://extensions.gnome.org/extension/9334/dynamic-music-pill/][Dynamic Music Pill (por andbal)]], compatible hasta GNOME 50.
     - [[https://extensions.gnome.org/extension/4470/media-controls/][Media Controls (por Sakith B.)]], compatible hasta GNOME 49.
     - [[https://extensions.gnome.org/extension/9184/advanced-media-controller/][Advanced Media Controller (por sanjai)]] compatible hasta GNOME 50.
-- [ ] 4.4.3.1 ¿Crossfade por capas CSS?
+- [X] 4.4.3.1 ¿Crossfade por capas CSS?
 ***** TODO [#B] 4.4.4 Notifications Indicator
 DEADLINE: <2026-09-26 Sat>
 Punto indicador se desplaza cuando hover. Por modificaciones en la apariencia.
@@ -308,13 +306,16 @@ DEADLINE: <2026-10-10 Sat>
 DEADLINE: <2026-10-04 Sun>
 *** DONE 5.1 Multi-idioma
 DEADLINE: <2026-10-03 Sat>
-*** NEXT [#A] 5.2 Backend MPRIS [4/5]
+*** NEXT [#A] 5.2 Backend MPRIS
 DEADLINE: <2026-10-04 Sun>
 - [X] 5.2.1 Mejorar y corrección de bugs del MPRIS
 - [X] 5.2.1.1 No todos los reproductores de música son aceptados.
 - [X] 5.2.1.2 Agrupar todos los reproductores de una misma fuente con un Expand Row
 - [X] 5.2.1.3 Filtro aplicado al instante en todos los consumidores (dateMenu/AtAGlance, dateMenuMedia, dashboard)
-- [X] 5.2.1.4 Mejoras en la obtención del album art, incluida la carátula negra al desbloquear (solo en el at-a-glance). Decisiones en [[file:docs.org][docs.org]] ("Decisiones de arquitectura") y lección en [[file:notesReferences.org][notesReferences.org]] ("Lecciones de Album Art (capas CSS)").
-  - [ ] 5.2.1.4.1 Pendiente: segundo problema de CSS del at-a-glance (aplazado a propósito en esta tanda, sin diagnosticar). El refinamiento del crossfade por capas está en 4.4.3.1.
-  - [ ] 5.2.1.4.2 Bug: el handler de =screen-unlocked= del dateMenu anula =_lastCoverUrl= al principio. Si el reproductor no reporta carátula y tampoco hay =getLastKnownCover()=, un =_updateMedia= posterior puede terminar limpiando un art que estaba visible.
-  - [ ] 5.2.1.4.3 Bug: =dateMenuMedia._updateGradient= lee =trackCoverUrl= crudo (solo =file://=), al margen del AlbumArt, así que con carátulas remotas o =data:= el degradado no se aplica.
+- [-] 5.2.1.4 Mejoras en la obtención del album art, incluida la carátula negra al desbloquear (solo en el at-a-glance). Decisiones en [[file:docs.org][docs.org]] ("Decisiones de arquitectura") y lección en [[file:notesReferences.org][notesReferences.org]] ("Lecciones de Album Art (capas CSS)").
+  - [X] 5.2.1.4.1 Segundo problema de CSS del at-a-glance (aplazado a propósito en esta tanda): la carátula se veía alargada en Y. Diagnosticado y arreglado en =7772577=; la caja del art era 22 × altura del contenedor (Clutter + =y_align= FILL), **no** un problema de CSS (lección en [[file:notesReferences.org][notesReferences.org]], "Lecciones de Album Art (capas CSS)"). El refinamiento del crossfade por capas está en 4.4.3.1.
+  - [X] 5.2.1.4.2 Bug: el handler de =screen-unlocked= del dateMenu anula =_lastCoverUrl= al principio. Si el reproductor no reporta carátula y tampoco hay =getLastKnownCover()=, un =_updateMedia= posterior puede terminar limpiando un art que estaba visible.
+  - [X] 5.2.1.4.3 Bug: =dateMenuMedia._updateGradient= lee =trackCoverUrl= crudo (solo =file://=), al margen del AlbumArt, así que con carátulas remotas o =data:= el degradado no se aplica.
+  - [ ] 5.2.1.4.4 Trabajo que sigue pendiente del gradient de dateMenuMedia (complementa a .3): =_updateGradient= descarta cualquier carátula que no sea =file://= (remotas o =data:=), y la media de color se calcula con =GdkPixbuf.Pixbuf.new_from_file_at_size()= + recorrido de píxeles **síncronos en el hilo principal** (limitado: decode a 128×128, muestra cada 4px y caché por path, pero corta el bucle del shell en el cambio de pista). Pendiente: aceptar las URIs que ya normaliza =albumArt.js= y mover la decodificación fuera del hilo principal.
+  - [ ] 5.2.1.4.5 Pregunta abierta sobre el filtro de reproductores (5.2.1.3): ¿debe aplicarse también al at-a-glance cuando solo ese módulo multimedia está activo? Hoy la respuesta depende de qué módulos carguen primero, porque el filtro se fija en el primer consumidor que se registra.
+  - [ ] 5.2.1.4.6 Bug latente en dateMenuMedia: su art vive en =bodyRow= (horizontal) sin =y_align=, igual que el at-a-glance antes de =7772577=, así que se estira si =dmm-art-size= (rango 31-110) queda por debajo del alto de la columna de texto. Con el valor por defecto (50 vs ~36 de las etiquetas) no se nota.

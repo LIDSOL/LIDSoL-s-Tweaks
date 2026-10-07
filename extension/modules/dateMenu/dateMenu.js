@@ -74,6 +74,17 @@ export class AtAGlanceIndicator {
         this._mediaArt.add_style_class_name('at-a-glance-media-art');
         this._mediaArt.set_width(22);
         this._mediaArt.set_height(22);
+        // Center, never FILL: in a horizontal St.BoxLayout every child is
+        // allocated the container's full height, and with the default FILL
+        // align Clutter keeps it (adjust_for_alignment does nothing). The
+        // container is as tall as its tallest sibling (the clock label), so
+        // the art ended up 22 x container-height: a vertical oval instead of
+        // a circle. CENTER cuts the allocation back to the natural height.
+        // set_width/set_height are only min/natural requests, and St does not
+        // clamp the allocation to the CSS max-height, so this is not fixable
+        // from CSS. The dashboard already aligns its art this way.
+        this._mediaArt.x_align = Clutter.ActorAlign.CENTER;
+        this._mediaArt.y_align = Clutter.ActorAlign.CENTER;
         this._container.add_child(this._mediaArt);
 
         // Visualizer (inner, next to textBox)

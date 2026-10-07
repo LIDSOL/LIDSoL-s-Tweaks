@@ -1,11 +1,16 @@
-/* Neutralize native clock-display hover/active to avoid double feedback */
-#panel .panel-button.clock-display:hover,
-#panel .panel-button.clock-display:active,
-#panel .panel-button.clock-display:focus,
-#panel .panel-button.clock-display:checked {
-    box-shadow: none !important;
-    background: none !important;
-}
+/* Native hover/active feedback over the whole at-a-glance block.
+ * The shell paints the clock-display fill only on its .clock child
+ * (panel_button highlighted_child, see _panel.scss) so the highlight wraps
+ * just the hour and leaves the extension's media content outside. We
+ * neutralize that child fill and put the native panel_button_fill alphas
+ * (transparentize($fg, .83/.72/.68) => 0.17 / 0.28 / 0.32) on the whole
+ * at-a-glance container instead, keyed on the button's own :hover / :active
+ * states (the shell manages those; manually added pseudo-classes on the
+ * container never produced visible feedback). Resting shows nothing; the
+ * capsule appears on hover (0.17), while the menu is open (0.28) and
+ * stronger while hovering with the menu open (0.32), with the native
+ * circular radius, the 150ms transition and the native .clock padding
+ * ($scaled_padding * 2) as wrap-around space. */
 #panel .panel-button.clock-display:hover .clock,
 #panel .panel-button.clock-display:active .clock,
 #panel .panel-button.clock-display:focus .clock,
@@ -15,20 +20,22 @@
 
 .at-a-glance-indicator {
     spacing: 6px;
+    border-radius: 999px;
+    padding-left: 12px;
+    padding-right: 12px;
+    transition-duration: 150ms;
 }
 
-.at-a-glance-indicator:hover {
-    border-radius: 16px;
-    padding-left: 7px;
-    padding-right: 7px;
-    opacity: 0.6;
+#panel .panel-button.clock-display:hover .at-a-glance-indicator {
+    background-color: rgba(255, 255, 255, 0.17);
 }
 
-.at-a-glance-indicator:active {
-    border-radius: 16px;
-    padding-left: 7px;
-    padding-right: 7px;
-    opacity: 0.7;
+#panel .panel-button.clock-display:active .at-a-glance-indicator {
+    background-color: rgba(255, 255, 255, 0.28);
+}
+
+#panel .panel-button.clock-display:hover:active .at-a-glance-indicator {
+    background-color: rgba(255, 255, 255, 0.32);
 }
 
 .at-a-glance-indicator .clock {

@@ -74,6 +74,12 @@ export class AtAGlanceIndicator {
         this._mediaArt.add_style_class_name('at-a-glance-media-art');
         this._mediaArt.set_width(22);
         this._mediaArt.set_height(22);
+        // Start hidden: the art only appears after a real media state arrives
+        // (see the initial sync below). If it kept the St.Widget default
+        // visible state at a session with no player, it would reserve an
+        // empty 22px hole next to the hour until the first media event
+        // (4.4.1.2).
+        this._mediaArt.visible = false;
         // Center, never FILL: in a horizontal St.BoxLayout every child is
         // allocated the container's full height, and with the default FILL
         // align Clutter keeps it (adjust_for_alignment does nothing). The
@@ -182,11 +188,22 @@ export class AtAGlanceIndicator {
             }),
         ];
 
-        // Initial sync
+        // Initial sync: always, even without an active player. Otherwise, at
+        // a fresh session with no player the media widgets never get synced:
+        // the album art would keep its default visible state and reserve an
+        // empty 22px gap next to the hour until the first real media event
+        // (4.4.1.2). This mirrors the else branch of the player-changed
+        // handler below.
         this._player = this._manager.getActivePlayer();
         if (this._player) {
             this._lastActivePlayer = this._player;
             this._syncPlayerState();
+        } else {
+            this._lastMediaText = '';
+            this._lastCoverUrl = null;
+            this._lastPlayingState = false;
+            this._updateMedia();
+            this._updateMediaVisibility();
         }
 
         this._updateClock();

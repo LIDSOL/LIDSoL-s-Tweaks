@@ -239,16 +239,16 @@ DEADLINE: <2026-10-05 Mon>
 - [ ] Cuando se tienen los íconos activos, el bg que difiere del borde también debe aplicar a los indicadores de espacio de trabajo que no tiene aplicaciones abiertas. Cuando te colocas en un espacio de trabajo sin iconos, el borde y el bg son iguales.
 - [ ] Configurar las opciones predeterminadas.
 - [ ] Al desactivar el módulo, no se regresa a la vista el indicador nativo. 
-*** NEXT [#A] 4.4 Date Menu Tweaks [0%]
+*** NEXT [#A] 4.4 Date Menu Tweaks [25%]
 DEADLINE: <2026-10-10 Sat>
 - Descripción y objetivo: Basado en el widget [[https://support.google.com/android/answer/14883154][At a Glance]] de los Google Pixel; el texto del /Date Menu/ cambia dinámicamente, muestra contenido multimedia en reproducción, muestra un contrador de notificaciones, etcétera.
-***** NEXT [#C] 4.4.1 Date Menu
+***** DONE [#C] 4.4.1 Date Menu
 DEADLINE: <2026-09-26 Sat>
 [[./img/date-format.png]]
 - Descripción y objetivo: Permite personalizar el formato de fecha y hora en el panel.
   - Aylur's Widget tiene un componente que permite personalizar esto, también se tomará como referencia el código de la extensión [[https://extensions.gnome.org/extension/4655/date-menu-formatter/][Date Menu Formatter de Marcin Jakubowski]]. Esta última compatible hasta GNOME 50, por lo que no debería ser difícil integrarla.
 - [X] 4.4.1.1 Bug: Habilitar la opacidad en ./Gnome-Extensions/extension/modules/dateMenu/dateMenu.css; las primeras 14 líneas de este archivo desactivan la opacidad predeterminada en hover y active, esto con el objetivo de no superponer la opacidad nativa con la de /at-a-glance/. En teoría, con las líneas 20 a 32 debería de añadirse la opacidad en el Hover y Active, pero no está funcionando correctamente.
-- [ ] 4.4.1.2 Bug: Espacio anómalo a un lado del date menu (top bar, hora) al iniciar sesión (parece reservar espacio para el visualizador y la carátula). El relleno se normaliza tras reproducir y pausar cualquier medio (después de mostrar información multimedia).
+- [X] 4.4.1.2 Bug: Espacio anómalo a un lado del date menu (top bar, hora) al iniciar sesión (parece reservar espacio para el visualizador y la carátula). El relleno se normaliza tras reproducir y pausar cualquier medio (después de mostrar información multimedia).
 ***** TODO [#B] 4.4.2 Progress Day
 DEADLINE: <2026-10-10 Sat>
 - Descripción y objetivo: Usando como base [[https://github.com/ArcaEge/day-progress][Day progress de ArcaEge]], añadir una barra o círculo de progreso en el date menu (no debe ser un elemento añadido, debe estar dentro el date menu, así como el indicador multimedia). Este remplaza o complementa la hora/fecha.
@@ -278,7 +278,7 @@ DEADLINE: <2026-10-10 Sat>
 - [ ] 4.4.3.2 Bug: la familia `opacity` de dateMenuMedia.css no tiene efecto (`.dmm-header`, `.dmm-artist`, `.dmm-time, .dmm-duration`): St ignora la propiedad CSS `opacity` (lección en notesReferences.org). Reemplazar por colores con alfa / background-color translúcido + border-radius + transition, como en el at-a-glance (4.4.1.1).
 ***** TODO [#B] 4.4.4 Notifications Indicator
 DEADLINE: <2026-09-26 Sat>
-Punto indicador se desplaza cuando hover. Por modificaciones en la apariencia.
+- [ ] Punto indicador se desplaza cuando hover. Por modificaciones en la apariencia.
 *** TODO [#B] 4.5 Battery Indicator [50%]
 DEADLINE: <2026-10-10 Sat>
 [[./img/aylurs-battery.png]]

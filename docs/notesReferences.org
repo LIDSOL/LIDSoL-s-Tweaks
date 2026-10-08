@@ -164,6 +164,12 @@ journalctl -f -o cat /usr/bin/gnome-shell | grep 'LIDSoL'
 - **Feedback de caja vs feedback de hijo:** el fill nativo de `clock-display` se pinta solo en el hijo `.clock` (mixin `panel_button($highlighted_child: true)`, `_panel.scss`), así que envuelve solo la hora y dejaba la media fuera. Para cubrir todo el bloque at-a-glance (hora + art + visualizador + etiqueta): neutralizar el fill del hijo (`box-shadow: none !important`) y aplicar el fill al contenedor completo, gobernado por los **estados nativos del botón** (`.clock-display:hover` / `:active`, que St gestiona solo vía `track_hover` y el `open-state` del menú) — alphas nativos `panel_button_fill` (`transparentize($fg, .83/.72/.68)` → 0.17/0.28/0.32), radio `999px`, `transition-duration: 150ms`, padding `12px` L/R (el padding nativo de `.clock`) como espacio de envuelta.
 - **Pseudo-clases añadidas a mano en JS** (`.connect('enter-event')` → `add_style_pseudo_class('hover')`, etc.) **nunca produjeron feedback visible** en el contenedor, mientras que los estados nativos del botón siempre funcionaron; la lección es gobernar estos fills desde los estados nativos y no reinstrumentar el hover en JS.
 
+*** Lección: un widget sin sync inicial nace en su estado por defecto y reserva espacio (fix `4.4.1.2`)
+
+- `AtAGlanceIndicator.enable()` solo sincronizaba la visibilidad de los widgets multimedia (`_updateMediaVisibility()`) cuando `getActivePlayer()` devolvía un reproductor. En un login sin reproductores esa ruta nunca corría y la carátula conservaba su estado por defecto (`visible: true`): 22×22 px vacíos y transparentes a un lado de la hora, hasta que la primera señal de reproducción real (play → pausa → debounce) ejecutaba por fin el sync y la ocultaba. Por eso "el relleno se normaliza tras reproducir y pausar".
+- Los contenedores (`ClutterBoxLayout`) **saltan en preferred-size y allocate a los hijos invisibles** (`if (!clutter_actor_is_visible(child)) continue`), así que un widget `visible: false` **no** reserva espacio: el "espacio anómalo" no era de layout sino una carátula que seguía visible sin tener nada que mostrar.
+- Regla derivada: un widget cuya visibilidad depende de un evento debe (1) nacer oculto (`visible: false` en el constructor) y (2) sincronizarse SIEMPRE en `enable()`, incluido el caso "no hay datos" (espejo del else del handler `player-changed`), no solo cuando hay un reproductor activo.
+
 ** Referencia: Dynamic Music Pill (`code-references/dynamic-music-pill/`)
 
 *** Arquitectura general

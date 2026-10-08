@@ -17,7 +17,8 @@ Diseñar, implementar y mantener una extensión modular para GNOME que modernice
 * Objetivos específicos
 ** NEXT 0. Docs y README
 *** TODO [#A] Escribir un README.org con todas las features de la extensión
-DEADLINE: <2026-10-05 Mon>
+DEADLINE: <2026-10-09 Fri>
+- [ ] Eliminar todas las imágenes en este archivo, para poder eliminarlas.
 ** TODO [#B] 1. Herramientas [0%]
 *** TODO [#A] 1.1 Dashboard [0%]
 DEADLINE: <2026-10-08 Thu>
@@ -239,9 +240,9 @@ DEADLINE: <2026-10-05 Mon>
 - [ ] Cuando se tienen los íconos activos, el bg que difiere del borde también debe aplicar a los indicadores de espacio de trabajo que no tiene aplicaciones abiertas. Cuando te colocas en un espacio de trabajo sin iconos, el borde y el bg son iguales.
 - [ ] Configurar las opciones predeterminadas.
 - [ ] Al desactivar el módulo, no se regresa a la vista el indicador nativo. 
-*** NEXT [#A] 4.4 Date Menu Tweaks [25%]
+*** NEXT [#A] 4.4 Date Menu Tweaks [75%]
 DEADLINE: <2026-10-10 Sat>
-- Descripción y objetivo: Basado en el widget [[https://support.google.com/android/answer/14883154][At a Glance]] de los Google Pixel; el texto del /Date Menu/ cambia dinámicamente, muestra contenido multimedia en reproducción, muestra un contrador de notificaciones, etcétera.
+- Descripción y objetivo: Basado en el widget [[https://support.google.com/android/answer/14883154][At a Glance]] de los Google Pixel; el texto del /Date Menu/ cambia dinámicamente, muestra contenido multimedia en reproducción, muestra un contador de notificaciones, etcétera.
 ***** DONE [#C] 4.4.1 Date Menu
 DEADLINE: <2026-09-26 Sat>
 [[./img/date-format.png]]
@@ -265,7 +266,7 @@ DEADLINE: <2026-10-10 Sat>
         - Show Life progress
         - Eliminar u omitir la opción "Stack Direction", y que siempre sea horizontal (siempre se desbordan en vertical)
     - [ ] Start Time, Reset Time, Year start date, life span.
-***** TODO [#A] 4.4.3 Media Player
+***** DONE [#A] 4.4.3 Media Player
 DEADLINE: <2026-10-10 Sat>
 [[./img/aylurs-player.png]]
 - Descripción y objetivo: Información de reproducción multimedia integrada en el Date Menu.
@@ -275,10 +276,10 @@ DEADLINE: <2026-10-10 Sat>
     - [[https://extensions.gnome.org/extension/4470/media-controls/][Media Controls (por Sakith B.)]], compatible hasta GNOME 49.
     - [[https://extensions.gnome.org/extension/9184/advanced-media-controller/][Advanced Media Controller (por sanjai)]] compatible hasta GNOME 50.
 - [X] 4.4.3.1 ¿Crossfade por capas CSS?
-- [ ] 4.4.3.2 Bug: la familia `opacity` de dateMenuMedia.css no tiene efecto (`.dmm-header`, `.dmm-artist`, `.dmm-time, .dmm-duration`): St ignora la propiedad CSS `opacity` (lección en notesReferences.org). Reemplazar por colores con alfa / background-color translúcido + border-radius + transition, como en el at-a-glance (4.4.1.1).
-***** TODO [#B] 4.4.4 Notifications Indicator
+- [X] 4.4.3.2 Bug: la familia `opacity` de dateMenuMedia.css no tiene efecto (`.dmm-header`, `.dmm-artist`, `.dmm-time, .dmm-duration`): St ignora la propiedad CSS `opacity` (lección en notesReferences.org). Reemplazar por colores con alfa / background-color translúcido + border-radius + transition, como en el at-a-glance (4.4.1.1). Ampliada también al fade del at-a-glance: todas las transiciones multimedia (cambio de pista, pausa/play, hora↔media) animan siempre — presentador único con época `_fadeSeq`, restaurando a opacidad completa si un fade se interrumpe — y una metadata vacía transitoria (GSConnect next/forward) nunca deja un hueco negro.
+***** DONE [#B] 4.4.4 Notifications Indicator
 DEADLINE: <2026-09-26 Sat>
-- [ ] Punto indicador se desplaza cuando hover. Por modificaciones en la apariencia.
+- [X] Punto indicador se desplaza cuando hover. Por modificaciones en la apariencia.
 *** TODO [#B] 4.5 Battery Indicator [50%]
 DEADLINE: <2026-10-10 Sat>
 [[./img/aylurs-battery.png]]

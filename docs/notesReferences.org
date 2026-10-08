@@ -170,6 +170,15 @@ journalctl -f -o cat /usr/bin/gnome-shell | grep 'LIDSoL'
 - Los contenedores (`ClutterBoxLayout`) **saltan en preferred-size y allocate a los hijos invisibles** (`if (!clutter_actor_is_visible(child)) continue`), así que un widget `visible: false` **no** reserva espacio: el "espacio anómalo" no era de layout sino una carátula que seguía visible sin tener nada que mostrar.
 - Regla derivada: un widget cuya visibilidad depende de un evento debe (1) nacer oculto (`visible: false` en el constructor) y (2) sincronizarse SIEMPRE en `enable()`, incluido el caso "no hay datos" (espejo del else del handler `player-changed`), no solo cuando hay un reproductor activo.
 
+*** Lección: fades del at-a-glance y familia `opacity` de dateMenuMedia (fix `4.4.3.2`)
+
+- **`ease()` interrumpido sí invoca `onStopped` con `isFinished=false`** (mismo patrón que las capas de albumArt): un fade muerto por un evento más nuevo (skip rápido, `media-changed` que cae en pleno crossfade) ejecuta igual su callback. El `_crossfadeMedia` original ignoraba `isFinished` y aplicaba el swap de texto aunque el fade estuviera anulado → dos fades peleando, texto/opacidad equivocadas ("a veces el fade no se muestra").
+- **Época de presentación (`_fadeSeq`)**: todas las transiciones del at-a-glance resuelven en un presentador único (`_updateMediaVisibility(opts)`); cada llamada pulsa un contador monótono y cada `onStopped` captura su `seq`, descartándose si ya hay una presentación más nueva → "latest wins", sin callbacks stale.
+- **Metadata vacía transitoria** (GSConnect al adelantar/next desde el teléfono): el reproductor puede emitir brevemente `title=""`/`cover=""` sin haber cambiado de pista. Si se procesa, el label hace crossfade a vacío y queda un hueco negro. Regla: nunca sustituir contenido real por metadata vacía (guard en `_onMediaUpdate`, debounce de pausa y `_syncPlayerState`).
+- **Restaurar a opacidad completa**: una presentación cuyo destino es "misma visibilidad + mismo texto" no debe ser no-op: si el actor quedó a media opacidad por un fade interrumpido (label, reloj, art, visualizer) se re-funde a 255.
+- **Gate `mapped`**: los fades solo corren si `_container.mapped` → login/arranque sin animación; `screen-unlocked` pasa `{instant:true}` (recuperación forzada de la textura, sin coreografía).
+- **El dimming del header de dateMenuMedia ya vivía en JS**: `actor.opacity = 153` (0.6) en `.dmm-app-icon` y `.dmm-player-name`; la regla CSS `.dmm-header { opacity }` era redundante y se eliminó. Artista y tiempos se atenúan con `color: rgba(255,255,255,0.8/0.7)`, no con `opacity` (St la ignora).
+
 ** Referencia: Dynamic Music Pill (`code-references/dynamic-music-pill/`)
 
 *** Arquitectura general

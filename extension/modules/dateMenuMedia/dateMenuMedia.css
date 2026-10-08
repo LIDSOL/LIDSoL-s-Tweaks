@@ -34,7 +34,8 @@
 .dmm-header {
     spacing: 6px;
     padding: 6px 6px 2px;
-    opacity: 0.6;
+    /* Header dimming is applied per-actor in JS (opacity 153 on the app icon
+       and player name): St ignores the CSS `opacity` property (4.4.3.2). */
 }
 
 .dmm-app-icon {
@@ -67,7 +68,8 @@
 
 .dmm-artist {
     font-size: 0.95em;
-    opacity: 0.8;
+    /* St ignores CSS `opacity`; dim via color alpha instead (4.4.3.2). */
+    color: rgba(255, 255, 255, 0.8);
     text-overflow: ellipsis;
     white-space: nowrap;
     max-width: 100%;
@@ -85,7 +87,8 @@
 .dmm-time,
 .dmm-duration {
     font-size: 0.85em;
-    opacity: 0.7;
+    /* St ignores CSS `opacity`; dim via color alpha instead (4.4.3.2). */
+    color: rgba(255, 255, 255, 0.7);
     min-width: 36px;
 }
 

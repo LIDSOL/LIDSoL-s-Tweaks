@@ -25,6 +25,11 @@ export class AtAGlanceIndicator {
         this._lastMediaText = '';
         this._lastCoverUrl = null;
         this._lastPlayingState = false;
+        // Monotonic "presentation epoch": every _updateMediaVisibility bump
+        // invalidates the onStopped callbacks of previous fades so stale ones
+        // (interrupted by a newer track/pause/play change) never clobber the
+        // current state (4.4.3.2).
+        this._fadeSeq = 0;
         this._settingsChangedId = 0;
         this._showArtChangedId = 0;
         this._pauseDebounceId = 0;
@@ -180,10 +185,9 @@ export class AtAGlanceIndicator {
 
                     this._mediaArt.setArt(url, true);
 
-                    this._mediaLabel.text = this._lastMediaText;
-                    this._updateClock();
-                    this._updateArtVisibility();
-                    this._updateMediaVisibility();
+                    // Instant recovery: the forced layer reload fixes the
+                    // stale St texture; no fade choreography on unlock.
+                    this._updateMediaVisibility({instant: true});
                 }
             }),
         ];
@@ -216,10 +220,10 @@ export class AtAGlanceIndicator {
             this._updateMediaVisibility();
         });
         this._showArtChangedId = this._gsettings.connect('changed::dm-show-art', () => {
-            this._updateArtVisibility();
+            this._updateMediaVisibility();
         });
         this._vizStyleChangedId = this._gsettings.connect('changed::dm-visualizer-style', () => {
-            this._updateVisualizer();
+            this._updateMediaVisibility();
         });
         this._vizBarsChangedId = this._gsettings.connect('changed::dm-visualizer-bars', () => {
             this._visualizer?.setBarCount(this._gsettings.get_int('dm-visualizer-bars'));
@@ -232,7 +236,7 @@ export class AtAGlanceIndicator {
             this._updateMediaVisibility();
         });
         this._visEnabledChangedId = this._gsettings.connect('changed::dm-visualizer-enabled', () => {
-            this._updateVisualizer();
+            this._updateMediaVisibility();
         });
         this._completeFormatChangedId = this._gsettings.connect('changed::dm-complete-format', () => {
             this._updateClock();
@@ -289,9 +293,19 @@ export class AtAGlanceIndicator {
             this._pauseDebounceId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
                 this._pauseDebounceId = 0;
                 this._lastPlayingState = false;
-                this._lastMediaText = '';
-                this._lastCoverUrl = null;
-                this._updateMedia();
+                // Refresh state from the current meta so a paused metadata
+                // update (auto-advance, skip while paused) still shows in the
+                // label when media stays visible, and the label fades out with
+                // the real current text instead of snapping to '' (4.4.3.2).
+                const meta = this._manager.getActivePlayerMeta();
+                if (meta) {
+                    // Same transient-empty guard as _onMediaUpdate: never blank
+                    // the label with a momentary empty metadata.
+                    const t = this._formatMediaText(meta.title, meta.artist);
+                    if (t)
+                        this._lastMediaText = t;
+                    this._lastCoverUrl = meta.coverUrl || '';
+                }
                 this._updateMediaVisibility();
                 return GLib.SOURCE_REMOVE;
             });
@@ -299,6 +313,14 @@ export class AtAGlanceIndicator {
     }
 
     _onMediaUpdate(text, cover, nowPlaying) {
+        // A transient empty metadata — GSConnect can briefly report no title
+        // or cover while forwarding/nexting — must never blank a label that
+        // already shows real content (4.4.3.2).
+        if (!text && this._mediaLabel.text !== '')
+            text = this._mediaLabel.text;
+        if (!cover && this._lastCoverUrl)
+            cover = this._lastCoverUrl;
+
         const textChanged = text !== this._lastMediaText;
         const coverChanged = cover !== this._lastCoverUrl;
         const stateChanged = nowPlaying !== this._lastPlayingState;
@@ -310,48 +332,24 @@ export class AtAGlanceIndicator {
         this._lastMediaText = text;
         this._lastCoverUrl = cover;
 
-        const mediaLayout = this._gsettings.get_int('dm-media-layout');
-
-        if (textChanged && mediaLayout !== 1)
-            this._crossfadeMedia(text, cover);
-        else
-            this._updateMedia();
-
-        this._updateClock();
-        this._updateMediaVisibility();
-    }
-
-    _crossfadeMedia(text, cover) {
-        if (this._mediaLabel.text !== text) {
-            this._mediaLabel.remove_all_transitions();
-            this._mediaLabel.ease({
-                opacity: 0,
-                duration: 150,
-                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-                onStopped: () => {
-                    this._mediaLabel.text = text;
-                    this._mediaLabel.ease({
-                        opacity: 255,
-                        duration: 300,
-                        mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-                    });
-                },
-            });
-        }
-
         if (cover)
             this._mediaArt.setArt(cover);
 
-        this._updateArtVisibility();
+        // The presentation (text crossfade, art/vis/clock fades, play/pause
+        // switches) all resolve inside _updateMediaVisibility (4.4.3.2).
+        this._updateMediaVisibility();
     }
 
     _syncPlayerState() {
         if (!this._player) return;
         const meta = this._manager.getActivePlayerMeta();
-        this._lastMediaText = this._formatMediaText(meta?.title || '', meta?.artist || '');
+        const t = this._formatMediaText(meta?.title || '', meta?.artist || '');
+        if (t || !this._mediaLabel.text)
+            this._lastMediaText = t;
         this._lastCoverUrl = meta?.coverUrl || '';
         this._lastPlayingState = meta?.isPlaying || false;
-        this._updateMedia();
+        if (this._lastCoverUrl)
+            this._mediaArt.setArt(this._lastCoverUrl);
         this._updateMediaVisibility();
     }
 
@@ -367,21 +365,71 @@ export class AtAGlanceIndicator {
         const cover = meta?.coverUrl || '';
         if (cover)
             this._mediaArt.setArt(cover, !!opts.forceArt);
-
-        this._updateArtVisibility();
     }
 
-    _updateArtVisibility() {
+    _updateArtVisibility(animate = false, seq = this._fadeSeq) {
         const showMedia = this._gsettings.get_boolean('dm-show-media');
         const mediaPlayingOnly = this._gsettings.get_boolean('dm-show-media-playing-only');
         const isPlaying = this._lastPlayingState;
         const showArt = this._gsettings.get_boolean('dm-show-art');
         const meta = this._manager?.getActivePlayerMeta();
         const hasCover = !!meta?.coverUrl;
-        this._mediaArt.visible = showMedia && (isPlaying || !mediaPlayingOnly) && showArt && hasCover;
+        const shown = showMedia && (isPlaying || !mediaPlayingOnly) && showArt && hasCover;
+        const art = this._mediaArt;
+
+        if (art.visible === shown) {
+            if (shown && art.opacity < 255) {
+                if (animate) {
+                    art.remove_all_transitions();
+                    art.ease({
+                        opacity: 255,
+                        duration: 150,
+                        mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                    });
+                } else {
+                    art.remove_all_transitions();
+                    art.opacity = 255;
+                }
+            }
+            return;
+        }
+
+        if (shown) {
+            art.visible = true;
+            if (animate) {
+                art.remove_all_transitions();
+                art.opacity = 0;
+                art.ease({
+                    opacity: 255,
+                    duration: 300,
+                    mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                });
+            } else {
+                art.opacity = 255;
+            }
+            return;
+        }
+
+        if (animate) {
+            art.remove_all_transitions();
+            art.ease({
+                opacity: 0,
+                duration: 150,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                onStopped: () => {
+                    if (seq !== this._fadeSeq)
+                        return;
+                    art.visible = false;
+                    art.opacity = 255;
+                },
+            });
+        } else {
+            art.visible = false;
+            art.opacity = 255;
+        }
     }
 
-    _updateVisualizer() {
+    _updateVisualizer(animate = false, seq = this._fadeSeq) {
         if (!this._visualizer) return;
         const showMedia = this._gsettings.get_boolean('dm-show-media');
         const mediaPlayingOnly = this._gsettings.get_boolean('dm-show-media-playing-only');
@@ -393,7 +441,58 @@ export class AtAGlanceIndicator {
         this._visualizer.setMode(effectiveMode);
         this._visualizer.setPlaying(this._lastPlayingState);
         this._visualizer.setShowPauseIcon(showVis && !this._lastPlayingState);
-        this._visualizer.visible = showVis;
+
+        const vis = this._visualizer;
+        if (vis.visible === showVis) {
+            if (showVis && vis.opacity < 255) {
+                if (animate) {
+                    vis.remove_all_transitions();
+                    vis.ease({
+                        opacity: 255,
+                        duration: 150,
+                        mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                    });
+                } else {
+                    vis.remove_all_transitions();
+                    vis.opacity = 255;
+                }
+            }
+            return;
+        }
+
+        if (showVis) {
+            vis.visible = true;
+            if (animate) {
+                vis.remove_all_transitions();
+                vis.opacity = 0;
+                vis.ease({
+                    opacity: 255,
+                    duration: 300,
+                    mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                });
+            } else {
+                vis.opacity = 255;
+            }
+            return;
+        }
+
+        if (animate) {
+            vis.remove_all_transitions();
+            vis.ease({
+                opacity: 0,
+                duration: 150,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                onStopped: () => {
+                    if (seq !== this._fadeSeq)
+                        return;
+                    vis.visible = false;
+                    vis.opacity = 255;
+                },
+            });
+        } else {
+            vis.visible = false;
+            vis.opacity = 255;
+        }
     }
 
     _formatMediaText(title, artist) {
@@ -451,39 +550,161 @@ export class AtAGlanceIndicator {
         }
     }
 
-    _updateMediaVisibility() {
+    _updateMediaVisibility(opts = {}) {
+        // New "presentation epoch": every call invalidates the onStopped
+        // callbacks of previous fades, so interrupted transitions (rapid skips,
+        // pause firing mid-cross-fade) never clobber the current state.
+        const seq = ++this._fadeSeq;
+        const animate = !opts.instant && (this._container?.mapped ?? false);
         const showMedia = this._gsettings.get_boolean('dm-show-media');
         const mediaLayout = this._gsettings.get_int('dm-media-layout');
         const mediaPlayingOnly = this._gsettings.get_boolean('dm-show-media-playing-only');
         const isPlaying = this._lastPlayingState;
         const shouldShow = showMedia && (isPlaying || !mediaPlayingOnly);
+        const text = this._lastMediaText;
 
         this._reorderContainer();
         this._reorderTextBox();
 
-        if (shouldShow) {
-            switch (mediaLayout) {
-            case 0: // Vista multimedia: text only
-                this._clockLabel.visible = false;
-                this._mediaLabel.visible = true;
-                break;
-            case 1: // Vista de reloj: clock + art + vis
-                this._clockLabel.visible = true;
-                this._mediaLabel.visible = false;
-                break;
-            case 2: // Vista completa: clock + text + art + vis
-                this._clockLabel.visible = true;
-                this._mediaLabel.visible = true;
-                break;
+        // --- Media label ---
+        const showLabel = shouldShow && mediaLayout !== 1;
+        const label = this._mediaLabel;
+        const labelWasVisible = label.visible;
+        const swapText = labelWasVisible && label.text !== text;
+
+        if (showLabel && swapText && animate) {
+            // Cross-fade a text change while visible: out → swap → in.
+            label.remove_all_transitions();
+            label.ease({
+                opacity: 0,
+                duration: 150,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                onStopped: () => {
+                    if (seq !== this._fadeSeq)
+                        return;
+                    label.text = text;
+                    label.opacity = 0;
+                    label.ease({
+                        opacity: 255,
+                        duration: 300,
+                        mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                    });
+                },
+            });
+        } else if (showLabel && (swapText || !labelWasVisible)) {
+            // Appearing, or text changed while hidden: set text then fade in.
+            if (label.text !== text)
+                label.text = text;
+            label.visible = true;
+            if (animate) {
+                label.remove_all_transitions();
+                label.opacity = 0;
+                label.ease({
+                    opacity: 255,
+                    duration: 300,
+                    mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                });
+            } else {
+                label.opacity = 255;
             }
-        } else {
-            this._clockLabel.visible = true;
-            this._mediaLabel.visible = false;
+        } else if (!showLabel && (labelWasVisible || label.opacity > 0)) {
+            // Leaving: fade out with the real text, hide, reset opacity.
+            if (animate) {
+                label.remove_all_transitions();
+                label.ease({
+                    opacity: 0,
+                    duration: 150,
+                    mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                    onStopped: () => {
+                        if (seq !== this._fadeSeq)
+                            return;
+                        label.text = text;
+                        label.visible = false;
+                        label.opacity = 255;
+                    },
+                });
+            } else {
+                if (label.text !== text)
+                    label.text = text;
+                label.visible = false;
+                label.opacity = 255;
+            }
+        } else if (showLabel && labelWasVisible) {
+            // Visible with the same text: an interrupted fade-out (e.g. a
+            // GSConnect next whose metadata snapshots back to the same track)
+            // may have left the label at partial opacity — restore it to full
+            // instead of staying as a dark/empty gap (4.4.3.2).
+            if (animate && label.opacity < 255) {
+                label.remove_all_transitions();
+                label.ease({
+                    opacity: 255,
+                    duration: 150,
+                    mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                });
+            } else if (!animate && label.opacity !== 255) {
+                label.remove_all_transitions();
+                label.opacity = 255;
+            }
+        } else if (label.text !== text) {
+            // Hidden (layout 1) or visible with the same text: silent sync so
+            // a later layout switch / player change shows the current track.
+            label.text = text;
+        }
+
+        // --- Clock label ---
+        const showClock = !shouldShow || mediaLayout !== 0;
+        const clock = this._clockLabel;
+        const clockWasVisible = clock.visible;
+
+        if (showClock) {
+            if (!clockWasVisible) {
+                clock.visible = true;
+                if (animate) {
+                    clock.remove_all_transitions();
+                    clock.opacity = 0;
+                    clock.ease({
+                        opacity: 255,
+                        duration: 300,
+                        mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                    });
+                } else {
+                    clock.opacity = 255;
+                }
+            } else if (animate && clock.opacity < 255) {
+                // Same interrupted-fade restore as the media label.
+                clock.remove_all_transitions();
+                clock.ease({
+                    opacity: 255,
+                    duration: 150,
+                    mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                });
+            } else if (!animate && clock.opacity !== 255) {
+                clock.remove_all_transitions();
+                clock.opacity = 255;
+            }
+        } else if (clockWasVisible || clock.opacity > 0) {
+            if (animate) {
+                clock.remove_all_transitions();
+                clock.ease({
+                    opacity: 0,
+                    duration: 150,
+                    mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                    onStopped: () => {
+                        if (seq !== this._fadeSeq)
+                            return;
+                        clock.visible = false;
+                        clock.opacity = 255;
+                    },
+                });
+            } else {
+                clock.visible = false;
+                clock.opacity = 255;
+            }
         }
 
         this._updateClock();
-        this._updateArtVisibility();
-        this._updateVisualizer();
+        this._updateArtVisibility(animate, seq);
+        this._updateVisualizer(animate, seq);
     }
 
     _updateClock() {

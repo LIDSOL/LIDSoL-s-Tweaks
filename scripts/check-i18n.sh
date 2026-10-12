@@ -209,7 +209,7 @@ PY
 }
 
 SMOKE_SED_FROM="'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js'"
-SMOKE_PREFS_MODULES="topBarOrganizer quickSettingsTweaks workspaceIndicator workspace userAvatar"
+SMOKE_PREFS_MODULES="topBarOrganizer quickSettingsTweaks workspaceIndicator workspace userAvatar dashboard"
 
 check_smoke() {
     echo "==> [smoke] GJS: sin _() eager en módulos prefs (mock-import)"

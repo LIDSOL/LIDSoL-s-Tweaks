@@ -23,7 +23,6 @@ DEADLINE: <2026-10-09 Fri>
 *** TODO [#A] 1.1 Dashboard [0%]
 DEADLINE: <2026-10-08 Thu>
 - [ ] 1.1.1 Fix o Feat en Configuraciones [0/11]
-  - [ ] 1.1.1.1 La configuración del offset en `X` y `Y` no funcionan correctamente. No se aplica el ajuste.
   - [ ] 1.1.1.2 Al activar el switch de /Transparent Container/, sería interesante cambiar el color background de los widgets. Pues el color no es muy agradable.
   - [ ] 1.1.1.3 Verificar el funcionamiento del ajuste /Grid Layout -> Columns/
   - [ ] 1.1.1.4 Verificar el widget indicador de "Show Temperature" ¿qué dependencia requiere para su correcto funcionamiento? Indicarlo para el /readme/.
@@ -42,7 +41,7 @@ DEADLINE: <2026-10-08 Thu>
   - [ ] 1.1.1.11 Ajuste en /System Levels/ para mostrar porcentaje o uso de recurso.
 - [ ] /1.1.2 Prefs.js/ [0/2]
   - [ ] 1.1.2.1 Cambiar los schemas para tener una buena configuración por defecto.
-  - [ ] 1.1.2.2 Las configuraciones debe estar dentro del módulo, para ir reduciendo el tamaño de `prefs.js`.
+  - [X] 1.1.2.2 Las configuraciones debe estar dentro del módulo, para ir reduciendo el tamaño de `prefs.js`.
 *** TODO [#B] 1.2 Quick Text [0%]
 DEADLINE: <2026-10-09 Fri>
 - Descripción y objetivo:
@@ -146,28 +145,28 @@ DEADLINE: <2026-09-15 Tue>
 - Referencia para el frontend: [[https://flathub.org/en/apps/dev.geopjr.Turntable][Turntable (media widget flatpak)]]
 ***** SOMEDAY Widget weather
 - Referencia para el frontend: [[https://flathub.org/en/apps/io.github.amit9838.mousam][Mouseam en "modo widget"]]
-** NEXT [#B] 4. Top Bar [0%]
-*** TODO [#C] 4.1 Top Bar Organized [0%]
-DEADLINE: <2026-10-05 Mon>
-- [-] 4.1.0 /Prefs.js/
+** NEXT [#B] 4. Top Bar [16%]
+- [ ] 4.0 Cambiar los schemas para tener una configuración buena por defecto
+*** DONE [#C] 4.1 Top Bar Organized [83%]
+DEADLINE: <2026-10-10 Sat>
+- [X] 4.1.0 /Prefs.js/
   - [X] 4.1.0.1 Mover los ajustes de /Prefs.js/ a un archivo de configuración en el directorio del módulo.
-  - [ ] 4.1.0.2 Cambiar los schemas para tener una buena configuración por defecto.
-- [x] 4.1.1 Bug: Al hacer uso del botón "Restablecer valores predeterminados" todos los elementos /desaparecen/, al cerrar y abrir el dialog, nuevamente son visibles. No se restablece el orden.
-- [x] 4.1.1 Feat: Al hacer uso del botón "Restablecer valores predeterminados", recargar los elementos del panel, para eliminar aquellos que ya no están. Por ejemplo, a veces permanecen en la lista elementos que ya no existen; como un indicador de una extensión que ya se eliminó, pero el elemento aún se muestra. Solución: el botón ahora "limpia la barra": vía D-Bus (`org.gnome.Shell.Extensions.LidSolWidgets.CleanTopBar`) pide al módulo `_cleanTopBar()` que reconstruya los `tbo-*-box-order`/`tbo-hide`/`tbo-show` únicamente con los elementos vivos de la barra, y luego el dialog se reconstruye.
-- [x] 4.1.3 Feat: Cada vez que se abre el dialog, recarga los elementos (para asegurar que no se muestra nada que no está realmente). Solución adoptada: limpieza **manual** vía el botón de actualizar (1.4.1.1); NO se poda automáticamente en cada evento (prefs no accede a `Main.panel`, así que la limpieza se delega al módulo del shell vía D-Bus).
-- [x] 4.1.4 Bug: Este tiene relación con 4.3.1, no se puede "ordenar" el elemento del Workspace Bar. Muy posiblemente por entrar en conflicto con la opción de ubicación de este módulo. No aparece en la lista de elementos a ordenar.
-- [x] 4.1.5 Feat: Recibe la señal de como se indica en 4.3.5.8; es decir, estos dos switch están sincronizados, se usa la función/clase de Top Bar.
+  - [X] 4.1.0.2 Cambiar los schemas para tener una buena configuración por defecto.
+- [X] 4.1.1 Bug: Al hacer uso del botón "Restablecer valores predeterminados" todos los elementos /desaparecen/, al cerrar y abrir el dialog, nuevamente son visibles. No se restablece el orden.
+- [X] 4.1.1 Feat: Al hacer uso del botón "Restablecer valores predeterminados", recargar los elementos del panel, para eliminar aquellos que ya no están. Por ejemplo, a veces permanecen en la lista elementos que ya no existen; como un indicador de una extensión que ya se eliminó, pero el elemento aún se muestra. Solución: el botón ahora "limpia la barra": vía D-Bus (`org.gnome.Shell.Extensions.LidSolWidgets.CleanTopBar`) pide al módulo `_cleanTopBar()` que reconstruya los `tbo-*-box-order`/`tbo-hide`/`tbo-show` únicamente con los elementos vivos de la barra, y luego el dialog se reconstruye.
+- [X] 4.1.3 Feat: Cada vez que se abre el dialog, recarga los elementos (para asegurar que no se muestra nada que no está realmente). Solución adoptada: limpieza **manual** vía el botón de actualizar (1.4.1.1); NO se poda automáticamente en cada evento (prefs no accede a `Main.panel`, así que la limpieza se delega al módulo del shell vía D-Bus).
+- [X] 4.1.5 Feat: Recibe la señal de como se indica en 4.3.5.8; es decir, estos dos switch están sincronizados, se usa la función/clase de Top Bar.
 *** TODO [#C] 4.2 Panel Corners [0%]
 DEADLINE: <2026-10-05 Mon>
 - [ ] 4.2.1 Eliminar el modo debug (switch) de las opciones avanzadas, y todo el código asociado a esta opción.
-*** TODO [#B] 4.3 Workspace Indicator [0%]
-DEADLINE: <2026-10-05 Mon>
-- [x] 4.3.1 Eliminar las opciones de posición y todo su código asociado (se usará top bar organized para ello).
-- [x] 4.3.2 Bug: No se muestra en top bar organized (relacionado con 1.4.1.4)
-- [x] 4.3.2 Feat: Implementar la posibilidad de renombrar el espacio de trabajo (como en space bar).
-- [ ] 4.3.3 Añadir la posibilidad de arrastrar un elemento del topbar a un espacio de trabajo o un lugar intermedio para abrir un nuevo espacio de trabajo.
-- [x] 4.3.4 Movimiento de workspaces como en workspaceIndicator
-- [x] 4.3.5 Opciones de *Comportamiento*
+- [ ] 4.2.1 Añadir capacidad de adaptarse al color de la barra
+*** TODO [#B] 4.3 Workspace Indicator [64%]
+DEADLINE: <2026-10-10 Sat>
+- [X] 4.3.1 Eliminar las opciones de posición y todo su código asociado (se usará top bar organized para ello).
+- [X] 4.3.2 Bug: No se muestra en top bar organized (relacionado con 1.4.1.4)
+- [X] 4.3.2 Feat: Implementar la posibilidad de renombrar el espacio de trabajo (como en space bar).
+- [X] 4.3.4 Movimiento de workspaces como en workspaceIndicator
+- [X] 4.3.5 Opciones de *Comportamiento*
   - [x] 4.3.5.1 Mostrar iconos de las aplicaciones (este switch debe mostrar u ocultar los iconos, para solo mostrar los nombres de los espacios de trabajo)
   - [x] 4.3.5.2 Click central cierra ventana (opción por defecto)
   - [x] 4.3.5.3 Mostrar números siempre
@@ -178,11 +177,11 @@ DEADLINE: <2026-10-05 Mon>
   - [x] 4.3.5.6 Tiempo de debounce
   - [x] 4.3.5.8 Conservar indicador nativo (cuando se activa este módulo, manda un mensaje a top bar organized para ocultarlo). Relacionado con 1.4.1.5
   - [x] 4.3.5.9  Mostrar espacios vacíos (+) (adaptarlo de space bar)
-- [x] 4.3.6 Opciones de *Nombres inteligentes*
+- [X] 4.3.6 Opciones de *Nombres inteligentes*
   - Feat basada en space bar
   - [x] 4.3.6.1 Activar nombres inteligentes
   - [x] 4.3.6.1 Reevaluar nombres
-- [x] 4.3.7 Opciones de *Apariencia*
+- [X] 4.3.7 Opciones de *Apariencia*
   - [x] 4.3.7.1 Tamaño (opción por defecto)
   - [x] 4.3.7.2 Reducir opacidad de iconos nativos (opción por defecto)
   - [x] 4.3.7.3 Desaturar iconos inactivos (opción por defecto)
@@ -193,7 +192,7 @@ DEADLINE: <2026-10-05 Mon>
   - [x] 4.3.7.8 Padding de barra
   - [x] 4.3.7.9 Margen entre espacios
   - [x] 4.3.7.10 Mostrar fondo de iconos (opción por defecto)
-- [x] 4.3.8 Opciones de *Espacio activo*
+- [X] 4.3.8 Opciones de *Espacio activo*
   - [x] 4.3.8.1 Usar color de acento de GNOME en el fondo (nombre e icono, en el fondo del icono debe usarse un color más oscuro para mejorar el contraste)
   - [x] 4.3.8.2 Usar color de acento de GNOME en el borde
   - [x] 4.3.8.3 Color de fondo
@@ -205,7 +204,7 @@ DEADLINE: <2026-10-05 Mon>
   - [x] 4.3.8.10 Ancho de borde
   - [x] 4.3.8.11 Padding horizontal
   - [x] 4.3.8.12 Padding vertical
-- [x] 4.3.9 Opciones de *Espacio inactivo*
+- [X] 4.3.9 Opciones de *Espacio inactivo*
   - [x] 4.3.9.1 Color de fondo
   - [x] 4.3.9.2 Color de texto
   - [x] 4.3.9.3 Color de borde
@@ -215,7 +214,7 @@ DEADLINE: <2026-10-05 Mon>
   - [x] 4.3.9.8 Ancho de borde
   - [x] 4.3.9.9 Padding horizontal
   - [x] 4.3.9.10 Padding vertical
-- [x] 4.3.10 Opciones de *Espacio vacío*
+- [X] 4.3.10 Opciones de *Espacio vacío*
   - [x] 4.3.10.1 Color de fondo
   - [x] 4.3.10.2 Color de texto
   - [x] 4.3.10.3 Color de borde
@@ -234,7 +233,7 @@ DEADLINE: <2026-10-05 Mon>
   - [ ] 4.3.11.6 Volver al espacio anterior
   - [ ] 4.3.11.7 Ir al espacio vacío
   - [ ] 4.3.11.8 Abrir menú (para renombrar)
-- [x] Configuración para el acento de color, si se muestra los iconos, el color difiere del bg al borde, si no se muestran los iconos, se usa el color del acento tanto en borde como bg.
+- [X] Configuración para el acento de color, si se muestra los iconos, el color difiere del bg al borde, si no se muestran los iconos, se usa el color del acento tanto en borde como bg.
 - [ ] Deshabilitar las opciones referentes a iconos si el switch para mostrarlos está desactivado.
 - [ ] Bug en múltiples monitores, no aparece el workspace de los monitores externos.
 - [ ] Cuando se tienen los íconos activos, el bg que difiere del borde también debe aplicar a los indicadores de espacio de trabajo que no tiene aplicaciones abiertas. Cuando te colocas en un espacio de trabajo sin iconos, el borde y el bg son iguales.

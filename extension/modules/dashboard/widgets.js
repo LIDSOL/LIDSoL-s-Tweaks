@@ -17,6 +17,15 @@ import { PACKAGE_VERSION } from 'resource:///org/gnome/shell/misc/config.js';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { launchCommand } from '../../utils/commandLauncher.js';
+import {
+    openSettingsPanel,
+    getNightLightEnabled,
+    toggleNightLight,
+    getDarkStyleEnabled,
+    toggleDarkStyle,
+    getDndEnabled,
+    toggleDnd,
+} from './actions.js';
 
 import { DashboardMediaWidget } from './mediaWidget.js';
 import {
@@ -102,29 +111,46 @@ class HoverButton extends St.Button {
         });
         this.child.x_align = Clutter.ActorAlign.CENTER;
         this.child.y_align = Clutter.ActorAlign.CENTER;
+        this.connect('destroy', () => {
+            try {
+                Main.layoutManager.removeChrome(this._hoverLabel);
+            } catch (_) {}
+            this._hoverLabel = null;
+        });
     }
 
     _toggleHoverLabel() {
+        if (!this._hoverLabel)
+            return;
+
         if (!this.hover) {
-            Main.layoutManager.removeChrome(this._hoverLabel);
+            try {
+                Main.layoutManager.removeChrome(this._hoverLabel);
+            } catch (_) {}
             return;
         }
 
-        Main.layoutManager.addTopChrome(this._hoverLabel);
+        try {
+            Main.layoutManager.addTopChrome(this._hoverLabel);
+        } catch (_) {
+            return;
+        }
         this._hoverLabel.opacity = 0;
-        const [stageX, stageY] = this.get_transformed_position();
-        const iconWidth = this.allocation.get_width();
-        const labelWidth = this._hoverLabel.get_width();
-        const xOffset = Math.floor((iconWidth - labelWidth) / 2);
-        const x = Math.clamp(stageX + xOffset, 0, global.stage.width - labelWidth);
-        const y = stageY - this._hoverLabel.height;
-        this._hoverLabel.set_position(x, y);
+        try {
+            const [stageX, stageY] = this.get_transformed_position();
+            const iconWidth = this.allocation.get_width();
+            const labelWidth = this._hoverLabel.get_width();
+            const xOffset = Math.floor((iconWidth - labelWidth) / 2);
+            const x = Math.clamp(stageX + xOffset, 0, global.stage.width - labelWidth);
+            const y = stageY - this._hoverLabel.height;
+            this._hoverLabel.set_position(x, y);
 
-        this._hoverLabel.ease({
-            opacity: 255,
-            duration: 300,
-            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-        });
+            this._hoverLabel.ease({
+                opacity: 255,
+                duration: 300,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            });
+        } catch (_) {}
     }
 });
 
@@ -668,7 +694,44 @@ class SettingsWidget extends DashWidget {
         this._handlerIds.push(
             settings.connect('changed::dashboard-system-icon-size', () => this._sync())
         );
+        this._nightLightSettings = null;
+        this._interfaceSettings = null;
+        this._notifSettings = null;
+
+        try {
+            const source = Gio.SettingsSchemaSource.get_default();
+            if (source.lookup('org.gnome.settings-daemon.plugins.color', true))
+                this._nightLightSettings = new Gio.Settings({ schema_id: 'org.gnome.settings-daemon.plugins.color' });
+            if (source.lookup('org.gnome.desktop.interface', true))
+                this._interfaceSettings = new Gio.Settings({ schema_id: 'org.gnome.desktop.interface' });
+            if (source.lookup('org.gnome.desktop.notifications', true))
+                this._notifSettings = new Gio.Settings({ schema_id: 'org.gnome.desktop.notifications' });
+        } catch (_) {}
+
+        if (this._nightLightSettings)
+            this._handlerIds.push(this._nightLightSettings.connect('changed::night-light-enabled', () => this._sync()));
+        if (this._interfaceSettings)
+            this._handlerIds.push(this._interfaceSettings.connect('changed::color-scheme', () => this._sync()));
+        if (this._notifSettings)
+            this._handlerIds.push(this._notifSettings.connect('changed::show-banners', () => this._sync()));
+
         this._sync();
+    }
+
+    _onDestroy() {
+        if (this._nightLightSettings) {
+            try { this._nightLightSettings.run_dispose(); } catch (_) {}
+            this._nightLightSettings = null;
+        }
+        if (this._interfaceSettings) {
+            try { this._interfaceSettings.run_dispose(); } catch (_) {}
+            this._interfaceSettings = null;
+        }
+        if (this._notifSettings) {
+            try { this._notifSettings.run_dispose(); } catch (_) {}
+            this._notifSettings = null;
+        }
+        super._onDestroy();
     }
 
     _sync() {
@@ -677,15 +740,22 @@ class SettingsWidget extends DashWidget {
         const iconSize = this._settings.get_int('dashboard-system-icon-size');
 
         this.destroy_all_children();
+
+        const nightLight = getNightLightEnabled();
+        const darkStyle = getDarkStyleEnabled();
+        const dnd = getDndEnabled();
+
         [
-            this._button('network-wireless-signal-good-symbolic', 'gnome-wifi-panel', iconSize, _('WiFi')),
-            this._button('bluetooth-active-symbolic', 'gnome-bluetooth-panel', iconSize, _('Bluetooth')),
-            this._button('org.gnome.Settings-symbolic', 'org.gnome.Settings', iconSize, _('Settings')),
-        ]
-        .forEach(btn => this.add_child(btn));
+            this._openButton('org.gnome.Settings-symbolic', () => openSettingsPanel(null), iconSize, _('Settings')),
+            this._openButton('network-wireless-signal-good-symbolic', () => openSettingsPanel('wifi'), iconSize, _('Wi-Fi')),
+            this._openButton('bluetooth-active-symbolic', () => openSettingsPanel('bluetooth'), iconSize, _('Bluetooth')),
+            this._toggleButton('night-light-symbolic', toggleNightLight, iconSize, _('Night Light'), nightLight),
+            this._toggleButton('dark-mode-symbolic', toggleDarkStyle, iconSize, _('Dark Style'), darkStyle),
+            this._toggleButton('notifications-disabled-symbolic', toggleDnd, iconSize, _('Do Not Disturb'), dnd),
+        ].forEach(btn => this.add_child(btn));
     }
 
-    _button(icon, panel, iconSize, label) {
+    _openButton(icon, callback, iconSize, label) {
         return new HoverButton(
             new St.Icon({
                 icon_name: icon,
@@ -693,11 +763,30 @@ class SettingsWidget extends DashWidget {
             }),
             label,
             () => {
-                Shell.AppSystem.get_default().lookup_app(`${panel}.desktop`).activate();
+                callback();
                 if (this._parentDialog) this._parentDialog.close();
             },
             'system-action-button'
         );
+    }
+
+    _toggleButton(icon, callback, iconSize, label, active) {
+        const btn = new HoverButton(
+            new St.Icon({
+                icon_name: icon,
+                icon_size: iconSize,
+            }),
+            label,
+            () => {
+                callback();
+            },
+            'system-action-button'
+        );
+        if (active)
+            btn.add_style_class_name('active');
+        else
+            btn.remove_style_class_name('active');
+        return btn;
     }
 });
 
@@ -707,7 +796,44 @@ class SystemWidget extends DashWidget {
         super._init(settings, 'system', parentDialog, {x_expand: true});
         this._connect('icon-size');
         this._connect('layout');
+        this._nightLightSettings = null;
+        this._interfaceSettings = null;
+        this._notifSettings = null;
+
+        try {
+            const source = Gio.SettingsSchemaSource.get_default();
+            if (source.lookup('org.gnome.settings-daemon.plugins.color', true))
+                this._nightLightSettings = new Gio.Settings({ schema_id: 'org.gnome.settings-daemon.plugins.color' });
+            if (source.lookup('org.gnome.desktop.interface', true))
+                this._interfaceSettings = new Gio.Settings({ schema_id: 'org.gnome.desktop.interface' });
+            if (source.lookup('org.gnome.desktop.notifications', true))
+                this._notifSettings = new Gio.Settings({ schema_id: 'org.gnome.desktop.notifications' });
+        } catch (_) {}
+
+        if (this._nightLightSettings)
+            this._handlerIds.push(this._nightLightSettings.connect('changed::night-light-enabled', () => this._sync()));
+        if (this._interfaceSettings)
+            this._handlerIds.push(this._interfaceSettings.connect('changed::color-scheme', () => this._sync()));
+        if (this._notifSettings)
+            this._handlerIds.push(this._notifSettings.connect('changed::show-banners', () => this._sync()));
+
         this._sync();
+    }
+
+    _onDestroy() {
+        if (this._nightLightSettings) {
+            try { this._nightLightSettings.run_dispose(); } catch (_) {}
+            this._nightLightSettings = null;
+        }
+        if (this._interfaceSettings) {
+            try { this._interfaceSettings.run_dispose(); } catch (_) {}
+            this._interfaceSettings = null;
+        }
+        if (this._notifSettings) {
+            try { this._notifSettings.run_dispose(); } catch (_) {}
+            this._notifSettings = null;
+        }
+        super._onDestroy();
     }
 
     _sync() {
@@ -737,10 +863,16 @@ class SystemWidget extends DashWidget {
             x_expand: true,
             y_expand: true,
         });
+        const nightLight = getNightLightEnabled();
+        const darkStyle = getDarkStyleEnabled();
+        const dnd = getDndEnabled();
         [
-            this._appButton('network-wireless-signal-good-symbolic', 'gnome-wifi-panel', iconSize, _('WiFi')),
-            this._appButton('bluetooth-active-symbolic', 'gnome-bluetooth-panel', iconSize, _('Bluetooth')),
-            this._appButton('org.gnome.Settings-symbolic', 'org.gnome.Settings', iconSize, _('Settings')),
+            this._openButton('org.gnome.Settings-symbolic', () => openSettingsPanel(null), iconSize, _('Settings')),
+            this._openButton('network-wireless-signal-good-symbolic', () => openSettingsPanel('wifi'), iconSize, _('Wi-Fi')),
+            this._openButton('bluetooth-active-symbolic', () => openSettingsPanel('bluetooth'), iconSize, _('Bluetooth')),
+            this._toggleButton('night-light-symbolic', toggleNightLight, iconSize, _('Night Light'), nightLight),
+            this._toggleButton('dark-mode-symbolic', toggleDarkStyle, iconSize, _('Dark Style'), darkStyle),
+            this._toggleButton('notifications-disabled-symbolic', toggleDnd, iconSize, _('Do Not Disturb'), dnd),
         ]
         .forEach(btn => settingsBox.add_child(btn));
 
@@ -774,6 +906,40 @@ class SystemWidget extends DashWidget {
             },
             'system-action-button'
         );
+    }
+
+    _openButton(icon, callback, iconSize, label) {
+        return new HoverButton(
+            new St.Icon({
+                icon_name: icon,
+                icon_size: iconSize,
+            }),
+            label,
+            () => {
+                callback();
+                if (this._parentDialog) this._parentDialog.close();
+            },
+            'system-action-button'
+        );
+    }
+
+    _toggleButton(icon, callback, iconSize, label, active) {
+        const btn = new HoverButton(
+            new St.Icon({
+                icon_name: icon,
+                icon_size: iconSize,
+            }),
+            label,
+            () => {
+                callback();
+            },
+            'system-action-button'
+        );
+        if (active)
+            btn.add_style_class_name('active');
+        else
+            btn.remove_style_class_name('active');
+        return btn;
     }
 
     _appButton(icon, panel, iconSize, label) {

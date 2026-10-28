@@ -96,7 +96,7 @@ export class DashboardPrefs {
 
         // ── Grid group ──
         const gridGroup = new Adw.PreferencesGroup({ title: _('Grid Layout') });
-        gridGroup.add(this._makeSpinRow(s, _('Spacing'), 'dashboard-grid-spacing', 0, 60, 1));
+        gridGroup.add(this._makeSpinRow(s, _('Spacing'), 'dashboard-grid-spacing', 0, 30, 1));
         gridGroup.add(this._makeSpinRow(s, _('Columns'), 'dashboard-grid-columns', 1, 6, 1));
         page.add(gridGroup);
 
@@ -106,8 +106,8 @@ export class DashboardPrefs {
 
         widgetsGroup.add(this._makeWidgetExpander(s, 'user', _('User'), exp => {
             exp.add_row(this._makeSpinRow(s, _('Icon Roundness'), 'dashboard-user-icon-roundness', 1, 99, 1));
-            exp.add_row(this._makeSpinRow(s, _('Icon Width'), 'dashboard-user-icon-width', 10, 150, 2));
-            exp.add_row(this._makeSpinRow(s, _('Icon Height'), 'dashboard-user-icon-height', 10, 150, 2));
+            exp.add_row(this._makeSpinRow(s, _('Icon Width'), 'dashboard-user-icon-width', 50, 100, 2));
+            exp.add_row(this._makeSpinRow(s, _('Icon Height'), 'dashboard-user-icon-height', 50, 100, 2));
             exp.add_row(this._makeSpinRow(s, _('Text Spacing'), 'dashboard-user-text-spacing', 0, 80, 1));
             exp.add_row(this._makeExpandRow(s, _('Vertical'), 'dashboard-user-vertical'));
         }));
@@ -149,8 +149,8 @@ export class DashboardPrefs {
 
         widgetsGroup.add(this._makeWidgetExpander(s, 'clock', _('Clock'), exp => {
             exp.add_row(this._makeExpandRow(s, _('Vertical'), 'dashboard-clock-vertical'));
-            exp.add_row(this._makeSpinRow(s, _('Time Size'), 'dashboard-clock-clock-size', 8, 200, 2));
-            exp.add_row(this._makeSpinRow(s, _('Date Size'), 'dashboard-clock-date-size', 8, 100, 1));
+            exp.add_row(this._makeSpinRow(s, _('Time Size'), 'dashboard-clock-clock-size', 20, 70, 2));
+            exp.add_row(this._makeSpinRow(s, _('Date Size'), 'dashboard-clock-date-size', 15, 30, 1));
             exp.add_row(this._makeSpinRow(s, _('Spacing'), 'dashboard-clock-spacing', 0, 50, 1));
         }));
 

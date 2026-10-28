@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: LIDSoL's Tweaks\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 23:04-0600\n"
+"POT-Creation-Date: 2026-10-27 20:31-0600\n"
 "PO-Revision-Date: 2026-10-03 00:00+0000\n"
 "Last-Translator: LIDSoL <EMAIL@ADDRESS>\n"
 "Language-Team: Japanese <ja@li.org>\n"
@@ -23,76 +23,6 @@ msgstr "再生中のメディアはありません"
 #: extension/modules/dashboard/mediaWidget.js:251
 msgid "No media information"
 msgstr "メディア情報がありません"
-
-#: extension/modules/dashboard/systemMonitor.js:233
-#: extension/modules/quickSettingsTweaks/prefsSettings.js:1012
-msgid "Battery"
-msgstr "バッテリー"
-
-#: extension/modules/dashboard/systemMonitor.js:297
-msgid "CPU"
-msgstr "CPU"
-
-#: extension/modules/dashboard/systemMonitor.js:360
-msgid "RAM"
-msgstr "RAM"
-
-#: extension/modules/dashboard/systemMonitor.js:405
-msgid "Temperature"
-msgstr "温度"
-
-#: extension/modules/dashboard/systemMonitor.js:432
-msgid "Disk"
-msgstr "ディスク"
-
-#: extension/modules/dashboard/widgets.js:301
-msgid "Night Time"
-msgstr "夜"
-
-#: extension/modules/dashboard/widgets.js:302
-msgid "Good Morning"
-msgstr "おはようございます"
-
-#: extension/modules/dashboard/widgets.js:303
-msgid "Good Afternoon"
-msgstr "こんにちは"
-
-#: extension/modules/dashboard/widgets.js:304
-msgid "Good Evening"
-msgstr "こんばんは"
-
-#: extension/modules/dashboard/widgets.js:673
-#: extension/modules/dashboard/widgets.js:733
-msgid "WiFi"
-msgstr "WiFi"
-
-#: extension/modules/dashboard/widgets.js:674
-#: extension/modules/dashboard/widgets.js:734
-#: extension/modules/quickSettingsTweaks/prefsSettings.js:364
-msgid "Bluetooth"
-msgstr "Bluetooth"
-
-#: extension/modules/dashboard/widgets.js:675
-#: extension/modules/dashboard/widgets.js:735
-#: extension/modules/quickSettingsTweaks/prefsSettings.js:1015
-msgid "Settings"
-msgstr "設定"
-
-#: extension/modules/dashboard/widgets.js:721
-msgid "Power Off"
-msgstr "電源オフ"
-
-#: extension/modules/dashboard/widgets.js:722
-msgid "Reboot"
-msgstr "再起動"
-
-#: extension/modules/dashboard/widgets.js:723
-msgid "Log Out"
-msgstr "ログアウト"
-
-#: extension/modules/dashboard/widgets.js:724
-msgid "Suspend"
-msgstr "サスペンド"
 
 #: extension/modules/dashboard/prefsSettings.js:22
 #: extension/modules/dashboard/prefsSettings.js:31
@@ -147,199 +77,173 @@ msgid "Darken Background"
 msgstr "背景を暗くする"
 
 #: extension/modules/dashboard/prefsSettings.js:94
-msgid "Transparent Container"
-msgstr "透明コンテナー"
-
-#: extension/modules/dashboard/prefsSettings.js:95
 msgid "Container Scale (%)"
 msgstr "コンテナースケール (%)"
 
-#: extension/modules/dashboard/prefsSettings.js:99
+#: extension/modules/dashboard/prefsSettings.js:98
 msgid "Grid Layout"
 msgstr "グリッドレイアウト"
 
-#: extension/modules/dashboard/prefsSettings.js:100
-#: extension/modules/dashboard/prefsSettings.js:175
+#: extension/modules/dashboard/prefsSettings.js:99
+#: extension/modules/dashboard/prefsSettings.js:154
 msgid "Spacing"
 msgstr "間隔"
 
-#: extension/modules/dashboard/prefsSettings.js:101
-#: extension/modules/dashboard/prefsSettings.js:180
+#: extension/modules/dashboard/prefsSettings.js:100
+#: extension/modules/dashboard/prefsSettings.js:159
 msgid "Columns"
 msgstr "列"
 
-#: extension/modules/dashboard/prefsSettings.js:104
-msgid "Reset Layout"
-msgstr "レイアウトをリセット"
-
-#: extension/modules/dashboard/prefsSettings.js:105
-msgid "Restore the default grid layout"
-msgstr "既定のグリッドレイアウトを復元"
-
-#: extension/modules/dashboard/prefsSettings.js:107
-#: extension/modules/quickSettingsTweaks/prefsSettings.js:233
-#: extension/modules/quickSettingsTweaks/prefsSettings.js:316
-msgid "Reset"
-msgstr "リセット"
-
-#: extension/modules/dashboard/prefsSettings.js:116 prefs.js:50
+#: extension/modules/dashboard/prefsSettings.js:104 prefs.js:50
 msgid "Widgets"
 msgstr "ウィジェット"
 
-#: extension/modules/dashboard/prefsSettings.js:119
+#: extension/modules/dashboard/prefsSettings.js:107
 msgid "User"
 msgstr "ユーザー"
 
-#: extension/modules/dashboard/prefsSettings.js:120
+#: extension/modules/dashboard/prefsSettings.js:108
 msgid "Icon Roundness"
 msgstr "アイコンの角丸"
 
-#: extension/modules/dashboard/prefsSettings.js:121
+#: extension/modules/dashboard/prefsSettings.js:109
 msgid "Icon Width"
 msgstr "アイコンの幅"
 
-#: extension/modules/dashboard/prefsSettings.js:122
+#: extension/modules/dashboard/prefsSettings.js:110
 msgid "Icon Height"
 msgstr "アイコンの高さ"
 
-#: extension/modules/dashboard/prefsSettings.js:123
+#: extension/modules/dashboard/prefsSettings.js:111
 msgid "Text Spacing"
 msgstr "テキスト間隔"
 
-#: extension/modules/dashboard/prefsSettings.js:124
-#: extension/modules/dashboard/prefsSettings.js:172
+#: extension/modules/dashboard/prefsSettings.js:112
+#: extension/modules/dashboard/prefsSettings.js:151
 msgid "Vertical"
 msgstr "垂直"
 
-#: extension/modules/dashboard/prefsSettings.js:125
-msgid "Show User Name"
-msgstr "ユーザー名を表示"
-
-#: extension/modules/dashboard/prefsSettings.js:128
+#: extension/modules/dashboard/prefsSettings.js:115
 msgid "System Levels"
 msgstr "システムレベル"
 
-#: extension/modules/dashboard/prefsSettings.js:129 prefs.js:241
+#: extension/modules/dashboard/prefsSettings.js:116 prefs.js:241
 msgid "Width"
 msgstr "幅"
 
-#: extension/modules/dashboard/prefsSettings.js:130
+#: extension/modules/dashboard/prefsSettings.js:117
 msgid "Show Battery"
 msgstr "バッテリーを表示"
 
-#: extension/modules/dashboard/prefsSettings.js:131
+#: extension/modules/dashboard/prefsSettings.js:118
 msgid "Show Storage"
 msgstr "ストレージを表示"
 
-#: extension/modules/dashboard/prefsSettings.js:132
+#: extension/modules/dashboard/prefsSettings.js:119
 msgid "Show CPU"
 msgstr "CPU を表示"
 
-#: extension/modules/dashboard/prefsSettings.js:133
+#: extension/modules/dashboard/prefsSettings.js:120
 msgid "Show RAM"
 msgstr "RAM を表示"
 
-#: extension/modules/dashboard/prefsSettings.js:134
+#: extension/modules/dashboard/prefsSettings.js:121
 msgid "Show Temperature"
 msgstr "温度を表示"
 
-#: extension/modules/dashboard/prefsSettings.js:143
+#: extension/modules/dashboard/prefsSettings.js:130
 #: extension/modules/quickSettingsTweaks/prefsSettings.js:596
 msgid "Command"
 msgstr "コマンド"
 
-#: extension/modules/dashboard/prefsSettings.js:148
+#: extension/modules/dashboard/prefsSettings.js:135
 msgid "Media Player"
 msgstr "メディアプレーヤー"
 
-#: extension/modules/dashboard/prefsSettings.js:153
-msgid "Prefer"
-msgstr "優先"
-
-#: extension/modules/dashboard/prefsSettings.js:157
+#: extension/modules/dashboard/prefsSettings.js:136
 msgid "Normal Vertical"
 msgstr "垂直標準"
 
-#: extension/modules/dashboard/prefsSettings.js:157
+#: extension/modules/dashboard/prefsSettings.js:136
 msgid "Normal Horizontal"
 msgstr "水平標準"
 
-#: extension/modules/dashboard/prefsSettings.js:157
+#: extension/modules/dashboard/prefsSettings.js:136
 msgid "Full"
 msgstr "フル"
 
-#: extension/modules/dashboard/prefsSettings.js:158 prefs.js:219 prefs.js:228
+#: extension/modules/dashboard/prefsSettings.js:137 prefs.js:219 prefs.js:228
 #: prefs.js:837
 msgid "Style"
 msgstr "スタイル"
 
-#: extension/modules/dashboard/prefsSettings.js:162
+#: extension/modules/dashboard/prefsSettings.js:141
 msgid "Cover Width"
 msgstr "カバーの幅"
 
-#: extension/modules/dashboard/prefsSettings.js:163
+#: extension/modules/dashboard/prefsSettings.js:142
 msgid "Cover Height"
 msgstr "カバーの高さ"
 
-#: extension/modules/dashboard/prefsSettings.js:164
+#: extension/modules/dashboard/prefsSettings.js:143
 msgid "Cover Roundness"
 msgstr "カバーの角丸"
 
-#: extension/modules/dashboard/prefsSettings.js:165
+#: extension/modules/dashboard/prefsSettings.js:144
 #: extension/modules/workspaceIndicator/prefsSettings.js:193
 msgid "Fade"
 msgstr "フェード"
 
-#: extension/modules/dashboard/prefsSettings.js:166
+#: extension/modules/dashboard/prefsSettings.js:145
 msgid "Show Text"
 msgstr "テキストを表示"
 
-#: extension/modules/dashboard/prefsSettings.js:168
+#: extension/modules/dashboard/prefsSettings.js:147
 msgid "Show Loop and Shuffle"
 msgstr "ループとシャッフルを表示"
 
-#: extension/modules/dashboard/prefsSettings.js:171 prefs.js:720
+#: extension/modules/dashboard/prefsSettings.js:150 prefs.js:720
 msgid "Clock"
 msgstr "時計"
 
-#: extension/modules/dashboard/prefsSettings.js:173
+#: extension/modules/dashboard/prefsSettings.js:152
 msgid "Time Size"
 msgstr "時刻サイズ"
 
-#: extension/modules/dashboard/prefsSettings.js:174
+#: extension/modules/dashboard/prefsSettings.js:153
 msgid "Date Size"
 msgstr "日付サイズ"
 
-#: extension/modules/dashboard/prefsSettings.js:178
+#: extension/modules/dashboard/prefsSettings.js:157
 msgid "App Launcher"
 msgstr "アプリランチャー"
 
-#: extension/modules/dashboard/prefsSettings.js:179
+#: extension/modules/dashboard/prefsSettings.js:158
 msgid "Rows"
 msgstr "行"
 
-#: extension/modules/dashboard/prefsSettings.js:181
-#: extension/modules/dashboard/prefsSettings.js:189
+#: extension/modules/dashboard/prefsSettings.js:160
+#: extension/modules/dashboard/prefsSettings.js:168
 msgid "Icon Size"
 msgstr "アイコンサイズ"
 
-#: extension/modules/dashboard/prefsSettings.js:184
+#: extension/modules/dashboard/prefsSettings.js:163
 msgid "Settings & System"
 msgstr "設定とシステム"
 
-#: extension/modules/dashboard/prefsSettings.js:185
+#: extension/modules/dashboard/prefsSettings.js:164
 msgid "Stacked"
 msgstr "重ねて表示"
 
-#: extension/modules/dashboard/prefsSettings.js:185
+#: extension/modules/dashboard/prefsSettings.js:164
 msgid "Side by Side"
 msgstr "横並び"
 
-#: extension/modules/dashboard/prefsSettings.js:186 prefs.js:1203
+#: extension/modules/dashboard/prefsSettings.js:165 prefs.js:1203
 msgid "Layout"
 msgstr "レイアウト"
 
-#: extension/modules/dashboard/prefsSettings.js:186
+#: extension/modules/dashboard/prefsSettings.js:165
 msgid ""
 "Stacked: two rows (current behavior).\n"
 "Side by Side: single row."
@@ -347,26 +251,96 @@ msgstr ""
 "重ねて表示: 2行 (現在の動作)。\n"
 "横並び: 1行。"
 
-#: extension/modules/dashboard/prefsSettings.js:195
+#: extension/modules/dashboard/prefsSettings.js:174
 msgid "Fill"
 msgstr "塗りつぶし"
 
-#: extension/modules/dashboard/prefsSettings.js:195
+#: extension/modules/dashboard/prefsSettings.js:174
 msgid "Start"
 msgstr "開始"
 
-#: extension/modules/dashboard/prefsSettings.js:195
+#: extension/modules/dashboard/prefsSettings.js:174
 #: extension/modules/quickSettingsTweaks/prefsSettings.js:134
 msgid "Center"
 msgstr "中央"
 
-#: extension/modules/dashboard/prefsSettings.js:195
+#: extension/modules/dashboard/prefsSettings.js:174
 msgid "End"
 msgstr "終了"
 
-#: extension/modules/dashboard/prefsSettings.js:232
+#: extension/modules/dashboard/prefsSettings.js:211
 msgid "Background"
 msgstr "背景"
+
+#: extension/modules/dashboard/systemMonitor.js:233
+#: extension/modules/quickSettingsTweaks/prefsSettings.js:1012
+msgid "Battery"
+msgstr "バッテリー"
+
+#: extension/modules/dashboard/systemMonitor.js:297
+msgid "CPU"
+msgstr "CPU"
+
+#: extension/modules/dashboard/systemMonitor.js:360
+msgid "RAM"
+msgstr "RAM"
+
+#: extension/modules/dashboard/systemMonitor.js:405
+msgid "Temperature"
+msgstr "温度"
+
+#: extension/modules/dashboard/systemMonitor.js:432
+msgid "Disk"
+msgstr "ディスク"
+
+#: extension/modules/dashboard/widgets.js:299
+msgid "Night Time"
+msgstr "夜"
+
+#: extension/modules/dashboard/widgets.js:300
+msgid "Good Morning"
+msgstr "おはようございます"
+
+#: extension/modules/dashboard/widgets.js:301
+msgid "Good Afternoon"
+msgstr "こんにちは"
+
+#: extension/modules/dashboard/widgets.js:302
+msgid "Good Evening"
+msgstr "こんばんは"
+
+#: extension/modules/dashboard/widgets.js:671
+#: extension/modules/dashboard/widgets.js:731
+msgid "WiFi"
+msgstr "WiFi"
+
+#: extension/modules/dashboard/widgets.js:672
+#: extension/modules/dashboard/widgets.js:732
+#: extension/modules/quickSettingsTweaks/prefsSettings.js:364
+msgid "Bluetooth"
+msgstr "Bluetooth"
+
+#: extension/modules/dashboard/widgets.js:673
+#: extension/modules/dashboard/widgets.js:733
+#: extension/modules/quickSettingsTweaks/prefsSettings.js:1015
+msgid "Settings"
+msgstr "設定"
+
+#: extension/modules/dashboard/widgets.js:719
+msgid "Power Off"
+msgstr "電源オフ"
+
+#: extension/modules/dashboard/widgets.js:720
+msgid "Reboot"
+msgstr "再起動"
+
+#: extension/modules/dashboard/widgets.js:721
+msgid "Log Out"
+msgstr "ログアウト"
+
+#: extension/modules/dashboard/widgets.js:722
+msgid "Suspend"
+msgstr "サスペンド"
 
 #: extension/modules/launcher/module.js:240
 msgid "Type to search"
@@ -581,6 +555,11 @@ msgstr "カスタムトグルの変更はすべて失われます。続行しま
 #: extension/modules/quickText/module.js:111 prefs.js:988
 msgid "Cancel"
 msgstr "キャンセル"
+
+#: extension/modules/quickSettingsTweaks/prefsSettings.js:233
+#: extension/modules/quickSettingsTweaks/prefsSettings.js:316
+msgid "Reset"
+msgstr "リセット"
 
 #: extension/modules/quickSettingsTweaks/prefsSettings.js:277
 msgid "Reorder system items"
@@ -2612,6 +2591,21 @@ msgstr "メモページを開く"
 #: extension/modules/quickText/interface.ui:60
 msgid "Open"
 msgstr "開く"
+
+#~ msgid "Transparent Container"
+#~ msgstr "透明コンテナー"
+
+#~ msgid "Reset Layout"
+#~ msgstr "レイアウトをリセット"
+
+#~ msgid "Restore the default grid layout"
+#~ msgstr "既定のグリッドレイアウトを復元"
+
+#~ msgid "Show User Name"
+#~ msgstr "ユーザー名を表示"
+
+#~ msgid "Prefer"
+#~ msgstr "優先"
 
 #~ msgid "Active"
 #~ msgstr "アクティブ"

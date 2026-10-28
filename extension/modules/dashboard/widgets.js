@@ -221,15 +221,13 @@ class UserWidget extends DashWidget {
             y_expand: true,
         });
 
-        if (this._settings.get_boolean('dashboard-user-real-name')) {
-            this._nameLabel = new St.Label({
-                style_class: 'user-name',
-                y_align: Clutter.ActorAlign.END,
-                x_align: this._vertical ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.START,
-                text: this._user.get_real_name() || GLib.get_real_name(),
-            });
-            textBox.add_child(this._nameLabel);
-        }
+        this._nameLabel = new St.Label({
+            style_class: 'user-name',
+            y_align: Clutter.ActorAlign.END,
+            x_align: this._vertical ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.START,
+            text: this._user.get_real_name() || GLib.get_real_name(),
+        });
+        textBox.add_child(this._nameLabel);
 
         this._greetingLabel = new St.Label({
             style_class: 'greetings',

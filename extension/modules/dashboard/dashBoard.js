@@ -48,7 +48,6 @@ class DashBoardModal extends ModalDialog.ModalDialog {
             'changed::dashboard-x-offset', () => this._syncStyle(),
             'changed::dashboard-y-offset', () => this._syncStyle(),
             'changed::dashboard-darken', () => this._syncStyle(),
-            'changed::dashboard-container-transparent', () => this._syncStyle(),
             'changed::dashboard-dialog-scale', () => this._syncStyle(),
             'changed::dashboard-layout-json', () => this._buildUI(),
             this
@@ -94,14 +93,7 @@ class DashBoardModal extends ModalDialog.ModalDialog {
         const scale = this._settings.get_int('dashboard-dialog-scale') / 100;
         const basePadding = 24;
         const padding = Math.max(0, Math.round(basePadding * scale));
-        const transparent = this._settings.get_boolean('dashboard-container-transparent');
-        const dialogStyle = `padding: ${padding}px;` +
-            (transparent ? 'background-color: transparent;' : '');
-        this.dialogLayout._dialog.set_style(dialogStyle);
-        if (transparent)
-            this.dialogLayout._dialog.add_style_class_name('container-transparent');
-        else
-            this.dialogLayout._dialog.remove_style_class_name('container-transparent');
+        this.dialogLayout._dialog.set_style(`padding: ${padding}px;`);
     }
 
     _isOnMediaWidget(event) {

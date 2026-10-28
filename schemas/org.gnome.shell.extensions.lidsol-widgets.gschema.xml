@@ -1454,11 +1454,6 @@
       <default>true</default>
       <summary>Oscurecer fondo</summary>
     </key>
-    <key type="b" name="dashboard-container-transparent">
-      <default>false</default>
-      <summary>Contenedor transparente</summary>
-      <description>Hace transparente el contenedor (wrapper) que envuelve todos los widgets del dashboard</description>
-    </key>
     <key type="i" name="dashboard-dialog-scale">
       <range min="50" max="150"/>
       <default>100</default>
@@ -1542,7 +1537,6 @@
     <key type="i" name="dashboard-media-width"><default>0</default></key>
     <key type="i" name="dashboard-media-height"><default>0</default></key>
     <key type="b" name="dashboard-media-background"><default>true</default></key>
-    <key type="s" name="dashboard-media-prefer"><default>"spotify"</default></key>
     <key type="i" name="dashboard-media-style"><default>2</default></key>
     <key type="i" name="dashboard-media-cover-width"><default>100</default></key>
     <key type="i" name="dashboard-media-cover-height"><default>100</default></key>
@@ -1583,7 +1577,6 @@
     <key type="i" name="dashboard-user-icon-roundness"><default>99</default></key>
     <key type="i" name="dashboard-user-icon-width"><default>80</default></key>
     <key type="i" name="dashboard-user-icon-height"><default>80</default></key>
-    <key type="b" name="dashboard-user-real-name"><default>true</default></key>
     <key type="i" name="dashboard-user-text-spacing"><default>1</default></key>
 
     <!-- Launcher -->

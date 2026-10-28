@@ -91,7 +91,6 @@ export class DashboardPrefs {
         dashGroup.add(this._makeSpinRow(s, _('X Offset'), 'dashboard-x-offset', -1000, 1000, 10));
         dashGroup.add(this._makeSpinRow(s, _('Y Offset'), 'dashboard-y-offset', -1000, 1000, 10));
         dashGroup.add(this._makeExpandRow(s, _('Darken Background'), 'dashboard-darken'));
-        dashGroup.add(this._makeExpandRow(s, _('Transparent Container'), 'dashboard-container-transparent'));
         dashGroup.add(this._makeSpinRow(s, _('Container Scale (%)'), 'dashboard-dialog-scale', 50, 150, 5));
         page.add(dashGroup);
 
@@ -99,17 +98,6 @@ export class DashboardPrefs {
         const gridGroup = new Adw.PreferencesGroup({ title: _('Grid Layout') });
         gridGroup.add(this._makeSpinRow(s, _('Spacing'), 'dashboard-grid-spacing', 0, 60, 1));
         gridGroup.add(this._makeSpinRow(s, _('Columns'), 'dashboard-grid-columns', 1, 6, 1));
-
-        const resetLayoutRow = new Adw.ActionRow({
-            title: _('Reset Layout'),
-            subtitle: _('Restore the default grid layout'),
-        });
-        const resetLayoutBtn = new Gtk.Button({ label: _('Reset'), valign: Gtk.Align.CENTER });
-        resetLayoutBtn.connect('clicked', () => {
-            s.reset('dashboard-layout-json');
-        });
-        resetLayoutRow.add_suffix(resetLayoutBtn);
-        gridGroup.add(resetLayoutRow);
         page.add(gridGroup);
 
         // ── Widgets group ──
@@ -122,7 +110,6 @@ export class DashboardPrefs {
             exp.add_row(this._makeSpinRow(s, _('Icon Height'), 'dashboard-user-icon-height', 10, 150, 2));
             exp.add_row(this._makeSpinRow(s, _('Text Spacing'), 'dashboard-user-text-spacing', 0, 80, 1));
             exp.add_row(this._makeExpandRow(s, _('Vertical'), 'dashboard-user-vertical'));
-            exp.add_row(this._makeExpandRow(s, _('Show User Name'), 'dashboard-user-real-name'));
         }));
 
         widgetsGroup.add(this._makeWidgetExpander(s, 'levels', _('System Levels'), exp => {
@@ -146,14 +133,6 @@ export class DashboardPrefs {
         }));
 
         widgetsGroup.add(this._makeWidgetExpander(s, 'media', _('Media Player'), exp => {
-            const preferEntry = new Gtk.Entry({ text: s.get_string('dashboard-media-prefer'), valign: Gtk.Align.CENTER });
-            const pf = new Gtk.EventControllerFocus();
-            pf.connect('leave', () => s.set_string('dashboard-media-prefer', preferEntry.get_buffer().text));
-            preferEntry.add_controller(pf);
-            const preferRow = new Adw.ActionRow({ title: _('Prefer'), activatable_widget: preferEntry });
-            preferRow.add_suffix(preferEntry);
-            exp.add_row(preferRow);
-
             const styleModel = new Gtk.StringList({ strings: [_('Normal Vertical'), _('Normal Horizontal'), _('Full')] });
             const styleRow = new Adw.ComboRow({ title: _('Style'), model: styleModel, selected: s.get_int('dashboard-media-style') });
             styleRow.connect('notify::selected', () => s.set_int('dashboard-media-style', styleRow.selected));

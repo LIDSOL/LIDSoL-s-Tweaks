@@ -168,15 +168,7 @@ export const MediaWidgetBase = GObject.registerClass(
                     return Clutter.EVENT_PROPAGATE;
                 },
                 'drag-end', () => {
-                    if (this._player && this._player._length) {
-                        const lengthSec = this._player._length / 1000000;
-                        const pos = Math.floor(this._slider.value * lengthSec) * 1000000;
-                        this._player.position = pos;
-                        this._playerProgress.set(this._player, {
-                            position: pos,
-                            length: this._player._length,
-                        });
-                    }
+                    this._seekToSliderValue();
                     this._isDragging = false;
                     return Clutter.EVENT_PROPAGATE;
                 },
@@ -491,6 +483,15 @@ export const MediaWidgetBase = GObject.registerClass(
                 icon.icon_name = iconName;
             this._prevBtn.reactive = !!player.canGoPrevious;
             this._nextBtn.reactive = !!player.canGoNext;
+
+            // Players are allowed to declare that they cannot seek. GSConnect
+            // v74 is one of them: it never applies the canSeek the phone
+            // sends, so its Seek/SetPosition are silent no-ops. Keeping the
+            // slider draggable there makes the handle jump back on the next
+            // Position poll, so gate it on the advertised capability instead.
+            const canSeek = !!player.canSeek;
+            this._slider.reactive = canSeek;
+            this._slider.opacity = canSeek ? 255 : 120;
         }
 
         // #endregion
@@ -574,6 +575,25 @@ export const MediaWidgetBase = GObject.registerClass(
                 }
             });
             await Promise.all(promises);
+        }
+
+        _seekToSliderValue() {
+            const player = this._player;
+            const length = player?.length;
+            if (!this._slider || !player?.canSeek || !length)
+                return;
+
+            const targetUs = Math.floor(this._slider.value * (length / 1000000)) * 1000000;
+
+            player.seekTo(targetUs).then(applied => {
+                if (applied === null || player !== this._player || this._isDragging)
+                    return;
+                this._playerProgress.set(player, {
+                    position: applied,
+                    length,
+                });
+                this._updateProgressDisplay(applied, length);
+            });
         }
 
         _updateProgressDisplay(pos, length) {

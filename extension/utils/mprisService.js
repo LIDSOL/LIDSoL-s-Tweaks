@@ -5,6 +5,8 @@ import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import Shell from 'gi://Shell';
 
+import { seekPlayer } from './mprisSeek.js';
+
 const MPRIS_PLAYER_PREFIX = 'org.mpris.MediaPlayer2.';
 
 // #region Player
@@ -132,6 +134,9 @@ var MprisPlayer = GObject.registerClass({
                     <method name="SetPosition">
                         <arg type="o" name="TrackId" direction="in" />
                         <arg type="x" name="Position" direction="in" />
+                    </method>
+                    <method name="Seek">
+                        <arg type="x" name="Offset" direction="in" />
                     </method>
                     <signal name="Seeked">
                         <arg type="x" name="Position" />
@@ -264,13 +269,30 @@ var MprisPlayer = GObject.registerClass({
         return estimated;
     }
 
-    set position(value) {
-        if (!this._playerProxy)
-            return;
-        this._playerProxy.SetPositionAsync(
-            this._trackId,
-            Math.min(this._length || Infinity, Math.max(1, value))
-        ).catch(() => {});
+    /**
+     * Seek to an absolute position.
+     *
+     * @param {number} positionUs absolute position in microseconds
+     * @returns {Promise<?number>} applied position, or null when not possible
+     */
+    async seekTo(positionUs) {
+        if (!Number.isFinite(positionUs))
+            return null;
+
+        const target = Math.max(0, Math.min(this._length || Infinity, positionUs));
+        const applied = await seekPlayer(this._playerProxy, {
+            trackId: this._trackId,
+            targetUs: target,
+            estimatedUs: this.getEstimatedPosition(),
+        });
+
+        if (applied === null)
+            return null;
+
+        this._lastKnownPosition = applied;
+        this._positionTimestamp = Date.now();
+        this.emit('changed');
+        return applied;
     }
 
     // #endregion
@@ -312,9 +334,6 @@ var MprisPlayer = GObject.registerClass({
             );
         else
             this._app = null;
-
-        this.canPlay = !!this._playerProxy?.CanPlay;
-        this.canSeek = !!this._playerProxy?.CanSeek;
     }
 
     _update() {
@@ -324,6 +343,14 @@ var MprisPlayer = GObject.registerClass({
         } catch (e) {
             console.error(`[MprisService] _update error for ${this._busName}:`, e);
         }
+
+        // Capability flags describe the player, not the track, so they must
+        // refresh even when the player exposes no metadata (radio streams,
+        // players between tracks). They back notify::can-play/can-seek, which
+        // the widgets use to enable or gate their controls.
+        this.canPlay = !!this._playerProxy?.CanPlay;
+        this.canSeek = !!this._playerProxy?.CanSeek;
+
         const nowPlaying = this.playbackStatus === 'Playing';
         if (nowPlaying !== this._wasPlaying) {
             this._lastPlayingTime = Date.now();

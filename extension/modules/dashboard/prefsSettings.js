@@ -7,6 +7,7 @@ import Gtk from 'gi://Gtk';
 import { gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 import { createDialog, createModuleRow } from '../../utils/prefsHelpers.js';
+import { escapeMarkup } from '../../utils/text.js';
 
 export class DashboardPrefs {
     constructor(settings, window) {
@@ -152,6 +153,17 @@ export class DashboardPrefs {
             exp.add_row(this._makeSpinRow(s, _('Time Size'), 'dashboard-clock-clock-size', 20, 70, 2));
             exp.add_row(this._makeSpinRow(s, _('Date Size'), 'dashboard-clock-date-size', 15, 30, 1));
             exp.add_row(this._makeSpinRow(s, _('Spacing'), 'dashboard-clock-spacing', 0, 50, 1));
+
+            const commandEntry = new Gtk.Entry({
+                text: s.get_string('dashboard-clock-command'),
+                valign: Gtk.Align.CENTER,
+            });
+            const cf = new Gtk.EventControllerFocus();
+            cf.connect('leave', () => s.set_string('dashboard-clock-command', commandEntry.get_buffer().text));
+            commandEntry.add_controller(cf);
+            const commandRow = new Adw.ActionRow({ title: _('Command'), activatable_widget: commandEntry });
+            commandRow.add_suffix(commandEntry);
+            exp.add_row(commandRow);
         }));
 
         widgetsGroup.add(this._makeWidgetExpander(s, 'apps', _('App Launcher'), exp => {
@@ -207,7 +219,7 @@ export class DashboardPrefs {
 
     _makeWidgetExpander(s, name, title, extraRows) {
         const prefix = `dashboard-${name}`;
-        const expander = new Adw.ExpanderRow({ title });
+        const expander = new Adw.ExpanderRow({ title: escapeMarkup(title) });
         expander.add_row(this._makeExpandRow(s, _('Background'), `${prefix}-background`));
         if (extraRows) extraRows(expander);
         return expander;

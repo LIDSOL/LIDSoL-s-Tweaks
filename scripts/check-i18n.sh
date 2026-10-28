@@ -229,6 +229,8 @@ check_smoke() {
     cp prefs.js "${tmp}/"
     mkdir -p "${tmp}/extension/utils"
     cp extension/utils/prefsHelpers.js "${tmp}/extension/utils/"
+    [ -f extension/utils/text.js ] && cp extension/utils/text.js "${tmp}/extension/utils/"
+    [ -f extension/utils/commandLauncher.js ] && cp extension/utils/commandLauncher.js "${tmp}/extension/utils/"
     for m in ${SMOKE_PREFS_MODULES}; do
         mkdir -p "${tmp}/extension/modules/${m}"
         cp "extension/modules/${m}/prefsSettings.js" "${tmp}/extension/modules/${m}/"

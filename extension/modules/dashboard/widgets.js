@@ -13,9 +13,10 @@ import * as Dash from 'resource:///org/gnome/shell/ui/dash.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as SystemActions from 'resource:///org/gnome/shell/misc/systemActions.js';
 
-import * as Util from 'resource:///org/gnome/shell/misc/util.js';
 import { PACKAGE_VERSION } from 'resource:///org/gnome/shell/misc/config.js';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
+
+import { launchCommand } from '../../utils/commandLauncher.js';
 
 import { DashboardMediaWidget } from './mediaWidget.js';
 import {
@@ -368,8 +369,7 @@ class LevelsBox extends St.BoxLayout {
             if (this._parentDialog)
                 this._parentDialog.close();
             const cmd = this._settings.get_string('dashboard-levels-command');
-            if (cmd)
-                Util.spawnCommandLine(cmd);
+            launchCommand(cmd);
             return Clutter.EVENT_STOP;
         });
 
@@ -460,8 +460,8 @@ class MediaWidget extends DashWidget {
 
 export var ClockWidget = GObject.registerClass(
 class ClockWidget extends DashWidget {
-    _init(settings) {
-        super._init(settings, 'clock');
+    _init(settings, parentDialog = null) {
+        super._init(settings, 'clock', parentDialog);
         this._connect('vertical');
         this._connect('clock-size');
         this._connect('date-size');
@@ -496,6 +496,16 @@ class ClockWidget extends DashWidget {
 
         this._updateClock();
         this._sync();
+
+        this.reactive = true;
+        this.track_hover = true;
+        this.connect('button-press-event', () => {
+            if (this._parentDialog)
+                this._parentDialog.close();
+            const cmd = this._settings.get_string('dashboard-clock-command');
+            launchCommand(cmd);
+            return Clutter.EVENT_STOP;
+        });
     }
 
     _updateClock() {

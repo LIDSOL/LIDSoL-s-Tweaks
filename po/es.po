@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: LIDSoL's Tweaks\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 20:31-0600\n"
+"POT-Creation-Date: 2026-10-27 23:53-0600\n"
 "PO-Revision-Date: 2026-10-03 00:00+0000\n"
 "Last-Translator: LIDSoL <EMAIL@ADDRESS>\n"
 "Language-Team: Spanish <es@li.org>\n"
@@ -25,226 +25,227 @@ msgstr "No hay medios reproduciéndose"
 msgid "No media information"
 msgstr "Sin información de medios"
 
-#: extension/modules/dashboard/prefsSettings.js:22
-#: extension/modules/dashboard/prefsSettings.js:31
+#: extension/modules/dashboard/prefsSettings.js:23
+#: extension/modules/dashboard/prefsSettings.js:32
 msgid "Dashboard"
 msgstr "Panel"
 
-#: extension/modules/dashboard/prefsSettings.js:23
+#: extension/modules/dashboard/prefsSettings.js:24
 msgid "Panel with general widgets"
 msgstr "Panel con widgets generales"
 
-#: extension/modules/dashboard/prefsSettings.js:40
+#: extension/modules/dashboard/prefsSettings.js:41
 msgid "Dash"
 msgstr "Dash"
 
-#: extension/modules/dashboard/prefsSettings.js:42
+#: extension/modules/dashboard/prefsSettings.js:43
 msgid "Shortcut Hotkey"
 msgstr "Atajo de teclado"
 
-#: extension/modules/dashboard/prefsSettings.js:47
-#: extension/modules/dashboard/prefsSettings.js:50
+#: extension/modules/dashboard/prefsSettings.js:48
+#: extension/modules/dashboard/prefsSettings.js:51
 msgid "Set Hotkey"
 msgstr "Establecer atajo"
 
-#: extension/modules/dashboard/prefsSettings.js:61
+#: extension/modules/dashboard/prefsSettings.js:62
 msgid "Press a key combination:"
 msgstr "Pulsa una combinación de teclas:"
 
-#: extension/modules/dashboard/prefsSettings.js:63
+#: extension/modules/dashboard/prefsSettings.js:64
 #: extension/modules/quickSettingsTweaks/prefsSettings.js:704
 #: extension/modules/workspaceIndicator/prefsSettings.js:450 prefs.js:762
 msgid "Esc to cancel, Backspace to disable"
 msgstr "Esc para cancelar, Retroceso para desactivar"
 
-#: extension/modules/dashboard/prefsSettings.js:89
+#: extension/modules/dashboard/prefsSettings.js:90
 msgid "X Align"
 msgstr "Alineación X"
 
-#: extension/modules/dashboard/prefsSettings.js:90
+#: extension/modules/dashboard/prefsSettings.js:91
 msgid "Y Align"
 msgstr "Alineación Y"
 
-#: extension/modules/dashboard/prefsSettings.js:91
+#: extension/modules/dashboard/prefsSettings.js:92
 msgid "X Offset"
 msgstr "Desplazamiento X"
 
-#: extension/modules/dashboard/prefsSettings.js:92
+#: extension/modules/dashboard/prefsSettings.js:93
 msgid "Y Offset"
 msgstr "Desplazamiento Y"
 
-#: extension/modules/dashboard/prefsSettings.js:93
+#: extension/modules/dashboard/prefsSettings.js:94
 msgid "Darken Background"
 msgstr "Oscurecer fondo"
 
-#: extension/modules/dashboard/prefsSettings.js:94
+#: extension/modules/dashboard/prefsSettings.js:95
 msgid "Container Scale (%)"
 msgstr "Escala del contenedor (%)"
 
-#: extension/modules/dashboard/prefsSettings.js:98
+#: extension/modules/dashboard/prefsSettings.js:99
 msgid "Grid Layout"
 msgstr "Disposición en cuadrícula"
 
-#: extension/modules/dashboard/prefsSettings.js:99
-#: extension/modules/dashboard/prefsSettings.js:154
+#: extension/modules/dashboard/prefsSettings.js:100
+#: extension/modules/dashboard/prefsSettings.js:155
 msgid "Spacing"
 msgstr "Espaciado"
 
-#: extension/modules/dashboard/prefsSettings.js:100
-#: extension/modules/dashboard/prefsSettings.js:159
+#: extension/modules/dashboard/prefsSettings.js:101
+#: extension/modules/dashboard/prefsSettings.js:171
 msgid "Columns"
 msgstr "Columnas"
 
-#: extension/modules/dashboard/prefsSettings.js:104 prefs.js:50
+#: extension/modules/dashboard/prefsSettings.js:105 prefs.js:50
 msgid "Widgets"
 msgstr "Widgets"
 
-#: extension/modules/dashboard/prefsSettings.js:107
+#: extension/modules/dashboard/prefsSettings.js:108
 msgid "User"
 msgstr "Usuario"
 
-#: extension/modules/dashboard/prefsSettings.js:108
+#: extension/modules/dashboard/prefsSettings.js:109
 msgid "Icon Roundness"
 msgstr "Redondez del icono"
 
-#: extension/modules/dashboard/prefsSettings.js:109
+#: extension/modules/dashboard/prefsSettings.js:110
 msgid "Icon Width"
 msgstr "Ancho del icono"
 
-#: extension/modules/dashboard/prefsSettings.js:110
+#: extension/modules/dashboard/prefsSettings.js:111
 msgid "Icon Height"
 msgstr "Alto del icono"
 
-#: extension/modules/dashboard/prefsSettings.js:111
+#: extension/modules/dashboard/prefsSettings.js:112
 msgid "Text Spacing"
 msgstr "Espaciado del texto"
 
-#: extension/modules/dashboard/prefsSettings.js:112
-#: extension/modules/dashboard/prefsSettings.js:151
+#: extension/modules/dashboard/prefsSettings.js:113
+#: extension/modules/dashboard/prefsSettings.js:152
 msgid "Vertical"
 msgstr "Vertical"
 
-#: extension/modules/dashboard/prefsSettings.js:115
+#: extension/modules/dashboard/prefsSettings.js:116
 msgid "System Levels"
 msgstr "Niveles del sistema"
 
-#: extension/modules/dashboard/prefsSettings.js:116 prefs.js:241
+#: extension/modules/dashboard/prefsSettings.js:117 prefs.js:241
 msgid "Width"
 msgstr "Ancho"
 
-#: extension/modules/dashboard/prefsSettings.js:117
+#: extension/modules/dashboard/prefsSettings.js:118
 msgid "Show Battery"
 msgstr "Mostrar batería"
 
-#: extension/modules/dashboard/prefsSettings.js:118
+#: extension/modules/dashboard/prefsSettings.js:119
 msgid "Show Storage"
 msgstr "Mostrar almacenamiento"
 
-#: extension/modules/dashboard/prefsSettings.js:119
+#: extension/modules/dashboard/prefsSettings.js:120
 msgid "Show CPU"
 msgstr "Mostrar CPU"
 
-#: extension/modules/dashboard/prefsSettings.js:120
+#: extension/modules/dashboard/prefsSettings.js:121
 msgid "Show RAM"
 msgstr "Mostrar RAM"
 
-#: extension/modules/dashboard/prefsSettings.js:121
+#: extension/modules/dashboard/prefsSettings.js:122
 msgid "Show Temperature"
 msgstr "Mostrar temperatura"
 
-#: extension/modules/dashboard/prefsSettings.js:130
+#: extension/modules/dashboard/prefsSettings.js:131
+#: extension/modules/dashboard/prefsSettings.js:164
 #: extension/modules/quickSettingsTweaks/prefsSettings.js:596
 msgid "Command"
 msgstr "Comando"
 
-#: extension/modules/dashboard/prefsSettings.js:135
+#: extension/modules/dashboard/prefsSettings.js:136
 msgid "Media Player"
 msgstr "Reproductor de medios"
 
-#: extension/modules/dashboard/prefsSettings.js:136
+#: extension/modules/dashboard/prefsSettings.js:137
 msgid "Normal Vertical"
 msgstr "Vertical normal"
 
-#: extension/modules/dashboard/prefsSettings.js:136
+#: extension/modules/dashboard/prefsSettings.js:137
 msgid "Normal Horizontal"
 msgstr "Horizontal normal"
 
-#: extension/modules/dashboard/prefsSettings.js:136
+#: extension/modules/dashboard/prefsSettings.js:137
 msgid "Full"
 msgstr "Completa"
 
-#: extension/modules/dashboard/prefsSettings.js:137 prefs.js:219 prefs.js:228
+#: extension/modules/dashboard/prefsSettings.js:138 prefs.js:219 prefs.js:228
 #: prefs.js:837
 msgid "Style"
 msgstr "Estilo"
 
-#: extension/modules/dashboard/prefsSettings.js:141
+#: extension/modules/dashboard/prefsSettings.js:142
 msgid "Cover Width"
 msgstr "Ancho de la carátula"
 
-#: extension/modules/dashboard/prefsSettings.js:142
+#: extension/modules/dashboard/prefsSettings.js:143
 msgid "Cover Height"
 msgstr "Alto de la carátula"
 
-#: extension/modules/dashboard/prefsSettings.js:143
+#: extension/modules/dashboard/prefsSettings.js:144
 msgid "Cover Roundness"
 msgstr "Redondez de la carátula"
 
-#: extension/modules/dashboard/prefsSettings.js:144
+#: extension/modules/dashboard/prefsSettings.js:145
 #: extension/modules/workspaceIndicator/prefsSettings.js:193
 msgid "Fade"
 msgstr "Fundido"
 
-#: extension/modules/dashboard/prefsSettings.js:145
+#: extension/modules/dashboard/prefsSettings.js:146
 msgid "Show Text"
 msgstr "Mostrar texto"
 
-#: extension/modules/dashboard/prefsSettings.js:147
+#: extension/modules/dashboard/prefsSettings.js:148
 msgid "Show Loop and Shuffle"
 msgstr "Mostrar bucle y aleatorio"
 
-#: extension/modules/dashboard/prefsSettings.js:150 prefs.js:720
+#: extension/modules/dashboard/prefsSettings.js:151 prefs.js:720
 msgid "Clock"
 msgstr "Hora"
 
-#: extension/modules/dashboard/prefsSettings.js:152
+#: extension/modules/dashboard/prefsSettings.js:153
 msgid "Time Size"
 msgstr "Tamaño de la hora"
 
-#: extension/modules/dashboard/prefsSettings.js:153
+#: extension/modules/dashboard/prefsSettings.js:154
 msgid "Date Size"
 msgstr "Tamaño de la fecha"
 
-#: extension/modules/dashboard/prefsSettings.js:157
+#: extension/modules/dashboard/prefsSettings.js:169
 msgid "App Launcher"
 msgstr "Lanzador de aplicaciones"
 
-#: extension/modules/dashboard/prefsSettings.js:158
+#: extension/modules/dashboard/prefsSettings.js:170
 msgid "Rows"
 msgstr "Filas"
 
-#: extension/modules/dashboard/prefsSettings.js:160
-#: extension/modules/dashboard/prefsSettings.js:168
+#: extension/modules/dashboard/prefsSettings.js:172
+#: extension/modules/dashboard/prefsSettings.js:180
 msgid "Icon Size"
 msgstr "Tamaño del icono"
 
-#: extension/modules/dashboard/prefsSettings.js:163
+#: extension/modules/dashboard/prefsSettings.js:175
 msgid "Settings & System"
-msgstr "Settings &amp; System"
+msgstr "Ajustes y Sistema"
 
-#: extension/modules/dashboard/prefsSettings.js:164
+#: extension/modules/dashboard/prefsSettings.js:176
 msgid "Stacked"
 msgstr "Apilado"
 
-#: extension/modules/dashboard/prefsSettings.js:164
+#: extension/modules/dashboard/prefsSettings.js:176
 msgid "Side by Side"
 msgstr "Lado a lado"
 
-#: extension/modules/dashboard/prefsSettings.js:165 prefs.js:1203
+#: extension/modules/dashboard/prefsSettings.js:177 prefs.js:1203
 msgid "Layout"
 msgstr "Disposición"
 
-#: extension/modules/dashboard/prefsSettings.js:165
+#: extension/modules/dashboard/prefsSettings.js:177
 msgid ""
 "Stacked: two rows (current behavior).\n"
 "Side by Side: single row."
@@ -252,24 +253,24 @@ msgstr ""
 "Apilado: dos filas (comportamiento actual).\n"
 "Lado a lado: una sola fila."
 
-#: extension/modules/dashboard/prefsSettings.js:174
+#: extension/modules/dashboard/prefsSettings.js:186
 msgid "Fill"
 msgstr "Rellenar"
 
-#: extension/modules/dashboard/prefsSettings.js:174
+#: extension/modules/dashboard/prefsSettings.js:186
 msgid "Start"
 msgstr "Inicio"
 
-#: extension/modules/dashboard/prefsSettings.js:174
+#: extension/modules/dashboard/prefsSettings.js:186
 #: extension/modules/quickSettingsTweaks/prefsSettings.js:134
 msgid "Center"
 msgstr "Centro"
 
-#: extension/modules/dashboard/prefsSettings.js:174
+#: extension/modules/dashboard/prefsSettings.js:186
 msgid "End"
 msgstr "Fin"
 
-#: extension/modules/dashboard/prefsSettings.js:211
+#: extension/modules/dashboard/prefsSettings.js:223
 msgid "Background"
 msgstr "Fondo"
 
@@ -294,52 +295,52 @@ msgstr "Temperatura"
 msgid "Disk"
 msgstr "Disco"
 
-#: extension/modules/dashboard/widgets.js:299
+#: extension/modules/dashboard/widgets.js:300
 msgid "Night Time"
 msgstr "Noche"
 
-#: extension/modules/dashboard/widgets.js:300
+#: extension/modules/dashboard/widgets.js:301
 msgid "Good Morning"
 msgstr "Buenos días"
 
-#: extension/modules/dashboard/widgets.js:301
+#: extension/modules/dashboard/widgets.js:302
 msgid "Good Afternoon"
 msgstr "Buenas tardes"
 
-#: extension/modules/dashboard/widgets.js:302
+#: extension/modules/dashboard/widgets.js:303
 msgid "Good Evening"
 msgstr "Buenas noches"
 
-#: extension/modules/dashboard/widgets.js:671
-#: extension/modules/dashboard/widgets.js:731
+#: extension/modules/dashboard/widgets.js:681
+#: extension/modules/dashboard/widgets.js:741
 msgid "WiFi"
 msgstr "WiFi"
 
-#: extension/modules/dashboard/widgets.js:672
-#: extension/modules/dashboard/widgets.js:732
+#: extension/modules/dashboard/widgets.js:682
+#: extension/modules/dashboard/widgets.js:742
 #: extension/modules/quickSettingsTweaks/prefsSettings.js:364
 msgid "Bluetooth"
 msgstr "Bluetooth"
 
-#: extension/modules/dashboard/widgets.js:673
-#: extension/modules/dashboard/widgets.js:733
+#: extension/modules/dashboard/widgets.js:683
+#: extension/modules/dashboard/widgets.js:743
 #: extension/modules/quickSettingsTweaks/prefsSettings.js:1015
 msgid "Settings"
 msgstr "Ajustes"
 
-#: extension/modules/dashboard/widgets.js:719
+#: extension/modules/dashboard/widgets.js:729
 msgid "Power Off"
 msgstr "Apagar"
 
-#: extension/modules/dashboard/widgets.js:720
+#: extension/modules/dashboard/widgets.js:730
 msgid "Reboot"
 msgstr "Reiniciar"
 
-#: extension/modules/dashboard/widgets.js:721
+#: extension/modules/dashboard/widgets.js:731
 msgid "Log Out"
 msgstr "Cerrar sesión"
 
-#: extension/modules/dashboard/widgets.js:722
+#: extension/modules/dashboard/widgets.js:732
 msgid "Suspend"
 msgstr "Suspender"
 

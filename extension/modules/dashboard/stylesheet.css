@@ -163,7 +163,7 @@
 }
 
 .dashboard .media-control-button:hover {
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.18);
 }
 
 .dashboard .events-button {
@@ -172,29 +172,28 @@
 }
 
 .dashboard .events-button:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.18);
 }
 
 .dashboard .system-action-button {
     border-radius: 8px;
     padding: 4px;
     background-color: transparent;
-    color: white;
 }
 
 .dashboard .system-action-button:hover {
-    background-color: rgba(255, 255, 255, 0.12);
+    background-color: rgba(255, 255, 255, 0.18);
 }
 
-.dashboard .system-action-button.active {
-    color: rgba(255, 255, 255, 1.0);
+.dashboard .system-action-button.toggle-on > StIcon {
+    color: #ffffff;
 }
 
-.dashboard .system-action-button:not(.active) {
-    color: rgba(255, 255, 255, 0.5);
+.dashboard .system-action-button.toggle-off > StIcon {
+    color: rgba(255, 255, 255, 0.45);
 }
 
-.dashboard .system-action-button:not(.active):hover {
+.dashboard .system-action-button.toggle-off:hover > StIcon {
     color: rgba(255, 255, 255, 0.8);
 }
 
@@ -205,7 +204,7 @@
 }
 
 .dashboard .message-media-control:hover {
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.18);
 }
 
 /* Media Widget (QST-style) */

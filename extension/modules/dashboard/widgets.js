@@ -771,11 +771,17 @@ class SettingsWidget extends DashWidget {
     }
 
     _toggleButton(icon, callback, iconSize, label, active) {
+        const iconWidget = new St.Icon({
+            icon_name: icon,
+            icon_size: iconSize,
+        });
+        const color = active
+            ? new Clutter.Color({ red: 255, green: 255, blue: 255, alpha: 255 })
+            : new Clutter.Color({ red: 140, green: 140, blue: 140, alpha: 255 });
+        iconWidget.set_color(color);
+
         const btn = new HoverButton(
-            new St.Icon({
-                icon_name: icon,
-                icon_size: iconSize,
-            }),
+            iconWidget,
             label,
             () => {
                 callback();
@@ -894,11 +900,12 @@ class SystemWidget extends DashWidget {
     }
 
     _button(icon, action, iconSize, label) {
-        return new HoverButton(
-            new St.Icon({
-                icon_name: icon,
-                icon_size: iconSize,
-            }),
+        const iconWidget = new St.Icon({
+            icon_name: icon,
+            icon_size: iconSize,
+        });
+        const btn = new HoverButton(
+            iconWidget,
             label,
             () => {
                 SystemActions.getDefault().activateAction(action);
@@ -906,14 +913,17 @@ class SystemWidget extends DashWidget {
             },
             'system-action-button'
         );
+        btn.add_style_class_name('toggle-on');
+        return btn;
     }
 
     _openButton(icon, callback, iconSize, label) {
-        return new HoverButton(
-            new St.Icon({
-                icon_name: icon,
-                icon_size: iconSize,
-            }),
+        const iconWidget = new St.Icon({
+            icon_name: icon,
+            icon_size: iconSize,
+        });
+        const btn = new HoverButton(
+            iconWidget,
             label,
             () => {
                 callback();
@@ -921,24 +931,24 @@ class SystemWidget extends DashWidget {
             },
             'system-action-button'
         );
+        btn.add_style_class_name('toggle-on');
+        return btn;
     }
 
     _toggleButton(icon, callback, iconSize, label, active) {
+        const iconWidget = new St.Icon({
+            icon_name: icon,
+            icon_size: iconSize,
+        });
         const btn = new HoverButton(
-            new St.Icon({
-                icon_name: icon,
-                icon_size: iconSize,
-            }),
+            iconWidget,
             label,
             () => {
                 callback();
             },
             'system-action-button'
         );
-        if (active)
-            btn.add_style_class_name('active');
-        else
-            btn.remove_style_class_name('active');
+        btn.add_style_class_name(active ? 'toggle-on' : 'toggle-off');
         return btn;
     }
 

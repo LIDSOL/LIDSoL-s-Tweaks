@@ -1,0 +1,202 @@
+'use strict';
+
+import { PanelCornersModule } from '../modules/panelCorners/module.js';
+import { WorkspaceIndicatorModule } from '../modules/workspaceIndicator/module.js';
+import { QuickTextModule } from '../modules/quickText/module.js';
+import { BackgroundWidgetsModule } from '../modules/backgroundWidgets/module.js';
+import { UserAvatarModule } from '../modules/userAvatar/module.js';
+import { QuickSettingsTweaksModule } from '../modules/quickSettingsTweaks/module.js';
+import { SystemItemsModule } from '../modules/systemItems/module.js';
+import { TopBarOrganizerModule } from '../modules/topBarOrganizer/module.js';
+import { DateMenuModule } from '../modules/dateMenu/module.js';
+import { DashboardModule } from '../modules/dashboard/module.js';
+import { NotificationMediaModule } from '../modules/notificationMedia/module.js';
+import { UserAvatarDateMenuModule } from '../modules/userAvatarDateMenu/module.js';
+import { DateMenuMediaModule } from '../modules/dateMenuMedia/module.js';
+import { LauncherModule } from '../modules/launcher/module.js';
+import { BatteryIndicatorModule } from '../modules/batteryIndicator/module.js';
+import { WorkspaceModule } from '../modules/workspace/module.js';
+
+const REGISTERED_MODULES = [
+    {
+        id: 'panelCorners',
+        name: 'Panel Corners',
+        enabledKey: 'panel-corners-enabled',
+        moduleClass: PanelCornersModule
+    },
+    {
+        id: 'workspaceIndicator',
+        name: 'Workspace Indicator',
+        enabledKey: 'workspace-indicator-enabled',
+        moduleClass: WorkspaceIndicatorModule
+    },
+    {
+        id: 'quickText',
+        name: 'Quick Text',
+        enabledKey: 'qt-enabled',
+        moduleClass: QuickTextModule
+    },
+    {
+        id: 'backgroundWidgets',
+        name: 'Background Widgets',
+        enabledKey: 'background-widgets-enabled',
+        moduleClass: BackgroundWidgetsModule
+    },
+    {
+        id: 'userAvatar',
+        name: 'User Avatar',
+        enabledKey: 'user-avatar-enabled',
+        moduleClass: UserAvatarModule
+    },
+    {
+        id: 'quickSettingsTweaks',
+        name: 'Quick Settings Tweaks',
+        enabledKey: 'qst-toggles-enabled',
+        moduleClass: QuickSettingsTweaksModule
+    },
+    {
+        id: 'systemItems',
+        name: 'System Items Layout',
+        enabledKey: 'qst-system-items-enabled',
+        moduleClass: SystemItemsModule
+    },
+    {
+        id: 'topBarOrganizer',
+        name: 'Top Bar Organizer',
+        enabledKey: 'tbo-enabled',
+        moduleClass: TopBarOrganizerModule
+    },
+    {
+        id: 'dateMenu',
+        name: 'Date Menu',
+        enabledKey: 'dm-enabled',
+        moduleClass: DateMenuModule
+    },
+    {
+        id: 'dashboard',
+        name: 'Dashboard',
+        enabledKey: 'dashboard-enabled',
+        moduleClass: DashboardModule
+    },
+    {
+        id: 'notificationMedia',
+        name: 'Notification Media',
+        enabledKey: 'nm-enabled',
+        moduleClass: NotificationMediaModule
+    },
+    {
+        id: 'userAvatarDateMenu',
+        name: 'User Avatar (Date Menu)',
+        enabledKey: 'uadm-enabled',
+        moduleClass: UserAvatarDateMenuModule
+    },
+    {
+        id: 'dateMenuMedia',
+        name: 'Date Menu Media',
+        enabledKey: 'dmm-enabled',
+        moduleClass: DateMenuMediaModule
+    },
+    {
+        id: 'launcher',
+        name: 'Launcher',
+        enabledKey: 'launcher-enabled',
+        moduleClass: LauncherModule
+    },
+    {
+        id: 'batteryIndicator',
+        name: 'Battery Indicator',
+        enabledKey: 'battery-indicator-enabled',
+        moduleClass: BatteryIndicatorModule
+    },
+    {
+        id: 'workspace',
+        name: 'Workspace Bar',
+        enabledKey: 'wb-enabled',
+        moduleClass: WorkspaceModule
+    }
+];
+
+export class ModuleLoader {
+    constructor(extension) {
+        this._extension = extension;
+        this._gsettings = extension.getSettings();
+        this._modules = new Map();
+        this._watchers = [];
+    }
+
+    enable() {
+        for (const modInfo of REGISTERED_MODULES) {
+            const should = this._shouldEnableModule(modInfo);
+            if (should)
+                this._enableModule(modInfo);
+
+            this._watchEnabledKey(modInfo);
+        }
+    }
+
+    _shouldEnableModule(modInfo) {
+        if (modInfo.enabledKey) {
+            try {
+                return this._gsettings.get_boolean(modInfo.enabledKey);
+            } catch (e) {
+                console.error(`[LIDSoL Widgets] Error reading ${modInfo.enabledKey}:`, e);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    _watchEnabledKey(modInfo) {
+        if (!modInfo.enabledKey) return;
+
+        const id = this._gsettings.connect('changed::' + modInfo.enabledKey, () => {
+            const enabled = this._gsettings.get_boolean(modInfo.enabledKey);
+            const isRunning = this._modules.has(modInfo.id);
+
+            if (enabled && !isRunning) {
+                this._enableModule(modInfo);
+            } else if (!enabled && isRunning) {
+                this._disableModule(modInfo.id);
+            }
+        });
+        this._watchers.push(id);
+    }
+
+    _enableModule(modInfo) {
+        try {
+            const moduleInstance = new modInfo.moduleClass();
+            moduleInstance.enable(this._gsettings, this._extension);
+            this._modules.set(modInfo.id, moduleInstance);
+        } catch (e) {
+            console.error(`[LIDSoL Widgets] Failed to enable ${modInfo.name}:`, e);
+        }
+    }
+
+    _disableModule(id) {
+        try {
+            const mod = this._modules.get(id);
+            if (mod) {
+                mod.disable();
+                this._modules.delete(id);
+            }
+        } catch (e) {
+            console.error(`[LIDSoL Widgets] Error disabling module ${id}:`, e);
+        }
+    }
+
+    disable() {
+        for (const id of this._watchers)
+            this._gsettings.disconnect(id);
+        this._watchers = [];
+
+        for (const [name, mod] of this._modules) {
+            try {
+                mod.disable();
+            } catch (e) {
+                console.error(`[LIDSoL Widgets] Error disabling module ${name}:`, e);
+            }
+        }
+        this._modules.clear();
+    }
+}
+

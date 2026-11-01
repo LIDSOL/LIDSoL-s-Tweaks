@@ -1,0 +1,14 @@
+{
+  "name": "LIDSoL's Tweaks",
+  "description": "Colección modular de extensiones para GNOME Shell",
+  "uuid": "lidsol-tweaks@lidsol",
+  "settings-schema": "org.gnome.shell.extensions.lidsol-widgets",
+  "gettext-domain": "lidsol-widgets",
+  "shell-version": [
+    "50",
+    "51"
+  ],
+  "version": 1,
+  "url": "https://github.com/ramen-root/Gnome-Extensions",
+  "license": "GPL-2.0-or-later"
+}

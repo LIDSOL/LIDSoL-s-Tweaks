@@ -1,0 +1,1734 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema path="/org/gnome/shell/extensions/lidsol-widgets/"
+          id="org.gnome.shell.extensions.lidsol-widgets">
+
+    <!-- Panel Corners -->
+    <key type="b" name="panel-corners-enabled">
+      <default>true</default>
+      <summary>Habilitar esquinas redondeadas del panel</summary>
+      <description>Activa las esquinas redondeadas en la parte inferior del panel</description>
+    </key>
+
+    <key type="b" name="panel-corners">
+      <default>true</default>
+      <summary>Panel Corners</summary>
+      <description>Mostrar esquinas redondeadas en el panel</description>
+    </key>
+
+    <key type="i" name="panel-corner-radius">
+      <default>12</default>
+      <summary>Radio de las esquinas</summary>
+      <description>Radio de las esquinas redondeadas</description>
+    </key>
+
+    <key type="i" name="panel-corner-border-width">
+      <default>0</default>
+      <summary>Ancho del borde</summary>
+      <description>Ancho adicional para las esquinas</description>
+    </key>
+
+    <key type="s" name="panel-corner-background-color">
+      <default>"#000000ff"</default>
+      <summary>Color de fondo</summary>
+      <description>Color de fondo de las esquinas del panel (formato CSS)</description>
+    </key>
+
+    <key type="d" name="panel-corner-opacity">
+      <default>1</default>
+      <summary>Opacidad</summary>
+      <description>Opacidad de las esquinas</description>
+    </key>
+
+    <key type="b" name="screen-corners">
+      <default>true</default>
+      <summary>Screen Corners</summary>
+      <description>Mostrar esquinas redondeadas en las esquinas de la pantalla</description>
+    </key>
+
+    <key type="i" name="screen-corner-radius">
+      <default>12</default>
+      <summary>Radio de las esquinas</summary>
+      <description>Radio de las esquinas redondeadas de la pantalla</description>
+    </key>
+
+    <key type="s" name="screen-corner-background-color">
+      <default>"#000000ff"</default>
+      <summary>Color de fondo</summary>
+      <description>Color de fondo de las esquinas de la pantalla (formato CSS)</description>
+    </key>
+
+    <key type="d" name="screen-corner-opacity">
+      <default>1</default>
+      <summary>Opacidad</summary>
+      <description>Opacidad de las esquinas de la pantalla</description>
+    </key>
+
+    <key type="b" name="force-extension-values">
+      <default>true</default>
+      <summary>Forzar valores de la extensión</summary>
+      <description>Forzar el uso de los valores de la extensión, ignorando el tema</description>
+    </key>
+
+    <key type="b" name="debug">
+      <default>false</default>
+      <summary>Modo debug</summary>
+      <description>Activar modo debug (logs más verbosos)</description>
+    </key>
+
+    <!-- Workspace Indicator (Space Bar) -->
+    <key type="b" name="workspace-indicator-enabled">
+      <default>true</default>
+      <summary>Habilitar indicador de espacios de trabajo</summary>
+      <description>Reemplaza el indicador nativo de espacios de trabajo por uno configurable</description>
+    </key>
+
+    <!-- State -->
+    <key type="i" name="ws-version">
+      <default>0</default>
+    </key>
+    <key type="s" name="ws-workspace-names-map">
+      <default>'{}'</default>
+    </key>
+
+    <!-- Behavior -->
+    <key type="s" name="ws-indicator-style">
+      <choices>
+        <choice value="current-workspace" />
+        <choice value="workspaces-bar" />
+      </choices>
+      <default>"workspaces-bar"</default>
+    </key>
+    <key type="b" name="ws-enable-custom-label">
+      <default>false</default>
+    </key>
+    <key type="b" name="ws-enable-custom-label-in-menu">
+      <default>false</default>
+    </key>
+    <key type="s" name="ws-custom-label-named">
+      <default>'{{name}}'</default>
+    </key>
+    <key type="s" name="ws-custom-label-unnamed">
+      <default>'Workspace {{number}}'</default>
+    </key>
+    <key type="b" name="ws-always-show-numbers">
+      <default>false</default>
+    </key>
+    <key type="b" name="ws-show-empty-workspaces">
+      <default>true</default>
+    </key>
+    <key type="b" name="ws-toggle-overview">
+      <default>true</default>
+    </key>
+    <key type="b" name="ws-show-app-icons">
+      <default>false</default>
+    </key>
+    <key type="s" name="ws-scroll-wheel">
+      <choices>
+        <choice value="panel" />
+        <choice value="workspaces-bar" />
+        <choice value="disabled" />
+      </choices>
+      <default>"panel"</default>
+    </key>
+    <key type="b" name="ws-scroll-wheel-debounce">
+      <default>true</default>
+    </key>
+    <key type="i" name="ws-scroll-wheel-debounce-time">
+      <default>200</default>
+    </key>
+    <key type="s" name="ws-scroll-wheel-vertical">
+      <choices>
+        <choice value="normal" />
+        <choice value="inverted" />
+        <choice value="disabled" />
+      </choices>
+      <default>"normal"</default>
+    </key>
+    <key type="s" name="ws-scroll-wheel-horizontal">
+      <choices>
+        <choice value="normal" />
+        <choice value="inverted" />
+        <choice value="disabled" />
+      </choices>
+      <default>"disabled"</default>
+    </key>
+    <key type="b" name="ws-scroll-wheel-wrap-around">
+      <default>false</default>
+    </key>
+    <key type="b" name="ws-smart-workspace-names">
+      <default>false</default>
+    </key>
+    <key type="b" name="ws-reevaluate-smart-workspace-names">
+      <default>true</default>
+    </key>
+
+    <!-- Shortcuts -->
+    <key type="b" name="ws-enable-activate-workspace-shortcuts">
+      <default>false</default>
+    </key>
+    <key type="b" name="ws-back-and-forth">
+      <default>false</default>
+    </key>
+    <key type="b" name="ws-enable-move-to-workspace-shortcuts">
+      <default>false</default>
+    </key>
+
+    <key type="as" name="ws-move-workspace-left">
+      <default><![CDATA[['<Control><Alt><Super>Left']]]></default>
+    </key>
+    <key type="as" name="ws-move-workspace-right">
+      <default><![CDATA[['<Control><Alt><Super>Right']]]></default>
+    </key>
+    <key type="as" name="ws-activate-previous-key">
+      <default><![CDATA[[]]]></default>
+    </key>
+    <key type="as" name="ws-activate-empty-key">
+      <default><![CDATA[[]]]></default>
+    </key>
+    <key type="as" name="ws-open-menu">
+      <default><![CDATA[['<Super>W']]]></default>
+    </key>
+
+    <key type="as" name="ws-activate-1-key">
+      <default><![CDATA[['<Super>1']]]></default>
+    </key>
+    <key type="as" name="ws-activate-2-key">
+      <default><![CDATA[['<Super>2']]]></default>
+    </key>
+    <key type="as" name="ws-activate-3-key">
+      <default><![CDATA[['<Super>3']]]></default>
+    </key>
+    <key type="as" name="ws-activate-4-key">
+      <default><![CDATA[['<Super>4']]]></default>
+    </key>
+    <key type="as" name="ws-activate-5-key">
+      <default><![CDATA[['<Super>5']]]></default>
+    </key>
+    <key type="as" name="ws-activate-6-key">
+      <default><![CDATA[['<Super>6']]]></default>
+    </key>
+    <key type="as" name="ws-activate-7-key">
+      <default><![CDATA[['<Super>7']]]></default>
+    </key>
+    <key type="as" name="ws-activate-8-key">
+      <default><![CDATA[['<Super>8']]]></default>
+    </key>
+    <key type="as" name="ws-activate-9-key">
+      <default><![CDATA[['<Super>9']]]></default>
+    </key>
+    <key type="as" name="ws-activate-10-key">
+      <default><![CDATA[['<Super>0']]]></default>
+    </key>
+
+    <!-- Appearance -->
+    <key type="i" name="ws-workspaces-bar-padding">
+      <default>12</default>
+    </key>
+    <key type="i" name="ws-workspace-margin">
+      <default>4</default>
+    </key>
+    <key type="i" name="ws-workspace-name-icons-spacing">
+      <default>8</default>
+    </key>
+
+    <key type="s" name="ws-icon-size-mode">
+      <choices>
+        <choice value="small" />
+        <choice value="medium" />
+        <choice value="large" />
+      </choices>
+      <default>'medium'</default>
+    </key>
+
+    <key type="b" name="ws-dim-inactive-icons">
+      <default>false</default>
+    </key>
+
+    <key type="b" name="ws-desaturate-inactive-icons">
+      <default>false</default>
+    </key>
+
+    <key type="b" name="ws-focus-scale-effect">
+      <default>true</default>
+      <summary>Efecto de escala de enfoque</summary>
+      <description>Cuando está activo, el icono de la ventana enfocada se muestra a tamaño completo mientras los iconos no enfocados se reducen ligeramente.</description>
+    </key>
+
+    <key type="i" name="ws-focus-scale-reduction">
+      <default>15</default>
+      <range min="5" max="40"/>
+      <summary>Reducción de escala de enfoque</summary>
+      <description>Porcentaje por el cual se reducen los iconos no enfocados (5 = apenas notable, 95 = casi invisible).</description>
+    </key>
+
+    <key type="b" name="ws-middle-click-close">
+      <default>false</default>
+    </key>
+
+    <key type="b" name="ws-use-accent-color">
+      <default>false</default>
+    </key>
+
+    <key type="s" name="ws-active-workspace-background-color">
+      <default>'rgba(255,255,255,0.04)'</default>
+    </key>
+    <key type="s" name="ws-active-workspace-text-color">
+      <default>'rgba(255,255,255,1)'</default>
+    </key>
+    <key type="s" name="ws-active-workspace-border-color">
+      <default>'rgba(255,255,255,0.15)'</default>
+    </key>
+    <key type="i" name="ws-active-workspace-font-size">
+      <default>-1</default>
+    </key>
+    <key type="s" name="ws-active-workspace-font-weight">
+      <choices>
+        <choice value="100" /><choice value="200" /><choice value="300" />
+        <choice value="400" /><choice value="500" /><choice value="600" />
+        <choice value="700" /><choice value="800" /><choice value="900" />
+      </choices>
+      <default>"700"</default>
+    </key>
+    <key type="i" name="ws-active-workspace-border-radius">
+      <default>8</default>
+    </key>
+    <key type="i" name="ws-active-workspace-border-width">
+      <default>2</default>
+    </key>
+    <key type="i" name="ws-active-workspace-padding-h">
+      <default>7</default>
+    </key>
+    <key type="i" name="ws-active-workspace-padding-v">
+      <default>4</default>
+    </key>
+
+    <key type="s" name="ws-inactive-workspace-background-color">
+      <default>'rgba(255,255,255,0.04)'</default>
+    </key>
+    <key type="s" name="ws-inactive-workspace-text-color">
+      <default>'rgba(255,255,255,0.7)'</default>
+    </key>
+    <key type="s" name="ws-inactive-workspace-border-color">
+      <default>'rgba(255,255,255,0.15)'</default>
+    </key>
+    <key type="i" name="ws-inactive-workspace-font-size">
+      <default>-1</default>
+    </key>
+    <key type="s" name="ws-inactive-workspace-font-weight">
+      <choices>
+        <choice value="100" /><choice value="200" /><choice value="300" />
+        <choice value="400" /><choice value="500" /><choice value="600" />
+        <choice value="700" /><choice value="800" /><choice value="900" />
+      </choices>
+      <default>"700"</default>
+    </key>
+    <key type="i" name="ws-inactive-workspace-border-radius">
+      <default>8</default>
+    </key>
+    <key type="i" name="ws-inactive-workspace-border-width">
+      <default>2</default>
+    </key>
+    <key type="i" name="ws-inactive-workspace-padding-h">
+      <default>7</default>
+    </key>
+    <key type="i" name="ws-inactive-workspace-padding-v">
+      <default>4</default>
+    </key>
+
+    <key type="s" name="ws-empty-workspace-background-color">
+      <default>'rgba(0,0,0,0)'</default>
+    </key>
+    <key type="s" name="ws-empty-workspace-text-color">
+      <default>'rgba(255,255,255,0.5)'</default>
+    </key>
+    <key type="s" name="ws-empty-workspace-border-color">
+      <default>'rgba(0,0,0,0)'</default>
+    </key>
+    <key type="i" name="ws-empty-workspace-font-size">
+      <default>-1</default>
+    </key>
+    <key type="s" name="ws-empty-workspace-font-weight">
+      <choices>
+        <choice value="100" /><choice value="200" /><choice value="300" />
+        <choice value="400" /><choice value="500" /><choice value="600" />
+        <choice value="700" /><choice value="800" /><choice value="900" />
+      </choices>
+      <default>"700"</default>
+    </key>
+    <key type="i" name="ws-empty-workspace-border-radius">
+      <default>4</default>
+    </key>
+    <key type="i" name="ws-empty-workspace-border-width">
+      <default>0</default>
+    </key>
+    <key type="i" name="ws-empty-workspace-padding-h">
+      <default>8</default>
+    </key>
+    <key type="i" name="ws-empty-workspace-padding-v">
+      <default>3</default>
+    </key>
+
+    <key type="s" name="ws-application-styles">
+      <default>''</default>
+    </key>
+    <key type="b" name="ws-custom-styles-enabled">
+      <default>false</default>
+    </key>
+    <key type="b" name="ws-custom-styles-failed">
+      <default>false</default>
+    </key>
+    <key type="s" name="ws-custom-styles">
+      <default>''</default>
+    </key>
+
+    <key type="s" name="ws-transition-animation">
+      <choices>
+        <choice value="fade" />
+        <choice value="soft-pulse" />
+        <choice value="soft-slide" />
+        <choice value="none" />
+      </choices>
+      <default>"fade"</default>
+      <summary>Animación de transición entre espacios</summary>
+      <description>Estilo de animación al cambiar de espacio de trabajo activo en el panel</description>
+    </key>
+
+    <key type="b" name="ws-enable-animations">
+      <default>true</default>
+      <summary>Habilitar animaciones</summary>
+      <description>Cuando está activo, los cambios de iconos y espacios se animan suavemente. Desactivar para actualizaciones instantáneas.</description>
+    </key>
+
+    <!-- Quick Text -->
+    <key type="b" name="qt-enabled">
+      <default>true</default>
+      <summary>Habilitar Quick Text</summary>
+      <description>Permite capturar notas rápidas mediante atajo de teclado</description>
+    </key>
+
+    <key type="as" name="qt-hotkey">
+      <default><![CDATA[['<Ctrl><Super>i']]]></default>
+      <summary>Atajo para abrir el diálogo</summary>
+    </key>
+
+    <key type="s" name="qt-filepath">
+      <default>"/home/owl/notes.txt"</default>
+      <summary>Ruta del archivo de notas</summary>
+      <description>Ruta absoluta al archivo de texto donde se guardarán las notas</description>
+    </key>
+
+    <key type="s" name="qt-pendlocation">
+      <choices>
+        <choice value="BEG"/>
+        <choice value="END"/>
+      </choices>
+      <default>'BEG'</default>
+      <summary>Posición de la nota</summary>
+      <description>Agregar la nota al principio (BEG) o al final (END) del archivo</description>
+    </key>
+
+    <key type="s" name="qt-append">
+      <default>"-----"</default>
+      <summary>Separador entre notas</summary>
+    </key>
+
+    <key type="b" name="qt-append-enabled">
+      <default>false</default>
+      <summary>Usar separador entre notas</summary>
+      <description>Añade el texto del separador entre notas. Si el texto está vacío, deja una línea extra vacía. Si está desactivado, no hay separador ni línea extra</description>
+    </key>
+
+    <key type="s" name="qt-prepend">
+      <default>""</default>
+      <summary>Prefijo de cada nota (vacío = fecha actual)</summary>
+    </key>
+
+    <key type="b" name="qt-linebreak">
+      <default>false</default>
+      <summary>Salto de línea después del prefijo</summary>
+      <description>Añade un salto de línea después del prefijo, antes del texto de la nota. Si está desactivado, el prefijo y la nota aparecen en la misma línea</description>
+    </key>
+
+    <key type="b" name="qt-multiline">
+      <default>false</default>
+      <summary>Entrada de una sola línea</summary>
+      <description>Si está activo, la entrada es de una línea (Enter guarda la nota)</description>
+    </key>
+
+    <key type="b" name="qt-hideacted">
+      <default>true</default>
+      <summary>Ocultar notas procesadas</summary>
+      <description>Oculta las notas marcadas como procesadas en la ventana de acciones</description>
+    </key>
+
+    <!-- Background Widgets (master) -->
+    <key type="b" name="background-widgets-enabled">
+      <default>true</default>
+      <summary>Habilitar widgets de escritorio</summary>
+      <description>Activa o desactiva todos los widgets de escritorio (reloj, imagen, etc.)</description>
+    </key>
+
+    <!-- Background Clock -->
+    <key type="b" name="background-clock-enabled">
+      <default>false</default>
+      <summary>Habilitar reloj de fondo</summary>
+      <description>Muestra un reloj superpuesto en el escritorio</description>
+    </key>
+
+    <key type="i" name="background-clock-position">
+      <range min="0" max="8"/>
+      <default>8</default>
+      <summary>Posición en pantalla</summary>
+      <description>Posición en cuadrícula 3x3 (0=sup-izq, 1=sup-centro, 2=sup-der, 3=medio-izq, 4=centro, 5=medio-der, 6=inf-izq, 7=inf-centro, 8=inf-der)</description>
+    </key>
+
+    <key type="i" name="background-clock-x-offset">
+      <default>0</default>
+      <summary>Desplazamiento horizontal</summary>
+      <description>Desplazamiento horizontal en píxeles</description>
+    </key>
+
+    <key type="i" name="background-clock-y-offset">
+      <default>30</default>
+      <summary>Desplazamiento vertical</summary>
+      <description>Desplazamiento vertical en píxeles</description>
+    </key>
+
+    <key type="b" name="background-clock-enable-clock">
+      <default>true</default>
+      <summary>Mostrar hora</summary>
+    </key>
+
+    <key type="s" name="background-clock-clock-format">
+      <default>"%I:%M %p"</default>
+      <summary>Formato de hora</summary>
+      <description>Formato strftime para la hora (ej: %H:%M para 24h, %I:%M %p para 12h)</description>
+    </key>
+
+    <key type="i" name="background-clock-clock-size">
+      <range min="8" max="200"/>
+      <default>64</default>
+      <summary>Tamaño de la hora</summary>
+      <description>Tamaño de fuente para la hora en puntos</description>
+    </key>
+
+    <key type="b" name="background-clock-clock-custom-font">
+      <default>false</default>
+      <summary>Fuente personalizada para la hora</summary>
+    </key>
+
+    <key type="s" name="background-clock-clock-font">
+      <default>"Monospace"</default>
+      <summary>Fuente de la hora</summary>
+    </key>
+
+    <key type="s" name="background-clock-clock-color">
+      <default>"#ffffff"</default>
+      <summary>Color de la hora</summary>
+    </key>
+
+    <key type="i" name="background-clock-clock-shadow-x">
+      <default>0</default>
+      <summary>Sombra de hora: X</summary>
+    </key>
+
+    <key type="i" name="background-clock-clock-shadow-y">
+      <default>0</default>
+      <summary>Sombra de hora: Y</summary>
+    </key>
+
+    <key type="i" name="background-clock-clock-shadow-blur">
+      <default>0</default>
+      <summary>Sombra de hora: desenfoque</summary>
+    </key>
+
+    <key type="i" name="background-clock-clock-shadow-width">
+      <default>0</default>
+      <summary>Sombra de hora: ancho</summary>
+    </key>
+
+    <key type="s" name="background-clock-clock-shadow-color">
+      <default>"#000000"</default>
+      <summary>Sombra de hora: color</summary>
+    </key>
+
+    <key type="b" name="background-clock-enable-date">
+      <default>true</default>
+      <summary>Mostrar fecha</summary>
+    </key>
+
+    <key type="s" name="background-clock-date-format">
+      <default>"%A, %d de %B"</default>
+      <summary>Formato de fecha</summary>
+      <description>Formato strftime para la fecha</description>
+    </key>
+
+    <key type="i" name="background-clock-date-size">
+      <range min="8" max="200"/>
+      <default>24</default>
+      <summary>Tamaño de la fecha</summary>
+    </key>
+
+    <key type="b" name="background-clock-date-custom-font">
+      <default>false</default>
+      <summary>Fuente personalizada para la fecha</summary>
+    </key>
+
+    <key type="s" name="background-clock-date-font">
+      <default>"Monospace"</default>
+      <summary>Fuente de la fecha</summary>
+    </key>
+
+    <key type="s" name="background-clock-date-color">
+      <default>"#eeeeee"</default>
+      <summary>Color de la fecha</summary>
+    </key>
+
+    <key type="i" name="background-clock-date-shadow-x">
+      <default>0</default>
+      <summary>Sombra de fecha: X</summary>
+    </key>
+
+    <key type="i" name="background-clock-date-shadow-y">
+      <default>0</default>
+      <summary>Sombra de fecha: Y</summary>
+    </key>
+
+    <key type="i" name="background-clock-date-shadow-blur">
+      <default>0</default>
+      <summary>Sombra de fecha: desenfoque</summary>
+    </key>
+
+    <key type="i" name="background-clock-date-shadow-width">
+      <default>0</default>
+      <summary>Sombra de fecha: ancho</summary>
+    </key>
+
+    <key type="s" name="background-clock-date-shadow-color">
+      <default>"#000000"</default>
+      <summary>Sombra de fecha: color</summary>
+    </key>
+
+    <key type="s" name="background-clock-bg-color">
+      <default>"rgba(0,0,0,0)"</default>
+      <summary>Color de fondo</summary>
+      <description>Color de fondo del contenedor del reloj</description>
+    </key>
+
+    <key type="i" name="background-clock-bg-padding">
+      <default>12</default>
+      <summary>Padding interno</summary>
+    </key>
+
+    <key type="i" name="background-clock-bg-border-size">
+      <default>0</default>
+      <summary>Ancho del borde</summary>
+    </key>
+
+    <key type="s" name="background-clock-bg-border-color">
+      <default>"#ffffff"</default>
+      <summary>Color del borde</summary>
+    </key>
+
+    <key type="i" name="background-clock-bg-border-radius">
+      <default>0</default>
+      <summary>Radio del borde</summary>
+    </key>
+
+    <key type="b" name="background-clock-bg-shadow-inset">
+      <default>false</default>
+      <summary>Sombra interior</summary>
+    </key>
+
+    <key type="i" name="background-clock-bg-shadow-x">
+      <default>0</default>
+      <summary>Sombra de fondo: X</summary>
+    </key>
+
+    <key type="i" name="background-clock-bg-shadow-y">
+      <default>0</default>
+      <summary>Sombra de fondo: Y</summary>
+    </key>
+
+    <key type="i" name="background-clock-bg-shadow-blur">
+      <default>0</default>
+      <summary>Sombra de fondo: desenfoque</summary>
+    </key>
+
+    <key type="i" name="background-clock-bg-shadow-width">
+      <default>0</default>
+      <summary>Sombra de fondo: ancho</summary>
+    </key>
+
+    <key type="s" name="background-clock-bg-shadow-color">
+      <default>"#000000"</default>
+      <summary>Sombra de fondo: color</summary>
+    </key>
+
+    <!-- User Avatar (Quick Settings Avatar) -->
+    <key type="b" name="user-avatar-enabled">
+      <default>true</default>
+      <summary>Habilitar avatar de usuario</summary>
+      <description>Muestra el avatar del usuario en el menú de ajustes rápidos</description>
+    </key>
+
+    <key type="i" name="ua-mode">
+      <default>1</default>
+      <summary>Modo del avatar</summary>
+    </key>
+
+    <key type="i" name="ua-position">
+      <default>0</default>
+      <summary>Posición del avatar</summary>
+      <description>0: derecha, 1: izquierda</description>
+    </key>
+
+    <key type="i" name="ua-size">
+      <range min="15" max="75"/>
+      <default>43</default>
+      <summary>Tamaño del avatar</summary>
+      <description>Tamaño del ícono del avatar en píxeles</description>
+    </key>
+
+    <key type="b" name="ua-realname">
+      <default>false</default>
+      <summary>Mostrar nombre real</summary>
+      <description>Muestra el nombre real del usuario junto al avatar</description>
+    </key>
+
+    <key type="b" name="ua-username">
+      <default>false</default>
+      <summary>Mostrar nombre de usuario</summary>
+      <description>Muestra el nombre de usuario UNIX junto al avatar</description>
+    </key>
+
+    <key type="b" name="ua-hostname">
+      <default>false</default>
+      <summary>Mostrar nombre del equipo</summary>
+      <description>Muestra el nombre del equipo junto al avatar</description>
+    </key>
+
+    <key type="b" name="ua-nobackground">
+      <default>true</default>
+      <summary>Quitar fondo del botón</summary>
+      <description>Elimina el fondo predeterminado del botón de ajustes</description>
+    </key>
+
+    <!-- Quick Settings Tweaks -->
+    <key type="b" name="qst-enabled">
+      <default>false</default>
+      <summary>Habilitar Quick Settings Tweaks</summary>
+      <description>Activa las mejoras del menú de configuración rápida</description>
+    </key>
+
+    <key type="b" name="qst-toggles-enabled">
+      <default>true</default>
+      <summary>Habilitar ordenamiento de toggles</summary>
+      <description>Permite reordenar y ocultar los toggles del menú de configuración rápida</description>
+    </key>
+
+    <key type="aa{sv}" name="qst-toggles-order">
+      <default><![CDATA[
+        [
+          { 'hide': <false>, 'isSystem': <true>, 'constructorName': <'NMWiredToggle'> },
+          { 'hide': <false>, 'isSystem': <true>, 'constructorName': <'NMWirelessToggle'> },
+          { 'hide': <false>, 'isSystem': <true>, 'constructorName': <'NMModemToggle'> },
+          { 'hide': <false>, 'isSystem': <true>, 'constructorName': <'NMBluetoothToggle'> },
+          { 'hide': <false>, 'isSystem': <true>, 'constructorName': <'NMVpnToggle'> },
+          { 'hide': <false>, 'isSystem': <true>, 'constructorName': <'BluetoothToggle'> },
+          { 'hide': <false>, 'isSystem': <true>, 'constructorName': <'PowerProfilesToggle'> },
+          { 'hide': <false>, 'isSystem': <true>, 'constructorName': <'NightLightToggle'> },
+          { 'hide': <false>, 'isSystem': <true>, 'constructorName': <'DarkModeToggle'> },
+          { 'hide': <false>, 'isSystem': <true>, 'constructorName': <'DoNotDisturbToggle'> },
+          { 'hide': <false>, 'isSystem': <true>, 'constructorName': <'KeyboardBrightnessToggle'> },
+          { 'hide': <false>, 'isSystem': <true>, 'constructorName': <'RfkillToggle'> },
+          { 'hide': <false>, 'isSystem': <true>, 'constructorName': <'RotationToggle'> },
+          { 'hide': <false>, 'isSystem': <true>, 'constructorName': <'DndQuickToggle'> },
+          { 'hide': <false>, 'isSystem': <true>, 'constructorName': <'UnsafeQuickToggle'> },
+          { 'nonOrdered': <true>, 'hide': <false> }
+        ]
+      ]]></default>
+      <summary>Orden de los toggles</summary>
+      <description>Lista ordenada de toggles con opciones de ocultación</description>
+    </key>
+
+    <!-- System Items Layout -->
+    <key type="b" name="qst-system-items-enabled">
+      <default>false</default>
+      <summary>Habilitar System Items Layout</summary>
+      <description>Permite reordenar y ocultar los botones del área de sistema (captura, ajustes, bloqueo, apagado, batería)</description>
+    </key>
+
+    <key type="b" name="qst-system-items-hide">
+      <default>false</default>
+      <summary>Ocultar toda el área de sistema</summary>
+      <description>Oculta todos los botones del área de sistema por completo</description>
+    </key>
+
+    <key type="b" name="qst-system-items-hide-screenshot">
+      <default>false</default>
+      <summary>Ocultar botón de captura</summary>
+    </key>
+
+    <key type="b" name="qst-system-items-hide-settings">
+      <default>false</default>
+      <summary>Ocultar botón de ajustes</summary>
+    </key>
+
+    <key type="b" name="qst-system-items-hide-lock">
+      <default>false</default>
+      <summary>Ocultar botón de bloqueo</summary>
+    </key>
+
+    <key type="b" name="qst-system-items-hide-shutdown">
+      <default>false</default>
+      <summary>Ocultar botón de apagado</summary>
+    </key>
+
+    <key type="b" name="qst-system-items-hide-battery">
+      <default>false</default>
+      <summary>Ocultar indicador de batería</summary>
+    </key>
+
+    <key type="as" name="qst-system-items-order">
+      <default><![CDATA[['battery', 'laptopSpacer', 'screenshot', 'settings', 'desktopSpacer', 'lock', 'shutdown']]]></default>
+      <summary>Orden de los elementos del sistema</summary>
+      <description>Orden de los botones del área de sistema</description>
+    </key>
+
+    <!-- Custom toggle keybinding slots (used by QuickTogglesFeature via Main.wm.addKeybinding) -->
+    <key type="as" name="qst-custom-kb-0">
+      <default><![CDATA[[]]]></default>
+      <summary>Custom toggle keybinding slot 0</summary>
+    </key>
+    <key type="as" name="qst-custom-kb-1">
+      <default><![CDATA[[]]]></default>
+      <summary>Custom toggle keybinding slot 1</summary>
+    </key>
+    <key type="as" name="qst-custom-kb-2">
+      <default><![CDATA[[]]]></default>
+      <summary>Custom toggle keybinding slot 2</summary>
+    </key>
+    <key type="as" name="qst-custom-kb-3">
+      <default><![CDATA[[]]]></default>
+      <summary>Custom toggle keybinding slot 3</summary>
+    </key>
+    <key type="as" name="qst-custom-kb-4">
+      <default><![CDATA[[]]]></default>
+      <summary>Custom toggle keybinding slot 4</summary>
+    </key>
+    <key type="as" name="qst-custom-kb-5">
+      <default><![CDATA[[]]]></default>
+      <summary>Custom toggle keybinding slot 5</summary>
+    </key>
+    <key type="as" name="qst-custom-kb-6">
+      <default><![CDATA[[]]]></default>
+      <summary>Custom toggle keybinding slot 6</summary>
+    </key>
+    <key type="as" name="qst-custom-kb-7">
+      <default><![CDATA[[]]]></default>
+      <summary>Custom toggle keybinding slot 7</summary>
+    </key>
+    <key type="as" name="qst-custom-kb-8">
+      <default><![CDATA[[]]]></default>
+      <summary>Custom toggle keybinding slot 8</summary>
+    </key>
+    <key type="as" name="qst-custom-kb-9">
+      <default><![CDATA[[]]]></default>
+      <summary>Custom toggle keybinding slot 9</summary>
+    </key>
+
+    <!-- Custom toggle state persistence (matching keybinding slot indices) -->
+    <key type="b" name="qst-custom-state-0">
+      <default>false</default>
+      <summary>Custom toggle state slot 0</summary>
+    </key>
+    <key type="b" name="qst-custom-state-1">
+      <default>false</default>
+      <summary>Custom toggle state slot 1</summary>
+    </key>
+    <key type="b" name="qst-custom-state-2">
+      <default>false</default>
+      <summary>Custom toggle state slot 2</summary>
+    </key>
+    <key type="b" name="qst-custom-state-3">
+      <default>false</default>
+      <summary>Custom toggle state slot 3</summary>
+    </key>
+    <key type="b" name="qst-custom-state-4">
+      <default>false</default>
+      <summary>Custom toggle state slot 4</summary>
+    </key>
+    <key type="b" name="qst-custom-state-5">
+      <default>false</default>
+      <summary>Custom toggle state slot 5</summary>
+    </key>
+    <key type="b" name="qst-custom-state-6">
+      <default>false</default>
+      <summary>Custom toggle state slot 6</summary>
+    </key>
+    <key type="b" name="qst-custom-state-7">
+      <default>false</default>
+      <summary>Custom toggle state slot 7</summary>
+    </key>
+    <key type="b" name="qst-custom-state-8">
+      <default>false</default>
+      <summary>Custom toggle state slot 8</summary>
+    </key>
+    <key type="b" name="qst-custom-state-9">
+      <default>false</default>
+      <summary>Custom toggle state slot 9</summary>
+    </key>
+
+    <!-- Overlay Menu (port QST) -->
+    <key type="b" name="qst-overlay-menu-enabled">
+      <default>false</default>
+      <summary>Habilitar Overlay Mode</summary>
+      <description>Muestra los menús de toggles, energía y sonido como superposición (overlay) fijada al toggle, en lugar de expandir los ajustes rápidos</description>
+    </key>
+    <key type="i" name="qst-overlay-menu-width">
+      <default>380</default>
+      <summary>Ancho del overlay</summary>
+      <description>Ajusta el ancho del menú superpuesto. Poner a 0 desactiva el ajuste.</description>
+    </key>
+    <key type="i" name="qst-overlay-menu-animate-duration">
+      <default>360</default>
+      <summary>Duración de la animación del overlay</summary>
+      <description>Duración personalizada de la animación de apertura del menú, en microsegundos. Poner a 0 desactiva la animación personalizada.</description>
+    </key>
+    <key type="s" name="qst-overlay-menu-animate-style">
+      <choices>
+        <choice value="flyout"/>
+        <choice value="dialog"/>
+      </choices>
+      <default>"dialog"</default>
+      <summary>Estilo de animación del overlay</summary>
+      <description>Estilo de la animación personalizada de apertura del menú: flyout (desde el toggle) o dialog (escala desde el centro).</description>
+    </key>
+    <key type="s" name="qst-overlay-menu-overflow-anchor">
+      <choices>
+        <choice value="top"/>
+        <choice value="center"/>
+        <choice value="bottom"/>
+      </choices>
+      <default>"top"</default>
+      <summary>Ancla de desbordamiento del overlay</summary>
+      <description>Cuando el menú es más alto que los ajustes rápidos, determina dónde se fija el menú dentro de los ajustes rápidos.</description>
+    </key>
+
+    <!-- Menu Animation (port QST) -->
+    <key type="b" name="qst-menu-animation-enabled">
+      <default>false</default>
+      <summary>Habilitar animación del menú</summary>
+      <description>Añade animación al menú de ajustes rápidos al abrir y cerrar. Para mejor resultado, activa el modo overlay.</description>
+    </key>
+    <key type="i" name="qst-menu-animation-background-blur-radius">
+      <default>4</default>
+      <summary>Radio de desenfoque del fondo</summary>
+      <description>Radio del desenfoque del fondo del menú. Poner a 0 desactiva el desenfoque.</description>
+    </key>
+    <key type="i" name="qst-menu-animation-background-brightness">
+      <default>900</default>
+      <summary>Brillo del fondo</summary>
+      <description>Ajusta el brillo del fondo del menú; 1000 desactiva el control de brillo.</description>
+    </key>
+    <key type="i" name="qst-menu-animation-background-opacity">
+      <default>220</default>
+      <summary>Opacidad del fondo</summary>
+      <description>Opacidad del fondo del menú. 255 = opaco, 0 = transparente.</description>
+    </key>
+    <key type="i" name="qst-menu-animation-grid-content-opacity">
+      <default>100</default>
+      <summary>Opacidad del contenido del grid</summary>
+      <description>Opacidad del contenido del grid de ajustes rápidos. 255 = opaco, 0 = transparente.</description>
+    </key>
+    <key type="i" name="qst-menu-animation-background-scale-x">
+      <default>920</default>
+      <summary>Escala X del fondo</summary>
+      <description>Escala horizontal del fondo del menú; 1000 equivale a escala 1.0.</description>
+    </key>
+    <key type="i" name="qst-menu-animation-background-scale-y">
+      <default>920</default>
+      <summary>Escala Y del fondo</summary>
+      <description>Escala vertical del fondo del menú; 1000 equivale a escala 1.0.</description>
+    </key>
+    <key type="i" name="qst-menu-animation-open-duration">
+      <default>380</default>
+      <summary>Duración de apertura</summary>
+      <description>Duración de la animación de apertura en microsegundos.</description>
+    </key>
+    <key type="i" name="qst-menu-animation-close-duration">
+      <default>380</default>
+      <summary>Duración de cierre</summary>
+      <description>Duración de la animación de cierre en microsegundos.</description>
+    </key>
+
+    <!-- Picture Widget -->
+    <key type="b" name="pw-enabled">
+      <default>false</default>
+      <summary>Habilitar Picture Widget</summary>
+      <description>Muestra una imagen en el escritorio</description>
+    </key>
+
+    <key type="s" name="pw-image-path">
+      <default>""</default>
+      <summary>Ruta de la imagen o carpeta</summary>
+      <description>Ruta al archivo de imagen o carpeta con imágenes para mostrar en el escritorio. Si es carpeta, se elige una imagen aleatoria.</description>
+    </key>
+
+    <key type="i" name="pw-size">
+      <default>200</default>
+      <summary>Tamaño base de la imagen</summary>
+      <description>Tamaño base en píxeles combinado con el aspect ratio para calcular ancho y alto</description>
+      <range min="10" max="2000"/>
+    </key>
+
+    <key type="d" name="pw-aspect-ratio">
+      <default>1.0</default>
+      <summary>Relación de aspecto (ancho/alto)</summary>
+      <description>Relación de aspecto de la imagen. 1.0 = cuadrado, 2.0 = doble ancho que alto, 0.5 = doble alto que ancho</description>
+      <range min="0.1" max="10"/>
+    </key>
+
+    <key type="i" name="pw-position-x">
+      <default>100</default>
+      <summary>Posición X</summary>
+      <description>Posición horizontal en píxeles desde la esquina superior izquierda de la pantalla</description>
+    </key>
+
+    <key type="i" name="pw-position-y">
+      <default>100</default>
+      <summary>Posición Y</summary>
+      <description>Posición vertical en píxeles desde la esquina superior izquierda de la pantalla</description>
+    </key>
+
+    <key type="i" name="pw-corner-radius">
+      <default>20</default>
+      <summary>Radio de esquina</summary>
+      <description>Porcentaje de radio de esquina (0-100) aplicado sobre la mitad de la dimensión menor</description>
+      <range min="0" max="100"/>
+    </key>
+
+    <key type="i" name="pw-refresh-interval">
+      <default>60</default>
+      <summary>Intervalo de actualización</summary>
+      <description>Segundos entre cambios de imagen cuando se usa una carpeta (0 = sin cambio automático)</description>
+      <range min="0" max="86400"/>
+    </key>
+
+    <!-- Top Bar Organizer -->
+    <key type="b" name="tbo-enabled">
+      <default>false</default>
+      <summary>Habilitar Top Bar Organizer</summary>
+      <description>Activa la reorganización y ocultación de elementos de la barra superior</description>
+    </key>
+
+    <key type="as" name="tbo-left-box-order">
+      <default>[]</default>
+      <summary>Orden de la caja izquierda</summary>
+      <description>Orden de los elementos del panel izquierdo de la barra superior</description>
+    </key>
+
+    <key type="as" name="tbo-center-box-order">
+      <default>[]</default>
+      <summary>Orden de la caja central</summary>
+      <description>Orden de los elementos del panel central de la barra superior</description>
+    </key>
+
+    <key type="as" name="tbo-right-box-order">
+      <default>[]</default>
+      <summary>Orden de la caja derecha</summary>
+      <description>Orden de los elementos del panel derecho de la barra superior</description>
+    </key>
+
+    <key type="as" name="tbo-hide">
+      <default>[]</default>
+      <summary>Elementos ocultos</summary>
+      <description>Elementos de la barra superior que deben ocultarse</description>
+    </key>
+
+    <key type="as" name="tbo-show">
+      <default>[]</default>
+      <summary>Elementos forzados a mostrar</summary>
+      <description>Elementos de la barra superior que deben mostrarse forzosamente</description>
+    </key>
+
+    <key type="as" name="tbo-default-left-box-order">
+      <default>[]</default>
+      <summary>Orden por defecto de la caja izquierda</summary>
+      <description>Orden original detectado de los elementos del panel izquierdo</description>
+    </key>
+
+    <key type="as" name="tbo-default-center-box-order">
+      <default>[]</default>
+      <summary>Orden por defecto de la caja central</summary>
+      <description>Orden original detectado de los elementos del panel central</description>
+    </key>
+
+    <key type="as" name="tbo-default-right-box-order">
+      <default>[]</default>
+      <summary>Orden por defecto de la caja derecha</summary>
+      <description>Orden original detectado de los elementos del panel derecho</description>
+    </key>
+
+    <!-- Date Menu (At a Glance) -->
+    <key type="b" name="dm-enabled">
+      <default>false</default>
+      <summary>Habilitar Date Menu (At a Glance)</summary>
+      <description>Reemplaza el reloj del panel por un formato personalizado con indicador multimedia opcional</description>
+    </key>
+
+    <key type="s" name="dm-format">
+      <default>"%B %d, %I:%M %p"</default>
+      <summary>Formato de fecha y hora</summary>
+      <description>Formato strftime para el reloj del panel (fecha y hora en una línea)</description>
+    </key>
+
+    <key type="b" name="dm-show-media">
+      <default>true</default>
+      <summary>Mostrar multimedia al reproducir</summary>
+      <description>Muestra la información de reproducción multimedia en lugar del reloj cuando hay contenido activo</description>
+    </key>
+
+    <key type="b" name="dm-show-art">
+      <default>true</default>
+      <summary>Mostrar carátula del álbum</summary>
+      <description>Muestra la carátula del álbum junto a la información de reproducción multimedia</description>
+    </key>
+
+    <key type="i" name="dm-art-cache-size">
+      <default>20</default>
+      <range min="1" max="500"/>
+      <summary>Tamaño máximo de caché de carátulas (MB)</summary>
+      <description>Límite de almacenamiento en disco para las carátulas de álbumes descargadas. Las carátulas más antiguas se eliminan cuando se supera este límite.</description>
+    </key>
+
+    <key type="i" name="dm-visualizer-style">
+      <default>0</default>
+      <range min="0" max="3"/>
+      <summary>Estilo de visualizador</summary>
+      <description>0=Off, 1=Wave (senoidal), 2=Beat (pulso), 3=Cava (FFT en tiempo real, requiere cava)</description>
+    </key>
+
+    <key type="i" name="dm-visualizer-bars">
+      <default>4</default>
+      <range min="2" max="16"/>
+      <summary>Número de barras del visualizador</summary>
+      <description>Cantidad de barras para los modos Wave y Beat</description>
+    </key>
+
+    <key type="i" name="dm-visualizer-height">
+      <default>24</default>
+      <range min="8" max="64"/>
+      <summary>Altura del visualizador</summary>
+      <description>Altura en píxeles del área del visualizador</description>
+    </key>
+
+    <key type="b" name="dm-visualizer-enabled">
+      <default>true</default>
+      <summary>Activar visualizador</summary>
+      <description>Muestra el visualizador de audio durante la reproducción</description>
+    </key>
+
+    <key type="i" name="dm-media-layout">
+      <default>0</default>
+      <range min="0" max="2"/>
+      <summary>Disposición de la vista multimedia</summary>
+      <description>0=Vista multimedia (solo texto), 1=Vista de reloj (reloj+carátula+visualizador), 2=Vista completa (texto+reloj)</description>
+    </key>
+
+    <key type="s" name="dm-complete-format">
+      <default>"%I:%M %p"</default>
+      <summary>Formato en modo completo</summary>
+      <description>Formato strftime para el reloj cuando se muestra junto a la información multimedia (se activa con disposición Vista completa)</description>
+    </key>
+
+    <key type="b" name="dm-swap-text-order">
+      <default>false</default>
+      <summary>Permutar orden en Vista completa</summary>
+      <description>Intercambia el orden del reloj y la información multimedia en la disposición Vista completa</description>
+    </key>
+
+    <key type="b" name="dm-show-media-playing-only">
+      <default>true</default>
+      <summary>Solo mostrar durante reproducción</summary>
+      <description>Si está activo, la información multimedia solo se muestra cuando hay contenido en reproducción. Si está inactivo, se muestra incluso en pausa.</description>
+    </key>
+
+    <key type="i" name="dm-title-max-length">
+      <default>20</default>
+      <range min="5" max="30"/>
+      <summary>Longitud máxima del título</summary>
+      <description>Número máximo de caracteres para el título de la pista</description>
+    </key>
+
+    <key type="i" name="dm-artist-max-length">
+      <default>10</default>
+      <range min="5" max="30"/>
+      <summary>Longitud máxima del artista</summary>
+      <description>Número máximo de caracteres para el nombre del artista</description>
+    </key>
+
+    <key type="i" name="dm-art-position">
+      <default>0</default>
+      <range min="0" max="1"/>
+      <summary>Ubicación de la carátula</summary>
+      <description>0=Izquierda, 1=Derecha</description>
+    </key>
+
+    <key type="i" name="dm-visualizer-position">
+      <default>1</default>
+      <range min="0" max="1"/>
+      <summary>Ubicación del visualizador</summary>
+      <description>0=Izquierda del texto, 1=Derecha del texto</description>
+    </key>
+
+    <!-- Notification Media -->
+    <key type="b" name="nm-enabled">
+      <default>false</default>
+      <summary>Habilitar notificación multimedia</summary>
+      <description>Muestra controles multimedia en el centro de notificaciones</description>
+    </key>
+    <key type="b" name="nm-compact">
+      <default>false</default>
+      <summary>Modo compacto</summary>
+      <description>Muestra el widget en un tamaño compacto, similar al de las notificaciones.</description>
+    </key>
+    <key type="i" name="nm-control-opacity">
+      <default>230</default>
+      <range min="0" max="255"/>
+      <summary>Opacidad de botones de control</summary>
+      <description>Opacidad de los botones de reproducción (anterior, pausa, siguiente). 0 = transparente, 255 = opaco.</description>
+    </key>
+    <key type="b" name="nm-show-next">
+      <default>true</default>
+      <summary>Mostrar botón siguiente</summary>
+      <description>Muestra el botón para saltar a la siguiente pista.</description>
+    </key>
+    <key type="b" name="nm-show-prev">
+      <default>true</default>
+      <summary>Mostrar botón anterior</summary>
+      <description>Muestra el botón para volver a la pista anterior.</description>
+    </key>
+    <key type="b" name="nm-show-pause">
+      <default>true</default>
+      <summary>Mostrar botón de pausa</summary>
+      <description>Muestra el botón de pausa/reproducción.</description>
+    </key>
+    <key type="b" name="nm-progress-enabled">
+      <default>true</default>
+      <summary>Barra de progreso</summary>
+      <description>Muestra la barra de progreso con el tiempo transcurrido y duración total.</description>
+    </key>
+    <key type="s" name="nm-progress-style">
+      <choices>
+        <choice value='slim'/>
+        <choice value='default'/>
+      </choices>
+      <default>'slim'</default>
+      <summary>Estilo de la barra de progreso</summary>
+      <description>'slim' oculta el control deslizante; 'default' muestra el control redondo estándar.</description>
+    </key>
+    <key type="b" name="nm-round-clip-enabled">
+      <default>true</default>
+      <summary>Clip redondeado</summary>
+      <description>Habilita el efecto de esquinas redondeadas en el contenedor multimedia.</description>
+    </key>
+    <key type="i" name="nm-smooth-scroll-speed">
+      <default>16</default>
+      <range min="-2048" max="2048"/>
+      <summary>Velocidad de scroll suave</summary>
+      <description>Multiplicador para la velocidad de desplazamiento entre reproductores con el touchpad.</description>
+    </key>
+
+    <!-- User Avatar Date Menu -->
+    <key type="b" name="uadm-enabled">
+      <default>false</default>
+      <summary>Habilitar avatar de usuario en el menú de fecha</summary>
+      <description>Muestra el avatar y nombre del usuario en el menú de fecha, sobre el calendario.</description>
+    </key>
+
+    <key type="b" name="uadm-show-realname">
+      <default>true</default>
+      <summary>Mostrar nombre real</summary>
+      <description>Muestra el nombre real del usuario en el menú de fecha.</description>
+    </key>
+
+    <key type="b" name="uadm-show-username">
+      <default>false</default>
+      <summary>Mostrar nombre de usuario</summary>
+      <description>Muestra el nombre de usuario UNIX en el menú de fecha.</description>
+    </key>
+
+    <!-- Date Menu Media -->
+    <key type="b" name="dmm-enabled">
+      <default>false</default>
+      <summary>Habilitar widget multimedia en el menú de fecha</summary>
+      <description>Muestra un widget de control multimedia en el menú de fecha, sobre el calendario.</description>
+    </key>
+
+    <key type="b" name="dmm-show-prev">
+      <default>true</default>
+      <summary>Mostrar botón anterior</summary>
+      <description>Muestra el botón de canción anterior en los controles multimedia.</description>
+    </key>
+
+    <key type="b" name="dmm-show-pause">
+      <default>true</default>
+      <summary>Mostrar botón pausa/reproducir</summary>
+      <description>Muestra el botón de pausa/reproducir en los controles multimedia.</description>
+    </key>
+
+    <key type="b" name="dmm-show-next">
+      <default>true</default>
+      <summary>Mostrar botón siguiente</summary>
+      <description>Muestra el botón de canción siguiente en los controles multimedia.</description>
+    </key>
+
+    <key type="i" name="dmm-control-opacity">
+      <default>250</default>
+      <range min="0" max="255"/>
+      <summary>Opacidad de los botones de control</summary>
+      <description>Opacidad de los botones de control multimedia (0-255).</description>
+    </key>
+
+    <key type="b" name="dmm-compact">
+      <default>true</default>
+      <summary>Modo compacto</summary>
+      <description>Reduce el espacio del widget multimedia.</description>
+    </key>
+
+    <key type="b" name="dmm-progress-enabled">
+      <default>true</default>
+      <summary>Mostrar barra de progreso</summary>
+      <description>Muestra la barra de progreso con tiempo transcurrido y duración total.</description>
+    </key>
+
+    <key type="s" name="dmm-progress-style">
+      <default>"slim"</default>
+      <summary>Estilo de la barra de progreso</summary>
+      <description>'slim' o 'default'.</description>
+    </key>
+
+    <key type="b" name="dmm-auto-switch">
+      <default>true</default>
+      <summary>Cambiar automáticamente al último medio reproduciéndose</summary>
+      <description>Si está activo, el widget siempre muestra el último medio que se está reproduciendo, incluso si el usuario había seleccionado otro manualmente. Similar al comportamiento nativo del DateMenu.</description>
+    </key>
+
+    <key type="b" name="dmm-show-art">
+      <default>true</default>
+      <summary>Mostrar carátula del álbum</summary>
+      <description>Muestra la imagen de la carátula del álbum junto a los controles.</description>
+    </key>
+
+    <key type="i" name="dmm-art-size">
+      <default>50</default>
+      <range min="31" max="110"/>
+      <summary>Tamaño de la carátula</summary>
+      <description>Tamaño en píxeles del arte del álbum (ancho y alto).</description>
+    </key>
+    <key type="i" name="dmm-album-roundness">
+      <default>10</default>
+      <range min="1" max="99"/>
+      <summary>Redondeo de carátula</summary>
+      <description>Radio de borde redondeado de la carátula del álbum en píxeles (1-99).</description>
+    </key>
+    <key type="b" name="dmm-gradient-enabled">
+      <default>true</default>
+      <summary>Gradiente desde la carátula</summary>
+      <description>Extrae el color dominante de la carátula y lo usa como fondo gradiente.</description>
+    </key>
+
+    <key type="i" name="dmm-gradient-start-opaque">
+      <default>1000</default>
+      <range min="0" max="1000"/>
+      <summary>Opacidad inicial del gradiente</summary>
+      <description>Opacidad del color al inicio del gradiente (0-1000).</description>
+    </key>
+
+    <key type="i" name="dmm-gradient-start-mix">
+      <default>600</default>
+      <range min="0" max="1000"/>
+      <summary>Mezcla inicial del gradiente</summary>
+      <description>Qué tanto del color extraído se mezcla al inicio (0-1000).</description>
+    </key>
+
+    <key type="i" name="dmm-gradient-end-opaque">
+      <default>1000</default>
+      <range min="0" max="1000"/>
+      <summary>Opacidad final del gradiente</summary>
+      <description>Opacidad del color al final del gradiente (0-1000).</description>
+    </key>
+
+    <key type="i" name="dmm-gradient-end-mix">
+      <default>800</default>
+      <range min="0" max="1000"/>
+      <summary>Mezcla final del gradiente</summary>
+      <description>Qué tanto del color extraído se mezcla al final (0-1000).</description>
+    </key>
+
+    <key type="i" name="dmm-slider-handle-radius">
+      <default>10</default>
+      <range min="0" max="20"/>
+      <summary>Radio del control deslizante</summary>
+      <description>Radio en píxeles del control deslizante de la barra de progreso (0 = sin asa).</description>
+    </key>
+
+    <key type="i" name="dmm-slider-bar-height">
+      <default>6</default>
+      <range min="2" max="20"/>
+      <summary>Altura de la barra de progreso</summary>
+      <description>Altura en píxeles de la barra de progreso.</description>
+    </key>
+
+    <key type="s" name="dmm-slider-active-color">
+      <default>""</default>
+      <summary>Color activo del slider</summary>
+      <description>Color CSS para la parte activa (progreso completado) del slider. Vacío usa el color de acento del tema.</description>
+    </key>
+
+    <key type="s" name="dmm-slider-background-color">
+      <default>""</default>
+      <summary>Color de fondo del slider</summary>
+      <description>Color CSS para la parte inactiva del slider. Vacío usa el valor por defecto del tema.</description>
+    </key>
+
+    <key type="b" name="dmm-round-clip-enabled">
+      <default>true</default>
+      <summary>Clip redondeado</summary>
+      <description>Recorta las esquinas del widget multimedia con bordes redondeados.</description>
+    </key>
+
+    <key type="i" name="dmm-round-clip-radius">
+      <default>16</default>
+      <range min="0" max="48"/>
+      <summary>Radio de borde redondeado</summary>
+      <description>Radio en píxeles de las esquinas redondeadas del widget.</description>
+    </key>
+
+    <!-- Player Filter -->
+    <key type="i" name="player-filter-mode">
+      <default>0</default>
+      <summary>Player filter mode</summary>
+      <description>0=Off (allow all), 1=Blacklist (exclude listed), 2=Whitelist (only allow listed)</description>
+    </key>
+    <key type="s" name="player-filter-list">
+      <default>''</default>
+      <summary>Comma-separated list of players to filter</summary>
+      <description>Player name substrings to match against bus names (e.g. firefox, chrome, spotify)</description>
+    </key>
+
+    <!-- Dashboard -->
+    <key type="b" name="dashboard-enabled">
+      <default>true</default>
+      <summary>Habilitar Dashboard</summary>
+      <description>Activa el panel de inicio (Dashboard) con widgets configurables</description>
+    </key>
+    <key type="as" name="dashboard-shortcut">
+      <default><![CDATA[['<Shift><Super>d']]]></default>
+      <summary>Atajo para abrir/cerrar Dashboard</summary>
+    </key>
+
+
+    <key type="i" name="dashboard-x-align">
+      <range min="0" max="3"/>
+      <default>2</default>
+      <summary>Alineación horizontal</summary>
+    </key>
+    <key type="i" name="dashboard-y-align">
+      <range min="0" max="3"/>
+      <default>2</default>
+      <summary>Alineación vertical</summary>
+    </key>
+    <key type="i" name="dashboard-x-offset">
+      <default>0</default>
+      <summary>Desplazamiento X</summary>
+    </key>
+    <key type="i" name="dashboard-y-offset">
+      <default>0</default>
+      <summary>Desplazamiento Y</summary>
+    </key>
+    <key type="b" name="dashboard-darken">
+      <default>true</default>
+      <summary>Oscurecer fondo</summary>
+    </key>
+    <key type="i" name="dashboard-dialog-scale">
+      <range min="50" max="150"/>
+      <default>100</default>
+      <summary>Escala del contenedor</summary>
+      <description>Porcentaje de escala aplicado al padding del contenedor (marco) que rodea los widgets. Los widgets conservan su tamaño natural y se mantienen centrados sin desbordamiento</description>
+    </key>
+
+    <key type="s" name="dashboard-layout-json">
+      <default>'{"type":"grid","columns":3,"children":[{"widget":"system","col":0,"row":0},{"widget":"clock","col":1,"row":0,"col_span":2},{"widget":"apps","col":0,"row":1,"row_span":2},{"widget":"media","col":1,"row":1,"col_span":2,"row_span":2},{"widget":"levels","col":0,"row":3},{"widget":"user","col":1,"row":3,"col_span":2}]}'</default>
+      <summary>Layout JSON</summary>
+    </key>
+
+    <key type="i" name="dashboard-grid-spacing">
+      <range min="0" max="30"/>
+      <default>0</default>
+      <summary>Espaciado uniforme de la cuadrícula</summary>
+      <description>Separación uniforme entre filas y columnas del layout en grid</description>
+    </key>
+    <key type="i" name="dashboard-grid-columns">
+      <range min="1" max="6"/>
+      <default>1</default>
+      <summary>Columnas de la cuadrícula</summary>
+      <description>Número de columnas usado para colocar automáticamente los widgets sin posición explícita</description>
+    </key>
+
+    <!-- ============================================================ -->
+    <!--  Widget base properties: x/y align, x/y expand, w, h, bg    -->
+    <!-- ============================================================ -->
+
+    <!-- Apps Widget -->
+    <key type="i" name="dashboard-apps-x-align"><default>2</default></key>
+    <key type="i" name="dashboard-apps-y-align"><default>0</default></key>
+    <key type="b" name="dashboard-apps-x-expand"><default>false</default></key>
+    <key type="b" name="dashboard-apps-y-expand"><default>false</default></key>
+    <key type="i" name="dashboard-apps-width"><default>0</default></key>
+    <key type="i" name="dashboard-apps-height"><default>0</default></key>
+    <key type="b" name="dashboard-apps-background"><default>true</default></key>
+    <key type="i" name="dashboard-apps-rows"><default>2</default></key>
+    <key type="i" name="dashboard-apps-cols"><default>4</default></key>
+    <key type="i" name="dashboard-apps-icon-size"><default>60</default></key>
+
+    <!-- Clock Widget -->
+    <key type="i" name="dashboard-clock-x-align"><default>0</default></key>
+    <key type="i" name="dashboard-clock-y-align"><default>0</default></key>
+    <key type="b" name="dashboard-clock-x-expand"><default>true</default></key>
+    <key type="b" name="dashboard-clock-y-expand"><default>false</default></key>
+    <key type="i" name="dashboard-clock-width"><default>0</default></key>
+    <key type="i" name="dashboard-clock-height"><default>0</default></key>
+    <key type="b" name="dashboard-clock-background"><default>true</default></key>
+    <key type="b" name="dashboard-clock-vertical"><default>true</default></key>
+    <key type="i" name="dashboard-clock-clock-size">
+      <range min="20" max="70"/>
+      <default>50</default>
+    </key>
+    <key type="i" name="dashboard-clock-date-size">
+      <range min="15" max="30"/>
+      <default>18</default>
+    </key>
+    <key type="i" name="dashboard-clock-spacing">
+      <default>0</default>
+      <range min="0" max="50"/>
+      <summary>Distancia entre reloj y fecha</summary>
+      <description>Espacio vertical u horizontal entre el reloj y la fecha en el widget Clock</description>
+    </key>
+
+    <!-- Levels Widget -->
+    <key type="i" name="dashboard-levels-x-align"><default>0</default></key>
+    <key type="i" name="dashboard-levels-y-align"><default>0</default></key>
+    <key type="b" name="dashboard-levels-x-expand"><default>true</default></key>
+    <key type="b" name="dashboard-levels-y-expand"><default>false</default></key>
+    <key type="i" name="dashboard-levels-width"><default>0</default></key>
+    <key type="i" name="dashboard-levels-height"><default>0</default></key>
+    <key type="b" name="dashboard-levels-background"><default>true</default></key>
+    <key type="b" name="dashboard-levels-show-battery"><default>false</default></key>
+    <key type="b" name="dashboard-levels-show-storage"><default>true</default></key>
+    <key type="b" name="dashboard-levels-show-cpu"><default>true</default></key>
+    <key type="b" name="dashboard-levels-show-ram"><default>true</default></key>
+    <key type="b" name="dashboard-levels-show-temp"><default>true</default></key>
+    <key type="i" name="dashboard-levels-fixed-width"><default>390</default></key>
+    <key type="s" name="dashboard-levels-command"><default>'ghostty -e htop'</default></key>
+    <key type="s" name="dashboard-clock-command"><default>'gnome-clocks'</default></key>
+
+    <!-- Media Widget -->
+    <key type="i" name="dashboard-media-x-align"><default>2</default></key>
+    <key type="i" name="dashboard-media-y-align"><default>2</default></key>
+    <key type="b" name="dashboard-media-x-expand"><default>true</default></key>
+    <key type="b" name="dashboard-media-y-expand"><default>true</default></key>
+    <key type="i" name="dashboard-media-width"><default>0</default></key>
+    <key type="i" name="dashboard-media-height"><default>0</default></key>
+    <key type="b" name="dashboard-media-background"><default>true</default></key>
+    <key type="i" name="dashboard-media-style"><default>2</default></key>
+    <key type="i" name="dashboard-media-cover-width"><default>100</default></key>
+    <key type="i" name="dashboard-media-cover-height"><default>100</default></key>
+    <key type="i" name="dashboard-media-cover-roundness"><default>10</default></key>
+    <key type="b" name="dashboard-media-fade"><default>true</default></key>
+    <key type="b" name="dashboard-media-show-text"><default>true</default></key>
+    <key type="b" name="dashboard-media-show-loop-shuffle"><default>true</default></key>
+
+    <!-- Settings Widget -->
+    <key type="i" name="dashboard-settings-x-align"><default>0</default></key>
+    <key type="i" name="dashboard-settings-y-align"><default>0</default></key>
+    <key type="b" name="dashboard-settings-x-expand"><default>false</default></key>
+    <key type="b" name="dashboard-settings-y-expand"><default>false</default></key>
+    <key type="i" name="dashboard-settings-width"><default>0</default></key>
+    <key type="i" name="dashboard-settings-height"><default>0</default></key>
+    <key type="b" name="dashboard-settings-background"><default>true</default></key>
+
+    <!-- System Widget -->
+    <key type="i" name="dashboard-system-x-align"><default>0</default></key>
+    <key type="i" name="dashboard-system-y-align"><default>0</default></key>
+    <key type="b" name="dashboard-system-x-expand"><default>false</default></key>
+    <key type="b" name="dashboard-system-y-expand"><default>false</default></key>
+    <key type="i" name="dashboard-system-width"><default>0</default></key>
+    <key type="i" name="dashboard-system-height"><default>0</default></key>
+    <key type="b" name="dashboard-system-background"><default>true</default></key>
+    <key type="i" name="dashboard-system-layout"><default>0</default></key>
+    <key type="i" name="dashboard-system-icon-size"><default>30</default></key>
+
+    <!-- User Widget -->
+    <key type="i" name="dashboard-user-x-align"><default>0</default></key>
+    <key type="i" name="dashboard-user-y-align"><default>0</default></key>
+    <key type="b" name="dashboard-user-x-expand"><default>false</default></key>
+    <key type="b" name="dashboard-user-y-expand"><default>false</default></key>
+    <key type="i" name="dashboard-user-width"><default>0</default></key>
+    <key type="i" name="dashboard-user-height"><default>0</default></key>
+    <key type="b" name="dashboard-user-background"><default>true</default></key>
+    <key type="b" name="dashboard-user-vertical"><default>false</default></key>
+    <key type="i" name="dashboard-user-icon-roundness"><default>10</default></key>
+    <key type="i" name="dashboard-user-icon-width">
+      <range min="50" max="100"/>
+      <default>80</default>
+    </key>
+    <key type="i" name="dashboard-user-icon-height">
+      <range min="50" max="100"/>
+      <default>80</default>
+    </key>
+    <key type="i" name="dashboard-user-text-spacing"><default>0</default></key>
+
+    <!-- Launcher -->
+    <key type="b" name="launcher-enabled">
+      <default>true</default>
+      <summary>Habilitar Launcher</summary>
+      <description>Abrir la búsqueda nativa del Overview con el atajo de teclado (modo búsqueda)</description>
+    </key>
+    <key type="as" name="launcher-hotkey">
+      <default><![CDATA[['<Super>d']]]></default>
+      <summary>Atajo de teclado</summary>
+      <description>Atajo para abrir la búsqueda del Overview (modo búsqueda)</description>
+    </key>
+    <key type="b" name="launcher-hide-search">
+      <default>true</default>
+      <summary>Ocultar barra de búsqueda del Overview</summary>
+      <description>Oculta el campo "Type to search" en el Overview. Aparece al empezar a escribir.</description>
+    </key>
+    <key type="as" name="launcher-commands">
+      <default><![CDATA[['noti|notify-send "Hola LIDSoL :P"|preferences-system-notifications-symbolic']]]></default>
+      <summary>Comandos personalizados</summary>
+      <description>Lista de "nombre|comando" opcionalmente "nombre|comando|icono" ejecutables desde la búsqueda escribiendo :nombre</description>
+    </key>
+
+    <!-- Battery Indicator -->
+    <key type="b" name="battery-indicator-enabled">
+      <default>false</default>
+      <summary>Habilitar indicador de batería personalizado</summary>
+      <description>Reemplaza el indicador nativo de batería con un círculo y/o barra personalizados</description>
+    </key>
+    <key name="bi-top-bar-style" type="s">
+      <choices>
+        <choice value="circle"/>
+        <choice value="bar"/>
+        <choice value="both"/>
+      </choices>
+      <default>"circle"</default>
+      <summary>Estilo del indicador</summary>
+      <description>Círculo, barra, o ambos</description>
+    </key>
+    <key name="bi-show-percentage" type="b">
+      <default>false</default>
+      <summary>Mostrar porcentaje</summary>
+      <description>Muestra el porcentaje de batería junto al indicador</description>
+    </key>
+    <key name="bi-bar-width" type="i">
+      <default>80</default>
+      <range min="20" max="300"/>
+      <summary>Ancho de la barra</summary>
+    </key>
+    <key name="bi-bar-height" type="i">
+      <default>16</default>
+      <range min="8" max="32"/>
+      <summary>Alto de la barra</summary>
+    </key>
+    <key name="bi-bar-radius" type="i">
+      <default>7</default>
+      <range min="0" max="20"/>
+      <summary>Redondeo de la barra</summary>
+    </key>
+    <key name="bi-low-threshold" type="i">
+      <default>20</default>
+      <range min="0" max="100"/>
+      <summary>Umbral de batería baja</summary>
+    </key>
+    <key name="bi-color" type="s">
+      <default>""</default>
+      <summary>Color de la barra/círculo</summary>
+      <description>Color CSS. Vacío usa el color del tema.</description>
+    </key>
+    <key name="bi-charging-color" type="s">
+      <default>""</default>
+      <summary>Color de carga</summary>
+      <description>Color CSS cuando está cargando. Vacío usa el color del tema.</description>
+    </key>
+    <key name="bi-low-color" type="s">
+      <default>""</default>
+      <summary>Color de batería baja</summary>
+      <description>Color CSS para batería baja. Vacío usa el color del tema.</description>
+    </key>
+    <key name="bi-bg-color" type="s">
+      <default>""</default>
+      <summary>Color de fondo de la barra</summary>
+      <description>Color CSS de fondo de la barra. Vacío usa el color por defecto.</description>
+    </key>
+    <!-- Workspace Bar (space-bar style) -->
+    <key type="b" name="wb-enabled">
+      <default>false</default>
+      <summary>Habilitar Workspace Bar</summary>
+      <description>Barra de espacios de trabajo estilo Space Bar con iconos de ventanas</description>
+    </key>
+
+    <key type="s" name="wb-size-mode">
+      <default>'medium'</default>
+      <summary>Modo de tamaño</summary>
+      <description>Controla tamaño de icono, fuente, espaciado y redondeo. Opciones: small, medium, large.</description>
+    </key>
+
+    <key type="b" name="wb-show-icons-background">
+      <default>true</default>
+      <summary>Mostrar fondo de iconos</summary>
+      <description>Cuando está activo, dibuja un fondo sutil detrás de los iconos de espacio.</description>
+    </key>
+
+    <key type="b" name="wb-enable-animations">
+      <default>false</default>
+      <summary>Habilitar animaciones</summary>
+      <description>Cuando está activo, los cambios de espacio e iconos se animan suavemente.</description>
+    </key>
+
+    <key type="b" name="wb-focus-scale-effect">
+      <default>true</default>
+      <summary>Efecto de escala de enfoque</summary>
+      <description>Cuando está activo, el icono de la ventana enfocada se muestra a tamaño completo mientras los iconos no enfocados se reducen ligeramente.</description>
+    </key>
+
+    <key type="i" name="wb-focus-scale-reduction">
+      <default>15</default>
+      <range min="5" max="95"/>
+      <summary>Reducción de escala de enfoque</summary>
+      <description>Porcentaje por el cual se reducen los iconos no enfocados (5 = apenas notable, 95 = casi invisible).</description>
+    </key>
+
+    <key type="b" name="wb-middle-click-close">
+      <default>false</default>
+      <summary>Clic central cierra ventana</summary>
+      <description>Cuando está activo, el clic central en un icono de app cierra esa ventana.</description>
+    </key>
+
+    <key type="b" name="wb-dim-inactive-icons">
+      <default>false</default>
+      <summary>Reducir opacidad de iconos inactivos</summary>
+      <description>Cuando está activo, el icono de todas las ventanas excepto la enfocada se muestra con opacidad reducida.</description>
+    </key>
+
+    <key type="b" name="wb-desaturate-inactive-icons">
+      <default>false</default>
+      <summary>Desaturar iconos inactivos</summary>
+      <description>Cuando está activo, el icono de todas las ventanas excepto la enfocada se muestra en escala de grises.</description>
+    </key>
+  </schema>
+</schemalist>

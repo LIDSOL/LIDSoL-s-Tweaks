@@ -125,12 +125,8 @@ export class ModuleLoader {
     }
 
     enable() {
-        console.log('[LIDSoL Widgets] ModuleLoader enabled');
-        console.log(`[LIDSoL Widgets] ${REGISTERED_MODULES.length} modules registered`);
-
         for (const modInfo of REGISTERED_MODULES) {
             const should = this._shouldEnableModule(modInfo);
-            console.log(`[LIDSoL Widgets] Module '${modInfo.id}': shouldEnable=${should}`);
             if (should)
                 this._enableModule(modInfo);
 
@@ -141,10 +137,7 @@ export class ModuleLoader {
     _shouldEnableModule(modInfo) {
         if (modInfo.enabledKey) {
             try {
-                const val = this._gsettings.get_boolean(modInfo.enabledKey);
-                if (modInfo.id === 'quickSettingsTweaks')
-                    console.log(`[LIDSoL Widgets] QST enabledKey=${modInfo.enabledKey} value=${val}`);
-                return val;
+                return this._gsettings.get_boolean(modInfo.enabledKey);
             } catch (e) {
                 console.error(`[LIDSoL Widgets] Error reading ${modInfo.enabledKey}:`, e);
                 return false;
@@ -161,10 +154,8 @@ export class ModuleLoader {
             const isRunning = this._modules.has(modInfo.id);
 
             if (enabled && !isRunning) {
-                console.log(`[LIDSoL Widgets] Runtime enabling module: ${modInfo.name}`);
                 this._enableModule(modInfo);
             } else if (!enabled && isRunning) {
-                console.log(`[LIDSoL Widgets] Runtime disabling module: ${modInfo.name}`);
                 this._disableModule(modInfo.id);
             }
         });
@@ -172,7 +163,6 @@ export class ModuleLoader {
     }
 
     _enableModule(modInfo) {
-        console.log(`[LIDSoL Widgets] Enabling module: ${modInfo.name}`);
         try {
             const moduleInstance = new modInfo.moduleClass();
             moduleInstance.enable(this._gsettings, this._extension);
@@ -195,8 +185,6 @@ export class ModuleLoader {
     }
 
     disable() {
-        console.log('[LIDSoL Widgets] ModuleLoader disabled');
-
         for (const id of this._watchers)
             this._gsettings.disconnect(id);
         this._watchers = [];

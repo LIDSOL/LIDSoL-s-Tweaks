@@ -1422,12 +1422,12 @@
 
     <!-- Dashboard -->
     <key type="b" name="dashboard-enabled">
-      <default>false</default>
+      <default>true</default>
       <summary>Habilitar Dashboard</summary>
       <description>Activa el panel de inicio (Dashboard) con widgets configurables</description>
     </key>
     <key type="as" name="dashboard-shortcut">
-      <default><![CDATA[['<Ctrl><Super>d']]]></default>
+      <default><![CDATA[['<Shift><Super>d']]]></default>
       <summary>Atajo para abrir/cerrar Dashboard</summary>
     </key>
 
@@ -1468,13 +1468,13 @@
 
     <key type="i" name="dashboard-grid-spacing">
       <range min="0" max="30"/>
-      <default>12</default>
+      <default>0</default>
       <summary>Espaciado uniforme de la cuadrícula</summary>
       <description>Separación uniforme entre filas y columnas del layout en grid</description>
     </key>
     <key type="i" name="dashboard-grid-columns">
       <range min="1" max="6"/>
-      <default>3</default>
+      <default>1</default>
       <summary>Columnas de la cuadrícula</summary>
       <description>Número de columnas usado para colocar automáticamente los widgets sin posición explícita</description>
     </key>
@@ -1484,7 +1484,7 @@
     <!-- ============================================================ -->
 
     <!-- Apps Widget -->
-    <key type="i" name="dashboard-apps-x-align"><default>0</default></key>
+    <key type="i" name="dashboard-apps-x-align"><default>2</default></key>
     <key type="i" name="dashboard-apps-y-align"><default>0</default></key>
     <key type="b" name="dashboard-apps-x-expand"><default>false</default></key>
     <key type="b" name="dashboard-apps-y-expand"><default>false</default></key>
@@ -1492,8 +1492,8 @@
     <key type="i" name="dashboard-apps-height"><default>0</default></key>
     <key type="b" name="dashboard-apps-background"><default>true</default></key>
     <key type="i" name="dashboard-apps-rows"><default>2</default></key>
-    <key type="i" name="dashboard-apps-cols"><default>3</default></key>
-    <key type="i" name="dashboard-apps-icon-size"><default>28</default></key>
+    <key type="i" name="dashboard-apps-cols"><default>4</default></key>
+    <key type="i" name="dashboard-apps-icon-size"><default>60</default></key>
 
     <!-- Clock Widget -->
     <key type="i" name="dashboard-clock-x-align"><default>0</default></key>
@@ -1503,14 +1503,14 @@
     <key type="i" name="dashboard-clock-width"><default>0</default></key>
     <key type="i" name="dashboard-clock-height"><default>0</default></key>
     <key type="b" name="dashboard-clock-background"><default>true</default></key>
-    <key type="b" name="dashboard-clock-vertical"><default>false</default></key>
+    <key type="b" name="dashboard-clock-vertical"><default>true</default></key>
     <key type="i" name="dashboard-clock-clock-size">
       <range min="20" max="70"/>
-      <default>64</default>
+      <default>50</default>
     </key>
     <key type="i" name="dashboard-clock-date-size">
       <range min="15" max="30"/>
-      <default>16</default>
+      <default>18</default>
     </key>
     <key type="i" name="dashboard-clock-spacing">
       <default>0</default>
@@ -1527,19 +1527,19 @@
     <key type="i" name="dashboard-levels-width"><default>0</default></key>
     <key type="i" name="dashboard-levels-height"><default>0</default></key>
     <key type="b" name="dashboard-levels-background"><default>true</default></key>
-    <key type="b" name="dashboard-levels-show-battery"><default>true</default></key>
+    <key type="b" name="dashboard-levels-show-battery"><default>false</default></key>
     <key type="b" name="dashboard-levels-show-storage"><default>true</default></key>
     <key type="b" name="dashboard-levels-show-cpu"><default>true</default></key>
     <key type="b" name="dashboard-levels-show-ram"><default>true</default></key>
     <key type="b" name="dashboard-levels-show-temp"><default>true</default></key>
-    <key type="i" name="dashboard-levels-fixed-width"><default>450</default></key>
-    <key type="s" name="dashboard-levels-command"><default>'gnome-system-monitor'</default></key>
+    <key type="i" name="dashboard-levels-fixed-width"><default>390</default></key>
+    <key type="s" name="dashboard-levels-command"><default>'ghostty -e htop'</default></key>
     <key type="s" name="dashboard-clock-command"><default>'gnome-clocks'</default></key>
 
     <!-- Media Widget -->
-    <key type="i" name="dashboard-media-x-align"><default>0</default></key>
-    <key type="i" name="dashboard-media-y-align"><default>0</default></key>
-    <key type="b" name="dashboard-media-x-expand"><default>false</default></key>
+    <key type="i" name="dashboard-media-x-align"><default>2</default></key>
+    <key type="i" name="dashboard-media-y-align"><default>2</default></key>
+    <key type="b" name="dashboard-media-x-expand"><default>true</default></key>
     <key type="b" name="dashboard-media-y-expand"><default>true</default></key>
     <key type="i" name="dashboard-media-width"><default>0</default></key>
     <key type="i" name="dashboard-media-height"><default>0</default></key>
@@ -1547,7 +1547,7 @@
     <key type="i" name="dashboard-media-style"><default>2</default></key>
     <key type="i" name="dashboard-media-cover-width"><default>100</default></key>
     <key type="i" name="dashboard-media-cover-height"><default>100</default></key>
-    <key type="i" name="dashboard-media-cover-roundness"><default>8</default></key>
+    <key type="i" name="dashboard-media-cover-roundness"><default>10</default></key>
     <key type="b" name="dashboard-media-fade"><default>true</default></key>
     <key type="b" name="dashboard-media-show-text"><default>true</default></key>
     <key type="b" name="dashboard-media-show-loop-shuffle"><default>true</default></key>
@@ -1570,10 +1570,10 @@
     <key type="i" name="dashboard-system-height"><default>0</default></key>
     <key type="b" name="dashboard-system-background"><default>true</default></key>
     <key type="i" name="dashboard-system-layout"><default>0</default></key>
-    <key type="i" name="dashboard-system-icon-size"><default>34</default></key>
+    <key type="i" name="dashboard-system-icon-size"><default>30</default></key>
 
     <!-- User Widget -->
-    <key type="i" name="dashboard-user-x-align"><default>1</default></key>
+    <key type="i" name="dashboard-user-x-align"><default>0</default></key>
     <key type="i" name="dashboard-user-y-align"><default>0</default></key>
     <key type="b" name="dashboard-user-x-expand"><default>false</default></key>
     <key type="b" name="dashboard-user-y-expand"><default>false</default></key>
@@ -1581,7 +1581,7 @@
     <key type="i" name="dashboard-user-height"><default>0</default></key>
     <key type="b" name="dashboard-user-background"><default>true</default></key>
     <key type="b" name="dashboard-user-vertical"><default>false</default></key>
-    <key type="i" name="dashboard-user-icon-roundness"><default>99</default></key>
+    <key type="i" name="dashboard-user-icon-roundness"><default>10</default></key>
     <key type="i" name="dashboard-user-icon-width">
       <range min="50" max="100"/>
       <default>80</default>
@@ -1590,11 +1590,11 @@
       <range min="50" max="100"/>
       <default>80</default>
     </key>
-    <key type="i" name="dashboard-user-text-spacing"><default>1</default></key>
+    <key type="i" name="dashboard-user-text-spacing"><default>0</default></key>
 
     <!-- Launcher -->
     <key type="b" name="launcher-enabled">
-      <default>false</default>
+      <default>true</default>
       <summary>Habilitar Launcher</summary>
       <description>Abrir la búsqueda nativa del Overview con el atajo de teclado (modo búsqueda)</description>
     </key>
@@ -1604,12 +1604,12 @@
       <description>Atajo para abrir la búsqueda del Overview (modo búsqueda)</description>
     </key>
     <key type="b" name="launcher-hide-search">
-      <default>false</default>
+      <default>true</default>
       <summary>Ocultar barra de búsqueda del Overview</summary>
       <description>Oculta el campo "Type to search" en el Overview. Aparece al empezar a escribir.</description>
     </key>
     <key type="as" name="launcher-commands">
-      <default><![CDATA[[]]]></default>
+      <default><![CDATA[['noti|notify-send "Hola LIDSoL :P"|preferences-system-notifications-symbolic']]]></default>
       <summary>Comandos personalizados</summary>
       <description>Lista de "nombre|comando" opcionalmente "nombre|comando|icono" ejecutables desde la búsqueda escribiendo :nombre</description>
     </key>
